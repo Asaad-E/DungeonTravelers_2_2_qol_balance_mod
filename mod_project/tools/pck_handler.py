@@ -497,3 +497,59 @@ class FoodMenuHelper:
         res.extend(b'\x00' * pad_end)
         return bytes(res)
 
+
+class EnemyAttackHelper:
+    """Helper for reading and writing EnemyAttackData .bin structures safely."""
+    
+    @staticmethod
+    def read_enemy_attack(bin_data):
+        p0 = struct.unpack('<Q', bin_data[8:16])[0]
+        p1 = struct.unpack('<Q', bin_data[16:24])[0]
+        p2 = struct.unpack('<Q', bin_data[24:32])[0]
+        p3 = struct.unpack('<Q', bin_data[32:40])[0]
+        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1', 'replace')
+        desc = bin_data[p3:bin_data.find(b'\x00', p3)].decode('latin-1', 'replace')
+        return {'name': name, 'desc': desc, 'p0': p0, 'p1': p1, 'p2': p2, 'p3': p3}
+
+    @staticmethod
+    def write_enemy_attack(bin_data, new_desc):
+        p0 = struct.unpack('<Q', bin_data[8:16])[0]
+        p1 = struct.unpack('<Q', bin_data[16:24])[0]
+        p2 = struct.unpack('<Q', bin_data[24:32])[0]
+        p3 = struct.unpack('<Q', bin_data[32:40])[0]
+        
+        fixed_hdr = bytearray(bin_data[:p0])
+        name_bytes = bytearray(bin_data[p0:bin_data.find(b'\x00', p0) + 1])
+        jp_bytes = bytearray(bin_data[p1:bin_data.find(b'\x00', p1) + 1])
+        s2_bytes = bytearray(bin_data[p2:bin_data.find(b'\x00', p2) + 1])
+        new_desc_bytes = bytearray(new_desc.encode('latin-1') + b'\x00')
+        
+        new_p0 = p0
+        pad0 = (8 - (len(name_bytes) % 8)) % 8
+        name_bytes += b'\x00' * pad0
+        
+        new_p1 = new_p0 + len(name_bytes)
+        pad1 = (8 - (len(jp_bytes) % 8)) % 8
+        jp_bytes += b'\x00' * pad1
+        
+        new_p2 = new_p1 + len(jp_bytes)
+        pad2 = (8 - (len(s2_bytes) % 8)) % 8
+        s2_bytes += b'\x00' * pad2
+        
+        new_p3 = new_p2 + len(s2_bytes)
+        
+        struct.pack_into('<Q', fixed_hdr, 8, new_p0)
+        struct.pack_into('<Q', fixed_hdr, 16, new_p1)
+        struct.pack_into('<Q', fixed_hdr, 24, new_p2)
+        struct.pack_into('<Q', fixed_hdr, 32, new_p3)
+        
+        res = bytearray(fixed_hdr)
+        res.extend(name_bytes)
+        res.extend(jp_bytes)
+        res.extend(s2_bytes)
+        res.extend(new_desc_bytes)
+        
+        pad_end = (16 - (len(res) % 16)) % 16
+        res.extend(b'\x00' * pad_end)
+        return bytes(res)
+

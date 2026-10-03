@@ -8,7 +8,8 @@ from pck_handler import (
     JoinSkillHelper,
     EnchantHelper,
     PartySkillHelper,
-    FoodMenuHelper
+    FoodMenuHelper,
+    EnemyAttackHelper
 )
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -384,6 +385,41 @@ def update_lessons():
     archive.save(target_path)
     print(f"Applied {applied_count} BattleTeacher lecture scripts to: {target_path}")
 
+def update_enemy_attacks():
+    excel_path = os.path.join(TABLES_DIR, 'enemy_attacks.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Enemy/Summon Attacks.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["EnemyAttacks"]
+    
+    edits = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, sk_id, name, h_line, van_desc, mod_desc, status = row[:7]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_desc:
+            edits[fn] = mod_desc
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "EnemyAttackData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_desc = edits[fn]
+            new_bin = EnemyAttackHelper.write_enemy_attack(b, new_desc)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "EnemyAttackData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Summon/Monster Attacks to: {target_path}")
+
 if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
@@ -395,5 +431,6 @@ if __name__ == "__main__":
     update_party_skills()
     update_food_menu()
     update_lessons()
+    update_enemy_attacks()
     print("=== Complete Mod Execution Finished Successfully! ===")
 
