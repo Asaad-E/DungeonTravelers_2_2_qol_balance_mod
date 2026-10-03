@@ -116,5 +116,5 @@ def update_items():
 if __name__ == "__main__":
     print("=== Applying Mod Changes from Excel to Game PCKs ===")
     update_skills()
-    update_items()
+    # update_items() - pending full ItemData struct reconstruction
     print("=== Done! ===")

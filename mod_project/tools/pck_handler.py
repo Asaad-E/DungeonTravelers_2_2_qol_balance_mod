@@ -3,11 +3,12 @@ import os
 
 class PckArchive:
     """
-    Parser and builder for Aquaplus / Sting PCK archive format.
-    Preserves 16-byte alignment and 64-bit struct pointers.
+    Parser and bit-exact builder for Aquaplus / Sting PCK archive format.
+    Accurately preserves 0x14 unpadded marker, 8-byte Pack boundary,
+    4-byte header pad, and 16-byte relative data alignment.
     """
     def __init__(self, filepath=None):
-        self.files = [] # list of (filename, bytes)
+        self.files = [] # list of (filename, bytearray)
         if filepath:
             self.load(filepath)
 
@@ -60,22 +61,27 @@ class PckArchive:
             fn_section.extend(struct.pack('<I', o))
         fn_section.extend(fn_bytes)
 
-        pack_offset = 0x18 + len(fn_section)
-        if pack_offset % 4 != 0:
-            pad = 4 - (pack_offset % 4)
-            fn_section.extend(b'\x00' * pad)
-            pack_offset += pad
+        # In Aquaplus PCK:
+        # Offset 0x14 stores the unpadded end of filename data: 0x18 + len(fn_section)
+        unpadded_end = 0x18 + len(fn_section)
+        # Pack header starts at next 8-byte boundary
+        pack_offset = (unpadded_end + 7) & ~7
+        pad_to_pack = pack_offset - unpadded_end
+        fn_section.extend(b'\x00' * pad_to_pack)
 
         pack_magic = b'Pack                '
         pack_hdr_size = 20 + 8 + file_count * 8
-        data_start = (pack_offset + pack_hdr_size + 15) & ~15
+        # Fixed 4-byte pad between pack_hdr and data_start
+        data_start = pack_offset + pack_hdr_size + 4
 
         file_entries = []
         data_section = bytearray()
         cur_off = data_start
 
         for _, content in self.files:
-            align_pad = (16 - (cur_off % 16)) % 16
+            # 16-byte alignment relative to data_start
+            rel_off = cur_off - data_start
+            align_pad = (16 - (rel_off % 16)) % 16
             if align_pad:
                 data_section.extend(b'\x00' * align_pad)
                 cur_off += align_pad
@@ -89,18 +95,18 @@ class PckArchive:
         for o, s in file_entries:
             pack_hdr.extend(struct.pack('<II', o, s))
 
-        pad_to_data = data_start - (pack_offset + len(pack_hdr))
-        pack_hdr.extend(b'\x00' * pad_to_data)
+        # 4-byte pad between header and data
+        pack_hdr.extend(b'\x00\x00\x00\x00')
 
         res = bytearray()
         res.extend(b'Filename            ')
-        res.extend(struct.pack('<I', pack_offset))
+        res.extend(struct.pack('<I', unpadded_end))
         res.extend(fn_section)
         res.extend(pack_hdr)
         res.extend(data_section)
 
-        # 8-byte alignment
-        pad_end = (8 - (len(res) % 8)) % 8
+        # Pad total file to 16 bytes
+        pad_end = (16 - (len(res) % 16)) % 16
         res.extend(b'\x00' * pad_end)
         return bytes(res)
 
@@ -110,7 +116,6 @@ class SkillHelper:
     
     @staticmethod
     def read_skill(bin_data, category):
-        # category: 'Technique', 'Magic', 'Passive', 'Unique'
         p0, p1 = struct.unpack('<2Q', bin_data[8:24])
         name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
         desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
@@ -121,13 +126,9 @@ class SkillHelper:
             if p2 < len(bin_data):
                 lvup = bin_data[p2:bin_data.find(b'\x00', p2)].decode('latin-1')
                 
-        # Extract max level and TP progression
         max_lv = 0
         tp_prog = []
         if category in ['Technique', 'Magic']:
-            # Max level is at 0x110 or can be inferred
-            # TP costs are usually at 0x05c
-            # Let's count non-zero TP values starting at 0x5c
             for off in range(0x5c, 0x84, 4):
                 tp_val = struct.unpack('<i', bin_data[off:off+4])[0]
                 if 1 <= tp_val <= 100:
