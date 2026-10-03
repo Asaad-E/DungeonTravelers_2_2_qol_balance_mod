@@ -122,32 +122,30 @@ def format_enemy_attack(name, h_line, pwr, ail_id, ail_rate, orig_lines):
     return '\n'.join(lines[:3])
 
 def generate_table():
-    print("=== Generating enemy_attacks.xlsx for Summon & Monster Skills ===")
-    skill_ids = get_summon_skill_ids()
-    print(f"Loaded {len(skill_ids)} distinct skills used by Summons.")
+    print("=== Generating enemy_attacks.xlsx for All Monster & Summon Skills ===")
+    summon_ids = set(get_summon_skill_ids())
+    print(f"Loaded {len(summon_ids)} distinct skills used by Summons.")
     
     enemy_arc = PckArchive(os.path.join(BACKUP_DIR, 'EnemyAttackData.pck'))
-    enemy_dict = dict(enemy_arc.files)
     
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "EnemyAttacks"
-    ws.append(["Filename", "SkillID", "Name", "HeaderLine", "Vanilla_Desc", "Modded_Desc", "Status"])
+    ws.append(["Filename", "SkillID", "Name", "HeaderLine", "Vanilla_Desc", "Modded_Desc", "IsSummon", "Status"])
     
     errors = []
     count = 0
     
-    for sk_id in skill_ids:
-        fn = f'EnemyAttackData_{sk_id:04d}.bin'
-        if fn not in enemy_dict:
-            continue
-        b = enemy_dict[fn]
+    for fn, b in enemy_arc.files:
         p0 = struct.unpack('<Q', b[8:16])[0]
         p3 = struct.unpack('<Q', b[32:40])[0]
         name = b[p0:b.find(b'\x00', p0)].decode('latin-1')
         orig_desc = b[p3:b.find(b'\x00', p3)].decode('latin-1')
         orig_lines = orig_desc.split('\n')
         h_line = orig_lines[0] if orig_lines else "Target: Single / Type: ? / Range: ?"
+        
+        sk_id = struct.unpack('<I', b[0:4])[0]
+        is_summon = "Yes" if sk_id in summon_ids else "No"
         
         pwr = struct.unpack('<f', b[0x44:0x48])[0]
         ail_id = struct.unpack('<i', b[0x58:0x5c])[0]
@@ -165,12 +163,12 @@ def generate_table():
             if '~' in l:
                 errors.append(f"Row {fn} ({name}): contains invalid tilde (~)")
                 
-        ws.append([fn, sk_id, name, h_line, orig_desc, mod_desc, "Approved"])
+        ws.append([fn, sk_id, name, h_line, orig_desc, mod_desc, is_summon, "Approved"])
         count += 1
         
     out_path = os.path.join(TABLES_DIR, 'enemy_attacks.xlsx')
     wb.save(out_path)
-    print(f"Successfully saved {count} summon skills to: {out_path}")
+    print(f"Successfully saved all {count} skills to: {out_path}")
     print(f"Validation Errors: {len(errors)}")
     for err in errors:
         print(f"  [ERROR] {err}")

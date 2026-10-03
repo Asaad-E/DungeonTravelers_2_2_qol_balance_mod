@@ -398,7 +398,7 @@ def update_enemy_attacks():
     for row in ws.iter_rows(min_row=2, values_only=True):
         if not row or not row[0]:
             continue
-        fn, sk_id, name, h_line, van_desc, mod_desc, status = row[:7]
+        fn, sk_id, name, h_line, van_desc, mod_desc, is_summon, status = row[:8]
         if status in ['Approved', 'Applied', 'Draft'] and mod_desc:
             edits[fn] = mod_desc
             

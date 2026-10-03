@@ -212,7 +212,7 @@ def run_audit():
         modified_ea = 0
         for r in range(2, ws_ea.max_row + 1):
             name = ws_ea.cell(row=r, column=3).value
-            status = ws_ea.cell(row=r, column=7).value
+            status = ws_ea.cell(row=r, column=8).value
             m_desc = ws_ea.cell(row=r, column=6).value or ""
             if status in ['Approved', 'Applied', 'Draft'] and m_desc:
                 modified_ea += 1
