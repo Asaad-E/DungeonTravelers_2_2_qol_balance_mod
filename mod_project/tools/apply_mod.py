@@ -1,11 +1,18 @@
 import os
 import openpyxl
-from pck_handler import PckArchive, SkillHelper
+from pck_handler import (
+    PckArchive, 
+    SkillHelper, 
+    ItemHelper, 
+    SealScrollHelper, 
+    JoinSkillHelper
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
 GAME_PARAM_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Parameter')
+GAME_SCRIPT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Script')
 
 def update_skills():
     excel_path = os.path.join(TABLES_DIR, 'skills.xlsx')
@@ -23,7 +30,6 @@ def update_skills():
         "Unique": "UniqueSkillData.pck",
     }
     
-    # Read rows to apply
     pck_edits = {} # pck_file -> {filename: {'desc': ..., 'lvup': ..., 'name': ...}}
     for row in ws.iter_rows(min_row=2, values_only=True):
         if not row or not row[1]:
@@ -42,7 +48,6 @@ def update_skills():
             
     print(f"Loaded edits for {sum(len(v) for v in pck_edits.values())} skills across {len(pck_edits)} PCK files.")
     
-    # Apply to each PCK
     for pck_file, edits in pck_edits.items():
         backup_path = os.path.join(BACKUP_DIR, pck_file)
         archive = PckArchive(backup_path)
@@ -67,7 +72,7 @@ def update_items():
     wb = openpyxl.load_workbook(excel_path)
     ws = wb["Items"]
     
-    edits = {} # filename -> new_desc
+    edits = {}
     for row in ws.iter_rows(min_row=2, values_only=True):
         if not row or not row[1]:
             continue
@@ -81,7 +86,6 @@ def update_items():
     pck_path = os.path.join(BACKUP_DIR, "ItemData.pck")
     archive = PckArchive(pck_path)
     
-    from pck_handler import ItemHelper
     applied_count = 0
     for i, (fn, b) in enumerate(archive.files):
         if fn in edits:
@@ -94,9 +98,149 @@ def update_items():
     archive.save(target_path)
     print(f"Applied {applied_count} items to: {target_path}")
 
+def update_grand_seals():
+    excel_path = os.path.join(TABLES_DIR, 'grand_seals.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Grand Seals.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["GrandSeals"]
+    
+    edits = {} # fn -> mod_desc
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, seal_name, boss_name, vanilla_desc, mod_desc, status = row[:6]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_desc:
+            edits[fn] = mod_desc
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "SealScrollData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_desc = edits[fn]
+            new_bin = SealScrollHelper.write_seal(b, new_desc)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "SealScrollData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Grand Sealbooks to: {target_path}")
+
+def update_joint_skills():
+    excel_path = os.path.join(TABLES_DIR, 'joint_skills.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Joint Skills.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["JointSkills"]
+    
+    edits = {} # fn -> mod_desc
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, skill_name, vanilla_desc, mod_desc, status = row[:5]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_desc:
+            edits[fn] = mod_desc
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "JoinSkillData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_desc = edits[fn]
+            new_bin = JoinSkillHelper.write_joint(b, new_desc)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "JoinSkillData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Joint Skills to: {target_path}")
+
+def update_teaching_script(bin_data, replacements):
+    new_data = bytearray(bin_data)
+    for orig_str, new_str in replacements.items():
+        orig_bytes = orig_str.encode('ascii') + b'\x00'
+        new_bytes = new_str.encode('ascii') + b'\x00'
+        idx = new_data.find(orig_bytes)
+        if idx == -1:
+            continue
+        new_data = new_data[:idx] + new_bytes + new_data[idx + len(orig_bytes):]
+    return bytes(new_data)
+
+def update_teaching():
+    pck_path = os.path.join(BACKUP_DIR, "Teaching.pck")
+    if not os.path.exists(pck_path):
+        print(f"Notice: Backup {pck_path} not found, skipping Teaching.")
+        return
+        
+    archive = PckArchive(pck_path)
+    
+    replacements_18 = {
+        "If the character has passed certain level thresholds,\nthen it is possible to restore to those thresholds rather\nthan to level 1.": (
+            "Thresholds are Lv 1, 15, 30, and 50. Bonus stats require a\n"
+            "level gap of >=59 (e.g. Lv 60->1, Lv 90->30) to increase\n"
+            "permanent base attributes (+1 to all stats and resists)."
+        )
+    }
+
+    replacements_20 = {
+        "Elemental Zones: Enhance one element: Fire, Water,\nWind, Earth, or Lightning. Increase all damage of that\nelemental type considerably.": (
+            "Elemental Zones: +50% damage dealt to favored element,\n"
+            "-50% to opposed element (Fire/Water, Earth/Wind, Lightning).\n"
+            "Applies to both party and monsters."
+        ),
+        "Boost Zones: There are Attack, Magic, Armor, and Magic\nResist Zones. They enhance Physical Attack, Magic Attack,\nPhysical Defense, and Magic Defense respectively.": (
+            "Boost Zones: Attack, Magic, Armor, and Magic Resist Zones\n"
+            "increase Physical ATK, Magic ATK, Physical DEF, and\n"
+            "Magic DEF by +25% respectively."
+        )
+    }
+
+    replacements_25 = {
+        "Resetting with an even greater level gap can provide even\ngreater stat increases.": (
+            "Stat thresholds: Gap >=59 grants +1 to all stats and resists.\n"
+            "Each additional 10 Lv gap (>=69, >=79, >=89, >=99) adds +1\n"
+            "cumulative bonus point per attribute."
+        ),
+        "This will raise your unique skill to Level EX,\ngreatly heightening its effects.": (
+            "This raises your unique skill to Level EX (+50% bonus\n"
+            "over Lv 9) and unlocks the maximum base attribute cap."
+        )
+    }
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn == 'CheatsTeaching_18.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_18))
+            applied_count += 1
+        elif fn == 'CheatsTeaching_20.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_20))
+            applied_count += 1
+        elif fn == 'CheatsTeaching_25.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_25))
+            applied_count += 1
+
+    target_path = os.path.join(GAME_SCRIPT_DIR, "Teaching.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} ADV tutorial scripts to: {target_path}")
+
 if __name__ == "__main__":
-    print("=== Applying Mod Changes from Excel to Game PCKs ===")
+    print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
     update_items()
-    print("=== Done! ===")
-
+    update_grand_seals()
+    update_joint_skills()
+    update_teaching()
+    print("=== Complete Mod Execution Finished Successfully! ===")

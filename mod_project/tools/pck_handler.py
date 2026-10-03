@@ -247,3 +247,97 @@ class ItemHelper:
         pad_end = (8 - (len(res) % 8)) % 8
         res.extend(b'\x00' * pad_end)
         return bytes(res)
+
+
+class SealScrollHelper:
+    """Helper for reading and writing SealScrollData .bin structures safely."""
+    
+    @staticmethod
+    def read_seal(bin_data):
+        p0 = struct.unpack('<I', bin_data[8:12])[0]
+        p1 = struct.unpack('<I', bin_data[16:20])[0]
+        p38 = struct.unpack('<I', bin_data[0x38:0x3c])[0]
+        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
+        desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
+        name2 = bin_data[p38:bin_data.find(b'\x00', p38)].decode('latin-1') if p38 < len(bin_data) else ""
+        return {'name': name, 'desc': desc, 'name2': name2}
+
+    @staticmethod
+    def write_seal(bin_data, new_desc):
+        fixed_hdr = bytearray(bin_data[:0x48])
+        p0 = struct.unpack('<I', bin_data[8:12])[0]
+        p38 = struct.unpack('<I', bin_data[0x38:0x3c])[0]
+        name_str = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
+        name2_str = bin_data[p38:bin_data.find(b'\x00', p38)].decode('latin-1') if p38 < len(bin_data) else name_str
+
+        name_bytes = name_str.encode('latin-1') + b'\x00'
+        desc_bytes = new_desc.encode('latin-1') + b'\x00'
+        name2_bytes = name2_str.encode('latin-1') + b'\x00'
+
+        new_p0 = 0x48
+        pad0 = (8 - (len(name_bytes) % 8)) % 8
+        name_bytes += b'\x00' * pad0
+
+        new_p1 = new_p0 + len(name_bytes)
+        pad1 = (8 - (len(desc_bytes) % 8)) % 8
+        desc_bytes += b'\x00' * pad1
+
+        new_p38 = new_p1 + len(desc_bytes)
+        pad38 = (8 - (len(name2_bytes) % 8)) % 8
+        name2_bytes += b'\x00' * pad38
+
+        struct.pack_into('<I', fixed_hdr, 8, new_p0)
+        struct.pack_into('<I', fixed_hdr, 16, new_p1)
+        struct.pack_into('<I', fixed_hdr, 0x38, new_p38)
+
+        res = bytearray(fixed_hdr)
+        res.extend(name_bytes)
+        res.extend(desc_bytes)
+        res.extend(name2_bytes)
+        pad_end = (16 - (len(res) % 16)) % 16
+        res.extend(b'\x00' * pad_end)
+        return bytes(res)
+
+
+class JoinSkillHelper:
+    """Helper for reading and writing JoinSkillData .bin structures safely."""
+    
+    @staticmethod
+    def read_joint(bin_data):
+        p0 = struct.unpack('<I', bin_data[8:12])[0]
+        p1 = struct.unpack('<I', bin_data[16:20])[0]
+        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
+        desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
+        return {'name': name, 'desc': desc}
+
+    @staticmethod
+    def write_joint(bin_data, new_desc):
+        fixed_hdr = bytearray(bin_data[:0x98])
+        p0 = struct.unpack('<I', bin_data[8:12])[0]
+        name_str = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
+
+        name_bytes = name_str.encode('latin-1') + b'\x00'
+        desc_bytes = new_desc.encode('latin-1') + b'\x00'
+
+        new_p0 = 0x98
+        pad0 = (8 - (len(name_bytes) % 8)) % 8
+        name_bytes += b'\x00' * pad0
+
+        new_p1 = new_p0 + len(name_bytes)
+        pad1 = (8 - (len(desc_bytes) % 8)) % 8
+        desc_bytes += b'\x00' * pad1
+
+        struct.pack_into('<I', fixed_hdr, 8, new_p0)
+        struct.pack_into('<I', fixed_hdr, 16, new_p1)
+
+        res = bytearray(fixed_hdr)
+        res.extend(name_bytes)
+        res.extend(desc_bytes)
+
+        # 0x20 is unpadded length before 8-byte align pad
+        struct.pack_into('<I', res, 0x20, len(res))
+        pad_end = (8 - (len(res) % 8)) % 8
+        if pad_end == 0:
+            pad_end = 8
+        res.extend(b'\x00' * pad_end)
+        return bytes(res)
