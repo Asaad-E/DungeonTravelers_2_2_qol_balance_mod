@@ -247,7 +247,7 @@ def update_enchants():
         return
         
     wb = openpyxl.load_workbook(excel_path)
-    ws = wb["Enchants"]
+    ws = wb["Enchants"] if "Enchants" in wb.sheetnames else wb.active
     
     edits = {}
     for row in ws.iter_rows(min_row=2, values_only=True):

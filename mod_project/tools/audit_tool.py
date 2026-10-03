@@ -140,7 +140,7 @@ def run_audit():
     enchants_path = os.path.join(TABLES_DIR, 'enchants.xlsx')
     if os.path.exists(enchants_path):
         wb_enc = openpyxl.load_workbook(enchants_path)
-        ws_enc = wb_enc["Enchants"]
+        ws_enc = wb_enc["Enchants"] if "Enchants" in wb_enc.sheetnames else wb_enc.active
         modified_enchants = 0
         for r in range(2, ws_enc.max_row + 1):
             name = ws_enc.cell(row=r, column=2).value
