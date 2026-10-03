@@ -36,7 +36,7 @@ def run_audit():
             modified_skills += 1
             
             # 1. Check line count
-            lines = [mod_desc] if mod_desc else []
+            lines = mod_desc.split('\n') if mod_desc else []
             if mod_lvup:
                 lines.extend(mod_lvup.split('\n'))
                 
@@ -64,9 +64,26 @@ def run_audit():
     for warn in warnings:
         print(f"    [WARN] {warn}")
         
+    # 2. Check Items table
+    items_path = os.path.join(TABLES_DIR, 'items.xlsx')
+    if os.path.exists(items_path):
+        wb_it = openpyxl.load_workbook(items_path)
+        ws_it = wb_it["Items"]
+        modified_items = 0
+        for r in range(2, ws_it.max_row + 1):
+            status = ws_it.cell(row=r, column=7).value
+            m_desc = ws_it.cell(row=r, column=6).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_desc:
+                modified_items += 1
+                if len(m_desc) > 85:
+                    errors.append(f"[ITEMS ROW {r}] '{ws_it.cell(row=r, column=3).value}': Exceeds 85 chars ({len(m_desc)})")
+        print(f"\n[2] ITEMS DATA TABLE CHECK:")
+        print(f"    Total Items Indexed:     {ws_it.max_row - 1}")
+        print(f"    Modified/Active Items:   {modified_items}")
+
     # 3. Verify Game Parameter Files
-    print(f"\n[2] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
-    pck_files = ['TechniqueSkillData.pck', 'PassiveSkillData.pck', 'MagicSkillData.pck', 'ItemData.pck']
+    print(f"\n[3] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    pck_files = ['TechniqueSkillData.pck', 'PassiveSkillData.pck', 'MagicSkillData.pck', 'UniqueSkillData.pck', 'ItemData.pck']
     for pck_file in pck_files:
         game_pck = os.path.join(GAME_PARAM_DIR, pck_file)
         if not os.path.exists(game_pck):
@@ -79,6 +96,7 @@ def run_audit():
         except Exception as e:
             print(f"    [FAIL] {pck_file} corrupted: {e}")
             errors.append(str(e))
+
             
     # 4. Git Status
     print(f"\n[3] VERSION CONTROL STATUS:")
