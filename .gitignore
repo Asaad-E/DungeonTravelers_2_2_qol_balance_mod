@@ -1,0 +1,23 @@
+# Ignore game install binaries and media
+DungeonTravelers2-2_EN/
+*.exe
+*.dll
+*.pck
+*.movie
+*.tex
+*.png
+*.jpg
+*.jpeg
+
+# Except backups inside mod_project
+!mod_project/backups/*.pck
+!mod_project/data_tables/*.xlsx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
