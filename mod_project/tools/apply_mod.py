@@ -5,7 +5,10 @@ from pck_handler import (
     SkillHelper, 
     ItemHelper, 
     SealScrollHelper, 
-    JoinSkillHelper
+    JoinSkillHelper,
+    EnchantHelper,
+    PartySkillHelper,
+    FoodMenuHelper
 )
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -272,6 +275,115 @@ def update_enchants():
     archive.save(target_path)
     print(f"Applied {applied_count} Enchant enhancements to: {target_path}")
 
+def update_party_skills():
+    excel_path = os.path.join(TABLES_DIR, 'party_skills.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Party Skills.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["PartySkills"]
+    
+    edits = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, name, req, van_eff, mod_eff, status = row[:6]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_eff:
+            edits[fn] = mod_eff
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "PartySkillData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_eff = edits[fn]
+            new_bin = PartySkillHelper.write_party_skill(b, new_eff)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "PartySkillData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Party Skills to: {target_path}")
+
+def update_food_menu():
+    excel_path = os.path.join(TABLES_DIR, 'food_menu.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Food Menu.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["FoodMenu"]
+    
+    edits = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, name, flavor, van_eff, mod_eff, status = row[:6]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_eff:
+            edits[fn] = mod_eff
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "FoodMenuData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_eff = edits[fn]
+            new_bin = FoodMenuHelper.write_food_menu(b, new_eff)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "FoodMenuData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Food Menu items to: {target_path}")
+
+def update_lessons():
+    pck_path = os.path.join(BACKUP_DIR, "Lesson.pck")
+    if not os.path.exists(pck_path):
+        print(f"Notice: Backup {pck_path} not found, skipping Lessons.")
+        return
+        
+    archive = PckArchive(pck_path)
+    
+    replacements_10 = {
+        "Party skills also grow stronger according to the number of\nawards you amass.": (
+            "Party skills scale up to +100% bonus according to the\n"
+            "number of awards you amass (maxed out at 50 awards)."
+        ),
+        "I would if I could, but I don't even know what half of them\ndo. You sure I shouldn't just stick to my regular skills?": (
+            "Check the Joint Skill menu: each skill now lists exact\n"
+            "party requirements, Pep costs, and formula breakdown."
+        )
+    }
+
+    replacements_11 = {
+        "Or, after certain level thresholds, you can choose to reset\nback to those specific threshold levels as opposed to level\n1.": (
+            "Thresholds are Lv 1, 15, 30, and 50. Resetting with a\n"
+            "level gap of >=59 grants permanent stats and resists!"
+        )
+    }
+
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn == 'BattleTeacher_10.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_10))
+            applied_count += 1
+        elif fn == 'BattleTeacher_11-12.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_11))
+            applied_count += 1
+
+    target_path = os.path.join(GAME_SCRIPT_DIR, "Lesson.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} BattleTeacher lecture scripts to: {target_path}")
+
 if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
@@ -280,4 +392,8 @@ if __name__ == "__main__":
     update_joint_skills()
     update_teaching()
     update_enchants()
+    update_party_skills()
+    update_food_menu()
+    update_lessons()
     print("=== Complete Mod Execution Finished Successfully! ===")
+

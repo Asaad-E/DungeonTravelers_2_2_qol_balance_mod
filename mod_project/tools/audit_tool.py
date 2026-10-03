@@ -156,8 +156,56 @@ def run_audit():
         print(f"    Total Enchants Indexed:     {ws_enc.max_row - 1}")
         print(f"    Modified/Active Enchants:   {modified_enchants}")
 
-    # 6. Verify Game Binary & PCK Files
-    print(f"\n[6] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    # 6. Check Party Skills table
+    party_path = os.path.join(TABLES_DIR, 'party_skills.xlsx')
+    if os.path.exists(party_path):
+        wb_ps = openpyxl.load_workbook(party_path)
+        ws_ps = wb_ps["PartySkills"]
+        modified_party = 0
+        for r in range(2, ws_ps.max_row + 1):
+            name = ws_ps.cell(row=r, column=2).value
+            status = ws_ps.cell(row=r, column=6).value
+            m_eff = ws_ps.cell(row=r, column=5).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_eff:
+                modified_party += 1
+                lines = m_eff.split('\n')
+                if len(lines) > 3:
+                    errors.append(f"[PARTY SKILLS ROW {r}] '{name}': Exceeds 3 lines ({len(lines)})")
+                for l in lines:
+                    if len(l) > 85:
+                        errors.append(f"[PARTY SKILLS ROW {r}] '{name}': Exceeds 85 chars ({len(l)}): '{l}'")
+                    if '~' in l:
+                        errors.append(f"[PARTY SKILLS ROW {r}] '{name}': Contains invalid tilde (~)")
+        print(f"\n[6] PARTY SKILLS DATA TABLE CHECK:")
+        print(f"    Total Party Skills Indexed: {ws_ps.max_row - 1}")
+        print(f"    Modified/Active Party Skills: {modified_party}")
+
+    # 7. Check Food Menu table
+    food_path = os.path.join(TABLES_DIR, 'food_menu.xlsx')
+    if os.path.exists(food_path):
+        wb_fm = openpyxl.load_workbook(food_path)
+        ws_fm = wb_fm["FoodMenu"]
+        modified_food = 0
+        for r in range(2, ws_fm.max_row + 1):
+            name = ws_fm.cell(row=r, column=2).value
+            status = ws_fm.cell(row=r, column=6).value
+            m_eff = ws_fm.cell(row=r, column=5).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_eff:
+                modified_food += 1
+                lines = m_eff.split('\n')
+                if len(lines) > 3:
+                    errors.append(f"[FOOD MENU ROW {r}] '{name}': Exceeds 3 lines ({len(lines)})")
+                for l in lines:
+                    if len(l) > 85:
+                        errors.append(f"[FOOD MENU ROW {r}] '{name}': Exceeds 85 chars ({len(l)}): '{l}'")
+                    if '~' in l:
+                        errors.append(f"[FOOD MENU ROW {r}] '{name}': Contains invalid tilde (~)")
+        print(f"\n[7] FOOD MENU DATA TABLE CHECK:")
+        print(f"    Total Meals Indexed:        {ws_fm.max_row - 1}")
+        print(f"    Modified/Active Meals:      {modified_food}")
+
+    # 8. Verify Game Binary & PCK Files
+    print(f"\n[8] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
     param_pcks = [
         'TechniqueSkillData.pck', 
         'PassiveSkillData.pck', 
@@ -166,7 +214,9 @@ def run_audit():
         'ItemData.pck',
         'SealScrollData.pck',
         'JoinSkillData.pck',
-        'EnchantData.pck'
+        'EnchantData.pck',
+        'PartySkillData.pck',
+        'FoodMenuData.pck'
     ]
     for pck_file in param_pcks:
         game_pck = os.path.join(GAME_PARAM_DIR, pck_file)
@@ -183,7 +233,7 @@ def run_audit():
             errors.append(str(e))
 
     # Script PCKs
-    script_pcks = ['Teaching.pck']
+    script_pcks = ['Teaching.pck', 'Lesson.pck']
     for pck_file in script_pcks:
         game_pck = os.path.join(GAME_SCRIPT_DIR, pck_file)
         if not os.path.exists(game_pck):
@@ -197,7 +247,7 @@ def run_audit():
             print(f"    [FAIL] {pck_file} corrupted: {e}")
             errors.append(str(e))
 
-    print(f"\n[6] VERSION CONTROL STATUS:")
+    print(f"\n[9] VERSION CONTROL STATUS:")
     tracked_files = os.popen("git status -s").read().strip().splitlines()
     print(f"    Tracked/Changed files in repo: {len(tracked_files)}")
     
