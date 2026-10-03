@@ -197,3 +197,53 @@ class SkillHelper:
         pad_total = (8 - (len(new_bin) % 8)) % 8
         new_bin.extend(b'\x00' * pad_total)
         return bytes(new_bin)
+
+
+class ItemHelper:
+    """Helper for reading and writing ItemData .bin structures safely."""
+    
+    @staticmethod
+    def read_item(bin_data):
+        p0, p1 = struct.unpack('<2Q', bin_data[8:24])
+        p60 = struct.unpack('<Q', bin_data[0x60:0x68])[0]
+        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
+        desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
+        name2 = bin_data[p60:bin_data.find(b'\x00', p60)].decode('latin-1') if p60 < len(bin_data) else ""
+        return {'name': name, 'desc': desc, 'name2': name2}
+
+    @staticmethod
+    def write_item(bin_data, new_desc):
+        fixed_hdr = bytearray(bin_data[:0x70])
+        p0, p1 = struct.unpack('<2Q', bin_data[8:24])
+        p60 = struct.unpack('<Q', bin_data[0x60:0x68])[0]
+        
+        name_str = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
+        name2_str = bin_data[p60:bin_data.find(b'\x00', p60)].decode('latin-1') if p60 < len(bin_data) else name_str
+        
+        name_bytes = name_str.encode('latin-1') + b'\x00'
+        desc_bytes = new_desc.encode('latin-1') + b'\x00'
+        name2_bytes = name2_str.encode('latin-1') + b'\x00'
+        
+        new_p0 = 0x70
+        pad0 = (8 - (len(name_bytes) % 8)) % 8
+        name_bytes += b'\x00' * pad0
+        
+        new_p1 = new_p0 + len(name_bytes)
+        pad1 = (8 - (len(desc_bytes) % 8)) % 8
+        desc_bytes += b'\x00' * pad1
+        
+        new_p60 = new_p1 + len(desc_bytes)
+        pad60 = (8 - (len(name2_bytes) % 8)) % 8
+        name2_bytes += b'\x00' * pad60
+        
+        struct.pack_into('<Q', fixed_hdr, 8, new_p0)
+        struct.pack_into('<Q', fixed_hdr, 16, new_p1)
+        struct.pack_into('<Q', fixed_hdr, 0x60, new_p60)
+        
+        res = bytearray(fixed_hdr)
+        res.extend(name_bytes)
+        res.extend(desc_bytes)
+        res.extend(name2_bytes)
+        pad_end = (8 - (len(res) % 8)) % 8
+        res.extend(b'\x00' * pad_end)
+        return bytes(res)

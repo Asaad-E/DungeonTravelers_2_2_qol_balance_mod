@@ -81,32 +81,13 @@ def update_items():
     pck_path = os.path.join(BACKUP_DIR, "ItemData.pck")
     archive = PckArchive(pck_path)
     
-    import struct
+    from pck_handler import ItemHelper
     applied_count = 0
     for i, (fn, b) in enumerate(archive.files):
         if fn in edits:
             new_desc = edits[fn]
-            p0 = struct.unpack('<Q', b[8:16])[0]
-            name_bytes = b[p0:b.find(b'\x00', p0)+1]
-            desc_bytes = new_desc.encode('latin-1') + b'\x00'
-            
-            fixed_hdr = bytearray(b[:0x70])
-            new_p0 = 0x70
-            new_p1 = new_p0 + len(name_bytes)
-            pad1 = (8 - (new_p1 % 8)) % 8
-            name_bytes += b'\x00' * pad1
-            new_p1 += pad1
-            
-            struct.pack_into('<Q', fixed_hdr, 8, new_p0)
-            struct.pack_into('<Q', fixed_hdr, 16, new_p1)
-            
-            new_bin = bytearray(fixed_hdr)
-            new_bin.extend(name_bytes)
-            new_bin.extend(desc_bytes)
-            pad_end = (8 - (len(new_bin) % 8)) % 8
-            new_bin.extend(b'\x00' * pad_end)
-            
-            archive.files[i] = (fn, bytes(new_bin))
+            new_bin = ItemHelper.write_item(b, new_desc)
+            archive.files[i] = (fn, new_bin)
             applied_count += 1
             
     target_path = os.path.join(GAME_PARAM_DIR, "ItemData.pck")
@@ -116,5 +97,6 @@ def update_items():
 if __name__ == "__main__":
     print("=== Applying Mod Changes from Excel to Game PCKs ===")
     update_skills()
-    # update_items() - pending full ItemData struct reconstruction
+    update_items()
     print("=== Done! ===")
+
