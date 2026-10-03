@@ -236,6 +236,42 @@ def update_teaching():
     archive.save(target_path)
     print(f"Applied {applied_count} ADV tutorial scripts to: {target_path}")
 
+def update_enchants():
+    excel_path = os.path.join(TABLES_DIR, 'enchants.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Enchants.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Enchants"]
+    
+    edits = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, van_name, prefix, suffix, mod_name, status = row[:6]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_name:
+            edits[fn] = mod_name
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "EnchantData.pck")
+    archive = PckArchive(pck_path)
+    
+    from pck_handler import EnchantHelper
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_name = edits[fn]
+            new_bin = EnchantHelper.write_enchant(b, new_name)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "EnchantData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Enchant enhancements to: {target_path}")
+
 if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
@@ -243,4 +279,5 @@ if __name__ == "__main__":
     update_grand_seals()
     update_joint_skills()
     update_teaching()
+    update_enchants()
     print("=== Complete Mod Execution Finished Successfully! ===")

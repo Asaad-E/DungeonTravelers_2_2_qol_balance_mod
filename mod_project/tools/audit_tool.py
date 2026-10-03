@@ -136,8 +136,28 @@ def run_audit():
         print(f"    Total Joint Skills Indexed: {ws_js.max_row - 1}")
         print(f"    Modified/Active Joint Skills: {modified_joints}")
 
-    # 5. Verify Game Binary & PCK Files
-    print(f"\n[5] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    # 5. Check Enchants table
+    enchants_path = os.path.join(TABLES_DIR, 'enchants.xlsx')
+    if os.path.exists(enchants_path):
+        wb_enc = openpyxl.load_workbook(enchants_path)
+        ws_enc = wb_enc["Enchants"]
+        modified_enchants = 0
+        for r in range(2, ws_enc.max_row + 1):
+            name = ws_enc.cell(row=r, column=2).value
+            status = ws_enc.cell(row=r, column=6).value
+            m_name = ws_enc.cell(row=r, column=5).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_name:
+                modified_enchants += 1
+                if len(m_name) > 85:
+                    errors.append(f"[ENCHANTS ROW {r}] '{name}': Exceeds 85 chars ({len(m_name)}): '{m_name}'")
+                if '~' in m_name:
+                    errors.append(f"[ENCHANTS ROW {r}] '{name}': Contains invalid tilde (~)")
+        print(f"\n[5] ENCHANTS DATA TABLE CHECK:")
+        print(f"    Total Enchants Indexed:     {ws_enc.max_row - 1}")
+        print(f"    Modified/Active Enchants:   {modified_enchants}")
+
+    # 6. Verify Game Binary & PCK Files
+    print(f"\n[6] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
     param_pcks = [
         'TechniqueSkillData.pck', 
         'PassiveSkillData.pck', 
@@ -145,7 +165,8 @@ def run_audit():
         'UniqueSkillData.pck', 
         'ItemData.pck',
         'SealScrollData.pck',
-        'JoinSkillData.pck'
+        'JoinSkillData.pck',
+        'EnchantData.pck'
     ]
     for pck_file in param_pcks:
         game_pck = os.path.join(GAME_PARAM_DIR, pck_file)

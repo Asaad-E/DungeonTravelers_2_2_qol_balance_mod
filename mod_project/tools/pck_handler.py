@@ -341,3 +341,53 @@ class JoinSkillHelper:
             pad_end = 8
         res.extend(b'\x00' * pad_end)
         return bytes(res)
+
+
+class EnchantHelper:
+    """Helper for reading and writing EnchantData .bin structures safely."""
+    
+    @staticmethod
+    def read_enchant(bin_data):
+        p0 = struct.unpack('<I', bin_data[8:12])[0]
+        p1 = struct.unpack('<I', bin_data[16:20])[0]
+        p2 = struct.unpack('<I', bin_data[24:28])[0] if len(bin_data) > 28 else 0
+        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1') if p0 < len(bin_data) else ""
+        prefix = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1') if p1 < len(bin_data) else ""
+        suffix = bin_data[p2:bin_data.find(b'\x00', p2)].decode('latin-1') if p2 < len(bin_data) else ""
+        return {'name': name, 'prefix': prefix, 'suffix': suffix}
+
+    @staticmethod
+    def write_enchant(bin_data, new_name):
+        fixed_hdr = bytearray(bin_data[:0x38])
+        p1 = struct.unpack('<I', bin_data[16:20])[0]
+        p2 = struct.unpack('<I', bin_data[24:28])[0]
+        prefix_str = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1') if p1 < len(bin_data) else ""
+        suffix_str = bin_data[p2:bin_data.find(b'\x00', p2)].decode('latin-1') if p2 < len(bin_data) else ""
+
+        name_bytes = new_name.encode('latin-1') + b'\x00'
+        prefix_bytes = prefix_str.encode('latin-1') + b'\x00'
+        suffix_bytes = suffix_str.encode('latin-1') + b'\x00'
+
+        new_p0 = 0x38
+        pad0 = (8 - (len(name_bytes) % 8)) % 8
+        name_bytes += b'\x00' * pad0
+
+        new_p1 = new_p0 + len(name_bytes)
+        pad1 = (8 - (len(prefix_bytes) % 8)) % 8
+        prefix_bytes += b'\x00' * pad1
+
+        new_p2 = new_p1 + len(prefix_bytes)
+        pad2 = (8 - (len(suffix_bytes) % 8)) % 8
+        suffix_bytes += b'\x00' * pad2
+
+        struct.pack_into('<I', fixed_hdr, 8, new_p0)
+        struct.pack_into('<I', fixed_hdr, 16, new_p1)
+        struct.pack_into('<I', fixed_hdr, 24, new_p2)
+
+        res = bytearray(fixed_hdr)
+        res.extend(name_bytes)
+        res.extend(prefix_bytes)
+        res.extend(suffix_bytes)
+        pad_end = (16 - (len(res) % 16)) % 16
+        res.extend(b'\x00' * pad_end)
+        return bytes(res)
