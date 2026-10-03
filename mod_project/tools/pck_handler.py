@@ -553,3 +553,68 @@ class EnemyAttackHelper:
         res.extend(b'\x00' * pad_end)
         return bytes(res)
 
+
+class ClassDataHelper:
+    """Helper for reading and writing ClassData .bin structures safely."""
+    
+    @staticmethod
+    def read_class(bin_data):
+        p_code = struct.unpack('<I', bin_data[0x08:0x0c])[0]
+        p_name = struct.unpack('<I', bin_data[0x10:0x14])[0]
+        p_desc = struct.unpack('<I', bin_data[0x18:0x1c])[0]
+        code = bin_data[p_code:bin_data.find(b'\x00', p_code)].decode('latin-1', 'replace')
+        name = bin_data[p_name:bin_data.find(b'\x00', p_name)].decode('latin-1', 'replace')
+        desc = bin_data[p_desc:bin_data.find(b'\x00', p_desc)].decode('latin-1', 'replace')
+        return {'code': code, 'name': name, 'desc': desc}
+
+    @staticmethod
+    def write_class(bin_data, new_desc):
+        p_code = struct.unpack('<I', bin_data[0x08:0x0c])[0]
+        p_name = struct.unpack('<I', bin_data[0x10:0x14])[0]
+        
+        code = bin_data[p_code:bin_data.find(b'\x00', p_code)].decode('latin-1', 'replace')
+        name = bin_data[p_name:bin_data.find(b'\x00', p_name)].decode('latin-1', 'replace')
+        
+        hdr = bytearray(bin_data[:0x28])
+        b_code = code.encode('latin-1') + b'\x00'
+        pad_code = (8 - (len(b_code) % 8)) % 8
+        b_code += b'\x00' * pad_code
+        
+        b_name = name.encode('latin-1') + b'\x00'
+        pad_name = (8 - (len(b_name) % 8)) % 8
+        b_name += b'\x00' * pad_name
+        
+        b_desc = new_desc.encode('latin-1') + b'\x00'
+        pad_desc = (8 - (len(b_desc) % 8)) % 8
+        b_desc += b'\x00' * pad_desc
+        
+        new_p_code = 0x28
+        new_p_name = new_p_code + len(b_code)
+        new_p_desc = new_p_name + len(b_name)
+        
+        struct.pack_into('<I', hdr, 0x08, new_p_code)
+        struct.pack_into('<I', hdr, 0x10, new_p_name)
+        struct.pack_into('<I', hdr, 0x18, new_p_desc)
+        
+        return bytes(hdr + b_code + b_name + b_desc)
+
+
+class StringDataHelper:
+    """Helper for reading and writing StringData .bin structures safely."""
+    
+    @staticmethod
+    def read_string(bin_data):
+        p = struct.unpack('<I', bin_data[8:12])[0]
+        text = bin_data[p:bin_data.find(b'\x00', p)].decode('latin-1', 'replace')
+        return text
+
+    @staticmethod
+    def write_string(bin_data, new_text):
+        hdr = bytearray(bin_data[:16])
+        b_str = new_text.encode('latin-1') + b'\x00'
+        pad = (8 - (len(b_str) % 8)) % 8
+        b_str += b'\x00' * pad
+        return bytes(hdr + b_str)
+
+
+

@@ -228,8 +228,52 @@ def run_audit():
         print(f"    Total Attacks Indexed:      {ws_ea.max_row - 1}")
         print(f"    Modified/Active Attacks:    {modified_ea}")
 
-    # 9. Verify Game Binary & PCK Files
-    print(f"\n[9] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    # 9. Check Classes table
+    classes_path = os.path.join(TABLES_DIR, 'classes.xlsx')
+    if os.path.exists(classes_path):
+        wb_cl = openpyxl.load_workbook(classes_path)
+        ws_cl = wb_cl["Classes"] if "Classes" in wb_cl.sheetnames else wb_cl.active
+        modified_classes = 0
+        for r in range(2, ws_cl.max_row + 1):
+            name = ws_cl.cell(row=r, column=3).value
+            status = ws_cl.cell(row=r, column=6).value
+            m_desc = ws_cl.cell(row=r, column=5).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_desc:
+                modified_classes += 1
+                lines = m_desc.split('\n')
+                if len(lines) > 3:
+                    errors.append(f"[CLASSES ROW {r}] '{name}': Exceeds 3 lines ({len(lines)})")
+                for l in lines:
+                    if len(l) > 85:
+                        errors.append(f"[CLASSES ROW {r}] '{name}': Exceeds 85 chars ({len(l)}): '{l}'")
+                    if '~' in l:
+                        errors.append(f"[CLASSES ROW {r}] '{name}': Contains invalid tilde (~)")
+        print(f"\n[9] CLASSES DATA TABLE CHECK:")
+        print(f"    Total Classes Indexed:      {ws_cl.max_row - 1}")
+        print(f"    Modified/Active Classes:    {modified_classes}")
+
+    # 10. Check UI Strings table
+    ui_path = os.path.join(TABLES_DIR, 'ui_strings.xlsx')
+    if os.path.exists(ui_path):
+        wb_ui = openpyxl.load_workbook(ui_path)
+        ws_ui = wb_ui["UIStrings"] if "UIStrings" in wb_ui.sheetnames else wb_ui.active
+        modified_ui = 0
+        for r in range(2, ws_ui.max_row + 1):
+            sid = ws_ui.cell(row=r, column=2).value
+            status = ws_ui.cell(row=r, column=5).value
+            m_text = ws_ui.cell(row=r, column=4).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_text:
+                modified_ui += 1
+                if len(m_text) > 85:
+                    errors.append(f"[UI STRINGS ROW {r}] ID {sid}: Exceeds 85 chars ({len(m_text)}): '{m_text}'")
+                if '~' in m_text:
+                    errors.append(f"[UI STRINGS ROW {r}] ID {sid}: Contains invalid tilde (~)")
+        print(f"\n[10] UI STRINGS DATA TABLE CHECK:")
+        print(f"    Total UI Strings Indexed:   {ws_ui.max_row - 1}")
+        print(f"    Modified/Active Strings:    {modified_ui}")
+
+    # 11. Verify Game Binary & PCK Files
+    print(f"\n[11] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
     param_pcks = [
         'TechniqueSkillData.pck', 
         'PassiveSkillData.pck', 
@@ -241,7 +285,9 @@ def run_audit():
         'EnchantData.pck',
         'PartySkillData.pck',
         'FoodMenuData.pck',
-        'EnemyAttackData.pck'
+        'EnemyAttackData.pck',
+        'ClassData.pck',
+        'StringData.pck'
     ]
     for pck_file in param_pcks:
         game_pck = os.path.join(GAME_PARAM_DIR, pck_file)
@@ -272,7 +318,7 @@ def run_audit():
             print(f"    [FAIL] {pck_file} corrupted: {e}")
             errors.append(str(e))
 
-    print(f"\n[10] VERSION CONTROL STATUS:")
+    print(f"\n[12] VERSION CONTROL STATUS:")
     tracked_files = os.popen("git status -s").read().strip().splitlines()
     print(f"    Tracked/Changed files in repo: {len(tracked_files)}")
     

@@ -9,7 +9,9 @@ from pck_handler import (
     EnchantHelper,
     PartySkillHelper,
     FoodMenuHelper,
-    EnemyAttackHelper
+    EnemyAttackHelper,
+    ClassDataHelper,
+    StringDataHelper
 )
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -420,6 +422,76 @@ def update_enemy_attacks():
     archive.save(target_path)
     print(f"Applied {applied_count} Summon/Monster Attacks to: {target_path}")
 
+def update_classes():
+    excel_path = os.path.join(TABLES_DIR, 'classes.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Classes.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Classes"] if "Classes" in wb.sheetnames else wb.active
+    
+    edits = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, code, name, van_desc, mod_desc, status = row[:6]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_desc:
+            edits[fn] = mod_desc
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "ClassData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_desc = edits[fn]
+            new_bin = ClassDataHelper.write_class(b, new_desc)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "ClassData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Class overhauls to: {target_path}")
+
+def update_ui_strings():
+    excel_path = os.path.join(TABLES_DIR, 'ui_strings.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping UI Strings.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["UIStrings"] if "UIStrings" in wb.sheetnames else wb.active
+    
+    edits = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:
+            continue
+        fn, sid, van_text, mod_text, status = row[:5]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_text:
+            edits[fn] = mod_text
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "StringData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_text = edits[fn]
+            new_bin = StringDataHelper.write_string(b, new_text)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "StringData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} UI string improvements to: {target_path}")
+
 if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
@@ -432,5 +504,9 @@ if __name__ == "__main__":
     update_food_menu()
     update_lessons()
     update_enemy_attacks()
+    update_classes()
+    update_ui_strings()
     print("=== Complete Mod Execution Finished Successfully! ===")
+
+
 
