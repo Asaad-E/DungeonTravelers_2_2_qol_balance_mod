@@ -1,173 +1,267 @@
-# Dungeon Travelers 2-2: Mechanics, Binary Architecture & Source of Truth
+# Dungeon Travelers 2-2 (PC): what was done, how, and how to continue
 
-Reference for agents and modders working on *Dungeon Travelers 2-2: The Maiden of Darkness and the Book of Origins* (PC / Aquaplus-Sting Engine).  
-Confidence tags: **[verified]** confirmed by bit-exact binary roundtrip, audit tool, or in-engine test; **[inferred]** deduced from reverse-engineered structures; **[untested]** not directly tested in execution.
+Reference for agents and modders working on *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, Aquaplus / Sting engine). Read `philosophy.md` first for the reasoning, and `docs_example/` for the method this project copies.
+
+Confidence tags: **[verified]** read from the binary and confirmed by a byte-identical round trip or a test; **[inferred]** deduced from the data, a guide or the vanilla text; **[untested]** never run in the game.
+
+Language of chat with the user: Spanish. Everything in the repository: English.
 
 ---
 
-## 1. Deliverables & Mod Components
+## 1. Deliverables
 
-| Component / Artifact | Built By | Target File / Destination | Content & Purpose |
+The mod ships as **two variants that are built separately**.
+
+| Variant | Goal | May change game values | State |
 |---|---|---|---|
-| **Combat Skills** | `apply_mod.py` | `Data/ENG/Parameter/*SkillData.pck` | 218 skills (Tech, Magic, Passive, Unique with Crown EX) with exact Lv1–10 scaling, chants, and recovery. |
-| **Consumable Items** | `apply_mod.py` | `Data/ENG/Parameter/ItemData.pck` | 388 items preserving 100% original humor/flavor + concise `(+data)` (HP/TP, status cures, SP). |
-| **Equipment Catalog** | `apply_mod.py` | `Data/ENG/Parameter/EquipmentData.pck` | 551 weapons, armors, and accessories with Range (`Short`/`Mid`/`Long`), Delay Multiplier ($A+$ to $F$), Slots, and native enchants. |
-| **Grand Sealbooks** | `apply_mod.py` | `Data/ENG/Parameter/SealScrollData.pck` | 374 mutant sealbooks displaying party auras, drop rate bonuses, and summon scaling formulas. |
-| **Joint Skills** | `apply_mod.py` | `Data/ENG/Parameter/JoinSkillData.pck` | 52 multi-turn combos with initiator/participant classes, TP/Pep costs, and damage formulas. |
-| **Enchantments** | `apply_mod.py` | `Data/ENG/Parameter/EnchantData.pck` | 247 forge affixes with exact stat boosts, elemental resistances, and forge limits. |
-| **Party Skills** | `apply_mod.py` | `Data/ENG/Parameter/PartySkillData.pck` | 20 party compositions with exact passive stats, trigger rates, and award scaling. |
-| **Buffet Meals** | `apply_mod.py` | `Data/ENG/Parameter/FoodMenuData.pck` | 16 cafeteria meals with exact step durations and stat boosts (flavor strings 100% preserved). |
-| **Enemy/Summon Attacks** | `apply_mod.py` | `Data/ENG/Parameter/EnemyAttackData.pck` | 2,375 attack techniques with elemental attributes, status infliction rates, and damage types. |
-| **Player Classes** | `apply_mod.py` | `Data/ENG/Parameter/ClassData.pck` | 32 classes with stat multipliers, proficiencies, combat archetypes, and promotion thresholds. |
-| **Combat UI Commands** | `apply_mod.py` | `Data/ENG/Parameter/StringData.pck` | IDs 199–204 (Defend 50% dmg/0.67x delay/crit & interrupt immune, Escape AGI checks, Joint Combos, etc.). |
-| **Dungeon Traps** | `apply_mod.py` | `Data/ENG/Parameter/TrapData.pck` | 12 traps displaying lethality and elemental resistance nullification (e.g. Killer Floor 50% KO, 100 Earth Res Null). |
-| **Trophies & Milestones** | `apply_mod.py` | `Data/ENG/Parameter/TrophyData.pck` | 50 trophies preserving original jokes + exact numeric goals `(Escape 100 battles)` for Party Skill boosts. |
-| **In-Game Encyclopedia** | `apply_mod.py` | `Data/ENG/Script/Teaching.pck` | 25 ADV tutorial chapters overhauled with exact math: delay formulas, trap formulas, chant interrupts, elemental scaling. |
-| **Special Lessons** | `apply_mod.py` | `Data/ENG/Script/Lesson.pck` | Guild lectures detailing superboss survival, Valkyrie Circle Protection, Crown thresholds, and award scaling. |
-| **Facility Advice** | `apply_mod.py` | `Data/ENG/Script/Shop*.pck` | Strategic guidance in Quest Desk (ShopQuest), Blacksmith forge +9 vs 5 slots (ShopBlacksmith), Tavern merc roles (ShopBar). |
-| **Single Source of Truth** | Hand / Scripts | `mod_project/data_tables/*.xlsx` | 13 Excel workbooks serving as the sole source of truth for all modded game content. |
-| **QA Verification Suite** | `audit_tool.py` | Terminal Output | Validates 21 PCK archives and 13 Excel tables against engine line budgets, byte budgets, and encoding limits. |
+| **QoL** | Show more information about the base game. | No. Every figure shown is the original one. | Skills built and verified. Everything else pending. |
+| **Balance** | Rebalance, and show the information of the rebalanced game. | Yes, each change as data. | Not defined yet. |
+
+| Output | Built by | Content |
+|---|---|---|
+| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 267 of 330 entries with new text, numeric data identical to the original. **[untested]** in the game. |
+| `data_tables/vanilla_source_of_truth.xlsx` | `tools/extract_vanilla.py` | Decoded binaries. The fact base. Generated, never edited. |
+| `data_tables/qol_skill_text.xlsx` | `tools/generate_qol_skill_text.py`, then edited by hand | Text of the QoL skills (`QoL_Desc`, `QoL_LvUp`). The editable source for that text. |
+| Installed game + `dist/DT22_Definitive_QoL_Balance_Mod_v1.0.zip` | `tools/apply_mod.py`, `tools/package_release.py` | The **earlier mixed build** (text and value changes together). Not releasable: see section 8 and `CROSS_SYSTEM_VALIDATION_REPORT.md`. |
 
 ---
 
-## 2. Repository Architecture & Workflow Map
+## 2. Repository map
 
 ```
-c:\Users\user\Personal\Physics\DungeonTraveler2-2\
-├── DungeonTravelers2-2_EN\Data\ENG\
-│   ├── Parameter\          # Live game parameter PCK archives (16 archives modified/verified)
-│   └── Script\             # Live game ADV script PCK archives (5 archives modified/verified)
-├── mod_project\
-│   ├── backups\            # Untouched vanilla backup copies of all PCKs
-│   ├── data_tables\        # 13 Excel workbooks (The Single Source of Truth)
-│   ├── docs\               # Architecture, philosophy, and balance proposals
-│   └── tools\
-│       ├── pck_handler.py  # Binary parser/rebuilder helpers (PckArchive, helpers for all 13 types)
-│       ├── apply_mod.py    # Master compiler: reads Excel tables and writes live game PCKs
-│       └── audit_tool.py   # Comprehensive QA test suite: asserts 100% format and byte integrity
-└── docs_example\           # Design philosophy and reference architecture (7th Dragon 2020)
+DungeonTraveler2-2/
+├── DungeonTravelers2-2_EN/Data/ENG/   live game files (Parameter/, Script/). Currently hold the earlier mixed build.
+├── Data/                              GameFAQs pages (*.mhtml). Cross-check only, never a source of values. Not versioned.
+├── docs_example/                      method and reference project (7th Dragon 2020)
+└── mod_project/
+    ├── backups/                       untouched original .pck files (36). Every build reads from here.
+    ├── data_tables/                   workbooks (section 2.1)
+    ├── build/<variant>/               output of build_variant.py. Not versioned.
+    ├── tools/                         section 2.2
+    ├── tests/                         section 7
+    └── docs/
 ```
 
-**Build Command:** `python mod_project/tools/apply_mod.py` (compiles all 21 PCKs from Excel in ~4 seconds).  
-**Test Command:** `python mod_project/tools/audit_tool.py` (validates all 21 PCKs and 13 tables in ~5 seconds).  
-**Dependencies:** Python standard library (`os`, `struct`, `re`, `shutil`) + `openpyxl`. Zero external binary tools needed.
+### 2.1 Workbooks
+
+| Workbook | Edited by hand | Role |
+|---|---|---|
+| `vanilla_source_of_truth.xlsx` | No (generated) | Original values of skills, items, equipment, enemy attacks, traps, ranks, EXP. `Fields` sheet = meaning and confidence of every column. |
+| `qol_skill_text.xlsx` | Yes | QoL skill text. Write `yes` in `Edited` to keep a row from being regenerated. |
+| `skills.xlsx`, `items.xlsx`, `equipment.xlsx`, `enchants.xlsx`, `grand_seals.xlsx`, `joint_skills.xlsx`, `party_skills.xlsx`, `food_menu.xlsx`, `enemy_attacks.xlsx`, `classes.xlsx`, `ui_strings.xlsx`, `traps.xlsx`, `trophies.xlsx`, `exp_curve.xlsx`, `quest_ranks.xlsx` | Yes | Tables of the earlier mixed build (15), read by `apply_mod.py`. Their "vanilla" columns match the backups; many of their figures do not match the binaries (section 8). |
+
+### 2.2 Tools
+
+| Tool | Purpose |
+|---|---|
+| `pck_handler.py` | Archive reader/writer and one helper per record type. |
+| `extract_vanilla.py` | Backups -> `vanilla_source_of_truth.xlsx`. Fails if a layout assumption does not hold. `--check-guides` compares with `Data/*.mhtml`. |
+| `generate_qol_skill_text.py` | Proposes the QoL skill text in the style of section 6. Leaves rows marked `Edited` alone. |
+| `text_checks.py` | Checks that every figure in a skill text is the value stored in a binary. |
+| `build_variant.py` | Builds a variant into `build/<variant>/` and verifies it. Never writes into the game. |
+| `apply_mod.py`, `audit_tool.py`, `package_release.py` | Earlier mixed build: compiles straight into the game folder, checks line lengths, zips from the game folder. |
+
+Dependencies: Python standard library and `openpyxl`.
+
+Build and test:
+
+```bash
+python mod_project/tools/extract_vanilla.py
+python mod_project/tools/generate_qol_skill_text.py
+python mod_project/tools/build_variant.py qol
+python -m unittest discover -s mod_project/tests -p "test_*.py"
+```
 
 ---
 
-## 3. Binary Architecture & Container Formats
+## 3. Data layout
 
-### A. The PCK Archive Container **[verified]**
-All parameter and script packages in DT2-2 are packed in `.pck` archives:
-* **Header (16 bytes):**
-  * `0x00:0x04`: Magic header `0x00010000` (little-endian: `00 00 01 00`).
-  * `0x04:0x08`: File count `N` (`uint32`).
-  * `0x08:0x10`: Reserved / padding (`00 00 00 00 00 00 00 00`).
-* **Table of Contents (TOC):** `N` entries of 48 bytes each:
-  * `0x00:0x20`: Filename (32 bytes, null-terminated ASCII, e.g. `EquipmentData_0000.bin\0`).
-  * `0x20:0x28`: Absolute byte offset in archive (`uint64`).
-  * `0x28:0x30`: File byte length (`uint64`).
-* **Data Payload:** Follows immediately after the TOC. Entries are stored consecutively with natural padding.
+### 3.1 PCK container **[verified]** (36 of 36 backups rebuild byte-identically)
 
-### B. Record Formats Across Subsystems **[verified]**
+| Part | Layout |
+|---|---|
+| Name section | `"Filename"` padded with spaces to 20 bytes; `u32` = offset where the names end; at `0x18`: `N x u32` name offsets relative to `0x18`, then the NUL-terminated names; zero padding to 8 bytes. |
+| Pack section | `"Pack"` padded with spaces to 20 bytes; `u32` header size (`28 + 8N`); `u32` N; `N x (u32 offset, u32 size)`; 4 zero bytes. |
+| Data | Each entry starts on a 16-byte boundary counted from the first entry. |
+| End | Data padded to 16 bytes, then 8 zero bytes. |
 
-#### 1. `EquipmentData.pck` (551 Entries | Weapons, Armors, Shields, Accessories)
-* **Header Size:** Exactly 128 bytes (`0x80`).
-* **String Pointers (32-bit):**
-  * `0x08`: `p0` $\rightarrow$ Item Name.
-  * `0x10`: `p1` $\rightarrow$ Item Description (up to 3 lines, $\le 85$ chars/line).
-  * `0x18`: `p2` $\rightarrow$ Unidentified Item Name (`? Sword`, etc.).
-  * `0x70`: `p70` $\rightarrow$ Duplicate Name Pointer.
-* **Mechanical Parameter Offsets:**
-  * `0x40:0x44`: Weapon Range flags (`0x42/0x82/0x102` = Short, `0x85/0x95/0x104` = Mid, `0x89/0x99/0x219` = Long; `0x0` = Non-weapon).
-  * `0x4c:0x50`: Delay Speed Rank (`0` = A+ 1.0x, `1` = A 1.2x, ..., `11` = F 2.9x). Direct index into `WeaponRankData.pck`.
-  * `0x60, 0x64, 0x68, 0x6C`: Four 32-bit integer IDs for innate passive enchantments mapping to `EnchantData.pck` (`-1` = empty).
-* **Alignment Rule:** Must be **8-byte aligned at file end** (`(8 - (len % 8)) % 8`), NOT 16-byte aligned.
+### 3.2 Skill records **[verified]** (330 of 330 entries rewrite byte-identically)
 
-#### 2. `ItemData.pck` (576 Entries | Consumables, Food, Tools, Valuables)
-* **Header Size:** Exactly 112 bytes (`0x70`).
-* **String Pointers (64-bit):**
-  * `0x08`: `p0` $\rightarrow$ Item Name.
-  * `0x10`: `p1` $\rightarrow$ Item Description.
-  * `0x60`: `p60` $\rightarrow$ Secondary / Unidentified Name.
-* **Alignment Rule:** 8-byte aligned strings and file end.
+Four NUL-terminated strings follow the header, each padded to 8 bytes; `u64` pointers at `0x08` name, `0x10` description, `0x18` level-up text, `0x20` **battle message** (`"%name hung in there! Gutsy!"`; empty for most skills). Unique skills have only name and description.
 
-#### 3. `SkillData.pck` (Technique, Magic, Passive, Unique)
-* **Header Size:** `0x28` to `0x38` depending on category.
-* **Structure:** Contains string pointers for Skill Name, Description, and Level-Up Progression text, followed by raw skill attributes (TP curve index, target scope, element flag, chant frame delay).
+| Field | Technique (`0x1F0`) | Magic (`0x238`) | Passive (`0xD8`) | Type | Tag |
+|---|---|---|---|---|---|
+| Target code | `0x28` | `0x28` | - | int | [verified] same codes as the enemy attack header lines |
+| Damage type / element | `0x2C` | `0x2C` | - | int | [verified] idem |
+| SP cost per level | `0x34` | `0x34` | `0x2C` | 10 x int | [inferred] non-zero entries = max level |
+| TP cost per level | `0x5C` | `0x5C` | - | 10 x int | [verified] |
+| Duration in turns | `0x84` | `0x84` | - | 10 x int | [inferred] matches the guides |
+| Turn speed multiplier | `0xAC` | `0xAC` | - | 10 x float | [inferred] higher = acts again sooner |
+| Chant speed multiplier | - | `0xD4` | - | 10 x float | [inferred] higher = shorter chant |
+| Accuracy | - | `0xFC` | - | 10 x float | [inferred] from the vanilla "Accuracy UP" phrase |
+| Unknown value | - | `0x124` | - | float | unknown |
+| Required weapon(s) | `0xD4` count, `0xD8`, `0xDC` | - | `0x54` | int | [verified] against "<Weapon> skill." |
+| Effect count | `0xE0` | `0x128` | `0x58` | int | [verified] equals the slots in use in all 312 skills |
+| Effect slots | `0xE4`, 5 slots | `0x12C`, 5 slots | `0x5C`, 2 slots | 48 bytes each | [verified] |
+| Trailer | `0x1D4` | `0x21C` | `0xBC` | 7 x int | unknown |
 
-#### 4. `TrapData.pck` (12 Entries | In-Dungeon Hazard Formulas)
-* **Header Size:** Exactly 32 bytes (`0x20`).
-  * `0x00`: Trap ID (`0` to `11`).
-  * `0x08`: `p_name` pointer (always `0x20`).
-  * `0x10`: Status ID (`-1` none; `113` Poison, `114` Freeze, `115` Paralysis, `116` Sleep, `117` Silence, `120` Petrify, `122` Slow).
-  * `0x14`: Float32 Activation Check (`0.50f` for Damage/Mine/Killer/Petrify; `0.33f` for elemental gas; `0.25f` for Slow; `1.00f` for Dispel/Alarm).
-  * `0x18`: SFX Anim Index.
-  * `0x1C`: Target Scope (`1` = single triggering ally; `2` = entire party; `4` = alert battle).
-* **Name String:** Starts at `0x20`, null-terminated, 8-byte aligned. Inserts directly into `StringData_0378.bin` (`"You triggered a %name trap!"`).
+Effect slot = `int` effect id, 10 values (one per level, `int` or `float`), `int` tail (unknown). Unique skills (`0x60`): `0x1C` = 10 floats, levels 1-9 and EX.
 
-#### 5. `TrophyData.pck` (50 Entries | In-Game Awards & Milestones)
-* **Header Size:** Exactly 24 bytes (`0x18`).
-  * `0x00`: Trophy ID (`0` to `49`).
-  * `0x04`: Sort order.
-  * `0x08`: `p_title` (always `0x18`).
-  * `0x10`: `p_desc` pointer (calculated dynamically: `0x18 + len(title_padded)`).
-* **Alignment Rule:** Title and description are 8-byte aligned.
+Codes **[verified]**: target `0` single enemy, `1` random, `2` enemy row, `3` piercing, `4` all enemies, `5` single ally, `7` ally row, `8` all allies, `9` self. Type `0` weapon's, `1` slash, `2` stab, `3` bash, `4` fire, `5` water, `6` wind, `7` earth, `8` lightning, `9` neutral. Weapon `1` sword, `2` dagger, `3` axe, `4` lance, `5` mace, `7` tome, `8` bow, `9` katana, `10` projectile, `11` whip, `12` fan, `15` gun, `16` shield.
 
-#### 6. ADV Script Archives (`Teaching.pck`, `Lesson.pck`, `Shop*.pck`)
-* **Format:** Bytecode sequence with null-terminated ASCII strings. Strings can be patched in-place or dynamically resized without crashing opcode flow, provided null terminators are preserved.
+Effect ids are shared by skills, enemy attacks and traps. Named with evidence (21 of 257): `1` magic power, `26` physical power (damage = 100% + value), `29` accuracy modifier, `74` dispel, `75` HP drain, `76` TP drain, `103` heal power, `113` poison, `114` freeze, `115` paralysis, `116` sleep, `117` silence, `118` stun, `119` instant death, `120` petrification, `122` slow, `137` number of targets, `162` DEF modifier, `169` all-element resistance, `170` aggro, `295` heal cap. The rest are listed in the `Effects` sheet with the skills that use them. The meaning of an id is **[inferred]** (guide, trap names or vanilla text); its values are **[verified]**.
 
-#### 7. Untouched Pure Binary Archives **[verified]**
-* **`WeaponRankData.pck` (12 entries | 856 bytes):** Lookup table of 12 IEEE 754 32-bit floats defining action recovery delays:
-  `[1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.7, 2.8, 2.9]`.
-* **`ClassLevelData.pck` (38 entries | 122,352 bytes):** 32-byte growth records for levels 1–99 (HP, TP, 6 core attributes). Contains 0 strings.
-* **`LvExpSkptData.pck`:** EXP curve and SP accumulation tables per level.
+### 3.3 Other records
+
+| Record | Layout | Tag |
+|---|---|---|
+| `ItemData` (`0x70`, `u64` pointers `0x08` name, `0x10` description, `0x60` second name) | `0x1C` buy price, `0x20` sell price, four `(int type, float value)` effect pairs from `0x24`. Types: `0` HP, `1` TP, `3` party HP, `6` cure ailment, `8` revive, `9` light steps, `10` escape. | prices [verified] against vanilla shop lines; pairs 3-4 unknown |
+| `EquipmentData` (`0x80`, `u32` pointers `0x08`, `0x10`, `0x18`, `0x70`) | `0x20` category (`0` weapon, `1` shield, `2` helm, `3` armor, `4` accessory), `0x4C` index into `WeaponRankData` (`-1` if none), `0x5C` number of innate enchants, `0x60-0x6C` enchant ids. | [verified]. `0x24-0x58` stats unidentified (`0x24` looks like ATK, `0x58` like price) |
+| `WeaponRankData` | `0x10` float delay, name at `0x18`. Vanilla: A+ 1.00, A 1.20, B+ 1.40, B 1.60, C+ 1.80, C 2.00, D+ 2.15, D 2.30, E+ 2.45, E 2.60, F+ 2.75, F 2.90. | [verified] |
+| `TrapData` (`0x20`) | `0x10` effect id, `0x14` float rate, `0x1C` scope. The name is inserted into `"You triggered a %name trap!"`. | [verified] |
+| `QuestRankData` | 10 ints: rank, trust points, text offset, 0, reward type, item id, three more, value; then the message. | [verified] |
+| `LvExpSkptData` | level, EXP required, SP granted (`3 x u32`). | [verified] |
+| `EnemyAttackData` (`0xA0`, four `u64` pointers) | `0x2C` target, `0x30` type, `0x44` float power, `0x48` effect count, five `(id, value, tail)` slots from `0x4C`. | counts [verified] in 2,375 entries; power [inferred] |
+| `FoodMenuData` | `0x18` price, `0x1C` effect count, `(id, float)` pairs from `0x20`. No duration field found. | [inferred] |
+| `JoinSkillData`, `PartySkillData`, `SealScrollData`, `ClassData` | Not decoded. Dumped word by word in the `Raw_*` sheets. | unknown |
+| ADV scripts (`Teaching`, `Lesson`, `Shop*`) | Bytecode with NUL-terminated strings; jumps go by label name, so a string can change length. A spoken line includes its quotes: `"...behave."` + NUL. | [inferred]; no absolute offsets found |
+
+### 3.4 Writers
+
+| Helper | Rewriting the original text reproduces the entry |
+|---|---|
+| Skills (all four), `ItemHelper`, `EquipmentHelper`, `ClassDataHelper`, `StringDataHelper`, `TrapHelper`, `TrophyHelper` | Yes, every entry **[verified]** |
+| `JoinSkillHelper` | 51 of 52. Drops a string in one entry (`"Genocide Rain(St) pours down!"`). |
+| `PartySkillHelper` | 0 of 20. Replaces the full-width space of the second string with two normal spaces. |
+| `EnemyAttackHelper`, `EnchantHelper`, `SealScrollHelper`, `FoodMenuHelper` | 1,220 of 2,375; 142 of 280; 339 of 374; 10 of 16. Same strings, different padding. |
+
+Fix a writer (make its round trip exact, add it to the tests) before building its table for any variant.
 
 ---
 
-## 4. Text Rules, UI Budget & The Hybrid Integrity Policy
+## 4. Text system and limits
 
-### A. The Engine Display Constraints
-* **Line Count:** $\le 3$ lines in items, equipment, and skills; $\le 2$ lines in trophies.
-* **Line Length:** $\le 85$ characters per line maximum.
-* **Prohibited Characters:** The tilde character (`~`) is NOT supported by the Aquaplus-Sting font glyph table and causes severe in-game rendering glitched boxes. Always use `->` or `-` instead.
-* **Separators:** Standardize on `' | '` with clean spacing.
-
-### B. The Non-Destructive Hybrid Policy ("Game Soul Protection")
-A core rule of the mod is: **It is a data transparency mod, not a mod that destroys the spirit or humor of the game.**
-1. **Never erase lore or humor:** Vanilla flavor text, witty Japanese-RPG banter, pop culture references, and puns must remain intact.
-2. **Format Rule:**
-   * **Single-Line Items:** `OG text (concise data).`  
-     *Example:* `"Even more umami than MSG. Taste the skill points (+9 SP)."`
-   * **Multi-Line Items:** If `OG + (data)` would exceed 85 characters, keep the complete OG text on Line 1 and place `(concise data)` cleanly on Line 2.  
-     *Example:*  
-     Line 1: `"A Souffle special. Goes off with a bang that makes you jump."`  
-     Line 2: `"(Explosive bomb damage, 75% Blind)"`
-3. **No Redundant Filler:** Omit repetitive boilerplate like `"to an ally"` or `"Restore HP"`. Only the concise mechanical value matters: `(+60 HP)`, `(Full HP/TP)`, `(+20% ATK)`.
+* **Description boxes: 3 lines, 85 characters per line** **[verified]** measured on screen by the user. The description counts as a line: a skill has 1 description line and at most 2 level-up lines.
+* **Equipment box** **[verified]** on a screenshot of the earlier build: the game draws the item's enchantments (their `EnchantData` names) on lines 2 and 3 of the box, in two columns, on top of whatever the description has there. All 551 vanilla equipment descriptions are one line (77 characters at most). An equipment description must stay on **line 1**.
+* The equipment title bar already shows `[Sword - 2 Hand - Short Range] Speed E+`: weapon type, hands, range and speed rank. Do not repeat them.
+* Because the game lists the enchantments by name, the place to add information about them is the enchant name (`Fire Magic +15%`), not the item description.
+* Whether item and skill boxes draw anything of their own on lines 2-3 has not been checked on screen. All 576 vanilla item descriptions are one line.
+* The tilde `~` has no glyph. Use `->` or `-`.
+* Strings are stored as Latin-1 bytes.
+* Dialogue boxes (ADV scripts) hold 3 lines in every vanilla script; the longest vanilla line is 62-63 characters in the shops, 69 in `Teaching`, 76 in `Lesson`. Wider lines are **[untested]**.
+* Separator between pieces of one line: `' | '`.
 
 ---
 
-## 5. QA Verification Suite (`audit_tool.py`)
+## 5. The rule for each variant
 
-The automated audit suite acts as an unyielding gatekeeper asserting:
-1. `skills.xlsx`: Line count $\le 3$, length $\le 85$, no `~`.
-2. `items.xlsx`: 388 active items, line count $\le 3$, length $\le 85$, no `~`.
-3. `equipment.xlsx`: 551 active items, line count $\le 3$, length $\le 85$, no `~`.
-4. `grand_seals.xlsx`: 374 active seals.
-5. `joint_skills.xlsx`: 52 active combos.
-6. `enchants.xlsx`: 280 affixes.
-7. `party_skills.xlsx`: 20 party compositions.
-8. `food_menu.xlsx`: 16 buffet meals.
-9. `enemy_attacks.xlsx`: 2,375 enemy techniques.
-10. `classes.xlsx`: 32 player classes.
-11. `ui_strings.xlsx`: 14 core combat command tooltips.
-12. `traps.xlsx`: 12 trap definitions.
-13. `trophies.xlsx`: 50 hybrid trophy milestones.
-14. **Binary PCK Integrity:** Loads all 21 live `.pck` files in `DungeonTravelers2-2_EN/Data/ENG/` with `PckArchive`, asserting zero byte corruptions or TOC mismatches.
+| | QoL | Balance |
+|---|---|---|
+| Numeric part of every entry | Identical to the backup. Checked by the build. | Changed only where a data table says so. |
+| Figures in the text | The original ones, from `vanilla_source_of_truth.xlsx`. | The ones of the built binary. |
+| Text describing a mechanic | Only what the base game does. | Only what the built data implements. |
+
+A figure is never typed from a guide or from memory. If the binary does not hold a value (it is computed in the executable), the text says nothing about it.
 
 ---
 
-## 6. Mistakes Made and Corrected (Do Not Repeat)
+## 6. Skill text style guide (decided with the user)
 
-1. **Equipment End Alignment:** Initially attempted 16-byte end padding on `EquipmentData.bin`, causing 8-byte file length mismatches on ~50% of items. Tested and proved that DT2-2 engine uses strictly **8-byte end alignment** (`pad = (8 - (len % 8)) % 8`), restoring 100% byte-exact identity across all 551 files.
-2. **Flat Text Overwrites (The Humor Loss):** In early sessions, `items.xlsx` and `trophies.xlsx` replaced charming flavor text (MSG umami joke, "Eat, Skill, Love", Souffle pipe bomb ticking noise) with dry mechanical descriptions. Detected and corrected in Commits `be90446` and `45efe13` with the hybrid `OG + (data)` architecture.
-3. **ADV Bytecode Script Offsets:** Early attempts to patch `.adv.bin` scripts by rebuilding bytecode headers caused dialogue freezes. Solved by in-place sequential text substitution (`update_teaching_script`), which the Sting engine parses safely without opcode table corruption.
+Kept from the earlier mod: its layout. Dropped from it: its figures, which were not taken from the binary.
+
+* **Line 1**: the vanilla description, untouched.
+* **Line 2**: what the skill does. **Line 3**: what it costs, in the order `Turns | TP Cost | Speed | Chant`.
+* One piece = `Label: values`. Pieces are joined with ` | `.
+* **Linear table** -> range with its step, which loses nothing: `Stun: 30% -> 38% (+2%/Lv)`.
+* **Any other table** -> one value per level: `ATK: 85% -> 90% -> 94% -> 98% -> 102% (L1-5)`; with more than 5 levels the unit goes on the first and last value only: `ATK (L1-10): 80% -> 83 -> 86 -> ... -> 110%`.
+* **Only when that does not fit** -> range with the average step, `ATK: 80% -> 110% (avg +3.33%/Lv)`, or, last, the bare range `Speed: 0.65x -> 0.75x`. The `Shortened_Tables` column lists where this happened.
+* `TP Cost` and `Turns` are written one value per level whenever they fit.
+* The first table of a box carries the level count: `(L1-5)`, `(+2%/Lv, L1-10)` or `Label (L1-10):`.
+* A value that never changes is written once: `Speed: 0.85x`.
+* Labels: `ATK` (damage as % of a normal hit), `Pwr` (magic power), `TP Cost`, `Turns`, `Speed`, `Chant`, `Accuracy`, the ailment name (`Stun`, `Instakill`...), `HP Absorb`, `TP Absorb`, `Targets`, `Heal Cap`. Any other label is the wording of the vanilla level-up phrase (`"ATK increase UP"` -> `ATK increase`).
+* A vanilla phrase whose table is not known for certain stays as the game wrote it (`Damage UP`).
+* Unique skills: `Lv1-9: 7% -> 15% (+1%/Lv) | Crown EX: 25%`.
+
+Examples (vanilla -> QoL):
+
+| Skill | Vanilla level-up text | QoL level-up text |
+|---|---|---|
+| Halving Slice | `LvUp: Damage UP Time until next turn DOWN` / `Instakill rate UP TP Cost UP` | `ATK (L1-10): 80% -> 83 -> 86 -> 89 -> 91 -> 94 -> 97 -> 100 -> 105 -> 110%` / `Instakill: 10% -> 20% \| TP Cost: 38 -> 74 (+4/Lv) \| Speed: 0.65x -> 0.75x` |
+| Shield Bash | `LvUp: Damage UP Accuracy UP` / `Stun rate UP TP Cost UP` | `ATK: 85% -> 90% -> 94% -> 98% -> 102% (L1-5) \| Accuracy: +6% -> +20% (avg +3.5%/Lv)` / `Stun: 30% -> 38% (+2%/Lv) \| TP Cost: 6 -> 8 -> 10 -> 12 -> 14 \| Speed: 0.55x` |
+| Crimson Flare | `LvUp: Damage UP Accuracy UP` / `TP Cost UP Chant time UP` | `Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5) \| Accuracy: 82% -> 90% (+2%/Lv)` / `TP Cost: 40 -> 50 -> 60 -> 72 -> 84 \| Speed: 1.5x \| Chant: 0.75x -> 0.7x` |
+| Concentrate | `LvUp: Interruption rate DOWN` | `Interruption rate: -10% -> -50% (-10%/Lv, L1-5)` |
+
+How a vanilla phrase is tied to a table (`generate_qol_skill_text.py`):
+
+| Vanilla phrase | Table | Evidence |
+|---|---|---|
+| TP Cost | TP cost | Phrase present in exactly the 161 skills whose TP varies |
+| Time until next turn | Speed | 55 of 55 |
+| Chant time | Chant | 69 of 70 |
+| Duration | Turns | 38 of 42 |
+| Damage | Effect 26 (techniques) or 1 (magic) | 75 of 85, and the guides |
+| Accuracy | Effect 29 (techniques) or `0xFC` (magic) | Section 3.2 |
+| "X rate" of an ailment | Effect 113-122 | Trap names |
+| Anything else | The only unexplained table of the skill | Only when exactly one phrase and one table are left |
+
+Coverage today: 246 boxes with every phrase resolved, 21 partly, 15 left as vanilla, 48 internal skills skipped; 50 per-level tables of 31 skills are not shown because they could not be tied to a phrase (`Tables_Not_Shown`).
+
+Not decided yet: whether the skill menu already shows the TP cost (if it does, the line can drop it), and the wording of items, equipment and the rest of the QoL text.
+
+---
+
+## 7. Tests (what each guards)
+
+`python -m unittest discover -s mod_project/tests -p "test_*.py"` (24 tests).
+
+| File | Guards |
+|---|---|
+| `test_pck_roundtrip.py` | Every backup archive rebuilds byte-identically; every skill entry rewrites identically; the battle message survives a text change. |
+| `test_source_of_truth.py` | Layout assumptions on the real files; figures confirmed with the guides; vanilla weapon delays; the saved workbook is not stale. |
+| `test_text_checks.py` | The figure checker accepts every notation of section 6 and rejects wrong values, steps and level counts. |
+| `test_qol_variant.py` | Text table within the limits and with true figures; a clean build has no problems; a wrong figure, a long line, a stale table, a changed game value and a lost battle message each stop the build. |
+
+Verified without the game: container and entry round trips, numeric identity of the QoL build, 795 figures in the built text against the built binary. Never run in the game: everything.
+
+---
+
+## 8. State of the earlier mixed build
+
+Audited at commit `28c7d90`; details in `CROSS_SYSTEM_VALIDATION_REPORT.md`. It is what the game folder and the zip currently contain.
+
+* 11 of 47 dialogue replacements never reached the game; the script reports success.
+* `WeaponRankData.pck` is changed in the game folder but missing from the zip.
+* Skill figures do not match the binary: TP 125 of 141, physical power 37 of 39, magic power 17 of 22, max level 53 of 162.
+* Seven mechanics are announced in text with no data behind them (Master Spell resistance pierce, Defend crit immunity, Killer Floor 25%, 900-step meals and others).
+* The 200 modified skills have their battle-message pointer past the end of the entry; 17 lost a real message.
+* All 551 equipment descriptions use 3 lines, and the game draws the enchantments over lines 2-3 (seen in the game: `Fire Magic +15%` printed over `[Weapon | Range: Short | Delay: E+ (2.05x) | Slots: 0]`). That second line also repeats what the title bar shows, and `Slots` is the count of innate enchants, not a slot capacity.
+* On a save made before the mod, a character can show a negative `NEXT` (seen: Lv 20, EXP 22,501, NEXT -1,577): the lighter curve puts her past the next threshold until she gains EXP again.
+* Real value changes it contains: EXP curve and +25 SP, weapon delays, 4 items, Slave's Torc enchant, 5 quest rank rewards.
+
+---
+
+## 9. Mistakes made and corrected (do not repeat)
+
+1. **Figures written without reading the binary.** The earlier skill text interpolated or invented most TP costs and powers. Now text is generated from the extracted workbook and checked by `text_checks.py`.
+2. **Layouts documented as verified that were not.** An earlier version of this file described a container with a 16-byte header and 48-byte entries, skill headers of `0x28-0x38` bytes and weapon delays `2.2 / 2.4 / 2.6 / 2.7 / 2.8`. None of it matched the files.
+3. **Dropping the fourth skill string.** `SkillHelper.write_skill` wrote three strings and left the battle-message pointer dangling. Found by requiring a byte-identical round trip.
+4. **Archive tail.** `PckArchive.build` padded the end of the file differently from the original (8-16 bytes short in 22 of 36 archives).
+5. **Silent text replacement.** `update_teaching_script` looks for the string plus NUL; spoken lines end in a quote before the NUL, so the search fails and the code continues without a word. A replacement that does not find its target must stop the build.
+6. **One build for two goals.** Text for a rebalanced game was shipped over mostly unchanged data. Variants are now built separately, each against its own rule.
+7. **A check that only measures line length was reported as a full audit.**
+8. **Effect names guessed.** `rebuild_enemy_attacks.py` labels effect 120 as Slow and 122 as Charm; the trap table shows 120 is petrification and 122 is slow (113 enemy attack texts are wrong).
+9. **A guide match called "verified".** A value read from the binary is verified; what the field means stays inferred, however well a guide agrees.
+10. **Flavor text replaced by data sheets** in class descriptions and enemy attacks, against the rule of adding to the original voice.
+11. **A box limit taken as free space.** 3 lines and 85 characters is what a box can hold, not what is free: the equipment box uses lines 2-3 for its own enchant list. Look at the real screen for each kind of box before writing into it, and do not repeat what the screen already shows.
+
+---
+
+## 10. Not done / next
+
+* QoL text for items, equipment, enchants, sealbooks, joint and party skills, meals, traps, trophies, classes, enemy attacks, UI strings, the library and the lessons.
+* Exact writers for joint skills, party skills, enemy attacks, enchants, sealbooks and meals.
+* Decoding `JoinSkillData`, `PartySkillData`, `SealScrollData`, `ClassData`, the equipment stats and the 236 unnamed effects.
+* The Balance variant: its changes as data, and its own verification rule.
+* Install and packaging per variant (today `package_release.py` zips the game folder).
+* Dialogue replacement that fails loudly, and the corrected lines.
+* Running any build in the game.

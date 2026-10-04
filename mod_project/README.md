@@ -1,51 +1,69 @@
-# Dungeon Travelers 2-2: Mechanics Transparency & QoL Mod Project
+# Dungeon Travelers 2-2: Information & Balance Mod Project
 
-Proyecto integral de Calidad de Vida (QoL) y Transparencia de Mecánicas para *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC).
+Mod project for *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC). It ships as two variants built separately:
+
+- **QoL**: shows more information about the base game and changes no value.
+- **Balance**: rebalances the game and shows the information of the rebalanced game. Not defined yet.
+
+Start with `docs/philosophy.md` (why) and `docs/dungeontravelers2-2.md` (what was done, formats, style guide, what is left).
 
 ---
 
-## 📁 Estructura del Proyecto
+## Layout
 
 ```text
 DungeonTraveler2-2/
 ├── mod_project/
-│   ├── backups/                 <- Copias originales limpias de todos los archivos .pck
-│   ├── data_tables/             <- Tablas Excel para edición rápida y directa
-│   │   ├── skills.xlsx          <- 330 habilidades con descripciones y escalas por nivel
-│   │   ├── items.xlsx           <- 576 consumibles con curación exacta y efectos
-│   │   └── equipment.xlsx       <- 551 armas, armaduras y accesorios
-│   ├── tools/                   <- Toolchain automatizada en Python
-│   │   ├── pck_handler.py       <- Motor de lectura y empaquetado bit-exact de PCKs
-│   │   ├── excel_sync.py        <- Exportador/Importador entre Excel y binarios PCK
-│   │   ├── apply_mod.py         <- Compilador que aplica los cambios directo al juego
-│   │   └── audit_tool.py        <- Auditor automatizado de límites de líneas y caracteres
-│   └── docs/                    <- Documentación y planes de expansión
-│       └── MECHANICS_EXPANSION_PLAN.md
-├── Data/                        <- Guías y datos matemáticos de GameFAQs (.mhtml)
-└── DungeonTravelers2-2_EN/      <- Instalación del juego
+│   ├── backups/                 original .pck files; every build reads from here
+│   ├── data_tables/
+│   │   ├── vanilla_source_of_truth.xlsx   original values, generated, never edited
+│   │   ├── qol_skill_text.xlsx            QoL skill text, edited by hand
+│   │   └── *.xlsx                         tables of the earlier mixed build
+│   ├── build/<variant>/         build output, not versioned
+│   ├── tools/
+│   │   ├── pck_handler.py                 archive and record reader/writer
+│   │   ├── extract_vanilla.py             backups -> vanilla_source_of_truth.xlsx
+│   │   ├── generate_qol_skill_text.py     proposes the QoL skill text
+│   │   ├── text_checks.py                 figures in text vs values in the binary
+│   │   ├── build_variant.py               builds and verifies a variant
+│   │   └── apply_mod.py, audit_tool.py, package_release.py   earlier mixed build
+│   ├── tests/                   unittest suite
+│   └── docs/
+├── Data/                        GameFAQs pages (.mhtml), cross-check only
+├── docs_example/                method and reference project
+└── DungeonTravelers2-2_EN/      game install
 ```
 
 ---
 
-## 🚀 Cómo Modificar y Aplicar Cambios
+## Build the QoL variant
 
-1. **Abrir y Editar Excel:**
-   - Abre `mod_project/data_tables/skills.xlsx` (o `items.xlsx`).
-   - Modifica las columnas `Modded_Desc` y `Modded_LvUp`.
-   - Cambia la columna `Status` a `Approved`.
-2. **Compilar y Aplicar al Juego:**
-   ```bash
-   python mod_project/tools/apply_mod.py
-   ```
-3. **Auditar Límites de Texto:**
-   ```bash
-   python mod_project/tools/audit_tool.py
-   ```
+```bash
+python mod_project/tools/extract_vanilla.py
+```
+
+```bash
+python mod_project/tools/generate_qol_skill_text.py
+```
+
+```bash
+python mod_project/tools/build_variant.py qol
+```
+
+```bash
+python -m unittest discover -s mod_project/tests -p "test_*.py"
+```
+
+The build writes to `mod_project/build/qol/` and never into the game folder. It stops if a figure in the text is not the value in the binary, if a box breaks the limits, or if any game value differs from the original.
+
+## Edit the skill text
+
+1. Open `mod_project/data_tables/qol_skill_text.xlsx`.
+2. Change `QoL_Desc` or `QoL_LvUp` and write `yes` in `Edited` so the row is not regenerated.
+3. Run the build. Limits: 3 lines per box (description included), 85 characters per line, no tilde.
 
 ---
 
-## 📌 Control de Versiones (Git)
-Se utiliza la convención de commits `prefix: content`:
-- `feat: ...` para nuevas adiciones de clases, tablas o herramientas.
-- `fix: ...` para corrección de límites de caracteres o cifras.
-- `docs: ...` para actualizaciones de documentación.
+## Commits
+
+One line, `type: description` (`feat`, `fix`, `docs`, `test`, `build`, `refactor`, `chore`).
