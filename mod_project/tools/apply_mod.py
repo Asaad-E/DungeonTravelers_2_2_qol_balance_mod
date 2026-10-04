@@ -655,33 +655,33 @@ def update_lessons():
     
     replacements_04 = {
         "This information is extremely important during battle, so I\nhighly suggest that you make use of it when battling against\nthreatening enemies.": (
-            "Pay close attention: huge 2H blades and rifles hit hard, but\n"
-            "their heavy delay means enemies will lap you in turns!\n"
-            "Have them Defend to shave that delay and get back in action."
+            "Pay close attention: heavy 2H blades and rifles hit hard,\n"
+            "but their severe delay leaves you wide open!\n"
+            "Have them Defend to cut their delay and recover the initiative."
         )
     }
 
     replacements_07 = {
         "Well, that was something of a brief lesson, but let's leave\nit here for today.": (
-            "Remember: mid-range spears and whips ignore penalties from back row,\n"
-            "while bows and magic strike across all rows at 100% full power!\n"
-            "Position your allies carefully, Fried, or expect extra homework."
+            "Mid-range spears and whips ignore penalties from the back row,\n"
+            "while bows and magic strike across all rows at full power.\n"
+            "Position your allies wisely, Fried, lest you suffer needless harm."
         )
     }
 
     replacements_08 = {
         "Precisely. Against certain monsters, raising your\nresistances can be considerably more effective than raising\nyour defense directly.": (
-            "Precisely! Stacking 100 resistance also cuts elemental damage by 50%.\n"
-            "Pair this with Paladin's 60% Cover or Dark Lord's HP leeching,\n"
-            "and your front line will hold fast even against divine spells."
+            "Precisely! Stacking 100 resistance also cuts elemental damage in half.\n"
+            "Combine this with a Paladin's Cover or a Dark Lord's leeching,\n"
+            "and your front line will stand firm even against divine magic."
         )
     }
 
     replacements_09 = {
         "Presents include gold, rare equipment, and even additional\nbag space.": (
-            "Presents include fat bags of gold, rare gear, and bag expansions\n"
-            "at Ranks 2 and 8! Prove yourself all the way to Rank 16, and\n"
-            "the Guild will even grant you entry to the infamous Matrix!"
+            "Presents include fine gold, rare equipment, and bag expansions\n"
+            "at Ranks 2 and 8. Prove your worth all the way to Rank 16, and\n"
+            "the Guild will even grant you passage into the infamous Matrix."
         )
     }
 
@@ -691,9 +691,9 @@ def update_lessons():
             "number of awards you amass (maxed out at 50 awards)."
         ),
         "\"Try to use one, and you might be surprised.\"": (
-            "\"Don't be lazy, Fried! Check your menu to see who needs\n"
-            "to line up and save your Pep. A proper Joint Skill will turn\n"
-            "the tides faster than any basic trick!\""
+            "\"*giggle* Don't be so timid, Fried. Examine their requirements\n"
+            "in the menu and coordinate your turns. A well-timed Joint Skill\n"
+            "can turn the tides in an instant.\""
         )
     }
 
@@ -703,41 +703,41 @@ def update_lessons():
             "level gap of >=59 grants permanent stats and resists!"
         ),
         "\"So even though level resetting will lower a character's\nlevel, it won't be long before she catches up to the rest of\nthe party as you go about your adventures.\"": (
-            "\"Just slap a Slave's Torc on her, summon Dragon Papi for extra\n"
-            "juice, and she'll soak up so much EXP she'll catch right back\n"
-            "up to the squad before you can even complain about grinding!\""
+            "\"Simply equip her with the Slave's Torc and invoke Dragon Papi\n"
+            "for guidance. She will soak up so much experience that she'll\n"
+            "rejoin the vanguard before you even have time to complain.\""
         )
     }
 
     replacements_13 = {
         "Is that right...? There aren't many restaurants around these\nparts, so I've been frequenting it quite often.": (
-            "I'm a regular! A hearty bowl keeps you buffed for 900 steps,\n"
-            "and top ramen grants +10% stats with elemental guards that\n"
-            "even pesky Dispel traps can't ruin. Delicious and practical!"
+            "I visit often. A hearty meal bestows blessings for 900 steps,\n"
+            "and finest ramen grants +10% stats with elemental guards that\n"
+            "even pesky Dispel traps cannot erase. Exquisite and practical."
         )
     }
 
     replacements_sp01 = {
         "\"Abandon hope and make peace with your fate.\"": (
-            "\"Don't just lie down and die, Fried! Stack 100+ Elemental Resist\n"
-            "(which cuts damage by 50% and grants 100% ailment immunity!),\n"
-            "or order a Valkyrie to pop Circle Protection on wipe turns!\""
+            "\"*giggle* Giving up already, Fried? Stack 100+ Elemental Resist\n"
+            "to cut damage in half and gain total ailment immunity, or have\n"
+            "a Valkyrie cast Circle Protection to turn calamity into safety.\""
         )
     }
 
     replacements_sp02 = {
         "Dark Aura debuffs enemies' stats when they inflict\nshort-range damage. No monsters are immune to such debuffs,\nso you can even use it in boss battles.": (
-            "Dark Aura debuffs on contact. When bosses get mad at <25% HP,\n"
-            "cheap delay tricks stop working on them, so blast them with\n"
-            "your heaviest Joint Skills before they turn you into paste!"
+            "Dark Aura debuffs on contact. When bosses enrage at low health,\n"
+            "delay tricks lose their efficacy. Unleash your fiercest\n"
+            "Joint Skills to execute them before they overwhelm you."
         )
     }
 
     replacements_sp03 = {
         "\"There's no real necessity to seek so much power... but if it\nstrikes your fancy, why not shoot for the Crown?\"": (
-            "\"Want to turn your favorite girl into a walking calamity?\n"
-            "Earn a Crown by resetting with a 59+ level gap to permanently\n"
-            "boost all her stats and supercharge her unique skill to EX!\""
+            "\"Longing to elevate your companions to godlike perfection?\n"
+            "Achieve a Crown by resetting with a 59+ level gap to grant\n"
+            "permanent stat increases and awaken their unique skills to EX.\""
         )
     }
 
