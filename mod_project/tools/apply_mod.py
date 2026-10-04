@@ -99,6 +99,12 @@ def update_items():
     for i, (fn, b) in enumerate(archive.files):
         if fn in edits:
             new_desc = edits[fn]
+            if fn == 'ItemData_0020.bin':
+                # Quality of Life: Expand Flashlight duration from 10 to 30 steps!
+                import struct
+                b_mod = bytearray(b)
+                struct.pack_into('<f', b_mod, 40, 30.0)
+                b = bytes(b_mod)
             new_bin = ItemHelper.write_item(b, new_desc)
             archive.files[i] = (fn, new_bin)
             applied_count += 1
@@ -633,9 +639,9 @@ def update_lessons():
 
     replacements_09 = {
         "Presents include gold, rare equipment, and even additional\nbag space.": (
-            "Bag space expands by +5 at Ranks 8, 11, 15, and 20! Furthermore,\n"
-            "Rank 16 unlocks The Matrix dungeon. Combine this with the +100%\n"
-            "catch-up EXP boost, and your squad will level up in no time."
+            "Bag space expands by +10 at Ranks 2 and 8, reaching the 50-slot\n"
+            "maximum early! Rank 16 unlocks The Matrix, and underleveled allies\n"
+            "gain +100% catch-up EXP to power-level smoothly."
         )
     }
 
@@ -908,9 +914,9 @@ def update_shop_dialogue():
         arc_sq = PckArchive(sq_path)
         repl_sq = {
             "(Incidentally, quests from below your current rank\nwill still grant their rewards, but no trust points.)": (
-                "(Quests below your current rank grant rewards but 0 Trust Points.\n"
-                "Prioritize current quests: Rank 16 unlocks The Matrix dungeon,\n"
-                "while Ranks 8, 11, 15, and 20 grant +5 Bag Storage each!)"
+                "(Quests below your rank grant rewards but 0 Trust Points.\n"
+                "Prioritize current quests: Ranks 2 & 8 grant +10 Bag Storage\n"
+                "each (reaching 50 slots early!), and Rank 16 unlocks The Matrix!)"
             )
         }
         for i, (fn, b) in enumerate(arc_sq.files):
@@ -965,6 +971,39 @@ def update_shop_dialogue():
         arc_bar.save(bar_target)
         print(f"Applied Tavern mercenary archetype dialogue to: {bar_target}")
 
+def update_quest_ranks():
+    pck_path = os.path.join(BACKUP_DIR, "QuestRankData.pck")
+    if not os.path.exists(pck_path):
+        print(f"Notice: Backup {pck_path} not found, skipping Quest Ranks.")
+        return
+        
+    archive = PckArchive(pck_path)
+    
+    def make_quest_rank_bag_entry(rank, pts, val):
+        import struct
+        msg = f"Your bag's storage capacity has increased by {val}."
+        s = msg.encode('latin-1') + b'\x00'
+        hdr = struct.pack('<10i', rank, pts, 40, 0, 5, -1, -1, -1, -1, val)
+        data = bytearray(hdr) + s
+        pad = (8 - (len(data) % 8)) % 8
+        data += b'\x00' * pad
+        return bytes(data)
+
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn == 'QuestRankData_02.bin':
+            # Chapter 1 early boost: +10 bag space (30 -> 40 slots!)
+            archive.files[i] = (fn, make_quest_rank_bag_entry(2, 25, 10))
+            applied_count += 1
+        elif fn == 'QuestRankData_08.bin':
+            # Chapter 6/7 mid-game boost: +10 bag space (40 -> 50 slots, max engine cap!)
+            archive.files[i] = (fn, make_quest_rank_bag_entry(8, 200, 10))
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "QuestRankData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Quest Rank bag capacity expansions to: {target_path}")
+
 if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
@@ -984,6 +1023,7 @@ if __name__ == "__main__":
     update_traps()
     update_trophies()
     update_shop_dialogue()
+    update_quest_ranks()
     print("=== Complete Mod Execution Finished Successfully! ===")
 
 
