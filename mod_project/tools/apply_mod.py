@@ -413,6 +413,11 @@ def update_teaching():
             "Battle EXP splits equally among living members (5-man = 20% each).\n"
             "Higher-level monsters grant up to 3.0x bonus EXP! Solo or duo\n"
             "runs with a high-tier carry are the fastest way to re-level."
+        ),
+        "With these things in mind, you might be able to quickly\nbring characters whose levels you have reset back up to\ntheir former strength.": (
+            "Equip Slave's Torc (Double EXP) and Grand Seal Dragon Papi\n"
+            "(+50% Higher-Level EXP) to power-level under the smoothed\n"
+            "-35% Lv 71-99 curve, earning bonus SP in early levels!"
         )
     }
 
@@ -666,6 +671,11 @@ def update_lessons():
         "Or, after certain level thresholds, you can choose to reset\nback to those specific threshold levels as opposed to level\n1.": (
             "Thresholds are Lv 1, 15, 30, and 50. Resetting with a\n"
             "level gap of >=59 grants permanent stats and resists!"
+        ),
+        "\"So even though level resetting will lower a character's\nlevel, it won't be long before she catches up to the rest of\nthe party as you go about your adventures.\"": (
+            "\"Equip the Slave's Torc training gear (Double EXP) and summon\n"
+            "Dragon Papi (+50% higher-level EXP) to catch up smoothly\n"
+            "under our rebalanced -35% Lv 71-99 Crown leveling curve!\""
         )
     }
 
@@ -995,6 +1005,16 @@ def update_quest_ranks():
         data += b'\x00' * pad
         return bytes(data)
 
+    def make_quest_rank_gold_entry(rank, pts, amount):
+        import struct
+        msg = f"You got {amount:,} gold."
+        s = msg.encode('latin-1') + b'\x00'
+        hdr = struct.pack('<10i', rank, pts, 40, 0, 2, -1, -1, -1, -1, amount)
+        data = bytearray(hdr) + s
+        pad = (8 - (len(data) % 8)) % 8
+        data += b'\x00' * pad
+        return bytes(data)
+
     applied_count = 0
     for i, (fn, b) in enumerate(archive.files):
         if fn == 'QuestRankData_02.bin':
@@ -1002,13 +1022,25 @@ def update_quest_ranks():
             archive.files[i] = (fn, make_quest_rank_bag_entry(2, 25, 10))
             applied_count += 1
         elif fn == 'QuestRankData_08.bin':
-            # Chapter 6/7 mid-game boost: +10 bag space (40 -> 50 slots, max engine cap!)
+            # Mid-game max bag boost: +10 bag space (40 -> 50 slots, max engine cap!)
             archive.files[i] = (fn, make_quest_rank_bag_entry(8, 200, 10))
+            applied_count += 1
+        elif fn == 'QuestRankData_11.bin':
+            # Replace redundant bag reward (+0 slots due to 50 cap) with 50,000 gold
+            archive.files[i] = (fn, make_quest_rank_gold_entry(11, 340, 50000))
+            applied_count += 1
+        elif fn == 'QuestRankData_15.bin':
+            # Replace redundant bag reward with 100,000 gold
+            archive.files[i] = (fn, make_quest_rank_gold_entry(15, 560, 100000))
+            applied_count += 1
+        elif fn == 'QuestRankData_20.bin':
+            # Replace redundant bag reward with 500,000 gold for Master Guild Rank
+            archive.files[i] = (fn, make_quest_rank_gold_entry(20, 1000, 500000))
             applied_count += 1
             
     target_path = os.path.join(GAME_PARAM_DIR, "QuestRankData.pck")
     archive.save(target_path)
-    print(f"Applied {applied_count} Quest Rank bag capacity expansions to: {target_path}")
+    print(f"Applied {applied_count} Quest Rank rewards to: {target_path}")
 
 def update_exp_curve():
     excel_path = os.path.join(TABLES_DIR, 'exp_curve.xlsx')

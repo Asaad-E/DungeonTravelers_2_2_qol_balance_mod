@@ -355,8 +355,23 @@ def run_audit():
         print(f"    Total Levels Indexed:       {ws_exp.max_row - 1}")
         print(f"    Modified/Active Levels:     {modified_exp}")
 
-    # 15. Verify Game Binary & PCK Files
-    print(f"\n[15] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    # 15. Check Quest Ranks table
+    qr_path = os.path.join(TABLES_DIR, 'quest_ranks.xlsx')
+    if os.path.exists(qr_path):
+        wb_qr = openpyxl.load_workbook(qr_path)
+        ws_qr = wb_qr["QuestRanks"] if "QuestRanks" in wb_qr.sheetnames else wb_qr.active
+        modified_qr = 0
+        for r in range(2, ws_qr.max_row + 1):
+            rank = ws_qr.cell(row=r, column=1).value
+            status = ws_qr.cell(row=r, column=6).value
+            if status in ['Approved', 'Applied', 'Draft']:
+                modified_qr += 1
+        print(f"\n[15] QUEST RANKS DATA TABLE CHECK:")
+        print(f"    Total Ranks Indexed:        {ws_qr.max_row - 1}")
+        print(f"    Modified/Active Ranks:      {modified_qr}")
+
+    # 16. Verify Game Binary & PCK Files
+    print(f"\n[16] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
     param_pcks = [
         'TechniqueSkillData.pck', 
         'PassiveSkillData.pck', 
@@ -406,7 +421,7 @@ def run_audit():
             print(f"    [FAIL] {pck_file} corrupted: {e}")
             errors.append(str(e))
 
-    print(f"\n[16] VERSION CONTROL STATUS:")
+    print(f"\n[17] VERSION CONTROL STATUS:")
     tracked_files = os.popen("git status -s").read().strip().splitlines()
     print(f"    Tracked/Changed files in repo: {len(tracked_files)}")
     
