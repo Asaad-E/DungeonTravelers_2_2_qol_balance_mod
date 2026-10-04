@@ -21,7 +21,9 @@ def rewrite(b, category, desc, lvup):
 class ContainerRoundTrip(unittest.TestCase):
     def test_every_backup_archive_rebuilds_identically(self):
         names = sorted(f for f in os.listdir(_paths.BACKUP_DIR) if f.endswith('.pck'))
-        self.assertGreaterEqual(len(names), 36)
+        scripts = os.path.join(_paths.BACKUP_DIR, 'Script')      # scripts that share a name with a Parameter file
+        names += sorted(os.path.join('Script', f) for f in os.listdir(scripts) if f.endswith('.pck'))
+        self.assertGreaterEqual(len(names), 47)
         for name in names:
             path = os.path.join(_paths.BACKUP_DIR, name)
             with open(path, 'rb') as f:

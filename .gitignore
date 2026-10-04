@@ -11,6 +11,7 @@ DungeonTravelers2-2_EN/
 
 # Except backups inside mod_project
 !mod_project/backups/*.pck
+!mod_project/backups/Script/*.pck
 !mod_project/data_tables/*.xlsx
 
 # Python

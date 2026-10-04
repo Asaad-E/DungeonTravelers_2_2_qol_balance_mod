@@ -152,6 +152,18 @@ class Install(unittest.TestCase):
         self.assertEqual((changes, kept, problems), ([], 4, []))
         self.assertFalse(os.path.exists(saved))
 
+    def test_script_backups_go_to_the_script_folder_even_when_the_name_exists_in_parameter(self):
+        os.makedirs(os.path.join(self.backups, 'Script'))
+        self.write(os.path.join(self.backups, 'Script'), 'SEV.pck', b'original event script')
+        self.write(self.backups, 'SEV.pck', b'original sound table')
+        self.write(os.path.join(self.game, 'Script'), 'SEV.pck', b'modded event script')
+        self.write(os.path.join(self.game, 'Parameter'), 'SEV.pck', b'modded sound table')
+        changes, _, problems, saved = self.install('first')
+        self.assertEqual(problems, [])
+        self.assertEqual(self.game_file('Script', 'SEV.pck'), b'original event script')
+        self.assertEqual(self.game_file('Parameter', 'SEV.pck'), b'original sound table')
+        self.assertEqual(install_variant.read(os.path.join(saved, 'Script', 'SEV.pck')), b'modded event script')
+
     def test_verify_reports_a_file_that_is_not_the_variant(self):
         self.install('first')
         self.write(os.path.join(self.game, 'Parameter'), 'TrapData.pck', b'something else')

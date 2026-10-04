@@ -57,7 +57,30 @@ EFFECT_STEMS = {            # vanilla phrase -> (effect id, label), verified eff
     'TP absorption rate': (76, 'TP Absorb'),
     'Number of enemies attacked': (137, 'Targets'),
     'Recovery cap': (295, 'Heal Cap'),
+    # Decoded from the game's own text (EFFECT_NAMES in extract_vanilla.py). Labels are the game's words.
+    'Critical rate': (31, 'Critical rate'),
+    'Enemy critical rate': (32, 'Enemy critical rate'),
+    'Number of attacks': (93, 'Number of attacks'),
+    'Power decrease': (136, 'Power decrease'),
+    'Damage cap': (296, 'Damage cap'),
+    'Total damage cap': (296, 'Total damage cap'),
+    'Amount of HP on revival': (105, 'HP on revival'),
 }
+MULTI_STEMS = {             # one vanilla phrase that speaks of two tables
+    'Evasion increases': [(164, 'Physical evasion', 'plus_pct'), (165, 'Magic evasion', 'plus_pct')],
+    'Defense decrease': [(162, 'DEF', 'minus_pct'), (163, 'Magic defense', 'minus_pct')],
+    'Post-battle HP & TP recovery': [(272, 'Post-battle HP', 'pct'), (273, 'Post-battle TP', 'pct')],
+}
+DAMAGE_EFFECTS = [          # what "Damage UP" means when the power table does not move
+    (138, 'Max HP damage', 'pct'),      # a fraction of the target's max HP (the scrolls)
+    (199, 'Max HP damage', 'pct'),      # the same, every turn (Debilitating Salsa)
+    (191, 'Damage', 'mult'),            # multiplier of the next attack (Power Charge)
+]
+SUMMON_TURNS = 147          # "Duration UP" of a summon skill
+POINT_STEMS = re.compile(r'resistance|critical rate', re.I)   # stored in points; one point is 1%
+NO_GUESS_EFFECTS = {228, 229, 230, 231, 233}   # parameters of a summoned doll: what they scale is not known
+EXTRA_EFFECTS = [(79, 'Speed decrease chance', 'pct')]   # known tables that no vanilla phrase mentions
+EXPLAINED_BY_TEXT = {106, 232, 311}     # "Can cure poison > paralysis > ...": the list itself is the data
 NO_GUESS_STEMS = ('Damage', 'Magic damage')   # their unit depends on the effect behind them
 ARRAY_STEMS = {             # vanilla phrase -> per-level array of the skill header
     'TP Cost': 'tp_cost',
@@ -223,7 +246,7 @@ class Segment:
         if mode == 'drop':
             if kind in ('speed', 'chant'):
                 return 1
-            return {'turns': 4, 'text': 3}.get(kind, 8)
+            return {'turns': 4, 'text': 3}.get(kind, 50)   # an effect leaves the box only as the last resort
         if mode == 'ends':
             if kind in ('speed', 'chant'):
                 return 0
@@ -299,10 +322,10 @@ def generic_style(stem, values, direction='UP'):
     wording = re.search(r'decrease|reduc', stem, re.I)
     lowering = all(v <= 0 for v in values) and wording
     # "Interruption rate DOWN" stores how much is taken off: show it as a negative amount.
-    taken_off = direction == 'DOWN' and not wording and all(v >= 0 for v in values)
+    taken_off = direction == 'DOWN' and not wording and all(v >= 0 for v in values) and list(values) == sorted(values)
     if not is_fraction(values):
         style = 'abs_num' if lowering else 'neg_num' if taken_off else 'num'
-        return style + '_pct' if re.search(r'resistance', stem, re.I) else style
+        return style + '_pct' if POINT_STEMS.search(stem) else style
     if lowering:
         return 'abs_pct'
     if taken_off:
@@ -349,6 +372,18 @@ def build_segments(skill):
             if sl and varies(sl['values']):
                 resolved[idx] = [Segment('Pwr', sl['values'], 'num') if magic else Segment('ATK', sl['values'], 'power')]
                 used.add(sl['key'])
+            else:
+                for eff_id, label, style in DAMAGE_EFFECTS:
+                    sl = slot_by_id(eff_id)
+                    if sl and varies(sl['values']):
+                        resolved[idx] = [Segment(label, sl['values'], style)]
+                        used.add(sl['key'])
+                        break
+        elif stem in MULTI_STEMS:
+            found = [(slot_by_id(eff_id), label, style) for eff_id, label, style in MULTI_STEMS[stem]]
+            if all(sl for sl, _, _ in found) and any(varies(sl['values']) for sl, _, _ in found):
+                resolved[idx] = [Segment(label, sl['values'], style) for sl, label, style in found]
+                used.update(sl['key'] for sl, _, _ in found)
         elif stem in ('Accuracy', 'Magic accuracy'):
             if magic and 'arr_0xFC' in arrays and varies(arrays['arr_0xFC']) and 'arr_0xFC' not in used:
                 resolved[idx] = [Segment('Accuracy', arrays['arr_0xFC'], 'pct')]
@@ -373,10 +408,22 @@ def build_segments(skill):
                     resolved[idx] = [Segment(a, f['values'], 'pct') for a, f in zip(names, found)]
                     used.update(f['key'] for f in found)
 
+    # "Duration UP" of a summon: its turns are an effect, not the turns array.
+    for idx, phrase in enumerate(phrases):
+        if idx not in resolved and stem_of(phrase)[0] == 'Duration':
+            sl = slot_by_id(SUMMON_TURNS)
+            if sl and varies(sl['values']):
+                resolved[idx] = [Segment('Duration', sl['values'], 'num')]
+                used.add(sl['key'])
+    for sl in slots:
+        if sl['id'] in EXPLAINED_BY_TEXT and any(p.startswith('Can cure') for p in phrases):
+            used.add(sl['key'])
+
     # 2. What is left: phrases without a table, and level-dependent tables without a phrase.
     open_phrases = [i for i, p in enumerate(phrases) if i not in resolved and stem_of(p)[0] is not None]
     open_series = [(n, v) for n, v in arrays.items() if n not in used and n != 'sp_cost' and varies(v)]
     open_series += [(sl['key'], sl['values']) for sl in slots if sl['key'] not in used and varies(sl['values'])]
+    no_guess = {sl['key'] for sl in slots if sl['id'] in NO_GUESS_EFFECTS}
     slot_series = [s for s in open_series if s[0].startswith('effect')]
 
     def take(idx, key, values):
@@ -394,7 +441,7 @@ def build_segments(skill):
     while True:
         phr = [i for i in open_phrases if i not in resolved]
         ser = [x for x in slot_series if x[0] not in used]
-        if not phr or len(phr) != len(ser):
+        if not phr or len(phr) != len(ser) or any(key in no_guess for key, _ in ser):
             break
         guessable = [i for i in phr if stem_of(phrases[i])[0] not in NO_GUESS_STEMS]
         if len(phr) == 1:
@@ -433,6 +480,11 @@ def build_segments(skill):
         sl = slot_by_id(eff_id)
         if sl and is_fraction(sl['values']):
             segments.append(Segment(name, sl['values'], 'pct', extra=True))
+            used.add(sl['key'])
+    for eff_id, label, style in EXTRA_EFFECTS:
+        sl = slot_by_id(eff_id)
+        if sl and is_fraction(sl['values']):
+            segments.append(Segment(label, sl['values'], style, extra=True))
             used.add(sl['key'])
     if magic and 'arr_0xFC' in arrays and 'arr_0xFC' not in used and varies(arrays['arr_0xFC']):
         segments.append(Segment('Accuracy', arrays['arr_0xFC'], 'pct', extra=True))

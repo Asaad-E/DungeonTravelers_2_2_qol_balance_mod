@@ -21,7 +21,7 @@ Tools are built once for both variants: the variant is a parameter of the build,
 
 | Output | Built by | Content |
 |---|---|---|
-| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 267 of 330 boxes with level-by-level data; line 1 of 63 techniques and spells with a damage word and the ailment chance; numeric data identical to the original. Skill menu box **[verified]** on screen. |
+| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 268 of 330 boxes with level-by-level data; line 1 of 80 techniques and spells with a damage word and the ailment chance; numeric data identical to the original. Skill menu box **[verified]** on screen. |
 | `build/qol/Data/ENG/Parameter/EnemyAttackData.pck` | `tools/build_variant.py qol` | 858 of 2,375 enemy attacks (also the abilities of summoned monsters) with the exact ailment chance on their data line; prose identical to the original. **[untested]** on screen. |
 | `build/qol/Data/ENG/Parameter/EnchantData.pck` | `tools/build_variant.py qol` | 142 of 280 enchant names carry their figure (`Max HP +10%`, `Water resistance -20%`, `Enmity -5%`); flags, prefix and suffix identical to the original. Installed; **[untested]** on screen. |
 | `build/qol/Data/ENG/Parameter/ItemData.pck` | `tools/build_variant.py qol` | 9 of 576 descriptions: the exact amount replaces the vague size (`Restore an ally's HP (+250).`); prices and effects identical to the original. Installed; **[untested]** on screen. |
@@ -30,7 +30,7 @@ Tools are built once for both variants: the variant is a parameter of the build,
 | `data_tables/qol_skill_text.xlsx` | `tools/generate_qol_skill_text.py`, then edited by hand | Text of the QoL skills (`QoL_Desc`, `QoL_LvUp`). The editable source for that text. |
 | `data_tables/qol_enchant_text.xlsx` | `tools/generate_qol_enchant_text.py`, then edited by hand | Name of each enchantment in QoL (`QoL_Name`) and the guide its figure comes from (`Figure_Source`). |
 | `data_tables/qol_item_text.xlsx` | `tools/generate_qol_item_text.py`, then edited by hand | Description of each item in QoL (`QoL_Desc`). |
-| The game folder | `tools/install_variant.py` (run by `build_variant.py`) | Holds **the QoL variant and nothing else** since 2026-10-04: the 8 built archives over the 28 untouched originals (section 8.1). |
+| The game folder | `tools/install_variant.py` (run by `build_variant.py`) | Holds **the QoL variant and nothing else** since 2026-10-04: the 8 built archives over the 39 untouched originals (47 files checked by the install) (section 8.1). |
 | `docs/QOL_ROADMAP.md` | by hand, from the build output | Every pack with its state, what is left and the order of work. The checklist for calling QoL finished. |
 | Installed game + `dist/DT22_Definitive_QoL_Balance_Mod_v1.0.zip` | `tools/apply_mod.py`, `tools/package_release.py` | The **earlier mixed build** (text and value changes together). Not releasable: see section 8 and `CROSS_SYSTEM_VALIDATION_REPORT.md`. Two files of the installed game were replaced at the user's request (section 8.1). |
 
@@ -44,7 +44,7 @@ DungeonTraveler2-2/
 ├── Data/                              GameFAQs pages (*.mhtml). Cross-check only, never a source of values. Not versioned.
 ├── docs_example/                      method and reference project (7th Dragon 2020)
 └── mod_project/
-    ├── backups/                       untouched original .pck files (36). Every build reads from here.
+    ├── backups/                       untouched original .pck files (36), and backups/Script/ (11 scripts, among them the SEV.pck that shares its name with a Parameter file). Every build and install reads from here.
     ├── data_tables/                   workbooks (section 2.1)
     ├── build/<variant>/               output of build_variant.py. Not versioned.
     ├── build/installed_backup/<time>/ game files replaced by an install, as they were. Not versioned.
@@ -133,7 +133,7 @@ Effect slot = `int` effect id, 10 values (one per level, `int` or `float`), `int
 
 Codes **[verified]**: target `0` single enemy, `1` random, `2` enemy row, `3` piercing, `4` all enemies, `5` single ally, `7` ally row, `8` all allies, `9` self. Type `0` weapon's, `1` slash, `2` stab, `3` bash, `4` fire, `5` water, `6` wind, `7` earth, `8` lightning, `9` neutral. Weapon `1` sword, `2` dagger, `3` axe, `4` lance, `5` mace, `7` tome, `8` bow, `9` katana, `10` projectile, `11` whip, `12` fan, `15` gun, `16` shield.
 
-Effect ids are shared by skills, enemy attacks and traps. Named with evidence (21 of 257): `1` magic power, `26` physical power (damage = 100% + value), `29` accuracy modifier, `74` dispel, `75` HP drain, `76` TP drain, `103` heal power, `113` poison, `114` freeze, `115` paralysis, `116` sleep, `117` silence, `118` stun, `119` instant death, `120` petrification, `122` slow, `137` number of targets, `162` DEF modifier, `169` all-element resistance, `170` aggro, `295` heal cap. The rest are listed in the `Effects` sheet with the skills that use them. The meaning of an id is **[inferred]** (guide, trap names or vanilla text); its values are **[verified]**.
+Effect ids are shared by skills, enemy attacks and traps. Named with evidence (69 of 257; the first 21 listed here, the rest in `EFFECT_NAMES` of `extract_vanilla.py` and section 2.5 of `QOL_ROADMAP.md`): `1` magic power, `26` physical power (damage = 100% + value), `29` accuracy modifier, `74` dispel, `75` HP drain, `76` TP drain, `103` heal power, `113` poison, `114` freeze, `115` paralysis, `116` sleep, `117` silence, `118` stun, `119` instant death, `120` petrification, `122` slow, `137` number of targets, `162` DEF modifier, `169` all-element resistance, `170` aggro, `295` heal cap. The rest are listed in the `Effects` sheet with the skills that use them. The meaning of an id is **[inferred]** (guide, trap names or vanilla text); its values are **[verified]**.
 
 ### 3.3 Other records
 
@@ -293,18 +293,20 @@ Figures from the first game's guide: physical and magic attack +4% / +2%, speed 
 | Word | Physical: average ATK | Magic: average Pwr | Skills today |
 |---|---|---|---|
 | negligible | below 80% | below 80 | 1 |
-| minor | 80% - 124% | 80 - 249 | 9 |
-| moderate | 125% - 149% | 250 - 399 | 21 |
-| major | 150% - 174% | 400 - 499 | 7 |
-| severe | 175% - 224% | 500 - 699 | 11 |
+| minor | 80% - 124% | 80 - 249 | 17 |
+| moderate | 125% - 149% | 250 - 399 | 26 |
+| major | 150% - 174% | 400 - 499 | 8 |
+| severe | 175% - 224% | 500 - 699 | 16 |
 | tremendous | 225% and above | 700 and above | 5 (the game's own word for exactly these spells; out of the scale) |
 
-* Ailment chance as the shortest true figure: `(25%)` when it is the same at every level, `(30%+)` when it rises by 10 points or less, `(20-50%)` when it rises by more. Nothing when it always happens. No tilde: the font has none.
+* Chance of an ailment, of a dispel (`May cancel enemy buffs (68-85%)`) or of a turn delay, as the shortest true figure: `(25%)` when it is the same at every level, `(30%+)` when it rises by 10 points or less, `(20-50%)` when it rises by more. Nothing when it always happens. No tilde: the font has none.
 * Where the word goes: before the kind of damage (`Deal minor bash damage`), in place of the game's own grading word (`Powerful strike` -> `Major strike`), or `Attack one enemy` -> `Deal moderate damage to one enemy`. Five sentences that name no damage have a hand-written place (`TEMPLATES`).
-* A skill whose power is not fully understood gets no word (24 today, listed in `Line1_Notes`): Spiral Arrow is ATK 88% but carries effect 73 at 3.3 to 4.0.
+* A skill whose damage the power table does not measure gets no word (3 today, listed in `Line1_Notes`): Spiral Arrow is ATK 88% but carries effect 73 at 3.3 to 4.0, which the game describes as "several times ATK in damage". Which effects leave the power table as the measure of a hit is the set `SAFE_EFFECTS`; each of its ids is named with its evidence, and a test holds that.
 * Examples: `Shield skill. Deal minor bash damage to one enemy. May stun (30%+).` `Deal moderate fire damage to one enemy.` `Stun one enemy (65%+).` `Deal tremendous fire damage to one enemy.`
 
 The build checks every word and chance against the built binary, and rejects any other figure in line 1.
+
+**Level-up lines after decoding the effects.** Phrases that used to stay as the game wrote them now carry their table: `Critical rate: 5% (+2.5%/Lv) -> 15%` and `Enemy critical rate` (Last Stand), `Damage: 1.05x -> ... -> 1.3x` (Power Charge), `Physical evasion` and `Magic evasion` (Warm-Up), `Max HP damage: 4% -> ... -> 8%` with `Damage cap: 250 -> 500` (the scrolls, Debilitating Salsa), `DEF` and `Magic defense` (Carrot and Stick), `Post-battle HP` and `Post-battle TP` (Generous Heart), `Speed decrease chance` (Phoenix). The parameters of the summoned dolls (228-233) are not guessed: `ATK UP` stays.
 
 **Enemy attacks** (`tools/generate_qol_enemy_attack_text.py`), which are also the abilities of summoned monsters. Their text is a data line followed by prose. The prose, jokes included, is never touched (the build compares it with the original); exact figures are added to the data line in its own format:
 
@@ -322,7 +324,7 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 
 ## 7. Tests (what each guards)
 
-`python -m unittest discover -s mod_project/tests -p "test_*.py"` (72 tests).
+`python -m unittest discover -s mod_project/tests -p "test_*.py"` (84 tests).
 
 | File | Guards |
 |---|---|
@@ -333,7 +335,8 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 
 | `test_qol_enchants_and_ranks.py` | Enchant and weapon rank entries rewrite identically; names keep the game's wording and add the sourced figure; a source that is not trusted is not shown; names fit; an unsourced figure, an overlong name, a changed flag and a changed multiplier each stop the build; a rank label follows its multiplier and is idempotent. |
 | `test_qol_items_and_install.py` | Item table matches the backups; the amount replaces the vague size and no text states both; a wrong amount, a wrong kind and a changed item value stop the build. The install leaves the game as the variant and nothing else, saves what it replaces, and a second install changes nothing. |
-| `test_qol_line1_and_enemy_attacks.py` | Bounds of the damage scale and forms of the chance; line 1 of real skills; a skill with an effect that is not understood stays as written; a wrong word, a wrong chance or a level figure in line 1 stops the build. Enemy attack writer exact; chance on the data line; prose never changed; a wrong chance, an edited joke and a changed value stop the build. |
+| `test_qol_line1_and_enemy_attacks.py` | Bounds of the damage scale and forms of the chance; line 1 of real skills; a skill whose damage the power table does not measure stays as written; a wrong word, a wrong chance or a level figure in line 1 stops the build. Enemy attack writer exact; chance on the data line; prose never changed; a wrong chance, an edited joke and a changed value stop the build. |
+| `test_effect_decoding.py` | The evidence for the decoded effects is re-read from the files: figures stated by enemy attack texts equal the stored values (fixed crit rate, cap, fixed damage, fixed accuracy), hit-count and ignore-defense wording goes with its id, and the only disagreements are the four known errors of the original text. Every effect treated as harmless for the damage word is named with its evidence. No box leaves an effect out. |
 
 Verified without the game: container and entry round trips, numeric identity of the QoL build, 733 figures in the built skill text and 9 item amounts against the built binary, every rank label against its multiplier, the game folder against the variant after an install. Enchant figures cannot be verified against the binary (it holds none): they are checked against the source table only. Seen on screen by the user: the rank label in the title bar. Everything else of the QoL build is installed and waiting for a look.
 

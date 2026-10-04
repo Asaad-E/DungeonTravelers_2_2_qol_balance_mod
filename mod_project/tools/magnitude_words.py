@@ -39,9 +39,10 @@ PHYS_BOUNDS = (80, 125, 150, 175, 225)      # average ATK in %
 MAGIC_BOUNDS = (80, 250, 400, 500, 700)     # average Pwr
 SMALL_RISE = 10                             # points of chance; up to this the text says "30%+"
 
-AILMENT_VERBS = {       # wording of the game -> effect id
+AILMENT_VERBS = {       # wording of the game -> effect id whose value is the chance
     'poison': 113, 'freeze': 114, 'paralyze': 115, 'cause sleep': 116, 'silence': 117,
     'stun': 118, 'instakill': 119, 'petrify': 120, 'slow': 122,
+    'delay enemy turn': 54, 'cancel enemy buffs': 74,
 }
 SPELL_VERBS = {         # first word of a pure ailment spell -> effect id
     'Poison': 113, 'Freeze': 114, 'Paralyze': 115, 'Put': 116, 'Silence': 117,
@@ -49,13 +50,22 @@ SPELL_VERBS = {         # first word of a pure ailment spell -> effect id
 }
 AILMENT_NOUNS = {'instakill': 119}      # "Low chance of instakill."
 AILMENT_IDS = set(AILMENT_VERBS.values())
-# Effects that do not change how hard one hit lands: 0 (present in every plain attack), accuracy,
-# dispel, turn delay, 50/50 trigger, HP/TP absorb, the ailments, number of targets, ATK/DEF modifiers.
-SAFE_EFFECTS = {0, POWER_PHYS, POWER_MAGIC, 29, 54, 55, 74, 75, 76, 137, 161, 162} | AILMENT_IDS
+# Effects that leave the power table as the measure of one hit. Every id here is named, with its
+# evidence, in EFFECT_NAMES of extract_vanilla.py (a test holds this). They are: the plain hit, accuracy,
+# chances of side effects, HP/TP absorb, the number of hits or targets, who can be hit, stat changes
+# on the target, and conditions the sentence itself states (RES-based, ignores defense, critical hit,
+# bonus against a kind of enemy or with a weapon).
+SAFE_EFFECTS = {0, POWER_PHYS, POWER_MAGIC, 29, 55, 72, 75, 76, 137,                     # hit, accuracy, absorb, targets
+                31, 70, 110, 125,                                                        # critical hits
+                90, 92, 93, 94, 95, 96, 97, 99, 136,                                     # number of hits, falloff
+                47, 69, 71, 87, 88, 111,                                                 # stated conditions
+                79, 133, 161, 162, 163, 164, 165, 166, 167, 168} | AILMENT_IDS          # effects on the target
+# Not here on purpose: 73 (damage tied to base attack, formula not known), 138 and 199 (damage taken from
+# the target's max HP), 8 (fixed damage), 146 and 147 (the damage belongs to the summoned unit).
 
 VANILLA_WORDS = ('tremendous', 'enormous', 'powerful')
 DAMAGE_KINDS = ('bash', 'bashing', 'slash', 'stab', 'fire', 'water', 'lightning', 'wind', 'earth',
-                'non-elemental', 'mid-range', 'long-range', 'RES-based')
+                'non-elemental', 'mid-range', 'long-range', 'RES-based', 'defense-piercing')
 ALL_DAMAGE_WORDS = DAMAGE_WORDS + (OUT_OF_SCALE,)
 DAMAGE_WORD_RE = re.compile(r'\b(' + '|'.join(ALL_DAMAGE_WORDS + VANILLA_WORDS) + r')\b', re.I)
 CHANCE = r'\((?P<chance>\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?%\+?)\)'
@@ -71,6 +81,8 @@ TEMPLATES = {
     "Decrease the enemy's DEF as you attack.": "Decrease the enemy's DEF as you deal {w} damage.",
     'Shoot a barrage of arrows that rains upon all enemies.': 'Shoot a barrage of arrows that rains {w} damage upon all enemies.',
     'Absorb HP from an enemy row.': 'Absorb HP from an enemy row with {w} damage.',
+    'with a raw magic attack': 'with a {w} raw magic attack',
+    'Fire a single shot certain to hit one enemy.': 'Fire a single shot certain to hit one enemy for {w} damage.',
 }
 
 

@@ -86,9 +86,9 @@ class Line1(unittest.TestCase):
         for name in ('Spiral Arrow', 'Holy Gavel', 'Fire Scroll'):
             with self.subTest(skill=name):
                 self.assertEqual(self.propose(name), self.skills[name][3])
-        # Soul Eater keeps the game's "enormous" (effect 87 is not understood) and gains only its fixed chance.
+        # Soul Eater: effect 87 is "living targets only", so its "enormous" is graded like any other spell.
         self.assertEqual(self.propose('Soul Eater'),
-                         'Deal enormous damage to one enemy that possesses life. Low chance of instakill (12%).')
+                         'Deal severe damage to one enemy that possesses life. Low chance of instakill (12%).')
 
     def test_checker_rejects_a_word_the_binary_does_not_give(self):
         category, _, b, desc = self.skills['Fireball']

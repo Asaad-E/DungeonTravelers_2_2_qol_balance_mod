@@ -1,6 +1,6 @@
 # QoL roadmap: what must be true before QoL is called finished
 
-State on 2026-10-04, commit after `d469d1e`. Every number here was read from the files in `mod_project/backups/` or from the output of `build_variant.py qol`; nothing is estimated. Balance is out of scope until this list is closed.
+State on 2026-10-04, after steps 2 and 3 of section 4. Every number here was read from the files in `mod_project/backups/` or from the output of `build_variant.py qol`; nothing is estimated. Balance is out of scope until this list is closed.
 
 Tags: **[done]** built, verified by the build and installed. **[seen]** also looked at on screen by the user. **[open]** not started or not finished. **[blocked]** needs something that is not known yet.
 
@@ -12,13 +12,13 @@ QoL is finished when all seven hold. Each one is checked by a tool or by a look 
 
 | # | Condition | How it is proven | Today |
 |---|---|---|---|
-| D1 | Every pack whose text reaches a screen has a decision: improved, or kept as written with the reason. | Table of section 2 has no row marked open. | 8 of 36 backed-up packs built; 11 game packs not even backed up |
-| D2 | Every figure on screen is the value in the binary. Where the binary has none, it comes from a guide of this game and says so. | `build_variant.py` stops otherwise. | 733 skill figures, 83 line-1 damage words and chances, 9 item amounts, 922 ailment chances, 12 rank labels checked; 142 enchant figures from guides |
+| D1 | Every pack whose text reaches a screen has a decision: improved, or kept as written with the reason. | Table of section 2 has no row marked open. | 8 packs built. All 47 packs of `Parameter/` and `Script/` now have a backup |
+| D2 | Every figure on screen is the value in the binary. Where the binary has none, it comes from a guide of this game and says so. | `build_variant.py` stops otherwise. | 753 skill figures, 104 line-1 damage words and chances, 9 item amounts, 922 ailment chances, 12 rank labels checked; 142 enchant figures from guides |
 | D3 | No game value differs from the original. | Numeric part of every built entry compared with the backup. | Holds for the 3,573 entries of the 8 built packs |
 | D4 | Jokes, prose and the game's own words are intact. Data is added next to them, never in their place. | Build check per pack (prose identical; names keep the vanilla words). | Enforced for enemy attacks, enchants, items and line 1 of skills |
 | D5 | Every kind of box has been seen on screen after the install, by the user. | Section 3. | 3 of 12 kinds of screen seen |
 | D6 | Every pack the build writes has a writer that reproduces the original byte for byte. | Round-trip test. | 8 packs exact; 4 writers still inexact |
-| D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s mod_project/tests -p "test_*.py"` | 72 tests pass |
+| D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s mod_project/tests -p "test_*.py"` | 84 tests pass |
 
 ---
 
@@ -55,29 +55,30 @@ QoL is finished when all seven hold. Each one is checked by a tool or by a look 
 | `ShopStore`, `ShopQuest`, `ShopBlacksmith`, `ShopBar` (scripts) | 50, 61, 15, 31 | 357 | 37 | Shop dialogue | **[open]** 16 lines with figures (prices, rules) to check |
 | `TrapData` | 12 | names | 0 | "You triggered a %name trap!" | **[open]** each has an effect id and a rate at `0x14`; decide whether the name should carry it |
 
-### 2.2 Packs without text, and packs not backed up
+### 2.2 Packs without text, and the scripts backed up on 2026-10-04
 
 | Pack | Entries | Note |
 |---|---|---|
 | `CharacterData`, `ClassLevelData`, `LvExpSkptData`, `EffectSequenceData`, `WeaponEffectSequenceData`, `TreasureBoxData`, `ShopVoiceData`, `KeyHelpData`, `SEV` (Parameter) | 250, 38, 99, 680, 22, 26, 11, 111, 226 | No prose. Nothing to show; they are sources of facts (stat growth, EXP, SP) for texts elsewhere. `ClassLevelData` (38 entries of 3,172 bytes) is not decoded |
-| `Script/ShopCostume`, `ShopDarkPeddler`, `ShopIce`, `ShopPeddler`, `ShopRamen` | 15, 5, 10, 10, 10 | **[open]** Dialogue. No backup exists: back them up before anything else |
-| `Script/Battle`, `Item0885`, `evt00`, `evt02`, `evt99`, `Script/SEV` | 1, 2, 1, 10, 0, 226 | **[open]** Story and event scripts (`SEV` 804 KB, `evt02` 608 KB). No backup. Read for figures only; story text is not to be touched |
+| `Script/ShopCostume`, `ShopDarkPeddler`, `ShopIce`, `ShopPeddler`, `ShopRamen` | 15, 5, 10, 10, 10 | **[open]** Dialogue. Backed up on 2026-10-04 in `backups/Script/`; not read yet |
+| `Script/Battle`, `Item0885`, `evt00`, `evt02`, `evt99`, `Script/SEV` | 1, 2, 1, 10, 0, 226 | **[open]** Story and event scripts (`SEV` 804 KB, `evt02` 608 KB). Backed up on 2026-10-04 in `backups/Script/`. Read for figures only; story text is not to be touched |
 | `UI.pck`, `Font1.pck`, `Font2.pck`, `CG_EN.pck` | | Images and fonts. Out of scope. The font has no tilde `~` |
 
 ### 2.3 Skills: what is left
 
-Built: 267 of 330 boxes carry data (246 with every vanilla phrase resolved, 21 partly), 48 internal entries skipped, 15 unchanged.
+Built: 268 of 330 boxes carry data (257 with every vanilla phrase resolved, 11 partly), 48 internal entries skipped, 14 unchanged. Line 1 of 80 techniques and spells carries 73 damage words (68 on the scale, 5 `tremendous`) and 31 chances.
 
 | Open item | Size | What closes it |
 |---|---|---|
-| Damage word missing | 24 skills | They carry effects that are not understood: ids 31, 47, 69, 70, 71, 72, 73, 79, 87, 88, 90, 93, 94, 95, 96, 99, 110, 111, 125, 133, 136, 146, 147, 168. Example: Spiral Arrow is ATK 88% with effect 73 at 3.3 to 4.0, so "negligible" would be false. Decode each id (compare skills that share it, test in game), then add it to `SAFE_EFFECTS` or to the damage formula |
-| Sentence too long for its word or chance | 5 skills | Frost Slash, Shock Spiral, Rose Queen, Mad Zapper (chance left out), Megaton Press (damage word left out). Needs the real width of the battle bar (section 3), or a hand edit |
+| Damage word missing | 3 skills | Spiral Arrow and Holy Gavel carry effect 73: the game says "deal several times ATK in damage" and "Highly influenced by base attack", so ATK 88% and 82% are not their strength, and the formula is not known. Star Dust Arrow's damage belongs to the arrows it summons. A damage test in the game closes the first two |
+| Sentence too long for its word or chance | 7 skills | Frost Slash, Shock Spiral, Rose Queen, Mad Zapper (chance left out); Megaton Press, Chain Spike, Beast Binder (damage word left out). Needs the real width of the battle bar (section 3), or a hand edit |
 | Two ailments with different chances | 1 skill | Absolute Obedience (silence 25-37%, paralysis 20-32%). Hand edit |
-| Vanilla phrases not tied to a table | 23 skills | Listed in `Phrases_Kept_As_Vanilla` |
-| Per-level tables that no phrase explains | 50 tables of 31 skills | Listed in `Tables_Not_Shown`. Same effect ids as the first row |
-| Speed or chant left out for lack of room | 72 boxes | By design (rule B). Review on screen whether a third line reads well |
-| Line 1 of buffs, heals and passives | not graded | Only damage and ailment chance are graded today. Decide whether "Raise the party's ATK." should say how much |
-| Summon skills | 6 skills | "Summon Spartan for short-range bash damage." holds no data; the data is in "Spartan's Action" |
+| Vanilla phrases not tied to a table | 12 skills | Spiral Arrow, Star Dust Arrow, Holy Gavel (Damage); Beast Binder (Accuracy); Spartan, Oracles, Catalina, Mercidarian, Musiy (the doll's ATK, healing, magic); Primevil; Heaven or Hell; Heal Mastery |
+| Per-level tables that no phrase explains | 17 tables of 14 skills | Effects 171 (Cover), 180 (Parry), 73, 146 and 147 (Star Dust Arrow), 228-233 (summoned dolls), 103 and 106 (Primevil), 155 (Heaven or Hell), 245 and 317 (Heal Mastery), 311 (Esarhaddon) |
+| Effect values that never change with the level | not shown | Example: Phoenix lowers speed by 10% at every level; the box shows the chance (30% +5%/Lv) but not the 10%. Decide whether fixed values belong in the box |
+| Speed or chant left out for lack of room | 72 boxes | By design (rule B). No effect is left out of any box (a test holds it) |
+| Line 1 of buffs, heals and passives | not graded | Only damage and chances are in line 1 today. Decide whether "Raise the party's ATK." should say how much |
+| Summon skills | 6 skills | "Summon Spartan for short-range bash damage." holds no damage data; the data is in "Spartan's Action" |
 
 ### 2.4 Enemy attacks: what is left
 
@@ -85,8 +86,34 @@ Built: 267 of 330 boxes carry data (246 with every vanilla phrase resolved, 21 p
 |---|---|---|
 | Ailment chance that cannot be written plainly | 14 attacks | 7 have no data line (familiars, Oracles' Action); 3 store a chance above 100% (Homicide Ray 200%, Wide Range Hypnotism 9900%); 4 store 0% |
 | Power (`0x44`, a float) | 2,375 | Meaning inferred, not shown. Confirm against a damage test, then add `Power: 0.9x` to the data line |
-| Other effects | more than 40 ids | Stat changes (161, 162, 163, 166, 167, 168), HP/TP absorb (75, 76), dispel (74), hit count and the rest. Only the 9 ailments are shown |
+| Other effects | more than 40 ids | Many are now named (section 2.5): fixed damage (8), cap (296), fixed accuracy (55), fixed critical rate (70), hit counts (90-99), ignore defense (69), stat changes (161-168), HP/TP absorb (75, 76), turn-order push (54), dispel (74). Step 4 puts them on the data line |
 | Where enemy attacks are shown | | Seen for summons. Confirm the enemy info screen uses the same text |
+
+### 2.5 Effect ids: what is decoded and how
+
+An effect id means the same in skills, enemy attacks and traps. 69 of 257 ids are now named (21 before step 3); the list with the evidence for each is `EFFECT_NAMES` in `tools/extract_vanilla.py` and the `Effects` sheet of the source of truth.
+
+The best source turned out to be the game itself: an enemy attack description often states the effect in words, and where it gives a figure the figure is the stored value. A test re-reads this on every run:
+
+| Effect | The game's wording | Agreement with the stored value |
+|---|---|---|
+| 70 fixed critical hit rate | "Has a fixed critical hit rate of 50%" | 5 of 5 |
+| 296 damage cap | "(Cap: 200)" | 24 of 26 |
+| 8 fixed damage | "does 666 damage", "Deal 1111 fixed damage" | 18 of 19 |
+| 55 fixed accuracy | "With 65% accuracy" | 2 of 3 |
+| 90, 92, 94, 95, 96, 97, 99 hit counts | "thrice", "2-4 times", "0-4", "1-5", "3-5", "twice", "1-3" | wording present in most of the attacks that carry each id |
+| 69 ignores defense | "ignoring defense" | wording present in the attacks that carry it |
+
+**The four disagreements are errors of the original text**: the description promises one figure and the data holds another. The game does what the data says.
+
+| Enemy attack | The text says | The data holds |
+|---|---|---|
+| Modest Fever | Deal 555 fixed damage | 777 |
+| Scream of Despair | With 50% accuracy | 65% |
+| Debilitating Salsa | (Cap: 500) | 300 |
+| Debilitating Geas | (Cap: 999) | 500 |
+
+Still not decoded among the ids that skills use: 73 (damage tied to base attack: formula), 133 (max HP reduction: unit), 171, 180, 155, 228-233, 245, 317. And 188 ids used only by enemy attacks or passives have no name yet.
 
 ---
 
@@ -116,8 +143,8 @@ The install puts the build in the game after every run. One screenshot of each c
 Each step ends with a build that passes, an install, and a look at the screen.
 
 1. **Close what is installed.** Screens of section 3 for skills, items, enchants and summon abilities. Fix what they show. Blocks nothing else, costs the user a few screenshots.
-2. **Back up the 11 packs that have no backup** (shop and event scripts), and add them to the round-trip test. Until then the install cannot guarantee their state.
-3. **Decode the 24 effect ids** that hold back 24 damage words and 50 hidden tables. One id at a time: list the skills and enemy attacks that share it, read their vanilla text, test one in the game. Each id decoded improves skills and enemy attacks at once.
+2. **[done 2026-10-04] Back up the 11 packs that had no backup.** They are in `backups/Script/` (their dates were those of the install and no tool of the earlier build writes them). All 47 archives rebuild byte for byte, the round-trip test covers them, and the install now checks 47 files.
+3. **[done 2026-10-04, with a remainder] Decode the 24 effect ids.** 21 decoded from the game's own enemy attack text, and 27 more on the way (section 2.5). Result: damage words 49 -> 68 on the scale, tables without explanation 50 -> 17, boxes fully resolved 246 -> 257. Remainder: effect 73 (Spiral Arrow, Holy Gavel), the summon parameters 228-233, and 171, 180, 155, 245, 317.
 4. **Enemy attacks, second pass**: power and the stat-change effects on the data line.
 5. **One pack at a time, smallest first**: `FoodMenuData` (16), `PartySkillData` (20), `JoinSkillData` (52), `TrapData` (12), `ClassData` (49), `SealScrollData` (374), then the 32 vague item texts. For each: decode the layout, make the writer exact, add a sheet to the source of truth, write the generator and its workbook, add the build check and the tests, install, look.
 6. **Texts that state rules**: `Lesson` (24 lines), `Teaching` (16), shops (16), `StringData` (21), `QuestData` (49), `QuestRankData` (8), `TrophyData` (5). Every figure they give is compared with the binary. A line is changed only if it is false or vague; its voice stays.
@@ -137,3 +164,5 @@ Each step ends with a build that passes, an install, and a look at the screen.
 | 5 | Should buffs, heals and passives get a word or a figure in line 1 too? | Not graded |
 | 6 | Enemy attack data goes on the game's own data line (`Target / Type / Range / Poison: 30%`) so that no joke is rewritten. | As built |
 | 7 | Resistance is written with `%`. It is inferred from the 0-100 scale; the status screen will confirm. | With `%` |
+| 8 | Four enemy attack descriptions state a figure that their data does not hold (section 2.5). Correct the figure in the prose? | Left as written: the build does not let prose change |
+| 9 | Effect values that are the same at every level (Phoenix: speed -10%) are not in the box. Add them? | Not shown |

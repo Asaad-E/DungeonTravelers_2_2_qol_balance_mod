@@ -5,8 +5,10 @@ Called by build_variant.py after a build has passed its verification; it can als
 
     python mod_project/tools/install_variant.py qol
 
-After it runs, every game file that has an original in mod_project/backups/ is in the state of
-the variant: the file the variant built, or the untouched original when the variant does not
+Originals live in mod_project/backups/ (the game folder that holds each one is looked up,
+Parameter first) and in mod_project/backups/Script/ (always the game's Script folder; SEV.pck
+exists in both). After it runs, every game file that has an original is in the state of the
+variant: the file the variant built, or the untouched original when the variant does not
 build that file. Nothing of any other build is left behind, so what is on screen is the variant
 and nothing else.
 
@@ -40,16 +42,29 @@ def game_location(name, game_dir=GAME_DIR):
     return None
 
 
-def expected_files(variant, backup_dir=BACKUP_DIR, build_dir=BUILD_DIR):
-    """name -> (bytes the game must hold, where they come from)."""
+def backup_files(backup_dir=BACKUP_DIR):
+    """(key, path, fixed game subfolder or None) of every original. key is 'Name.pck' or 'Script/Name.pck'."""
+    found = [(f, os.path.join(backup_dir, f), None) for f in sorted(os.listdir(backup_dir)) if f.endswith('.pck')]
+    for sub in GAME_SUBDIRS:
+        folder = os.path.join(backup_dir, sub)
+        if os.path.isdir(folder):
+            found += [(f'{sub}/{f}', os.path.join(folder, f), sub) for f in sorted(os.listdir(folder)) if f.endswith('.pck')]
+    return found
+
+
+def expected_files(variant, backup_dir=BACKUP_DIR, build_dir=BUILD_DIR, game_dir=GAME_DIR):
+    """'Subfolder/Name.pck' in the game -> (bytes the game must hold, where they come from).
+    A missing game file is reported under its backup key with the subfolder None."""
     built_dir = os.path.join(build_dir, variant, BUILT_SUBDIR)
     expected = {}
-    for name in sorted(f for f in os.listdir(backup_dir) if f.endswith('.pck')):
+    for key, path, sub in backup_files(backup_dir):
+        name = os.path.basename(path)
+        sub = sub or game_location(name, game_dir)
         built = os.path.join(built_dir, name)
-        if os.path.exists(built):
-            expected[name] = (read(built), f'{variant} build')
+        if sub == 'Parameter' and os.path.exists(built):
+            expected[f'{sub}/{name}'] = (read(built), f'{variant} build')
         else:
-            expected[name] = (read(os.path.join(backup_dir, name)), 'original')
+            expected[f'{sub}/{name}' if sub else key] = (read(path), 'original')
     return expected
 
 
@@ -58,20 +73,20 @@ def install(variant, game_dir=GAME_DIR, backup_dir=BACKUP_DIR, build_dir=BUILD_D
     changes, kept, problems = [], 0, []
     stamp = stamp or datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')
     saved_dir = os.path.join(build_dir, 'installed_backup', stamp)
-    for name, (data, source) in expected_files(variant, backup_dir, build_dir).items():
-        sub = game_location(name, game_dir)
-        if sub is None:
-            problems.append(f"{name}: not found in the game folder")
+    for key, (data, source) in expected_files(variant, backup_dir, build_dir, game_dir).items():
+        path = os.path.join(game_dir, *key.split('/'))
+        if '/' not in key or not os.path.exists(path):
+            problems.append(f"{key}: not found in the game folder")
             continue
-        path = os.path.join(game_dir, sub, name)
         if read(path) == data:
             kept += 1
             continue
-        os.makedirs(os.path.join(saved_dir, sub), exist_ok=True)
-        shutil.copy2(path, os.path.join(saved_dir, sub, name))
+        saved = os.path.join(saved_dir, *key.split('/'))
+        os.makedirs(os.path.dirname(saved), exist_ok=True)
+        shutil.copy2(path, saved)
         with open(path, 'wb') as f:
             f.write(data)
-        changes.append((f'{sub}/{name}', source))
+        changes.append((key, source))
     problems.extend(verify(variant, game_dir, backup_dir, build_dir))
     return changes, kept, problems, saved_dir
 
@@ -79,10 +94,10 @@ def install(variant, game_dir=GAME_DIR, backup_dir=BACKUP_DIR, build_dir=BUILD_D
 def verify(variant, game_dir=GAME_DIR, backup_dir=BACKUP_DIR, build_dir=BUILD_DIR):
     """The game folder must hold exactly the variant."""
     problems = []
-    for name, (data, source) in expected_files(variant, backup_dir, build_dir).items():
-        sub = game_location(name, game_dir)
-        if sub is None or read(os.path.join(game_dir, sub, name)) != data:
-            problems.append(f"{name}: the game does not hold the {source} file")
+    for key, (data, source) in expected_files(variant, backup_dir, build_dir, game_dir).items():
+        path = os.path.join(game_dir, *key.split('/'))
+        if not os.path.exists(path) or read(path) != data:
+            problems.append(f"{key}: the game does not hold the {source} file")
     return problems
 
 
