@@ -2,6 +2,18 @@
 
 **Document Purpose:** Exhaustive collection and systematic organization of player complaints, balance discussions, and gameplay friction points gathered from Japanese community archives (2ch/5ch strategy threads, the dedicated DT2-2 Atwiki, veteran DRPG blogs, and post-game clearance journals).
 
+> [!WARNING]
+> ### Critical Auditor Warning: Community Forum Bias & Binary Discrepancies
+> **This document compiles raw, subjective player sentiments, criticisms, and meta discussions gathered from public Japanese gaming forums (2ch/5ch, Atwiki, Amazon JP reviews, and player blogs).**
+>
+> **Important Distinction between Forum Perception and Engine Binary Reality:**
+> 1. **Subjective Hyperbole vs. Actual Math:** Player complaints frequently rely on emotional hyperbole and anecdotal frustration rather than verified engine data.
+> 2. **Skill Scaling Nuance:** While the forum complaint regarding "punishing TP costs with minimal damage gains" is factually accurate for certain physical skills (e.g., *Halving Slice* where TP cost nearly doubles from 38 to 74 while damage only scales from 80% to 110%), it is **demonstrably false for elemental spells** (e.g., *Fireball* power scales dramatically from 175 to 520 between Lv 4 and Lv 10).
+> 3. **Berserk Defense Reduction:** Common forum posts lament that *Berserk* "reduces defense to zero," whereas actual binary parameters show a measured DEF reduction of 11% to 25%.
+> 4. **Weapon-Skill Compatibility:** Casual claims that "ranged weapons like guns cannot use techniques" ignore the fact that specific physical techniques are explicitly flagged in the game data as bow/gun compatible.
+>
+> **Design Mandate:** This document must be treated as a survey of *perceived player friction*, NOT as an authoritative technical blueprint or source of mathematical truth. All balance modifications must be rigorously verified against the extracted PCK binary structs (`TechniqueSkillData.pck`, `MagicSkillData.pck`, etc.) before any systemic changes are made.
+
 ---
 
 ## 1. Executive Overview of Player Sentiment
