@@ -28,9 +28,10 @@ This document outlines the scope, principles, and architectural reasoning of the
    - A figure shown to the player is read from the binary of the variant being built. If the binary does not hold it, the text does not state it.
    - What a field means is inferred until proven; say so. A guide that agrees is corroboration, not proof.
    - Order of sources: binary first, then player guides of this same game (the Japanese community documented it best). A guide is used only for what the binary does not hold, every such figure names its guide, and it stays tagged as inferred. A figure from another game is a candidate, not a fact.
+   - Words are part of the data: use the game's own term for every concept (Enmity, resistance, Physical accuracy). Never rename a concept, and never put a vague word next to its exact value.
 2. **Single Source of Truth:**
    - Original values live in `data_tables/vanilla_source_of_truth.xlsx`, generated from the backups. Hand-written text lives in the workbooks of `data_tables/`.
-   - Binaries are generated from those by a build script into `build/<variant>/`. Never hand-edit a `.pck`, and never build straight into the game folder.
+   - Binaries are generated from those by a build script into `build/<variant>/`. Never hand-edit a `.pck`. The game folder is written only by the install step, after the build has passed its verification, and it then holds that variant and nothing else; whatever is replaced is saved first.
 3. **Preserve Game Soul and Humor:**
    - DT2-2 has a distinct comedic personality: puns, 4th-wall breaks, pop culture parodies, and character banter.
    - Information must be additive: `Original Flavor Text + (Concise Data)`. Never overwrite lore with dry spreadsheets.

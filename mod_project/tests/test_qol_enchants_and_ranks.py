@@ -35,14 +35,28 @@ class EnchantValues(unittest.TestCase):
             with self.subTest(enchant=enchant_id):
                 self.assertIn(value.source, enchant_values.SOURCES)
 
-    def test_only_the_guide_of_this_game_is_shown(self):
+    def test_names_keep_the_game_wording_and_add_the_sourced_figure(self):
         self.assertEqual(enchant_values.qol_name(0, 'Max HP UP'), 'Max HP +10%')
         self.assertEqual(enchant_values.qol_name(71, 'Received damage MiniDOWN'), 'Received damage -4%')
-        # Known only from the first game's guide: a candidate, not shown.
-        self.assertEqual(enchant_values.proposal(78, 'Fire magic buff')[0], 'Fire magic +20%')
-        self.assertEqual(enchant_values.qol_name(78, 'Fire magic buff'), 'Fire magic buff')
-        # No guide gives a figure.
+        # Resistance is written with %.
+        self.assertEqual(enchant_values.qol_name(93, 'Water resistance DOWN'), 'Water resistance -20%')
+        # The game says Enmity; the name keeps the game's word.
+        self.assertEqual(enchant_values.qol_name(50, 'Enmity DOWN'), 'Enmity -5%')
+        # Known only from the first game's guide: shown by decision of the user, and labelled as such.
+        self.assertEqual(enchant_values.proposal(78, 'Fire magic buff')[:2], ('Fire magic +20%', 'dt2-wiki'))
+        self.assertEqual(enchant_values.qol_name(78, 'Fire magic buff'), 'Fire magic +20%')
+        # No guide gives a figure: the vanilla name stays.
         self.assertIsNone(enchant_values.proposal(32, 'Physical accuracy MiniUP'))
+        self.assertEqual(enchant_values.qol_name(32, 'Physical accuracy MiniUP'), 'Physical accuracy MiniUP')
+
+    def test_a_source_that_is_not_trusted_is_not_shown(self):
+        shown = enchant_values.SHOWN_SOURCES
+        try:
+            enchant_values.SHOWN_SOURCES = ('dt22-wiki',)
+            self.assertEqual(enchant_values.qol_name(78, 'Fire magic buff'), 'Fire magic buff')
+            self.assertEqual(enchant_values.qol_name(0, 'Max HP UP'), 'Max HP +10%')
+        finally:
+            enchant_values.SHOWN_SOURCES = shown
 
 
 class EnchantTable(unittest.TestCase):
@@ -67,6 +81,12 @@ class EnchantTable(unittest.TestCase):
             with self.subTest(entry=fn):
                 self.assertTrue(row['edited'] or row['name'] == enchant_values.qol_name(enchant_id, row['vanilla_name']))
         self.assertGreater(renamed, 90)
+
+    def test_names_fit_where_the_game_draws_them(self):
+        for fn, row in self.table.items():
+            limit = bv.MAX_NAME_ON_EQUIPMENT if EnchantHelper.read_enchant(self.entries[fn])['prefix'] != '0' else bv.MAX_NAME
+            with self.subTest(entry=fn):
+                self.assertLessEqual(len(row['name']), limit)
 
 
 class Build(unittest.TestCase):
@@ -101,7 +121,7 @@ class Build(unittest.TestCase):
 
     def test_hand_edit_is_accepted_when_marked(self):
         def approve(table):
-            table[FIRE_MAGIC].update(name='Fire magic +20%', edited=True)
+            table[FIRE_MAGIC].update(name='Fire magic x1.2', edited=True)
         self.assertEqual(self.build(mutate_table=approve), [])
 
     def test_overlong_name_stops_the_build(self):

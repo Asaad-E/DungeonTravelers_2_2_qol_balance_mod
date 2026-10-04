@@ -1,16 +1,19 @@
 """
 Variant build.
 
-Compiles one variant of the mod into mod_project/build/<variant>/ (never into the game
-install) and verifies the result before reporting success.
+Compiles one variant of the mod into mod_project/build/<variant>/, verifies the result and,
+only when the verification passes, installs it into the game folder so it can be looked at
+on screen (tools/install_variant.py: everything it replaces is saved first).
 
     python mod_project/tools/build_variant.py qol
+    python mod_project/tools/build_variant.py qol --no-install
 
 Variants
   qol   Shows more information about the base game and changes no value.
         Built so far:
           the four skill PCKs      from data_tables/qol_skill_text.xlsx
           EnchantData.pck          from data_tables/qol_enchant_text.xlsx (enchant names with their figure)
+          ItemData.pck             from data_tables/qol_item_text.xlsx (exact amount in place of a vague size)
           WeaponRankData.pck       rank names generated from the delay multiplier of each rank
 
 The build fails (exit code 1) when
@@ -18,7 +21,8 @@ The build fails (exit code 1) when
   * the text table was generated from other backups than the ones being built,
   * any numeric field of a built entry differs from the original (QoL rule),
   * a built text differs from the table, breaks the box limits,
-  * a figure shown in a skill text differs from the value stored in the built binary (tools/text_checks.py),
+  * a figure shown in a skill or item text differs from the value stored in the built binary
+    (tools/text_checks.py),
   * an enchant name shows a figure that neither a trusted guide nor a hand edit accounts for
     (the binary holds no enchant magnitudes: tools/enchant_values.py), or
   * a weapon rank label differs from the multiplier stored in the same entry.
@@ -30,11 +34,12 @@ import struct
 import argparse
 import collections
 import openpyxl
-from pck_handler import PckArchive, SkillHelper, EnchantHelper, WeaponRankHelper
+from pck_handler import PckArchive, SkillHelper, EnchantHelper, WeaponRankHelper, ItemHelper
 from extract_vanilla import SKILL_LAYOUTS
-from text_checks import check_skill_text
+from text_checks import check_skill_text, check_item_text
 import enchant_values
 import weapon_rank_labels
+import install_variant
 from generate_qol_enchant_text import MAX_NAME, MAX_NAME_ON_EQUIPMENT
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -58,10 +63,13 @@ ENCHANT_PCK = 'EnchantData.pck'
 ENCHANT_HEADER = 0x38
 ENCHANT_POINTERS = (8, 16, 24)
 RANK_PCK = 'WeaponRankData.pck'
+ITEM_PCK = 'ItemData.pck'
+ITEM_HEADER = 0x70
+ITEM_POINTERS = (8, 16, 0x60)
 
 VARIANTS = {
     'qol': {'skill_text': 'qol_skill_text.xlsx', 'enchant_text': 'qol_enchant_text.xlsx',
-            'numeric_changes_allowed': False},
+            'item_text': 'qol_item_text.xlsx', 'numeric_changes_allowed': False},
 }
 
 
@@ -110,6 +118,15 @@ def load_enchant_text(path):
             for r in ws.iter_rows(min_row=2, values_only=True)}
 
 
+def load_item_text(path):
+    """The hand-editable item text table: the build uses exactly what its QoL_Desc column says."""
+    ws = openpyxl.load_workbook(path)['Items']
+    header = [c.value for c in ws[1]]
+    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
+    return {r[col['Filename']]: {'vanilla_desc': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
+            for r in ws.iter_rows(min_row=2, values_only=True)}
+
+
 def read_archive(pck):
     path = os.path.join(BACKUP_DIR, pck)
     with open(path, 'rb') as f:
@@ -122,7 +139,8 @@ def read_archive(pck):
 def self_test_writers(problems):
     checked = 0
     for pck, rewrite in ((ENCHANT_PCK, lambda b: EnchantHelper.write_enchant(b, EnchantHelper.read_enchant(b)['name'])),
-                         (RANK_PCK, lambda b: WeaponRankHelper.write_rank(b, WeaponRankHelper.read_rank(b)['name']))):
+                         (RANK_PCK, lambda b: WeaponRankHelper.write_rank(b, WeaponRankHelper.read_rank(b)['name'])),
+                         (ITEM_PCK, lambda b: ItemHelper.write_item(b, ItemHelper.read_item(b)['desc']))):
         archive, raw = read_archive(pck)
         if archive.build() != raw:
             problems.append(f"{pck}: rebuilding the untouched archive does not reproduce the original file")
@@ -188,6 +206,27 @@ def build_enchants(out_dir, table, problems):
         archive.files[i] = (fn, EnchantHelper.write_enchant(b, row['name']))
         stats['rewritten'] += 1
     archive.save(os.path.join(out_dir, ENCHANT_PCK))
+    return stats
+
+
+def build_items(out_dir, table, problems):
+    stats = collections.Counter()
+    archive = PckArchive(os.path.join(BACKUP_DIR, ITEM_PCK))
+    for i, (fn, b) in enumerate(archive.files):
+        row = table.get(fn)
+        if row is None:
+            problems.append(f"{ITEM_PCK}/{fn}: no row in the item table")
+            continue
+        desc = ItemHelper.read_item(b)['desc']
+        if row['vanilla_desc'] != desc:
+            problems.append(f"{ITEM_PCK}/{fn}: item table is stale (its vanilla text is not the one in the backup)")
+            continue
+        if row['desc'] == desc:
+            stats['kept'] += 1
+            continue
+        archive.files[i] = (fn, ItemHelper.write_item(b, row['desc']))
+        stats['rewritten'] += 1
+    archive.save(os.path.join(out_dir, ITEM_PCK))
     return stats
 
 
@@ -285,6 +324,40 @@ def verify_enchants(out_dir, table, variant, problems):
     return counts
 
 
+def verify_items(out_dir, table, variant, problems):
+    counts = collections.Counter()
+    original = PckArchive(os.path.join(BACKUP_DIR, ITEM_PCK)).files
+    built = PckArchive(os.path.join(out_dir, ITEM_PCK)).files
+    if [fn for fn, _ in built] != [fn for fn, _ in original]:
+        problems.append(f"{ITEM_PCK}: entry list differs from the original")
+        return counts
+    for (fn, old), (_, new) in zip(original, built):
+        row, was, now = table[fn], ItemHelper.read_item(old), ItemHelper.read_item(new)
+        label = f"{ITEM_PCK}/{fn} ({was['name']})"
+        counts['entries'] += 1
+        if not variant['numeric_changes_allowed'] and \
+                numeric_part(new, ITEM_HEADER, ITEM_POINTERS) != numeric_part(old, ITEM_HEADER, ITEM_POINTERS):
+            problems.append(f"{label}: numeric data differs from the original")
+        if (now['name'], now['name2']) != (was['name'], was['name2']):
+            problems.append(f"{label}: name changed")
+        if now['desc'] != row['desc']:
+            problems.append(f"{label}: built text differs from the item table")
+        if now['desc'] == was['desc']:
+            if bytes(new) != bytes(old):
+                problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
+            continue
+        counts['modified'] += 1
+        # The same text is the one-line bar shown in battle.
+        if '\n' in now['desc'] or len(now['desc']) > MAX_LINE or '~' in now['desc']:
+            problems.append(f"{label}: text must be one line of at most {MAX_LINE} chars without tilde")
+        if re.search(r'\((?:small|medium|large)\)', now['desc']) and re.search(r'\(\+\d', now['desc']):
+            problems.append(f"{label}: states both a vague size and an exact amount")
+        found, verified = check_item_text(new, now['desc'])
+        problems.extend(f"{label}: {p}" for p in found)
+        counts['numbers'] += verified
+    return counts
+
+
 def verify_weapon_ranks(out_dir, variant, problems):
     original = PckArchive(os.path.join(BACKUP_DIR, RANK_PCK)).files
     archive = PckArchive(os.path.join(out_dir, RANK_PCK))
@@ -305,15 +378,18 @@ def verify_weapon_ranks(out_dir, variant, problems):
 def main():
     parser = argparse.ArgumentParser(description='Build one variant of the mod into mod_project/build/<variant>/.')
     parser.add_argument('variant', choices=sorted(VARIANTS))
+    parser.add_argument('--no-install', action='store_true', help='build and verify only; leave the game folder alone')
     args = parser.parse_args()
     variant = VARIANTS[args.variant]
     out_dir = os.path.join(BUILD_DIR, args.variant, PARAM_SUBDIR)
     table_path = os.path.join(TABLES_DIR, variant['skill_text'])
     enchant_path = os.path.join(TABLES_DIR, variant['enchant_text'])
-    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, RANK_PCK]
+    item_path = os.path.join(TABLES_DIR, variant['item_text'])
+    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, RANK_PCK]
 
     print(f"=== Building variant '{args.variant}' ===")
-    for path, generator in ((table_path, 'generate_qol_skill_text.py'), (enchant_path, 'generate_qol_enchant_text.py')):
+    for path, generator in ((table_path, 'generate_qol_skill_text.py'), (enchant_path, 'generate_qol_enchant_text.py'),
+                            (item_path, 'generate_qol_item_text.py')):
         if not os.path.exists(path):
             print(f"Error: {path} not found. Run tools/{generator} first.")
             sys.exit(1)
@@ -325,12 +401,14 @@ def main():
     if problems:
         print("    Writers are not exact; nothing was built.")
     else:
-        table, enchants = load_skill_text(table_path), load_enchant_text(enchant_path)
+        table, enchants, items = load_skill_text(table_path), load_enchant_text(enchant_path), load_item_text(item_path)
         stats = build_skills(out_dir, table, problems)
         print(f"[2] Built {len(SKILL_PCKS)} skill PCKs: {stats['rewritten']} entries with new text, "
               f"{stats['kept']} kept byte-identical")
         stats = build_enchants(out_dir, enchants, problems)
         print(f"    Built {ENCHANT_PCK}: {stats['rewritten']} names with their figure, {stats['kept']} kept byte-identical")
+        stats = build_items(out_dir, items, problems)
+        print(f"    Built {ITEM_PCK}: {stats['rewritten']} descriptions with an exact amount, {stats['kept']} kept byte-identical")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:
@@ -345,8 +423,11 @@ def main():
                     print(f"        {line}")
             counts = verify_enchants(out_dir, enchants, variant, problems)
             print(f"    Verified {counts['entries']} enchantments: flags, prefix and suffix identical to the original;")
-            print(f"    {counts['sourced']} names carry a figure from the guide of this game, "
+            print(f"    {counts['sourced']} names carry a figure from a player guide (the binary holds none), "
                   f"{counts['hand worded']} worded by hand (not checked)")
+            counts = verify_items(out_dir, items, variant, problems)
+            print(f"    Verified {counts['entries']} items: values and names identical to the original;")
+            print(f"    {counts['numbers']} amounts in the text checked against the built binary")
             labels = verify_weapon_ranks(out_dir, variant, problems)
             print(f"    Verified {len(labels)} weapon ranks: multipliers identical to the original, "
                   f"each label shows its own multiplier")
@@ -362,6 +443,11 @@ def main():
     print(f"\n[OK] Variant '{args.variant}' built in: {os.path.join(BUILD_DIR, args.variant)}")
     for pck in built_pcks:
         print(f"    {os.path.join(PARAM_SUBDIR, pck)}  ({os.path.getsize(os.path.join(out_dir, pck)):,} bytes)")
+    if not args.no_install:
+        result = install_variant.install(args.variant)
+        install_variant.report(args.variant, *result)
+        if result[2]:
+            sys.exit(1)
 
 
 if __name__ == "__main__":

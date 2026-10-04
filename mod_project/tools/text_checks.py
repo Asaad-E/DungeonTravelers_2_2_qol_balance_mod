@@ -16,6 +16,7 @@ Understood notation:
 Rejected: averages, e.g. "(avg +3.33%/Lv)".
 """
 import re
+import struct
 from extract_vanilla import SKILL_LAYOUTS, SLOT_SIZE, LEVELS, i32, read_array, leading_nonzero
 
 NUM = r'[+-]?\d+(?:\.\d+)?'
@@ -169,3 +170,37 @@ def check_skill_text(category, b, text):
             if lv and int(lv.group('n')) not in (1, tables['levels']):
                 problems.append(f"'{segment}': says level {lv.group('n')} but the skill has {tables['levels']} levels")
     return problems, verified, loose
+
+
+# ---------------------------------------------------------------------------
+# Items
+# ---------------------------------------------------------------------------
+ITEM_PAIRS = 0x24            # four (int effect type, float value) pairs
+ITEM_PAIR_COUNT = 4
+ITEM_RESTORE = {             # vanilla wording -> effect type of the pair that holds the amount
+    "an ally's HP": 0,
+    "an ally's TP": 1,
+    "all allies' HP": 3,
+}
+ITEM_AMOUNT_RE = re.compile(r"Restore (?P<what>an ally's HP|an ally's TP|all allies' HP) \(\+(?P<amount>\d+)\)")
+
+
+def item_pairs(b):
+    return [(struct.unpack_from('<i', b, ITEM_PAIRS + 8 * k)[0], struct.unpack_from('<f', b, ITEM_PAIRS + 8 * k + 4)[0])
+            for k in range(ITEM_PAIR_COUNT)]
+
+
+def check_item_text(b, text):
+    """Every amount an item text states must be the value of the item's first effect pair, of the stated kind.
+    Returns (problems, verified claims)."""
+    problems, verified = [], 0
+    effect_type, value = item_pairs(b)[0]
+    claims = list(ITEM_AMOUNT_RE.finditer(text))
+    if len(claims) != len(re.findall(r'\(\+\d', text)):
+        problems.append(f"'{text}': an amount is written in a form the checker does not know")
+    for m in claims:
+        if ITEM_RESTORE[m.group('what')] != effect_type or abs(float(m.group('amount')) - value) > TOLERANCE:
+            problems.append(f"'{m.group(0)}' does not match the binary (effect type {effect_type}, value {value:g})")
+        else:
+            verified += 1
+    return problems, verified

@@ -14,7 +14,8 @@ Sources
   dt2-wiki   Japanese wiki of the first Dungeon Travelers 2
              (https://w.atwiki.jp/dungeon-travelers2/pages/200.html). Same enchant system but
              another game: where both wikis give a figure they agree, except for the stat DOWN
-             enchantments and two stacking caps. Candidates only, not shown until confirmed.
+             enchantments and two stacking caps. Shown by decision of the user; not confirmed
+             for this game.
 """
 import re
 import collections
@@ -24,9 +25,10 @@ Value = collections.namedtuple('Value', 'figure name source note')
 SOURCES = collections.OrderedDict([
     ('dt22-wiki', 'Japanese wiki of Dungeon Travelers 2-2, https://w.atwiki.jp/dt2-2/ pages 38, 39, 40 and 105 (same game)'),
     ('dt2-wiki', 'Japanese wiki of the first Dungeon Travelers 2, https://w.atwiki.jp/dungeon-travelers2/pages/200.html '
-                 '(same system, another game: candidate only)'),
+                 '(same system, another game: not confirmed for this one)'),
 ])
-SHOWN_SOURCES = ('dt22-wiki',)
+# The user chose to show the first game's figures too (2026-10-04). Each row keeps its source.
+SHOWN_SOURCES = ('dt22-wiki', 'dt2-wiki')
 
 TIER_RE = re.compile(r' (?:(?:Mini|Grand|Mega)?(?:UP|DOWN)|buff)$')
 VALUES = {}
@@ -80,24 +82,26 @@ tier([70], '-8%', DT22, 'Physical and magic. Damage reductions stack down to -25
 tier([71], '-4%', DT22, 'Physical and magic. Damage reductions stack down to -25%')
 
 # --- Resistances ------------------------------------------------------------------------------------
-tier([88, 91, 94, 97, 100, 107, 110, 113], '+20', DT22)
-tier([89, 92, 95, 98, 101, 108, 111, 114], '+10', DT22)
-tier([90, 93, 96, 99, 102, 109, 112, 115], '-20', DT22)
-tier([104], '+15', DT22, 'Each of the five elements')
-tier([105], '+7', DT22, 'Each of the five elements')
-tier([106], '-15', DT22, 'Each of the five elements')
-tier([103], '+50', DT22, 'Each of the five elements')
-tier([335], '+75', DT22, 'Each of the five elements')
-tier([336], '-30', DT22, 'Each of the five elements')
-tier([117], '+10', DT22, 'Slash, stab and bash')
-tier([118], '+5', DT22, 'Slash, stab and bash')
-tier([116], '+25', DT22, 'Slash, stab and bash')
-tier([355], '+50', DT22, 'Slash, stab and bash')
-tier([356], '-20', DT22, 'Slash, stab and bash')
-tier([119], '-10', DT2, 'Slash, stab and bash. The DT2-2 wiki lists this one as unknown (-??)')
-tier([311, 316, 321, 326, 331, 341, 346, 351], '+50', DT22)
-tier([310, 315, 320, 325, 330, 340, 345, 350], '+100', DT22)
-tier([312, 317, 322, 327, 332, 342, 347, 352], '-50', DT22)
+# The guide and the binary (skill effects) hold resistance as points where 100 is immunity, so a point
+# is one percent of the damage taken. Written with % at the user's request.
+tier([88, 91, 94, 97, 100, 107, 110, 113], '+20%', DT22)
+tier([89, 92, 95, 98, 101, 108, 111, 114], '+10%', DT22)
+tier([90, 93, 96, 99, 102, 109, 112, 115], '-20%', DT22)
+tier([104], '+15%', DT22, 'Each of the five elements')
+tier([105], '+7%', DT22, 'Each of the five elements')
+tier([106], '-15%', DT22, 'Each of the five elements')
+tier([103], '+50%', DT22, 'Each of the five elements')
+tier([335], '+75%', DT22, 'Each of the five elements')
+tier([336], '-30%', DT22, 'Each of the five elements')
+tier([117], '+10%', DT22, 'Slash, stab and bash')
+tier([118], '+5%', DT22, 'Slash, stab and bash')
+tier([116], '+25%', DT22, 'Slash, stab and bash')
+tier([355], '+50%', DT22, 'Slash, stab and bash')
+tier([356], '-20%', DT22, 'Slash, stab and bash')
+tier([119], '-10%', DT2, 'Slash, stab and bash. The DT2-2 wiki lists this one as unknown (-??)')
+tier([311, 316, 321, 326, 331, 341, 346, 351], '+50%', DT22)
+tier([310, 315, 320, 325, 330, 340, 345, 350], '+100%', DT22)
+tier([312, 317, 322, 327, 332, 342, 347, 352], '-50%', DT22)
 
 # --- Recovery every turn (stack) --------------------------------------------------------------------
 named(145, 'Recover 2% HP every turn', DT22)
@@ -108,10 +112,10 @@ named(146, 'Recover 4 TP every turn', DT22)
 named(149, 'Recover 6 TP every turn', DT22)
 
 # --- Normal attack effects and race bonuses: only the first game's wiki has figures -----------------
-named(162, 'Normal attacks absorb 15% of damage as HP', DT2, 'First game: no effect on undead')
-named(161, 'Normal attacks absorb 50% of damage as HP', DT2, 'First game: no effect on undead')
-named(164, 'Normal attacks absorb 5% of damage as TP', DT2, 'First game: no effect on undead')
-named(163, 'Normal attacks absorb 20% of damage as TP', DT2, 'First game: no effect on undead')
+named(162, 'Normal attacks absorb HP (15% of damage)', DT2, 'First game: no effect on undead')
+named(161, 'Normal attacks absorb HP (50% of damage)', DT2, 'First game: no effect on undead')
+named(164, 'Normal attacks absorb TP (5% of damage)', DT2, 'First game: no effect on undead')
+named(163, 'Normal attacks absorb TP (20% of damage)', DT2, 'First game: no effect on undead')
 tier([171, 173, 175, 178, 180, 182, 184], '+20%', DT2, 'First game: physical damage x1.2')
 tier([170, 172, 174, 177, 179, 181, 183], '+40%', DT2, 'First game: physical damage x1.4')
 tier([186], '+50%', DT2, 'First game: physical damage x1.5')

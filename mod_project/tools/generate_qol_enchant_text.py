@@ -9,8 +9,9 @@ Workbook: mod_project/data_tables/qol_enchant_text.xlsx
     inside the equipment box, so the name is the place where their effect is shown.
   * Put "yes" in the Edited column to keep your wording; this script then leaves that row alone.
   * The binary holds no magnitude for enchantments. Every figure comes from a player guide and
-    names it (tools/enchant_values.py). Only figures from the guide of this same game are used;
-    figures known only from the first game stay in Candidate_Name until confirmed.
+    names it (tools/enchant_values.py, Figure_Source column). A figure from a guide that is not in
+    SHOWN_SOURCES stays in Candidate_Name and the vanilla name is kept.
+  * The name keeps the game's own words; only the tier word gives way to the figure.
   * An enchantment without a figure keeps its vanilla name.
 """
 import os
@@ -95,9 +96,9 @@ def build_rows():
             stats['edited by hand'] += 1
         elif shown:
             name = proposed[0]
-            stats['figure from the guide of this game'] += 1
+            stats[f'figure from {proposed[1]}'] += 1
         elif proposed is not None:
-            stats['candidate from the first game only (vanilla name kept)'] += 1
+            stats[f'candidate from {proposed[1]}, not shown (vanilla name kept)'] += 1
         elif NUM_RE.search(e['name']):
             stats['figure already in the vanilla name'] += 1
         else:

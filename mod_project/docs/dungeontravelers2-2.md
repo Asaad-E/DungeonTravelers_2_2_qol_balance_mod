@@ -14,7 +14,7 @@ The mod ships as **two variants that are built separately**.
 
 | Variant | Goal | May change game values | State |
 |---|---|---|---|
-| **QoL** | Everything the player needs to make an informed decision is in the game, clean, understandable and easy to read. | No. Every figure shown is the original one. | In progress, and the current focus. Built and verified: skill text (against the binary), enchant names (figures from the guide of this game) and weapon rank labels. Not yet reviewed on screen. Everything else pending. |
+| **QoL** | Everything the player needs to make an informed decision is in the game, clean, understandable and easy to read. | No. Every figure shown is the original one. | In progress, and the current focus. Built, verified and installed in the game: skill text and item amounts (against the binary), enchant names (figures from player guides) and weapon rank labels. Review on screen in progress. Everything else pending. |
 | **Balance** | Address the biggest complaints of Japanese players (`COMMUNITY_BALANCE_COMPLAINTS.md`), and show the information of the rebalanced game. | Yes, each change as data. | Starts when QoL is right. Not defined yet. |
 
 Tools are built once for both variants: the variant is a parameter of the build, not a second toolchain.
@@ -22,11 +22,14 @@ Tools are built once for both variants: the variant is a parameter of the build,
 | Output | Built by | Content |
 |---|---|---|
 | `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 267 of 330 entries with new text, numeric data identical to the original. **[untested]** in the game. |
-| `build/qol/Data/ENG/Parameter/EnchantData.pck` | `tools/build_variant.py qol` | 99 of 280 enchant names carry their figure (`Max HP +10%`); flags, prefix and suffix identical to the original. **[untested]** in the game. |
+| `build/qol/Data/ENG/Parameter/EnchantData.pck` | `tools/build_variant.py qol` | 142 of 280 enchant names carry their figure (`Max HP +10%`, `Water resistance -20%`, `Enmity -5%`); flags, prefix and suffix identical to the original. Installed; **[untested]** on screen. |
+| `build/qol/Data/ENG/Parameter/ItemData.pck` | `tools/build_variant.py qol` | 9 of 576 descriptions: the exact amount replaces the vague size (`Restore an ally's HP (+250).`); prices and effects identical to the original. Installed; **[untested]** on screen. |
 | `build/qol/Data/ENG/Parameter/WeaponRankData.pck` | `tools/build_variant.py qol` | Rank names generated from the multiplier of each rank (`E+ (2.45x)`); multipliers identical to the original. **[untested]** in the game. |
 | `data_tables/vanilla_source_of_truth.xlsx` | `tools/extract_vanilla.py` | Decoded binaries. The fact base. Generated, never edited. |
 | `data_tables/qol_skill_text.xlsx` | `tools/generate_qol_skill_text.py`, then edited by hand | Text of the QoL skills (`QoL_Desc`, `QoL_LvUp`). The editable source for that text. |
-| `data_tables/qol_enchant_text.xlsx` | `tools/generate_qol_enchant_text.py`, then edited by hand | Name of each enchantment in QoL (`QoL_Name`), the source of its figure, and the candidates that still lack a trusted source. |
+| `data_tables/qol_enchant_text.xlsx` | `tools/generate_qol_enchant_text.py`, then edited by hand | Name of each enchantment in QoL (`QoL_Name`) and the guide its figure comes from (`Figure_Source`). |
+| `data_tables/qol_item_text.xlsx` | `tools/generate_qol_item_text.py`, then edited by hand | Description of each item in QoL (`QoL_Desc`). |
+| The game folder | `tools/install_variant.py` (run by `build_variant.py`) | Holds **the QoL variant and nothing else** since 2026-10-04: the 7 built archives over the 29 untouched originals (section 8.1). |
 | Installed game + `dist/DT22_Definitive_QoL_Balance_Mod_v1.0.zip` | `tools/apply_mod.py`, `tools/package_release.py` | The **earlier mixed build** (text and value changes together). Not releasable: see section 8 and `CROSS_SYSTEM_VALIDATION_REPORT.md`. Two files of the installed game were replaced at the user's request (section 8.1). |
 
 ---
@@ -35,13 +38,14 @@ Tools are built once for both variants: the variant is a parameter of the build,
 
 ```
 DungeonTraveler2-2/
-├── DungeonTravelers2-2_EN/Data/ENG/   live game files (Parameter/, Script/). Currently hold the earlier mixed build.
+├── DungeonTravelers2-2_EN/Data/ENG/   live game files (Parameter/, Script/). Hold the last variant installed by build_variant.py.
 ├── Data/                              GameFAQs pages (*.mhtml). Cross-check only, never a source of values. Not versioned.
 ├── docs_example/                      method and reference project (7th Dragon 2020)
 └── mod_project/
     ├── backups/                       untouched original .pck files (36). Every build reads from here.
     ├── data_tables/                   workbooks (section 2.1)
     ├── build/<variant>/               output of build_variant.py. Not versioned.
+    ├── build/installed_backup/<time>/ game files replaced by an install, as they were. Not versioned.
     ├── tools/                         section 2.2
     ├── tests/                         section 7
     └── docs/
@@ -53,7 +57,8 @@ DungeonTraveler2-2/
 |---|---|---|
 | `vanilla_source_of_truth.xlsx` | No (generated) | Original values of skills, items, equipment, enemy attacks, traps, ranks, EXP. `Fields` sheet = meaning and confidence of every column. |
 | `qol_skill_text.xlsx` | Yes | QoL skill text. Write `yes` in `Edited` to keep a row from being regenerated. |
-| `qol_enchant_text.xlsx` | Yes | QoL enchant names. Same `Edited` rule. `Candidate_Name` holds figures known only from the first game's guide; `Previous_Mod_Check` says how the earlier build's figure stands against the guides. |
+| `qol_enchant_text.xlsx` | Yes | QoL enchant names. Same `Edited` rule. `Figure_Source` names the guide of each figure; `Previous_Mod_Check` says how the earlier build's figure stands against the guides. |
+| `qol_item_text.xlsx` | Yes | QoL item descriptions. Same `Edited` rule. `Effect_Pairs` lists the raw effect pairs of each item. |
 | `skills.xlsx`, `items.xlsx`, `equipment.xlsx`, `enchants.xlsx`, `grand_seals.xlsx`, `joint_skills.xlsx`, `party_skills.xlsx`, `food_menu.xlsx`, `enemy_attacks.xlsx`, `classes.xlsx`, `ui_strings.xlsx`, `traps.xlsx`, `trophies.xlsx`, `exp_curve.xlsx`, `quest_ranks.xlsx` | Yes | Tables of the earlier mixed build (15), read by `apply_mod.py`. Their "vanilla" columns match the backups; many of their figures do not match the binaries (section 8). |
 
 ### 2.2 Tools
@@ -67,7 +72,9 @@ DungeonTraveler2-2/
 | `enchant_values.py` | The figure of each enchantment and the guide it comes from (the binary holds none). `SHOWN_SOURCES` decides which guides QoL trusts. |
 | `generate_qol_enchant_text.py` | Proposes the QoL enchant names from `enchant_values.py`. Leaves rows marked `Edited` alone. |
 | `weapon_rank_labels.py` | Writes the delay multiplier of each weapon rank into its name. Used by the build; also `weapon_rank_labels.py SOURCE.pck DEST.pck` for any `WeaponRankData.pck`. |
-| `build_variant.py` | Builds a variant into `build/<variant>/` and verifies it. Never writes into the game. |
+| `generate_qol_item_text.py` | Proposes the QoL item descriptions: the exact amount in place of `(small)` / `(medium)` / `(large)`. Leaves rows marked `Edited` alone. |
+| `build_variant.py` | Builds a variant into `build/<variant>/`, verifies it and, only if the verification passes, installs it into the game (`--no-install` to skip). |
+| `install_variant.py` | Puts the game folder in the state of a variant: its built files, and the original for every other backed-up file. Saves what it replaces in `build/installed_backup/<time>/`. |
 | `apply_mod.py`, `audit_tool.py`, `package_release.py` | Earlier mixed build: compiles straight into the game folder, checks line lengths, zips from the game folder. |
 
 Dependencies: Python standard library and `openpyxl`.
@@ -78,6 +85,7 @@ Build and test:
 python mod_project/tools/extract_vanilla.py
 python mod_project/tools/generate_qol_skill_text.py
 python mod_project/tools/generate_qol_enchant_text.py
+python mod_project/tools/generate_qol_item_text.py
 python mod_project/tools/build_variant.py qol
 python -m unittest discover -s mod_project/tests -p "test_*.py"
 ```
@@ -158,6 +166,8 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 * The game lists innate enchantments there too (seen: Legendary Duster shows `Max HP +10%` and `Interrupt Rate -25%`), and draws the stat change of the item (`ATK+24`) at the right end of line 1. An `Innate:` line in the description repeats the first and a long line 1 would run into the second.
 * Because the game lists the enchantments by name, the place to add information about them is the enchant name (`Max HP +10%`), not the item description (section 6.1).
 * Enchant name length: 40 characters for enchantments that random equipment can roll (they are drawn in two columns in the equipment box), 46 otherwise. These are the longest vanilla names, **[inferred]** as safe, not measured.
+* **Battle bar** **[verified]** on screenshots: when a skill or item is highlighted in battle the game shows only its description (line 1), in one line, without the level. A figure that depends on the skill level must not be there: the player cannot tell which value applies. Line 1 of a skill stays the vanilla sentence; an item may carry its amount because it has only one.
+* **Title bar with the rank label** **[verified]** on a screenshot: `Dungeon Prez Rod [Staff - 1 Hand - Short Range] Speed C (1.75x)` fits.
 * Whether item and skill boxes draw anything of their own on lines 2-3 has not been checked on screen. All 576 vanilla item descriptions are one line.
 * The tilde `~` has no glyph. Use `->` or `-`.
 * Strings are stored as Latin-1 bytes.
@@ -171,10 +181,11 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 | | QoL | Balance |
 |---|---|---|
 | Numeric part of every entry | Identical to the backup. Checked by the build. | Changed only where a data table says so. |
+| Game folder after a build | The variant and nothing else (built files + originals). Checked by the install. | The same, for its own files. |
 | Figures in the text | The original ones, from `vanilla_source_of_truth.xlsx`. | The ones of the built binary. |
 | Text describing a mechanic | Only what the base game does. | Only what the built data implements. |
 
-Order of sources, set by the user: **binary first, then player guides of this same game** (the Japanese wiki is the most complete). A figure is never typed from memory, and a guide never overrides the binary. When the binary does not hold a value (it is computed in the executable), a figure may be shown only if a guide of this same game gives it; it is recorded with its source in a table (`enchant_values.py`), tagged **[inferred]**, and the build refuses any other figure. A figure known only from another game (the first Dungeon Travelers 2) is a candidate: listed, not shown, until confirmed. Without a source, the text says nothing.
+Order of sources, set by the user: **binary first, then player guides of this same game** (the Japanese wiki is the most complete). A figure is never typed from memory, and a guide never overrides the binary. When the binary does not hold a value (it is computed in the executable), a figure may be shown only if a guide of this same game gives it; it is recorded with its source in a table (`enchant_values.py`), tagged **[inferred]**, and the build refuses any other figure. A figure known only from another game (the first Dungeon Travelers 2) is weaker: it is shown only because the user decided so, and its source stays written next to it. Without a source, the text says nothing.
 
 ---
 
@@ -238,24 +249,30 @@ Both are names that the game prints by itself on the equipment screen, so the in
 | Source | What | Used by QoL |
 |---|---|---|
 | `dt22-wiki` | Japanese wiki of this game: [enchant effects](https://w.atwiki.jp/dt2-2/pages/38.html) ([table](https://w.atwiki.jp/dt2-2/pages/39.html)), [grand sealbooks](https://w.atwiki.jp/dt2-2/pages/40.html), [player tests](https://w.atwiki.jp/dt2-2/pages/105.html) | Yes: 99 names |
-| `dt2-wiki` | Japanese wiki of the first Dungeon Travelers 2: [enchant effects](https://w.atwiki.jp/dungeon-travelers2/pages/200.html). Same system, another game. Where both wikis give a figure they agree, except stat DOWN (-10% there, -5% here) and two stacking caps. | No: 43 candidates in `Candidate_Name` |
+| `dt2-wiki` | Japanese wiki of the first Dungeon Travelers 2: [enchant effects](https://w.atwiki.jp/dungeon-travelers2/pages/200.html). Same system, another game. Where both wikis give a figure they agree, except stat DOWN (-10% there, -5% here) and two stacking caps. | Yes, by decision of the user (2026-10-04): 43 names. Not confirmed for this game. |
 
 How a name is written: the tier word of the vanilla name is replaced by the figure, and nothing else changes (`Max HP UP` -> `Max HP +10%`, `Received damage MiniDOWN` -> `Received damage -4%`, `Fire resistance MegaUP` -> `Fire resistance +100`). Names without a tier word are worded by hand in the same table (`HP recovery every turn` -> `Recover 4% HP every turn`). An enchantment without a figure keeps its vanilla name; a name that already has its figure (`Front line ATK 8% UP`) is not touched.
 
-Figures of this game's wiki (all **[inferred]**: a guide, not the binary):
+Figures of this game's wiki (all **[inferred]**: a guide, not the binary; the 43 of the first game's guide are listed below the table):
 
 | Family | MiniUP | UP | GrandUP | MegaUP | DOWN | GrandDOWN |
 |---|---|---|---|---|---|---|
 | Max HP, Max TP, ATK, DEF, INT, RES, DEX, AGI | +5% | +10% | | | -5% (Max TP -10%, Max HP unknown) | |
-| One element, or slash / stab / bash | +10 | +20 | +50 | +100 | -20 | -50 |
-| All five elements | +7 | +15 | +50 | +75 | -15 | -30 |
-| Slash + stab + bash | +5 | +10 | +25 | +50 | unknown | -20 |
+| One element, or slash / stab / bash | +10% | +20% | +50% | +100% | -20% | -50% |
+| All five elements | +7% | +15% | +50% | +75% | -15% | -30% |
+| Slash + stab + bash | +5% | +10% | +25% | +50% | -10% (first game's guide) | -20% |
 | Received physical or magic damage | -5% | -10% | | | | |
 | Received damage (both) | -4% | -8% | | | | |
 | HP every turn (slight / normal / large) | 2% | 4% | 8% | | | |
 | TP every turn (slight / normal / large) | 2 | 4 | 6 | | | |
 
-To accept a candidate: copy `Candidate_Name` into `QoL_Name` and write `yes` in `Edited`. To trust the first game's guide for all of them: add `'dt2-wiki'` to `SHOWN_SOURCES` and run the generator.
+Resistance is stored as points where 100 is immunity (the guide, and the skill effects in the binary: Stab Guard 20 to 36), so a point is 1% of the damage taken; it is written with `%` in enchant names and in the 6 skill boxes that show it, as the user asked. **[inferred]**: the damage formula was not read.
+
+Figures from the first game's guide: physical and magic attack +4% / +2%, speed +10% / +5%, chant speed +20% / +10%, enmity +5% / -5%, interruption rate -6% / -3% / +6%, element magic +20%, HP absorb 15% / 50% and TP absorb 5% / 20% of the damage, race bonuses +20% / +40% / +100% (Fruit +50%), 5% of received damage into TP, Max HP DOWN -10%. To stop showing them: remove `'dt2-wiki'` from `SHOWN_SOURCES` and run the generator.
+
+**Glossary.** A name or a text uses the words the game uses. The vanilla name is the base and only its tier word is replaced: `Enmity DOWN` -> `Enmity -5%`, never `Aggro`; `Water resistance DOWN` -> `Water resistance -20%`, never `Water Res`.
+
+**Items.** `generate_qol_item_text.py`: where the vanilla text gives a vague size and the binary holds the amount, the amount replaces the word, and a text never carries both (`Restore an ally's HP (medium).` -> `Restore an ally's HP (+250).`). `text_checks.check_item_text` ties each amount to the first effect pair of the item, by kind (HP, TP, HP of all allies) and value.
 
 **Weapon rank labels.** `weapon_rank_labels.py` writes each rank name from the multiplier stored in the same entry: `E+` -> `E+ (2.45x)`. The label is never typed: when Balance changes a multiplier, the same step produces the new figure, and the build fails if a label and its multiplier differ. The multiplier is the same kind of figure as `Speed: 0.65x` in a skill box: time until the next turn, lower is faster.
 
@@ -263,7 +280,7 @@ To accept a candidate: copy `Candidate_Name` into `QoL_Name` and write `yes` in 
 
 ## 7. Tests (what each guards)
 
-`python -m unittest discover -s mod_project/tests -p "test_*.py"` (41 tests).
+`python -m unittest discover -s mod_project/tests -p "test_*.py"` (55 tests).
 
 | File | Guards |
 |---|---|
@@ -272,9 +289,10 @@ To accept a candidate: copy `Candidate_Name` into `QoL_Name` and write `yes` in 
 | `test_text_checks.py` | The checker accepts every approved notation and rejects wrong values, inexact steps, wrong level counts and averages. |
 | `test_qol_variant.py` | Text table within the limits and with true figures; a clean build has no problems; a wrong figure, a long line, a stale table, a changed game value and a lost battle message each stop the build. |
 
-| `test_qol_enchants_and_ranks.py` | Enchant and weapon rank entries rewrite identically; every changed enchant name is the sourced one or marked as edited; an unsourced figure, an overlong name, a changed flag and a changed multiplier each stop the build; a rank label follows its multiplier and is idempotent. |
+| `test_qol_enchants_and_ranks.py` | Enchant and weapon rank entries rewrite identically; names keep the game's wording and add the sourced figure; a source that is not trusted is not shown; names fit; an unsourced figure, an overlong name, a changed flag and a changed multiplier each stop the build; a rank label follows its multiplier and is idempotent. |
+| `test_qol_items_and_install.py` | Item table matches the backups; the amount replaces the vague size and no text states both; a wrong amount, a wrong kind and a changed item value stop the build. The install leaves the game as the variant and nothing else, saves what it replaces, and a second install changes nothing. |
 
-Verified without the game: container and entry round trips, numeric identity of the QoL build, 733 figures in the built skill text against the built binary, every rank label against its multiplier. Enchant figures cannot be verified against the binary (it holds none): they are checked against the source table only. Never run in the game: the QoL build. Seen in the game by the user: the restored equipment descriptions and the rank labels are installed (section 8.1) and waiting for a look.
+Verified without the game: container and entry round trips, numeric identity of the QoL build, 733 figures in the built skill text and 9 item amounts against the built binary, every rank label against its multiplier, the game folder against the variant after an install. Enchant figures cannot be verified against the binary (it holds none): they are checked against the source table only. Seen on screen by the user: the rank label in the title bar. Everything else of the QoL build is installed and waiting for a look.
 
 ---
 
@@ -292,16 +310,16 @@ Audited at commit `28c7d90`; details in `CROSS_SYSTEM_VALIDATION_REPORT.md`. It 
 * Real value changes it contains: EXP curve and +25 SP, weapon delays, 4 items, Slave's Torc enchant, 5 quest rank rewards.
 * Enchant names: of 215 figures it added, 80 agree with a guide (64 with the DT2-2 wiki, 16 with the first game's), 62 contradict one (35 the DT2-2 wiki, 27 the first game's) and 73 have no source at all (`Previous_Mod_Check` column of `qol_enchant_text.xlsx`). Examples: `All Phys Res +15` (guide: +10), `Fire Res +30` for MegaUP (guide: +100), `Damage +100%/empty party slot` (player test: +10%), `Higher-Level Enemy EXP +50%` (guide: +15%).
 
-### 8.1 Changes made to the installed game after the audit
+### 8.1 What the game folder holds now
 
-Asked for by the user while reviewing the equipment screen. Copies of the files as they were are in `build/installed_before_restore/`.
+The user asked for every build to be installed so the work can be checked on screen. Since 2026-10-04 `build_variant.py qol` leaves the game folder holding the QoL variant and nothing else; the earlier mixed build is no longer installed. Its files are kept in `build/installed_backup/2026-10-04_181942/` (23 files) and `build/installed_before_restore/` (2 files).
 
 | File in the game folder | Now | Effect |
 |---|---|---|
-| `EquipmentData.pck` | The original from `backups/`. | Descriptions are the vanilla single line again; nothing is drawn under the game's enchant list. Also undoes the Slave's Torc enchant change. |
-| `WeaponRankData.pck` | The earlier build's multipliers, untouched, with names generated by `weapon_rank_labels.py`: `A+ (1.00x)`, `A (1.15x)`, `B+ (1.30x)`, `B (1.45x)`, `C+ (1.60x)`, `C (1.75x)`, `D+ (1.85x)`, `D (1.95x)`, `E+ (2.05x)`, `E (2.15x)`, `F+ (2.25x)`, `F (2.35x)`. Copy in `build/installed_rank_labels/`. | The title bar should read `Speed E+ (2.05x)`. **[untested]** |
+| `TechniqueSkillData`, `MagicSkillData`, `PassiveSkillData`, `UniqueSkillData`, `EnchantData`, `ItemData`, `WeaponRankData` | QoL build. | Text only; every value is the original one. Weapon ranks read `C (2.00x)`, `E+ (2.45x)`: the original multipliers, not the 1.75x / 2.05x of the earlier build. |
+| The other 29 backed-up archives, among them `EquipmentData`, `ClassData`, `EnemyAttackData`, `LvExpSkptData`, `QuestRankData`, `StringData`, `TrapData` and the scripts `Lesson`, `Teaching`, `ShopStore`, `ShopQuest`, `ShopBlacksmith` | The original from `backups/`. | The value changes of the earlier build are gone from the game: EXP curve and +25 SP, weapon delays, 4 items, Slave's Torc, 5 quest rank rewards, and all of its text. |
 
-The rest of the game folder is still the earlier mixed build, including its `EnchantData.pck` with the figures above.
+To undo an install, copy the matching `build/installed_backup/<time>/` folder back over `DungeonTravelers2-2_EN/Data/ENG/`.
 
 ---
 
@@ -319,17 +337,21 @@ The rest of the game folder is still the earlier mixed build, including its `Enc
 10. **Flavor text replaced by data sheets** in class descriptions and enemy attacks, against the rule of adding to the original voice.
 11. **A box limit taken as free space.** 3 lines and 85 characters is what a box can hold, not what is free: the equipment box uses lines 2-3 for its own enchant list. Look at the real screen for each kind of box before writing into it, and do not repeat what the screen already shows.
 12. **Enchant figures assigned by tier word.** The earlier build read `UP` as +10%, `MiniUP` as +5%, `MegaUP` as +30 and so on for every family. The families do not share a scale (all-physical resistance is +10 / +5 / +25 / +50, single resistances +20 / +10 / +50 / +100, combined damage reduction -8% / -4%). A figure needs its own source.
+13. **Changing the game's glossary.** The earlier build renamed `Enmity` to `Aggro/Enmity`, `resistance` to `Res`, `Physical accuracy` to `Phys Hit`. The player learns one word per concept from the whole game; a name keeps the vanilla words.
+14. **A vague word next to the exact value** (`(medium) (+250 HP)`), and **level-dependent figures in line 1** (`Hit Rate: +20% -> +38% (+2%/Lv)` in the battle bar, where the level is not shown). Both from the earlier build; both now stop the build or are excluded by construction.
 
 ---
 
 ## 10. Not done / next
 
 * QoL text for items, sealbooks, joint and party skills, meals, traps, trophies, classes, enemy attacks, UI strings, the library and the lessons. Equipment descriptions stay vanilla: the title bar, the stat change and the enchant list already cover them.
-* Enchant figures still without a trusted source: 43 candidates from the first game's guide (magic and physical attack UP, speed, chant speed, enmity, interruption rate, element magic, HP/TP absorb, race bonuses, damage to TP) and no figure in any guide for accuracy, evasion, defense, critical rate, ailment chances on hit and most grand sealbook effects. Finding them means reading the enchant code in the executable or testing in the game.
+* Enchant figures: 43 come from the first game's guide and are not confirmed for this one; no guide gives a figure for accuracy, evasion, defense, critical rate, ailment chances on hit and most grand sealbook effects. Finding them means reading the enchant code in the executable or testing in the game.
+* Items: only the 9 restoratives with a vague size were touched. About 150 other items have effect pairs of types that are not decoded (sealbook materials); Hipanera Tea and Kuding Tea heal HP and TP but carry a third pair that is not understood, so their text was left alone.
+* A scale of words for magnitudes whose exact value cannot be shown (the battle bar, where the level is unknown): proposed to the user on 2026-10-04, five words per kind (damage, modifier, chance) chosen from the average over the levels. Waiting for the user's word list and for the go-ahead to add it to line 1, which the display specification keeps vanilla.
 * Stacking limits reported by the DT2-2 wiki (speed UP counts up to 5, chant speed UP up to 3, damage reductions down to -25%, Max HP up to +50%, equal `All stats +N` do not add up) are in the `Note` column only; nothing in the game shows them yet.
 * Exact writers for joint skills, party skills, enemy attacks, sealbooks and meals.
 * Decoding `JoinSkillData`, `PartySkillData`, `SealScrollData`, `ClassData`, the equipment stats and the 236 unnamed effects.
 * The Balance variant: its changes as data, and its own verification rule.
-* Install and packaging per variant (today `package_release.py` zips the game folder).
+* Packaging per variant (today `package_release.py` zips the game folder). Install is done: `install_variant.py`.
 * Dialogue replacement that fails loudly, and the corrected lines.
-* Running any build in the game.
+* Review on screen of the installed QoL build: skill boxes, item boxes, enchant list of the equipment box.

@@ -145,6 +145,10 @@ STYLES = {   # style -> (transform, unit, show the sign)
     'num': (lambda v: v, '', False),
     'abs_num': (lambda v: abs(v), '', False),
     'neg_num': (lambda v: -v, '', False),
+    # Resistance is stored in points where 100 is immunity: one point is 1% of the damage taken.
+    'num_pct': (lambda v: v, '%', False),
+    'abs_num_pct': (lambda v: abs(v), '%', False),
+    'neg_num_pct': (lambda v: -v, '%', False),
     'mult': (lambda v: v, 'x', False),
 }
 
@@ -294,7 +298,8 @@ def generic_style(stem, values, direction='UP'):
     # "Interruption rate DOWN" stores how much is taken off: show it as a negative amount.
     taken_off = direction == 'DOWN' and not wording and all(v >= 0 for v in values)
     if not is_fraction(values):
-        return 'abs_num' if lowering else 'neg_num' if taken_off else 'num'
+        style = 'abs_num' if lowering else 'neg_num' if taken_off else 'num'
+        return style + '_pct' if re.search(r'resistance', stem, re.I) else style
     if lowering:
         return 'abs_pct'
     if taken_off:
