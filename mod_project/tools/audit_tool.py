@@ -296,8 +296,52 @@ def run_audit():
         print(f"    Total Equipment Indexed:    {ws_eq.max_row - 1}")
         print(f"    Modified/Active Equipment:  {modified_eq}")
 
-    # 12. Verify Game Binary & PCK Files
-    print(f"\n[12] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    # 12. Check Traps table
+    trap_path = os.path.join(TABLES_DIR, 'traps.xlsx')
+    if os.path.exists(trap_path):
+        wb_tr = openpyxl.load_workbook(trap_path)
+        ws_tr = wb_tr["Traps"] if "Traps" in wb_tr.sheetnames else wb_tr.active
+        modified_tr = 0
+        for r in range(2, ws_tr.max_row + 1):
+            name = ws_tr.cell(row=r, column=4).value
+            status = ws_tr.cell(row=r, column=6).value
+            m_name = ws_tr.cell(row=r, column=5).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_name:
+                modified_tr += 1
+                if len(m_name) > 85:
+                    errors.append(f"[TRAPS ROW {r}] '{name}': Exceeds 85 chars ({len(m_name)}): '{m_name}'")
+                if '~' in m_name:
+                    errors.append(f"[TRAPS ROW {r}] '{name}': Contains invalid tilde (~)")
+        print(f"\n[12] TRAPS DATA TABLE CHECK:")
+        print(f"    Total Traps Indexed:        {ws_tr.max_row - 1}")
+        print(f"    Modified/Active Traps:      {modified_tr}")
+
+    # 13. Check Trophies table
+    trophy_path = os.path.join(TABLES_DIR, 'trophies.xlsx')
+    if os.path.exists(trophy_path):
+        wb_tp = openpyxl.load_workbook(trophy_path)
+        ws_tp = wb_tp["Trophies"] if "Trophies" in wb_tp.sheetnames else wb_tp.active
+        modified_tp = 0
+        for r in range(2, ws_tp.max_row + 1):
+            title = ws_tp.cell(row=r, column=3).value
+            status = ws_tp.cell(row=r, column=6).value
+            m_desc = ws_tp.cell(row=r, column=5).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_desc:
+                modified_tp += 1
+                lines = m_desc.split('\n')
+                if len(lines) > 2:
+                    errors.append(f"[TROPHIES ROW {r}] '{title}': Exceeds 2 lines ({len(lines)} lines)")
+                for line_idx, l in enumerate(lines):
+                    if len(l) > 85:
+                        errors.append(f"[TROPHIES ROW {r}] '{title}' Line {line_idx+1}: Exceeds 85 chars ({len(l)}): '{l}'")
+                    if '~' in l:
+                        errors.append(f"[TROPHIES ROW {r}] '{title}' Line {line_idx+1}: Contains invalid tilde (~)")
+        print(f"\n[13] TROPHIES DATA TABLE CHECK:")
+        print(f"    Total Trophies Indexed:     {ws_tp.max_row - 1}")
+        print(f"    Modified/Active Trophies:   {modified_tp}")
+
+    # 14. Verify Game Binary & PCK Files
+    print(f"\n[14] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
     param_pcks = [
         'TechniqueSkillData.pck', 
         'PassiveSkillData.pck', 
@@ -312,7 +356,9 @@ def run_audit():
         'FoodMenuData.pck',
         'EnemyAttackData.pck',
         'ClassData.pck',
-        'StringData.pck'
+        'StringData.pck',
+        'TrapData.pck',
+        'TrophyData.pck'
     ]
     for pck_file in param_pcks:
         game_pck = os.path.join(GAME_PARAM_DIR, pck_file)
@@ -329,7 +375,7 @@ def run_audit():
             errors.append(str(e))
 
     # Script PCKs
-    script_pcks = ['Teaching.pck', 'Lesson.pck']
+    script_pcks = ['Teaching.pck', 'Lesson.pck', 'ShopQuest.pck', 'ShopBlacksmith.pck', 'ShopBar.pck']
     for pck_file in script_pcks:
         game_pck = os.path.join(GAME_SCRIPT_DIR, pck_file)
         if not os.path.exists(game_pck):
@@ -343,7 +389,7 @@ def run_audit():
             print(f"    [FAIL] {pck_file} corrupted: {e}")
             errors.append(str(e))
 
-    print(f"\n[13] VERSION CONTROL STATUS:")
+    print(f"\n[15] VERSION CONTROL STATUS:")
     tracked_files = os.popen("git status -s").read().strip().splitlines()
     print(f"    Tracked/Changed files in repo: {len(tracked_files)}")
     

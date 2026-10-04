@@ -12,7 +12,9 @@ from pck_handler import (
     EnemyAttackHelper,
     ClassDataHelper,
     StringDataHelper,
-    EquipmentHelper
+    EquipmentHelper,
+    TrapHelper,
+    TrophyHelper
 )
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -739,6 +741,140 @@ def update_ui_strings():
     archive.save(target_path)
     print(f"Applied {applied_count} UI string improvements to: {target_path}")
 
+def update_traps():
+    excel_path = os.path.join(TABLES_DIR, 'traps.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Traps.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Traps"]
+    
+    edits = {} # fn -> mod_name
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[1]:
+            continue
+        idx, fn, tid, van_name, mod_name, status = row[:6]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_name:
+            edits[fn] = mod_name
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "TrapData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_name = edits[fn]
+            new_bin = TrapHelper.write_trap(b, new_name)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "TrapData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Trap definitions to: {target_path}")
+
+def update_trophies():
+    excel_path = os.path.join(TABLES_DIR, 'trophies.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Trophies.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Trophies"]
+    
+    edits = {} # fn -> mod_desc
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[1]:
+            continue
+        idx, fn, title, van_desc, mod_desc, status = row[:6]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_desc:
+            edits[fn] = mod_desc
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "TrophyData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_desc = edits[fn]
+            new_bin = TrophyHelper.write_trophy(b, new_desc)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "TrophyData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Trophy milestones to: {target_path}")
+
+def update_shop_dialogue():
+    # 1. ShopQuest.pck
+    sq_path = os.path.join(BACKUP_DIR, "ShopQuest.pck")
+    if os.path.exists(sq_path):
+        arc_sq = PckArchive(sq_path)
+        repl_sq = {
+            "(Incidentally, quests from below your current rank\nwill still grant their rewards, but no trust points.)": (
+                "(Quests below your current rank grant rewards but 0 Trust Points.\n"
+                "Prioritize current quests: Rank 16 unlocks The Matrix dungeon,\n"
+                "while Ranks 8, 11, 15, and 20 grant +5 Bag Storage each!)"
+            )
+        }
+        for i, (fn, b) in enumerate(arc_sq.files):
+            if fn == "Talk_Random08.adv.bin":
+                arc_sq.files[i] = (fn, update_teaching_script(b, repl_sq))
+        sq_target = os.path.join(GAME_SCRIPT_DIR, "ShopQuest.pck")
+        arc_sq.save(sq_target)
+        print(f"Applied Quest Desk progression dialogue to: {sq_target}")
+
+    # 2. ShopBlacksmith.pck
+    sb_path = os.path.join(BACKUP_DIR, "ShopBlacksmith.pck")
+    if os.path.exists(sb_path):
+        arc_sb = PckArchive(sb_path)
+        repl_sb_00 = {
+            "(You can enchant up to five times... An item\nwon't be able to handle more than that.)": (
+                "(Equipment holds up to 5 enchant slots, but can be forged\n"
+                "up to +9 level! Each +level boosts base stats and activates\n"
+                "Sealbook enchants. Plan your forge progression well...)"
+            )
+        }
+        repl_sb_10 = {
+            "(Furthermore, monsters with Petrification\ncan't be sealed either... That's just how it is.)": (
+                "(Monsters that flee, self-destruct, or suffer Petrification\n"
+                "CANNOT be sealed into Sealbooks! Inflict Paralysis or Sleep\n"
+                "instead to ensure 100% seal chances without risk.)"
+            )
+        }
+        for i, (fn, b) in enumerate(arc_sb.files):
+            if fn == "Talk_Random00.adv.bin":
+                arc_sb.files[i] = (fn, update_teaching_script(b, repl_sb_00))
+            elif fn == "Talk_Random10.adv.bin":
+                arc_sb.files[i] = (fn, update_teaching_script(b, repl_sb_10))
+        sb_target = os.path.join(GAME_SCRIPT_DIR, "ShopBlacksmith.pck")
+        arc_sb.save(sb_target)
+        print(f"Applied Blacksmith strategic forge dialogue to: {sb_target}")
+
+    # 3. ShopBar.pck
+    bar_path = os.path.join(BACKUP_DIR, "ShopBar.pck")
+    if os.path.exists(bar_path):
+        arc_bar = PckArchive(bar_path)
+        repl_bar = {
+            "When hiring a merc, you can check their stats and skills,\nbut you obviously can't tell how they're going to behave.": (
+                "Mercenary AI follows fixed class role archetypes:\n"
+                "Paladins prioritize Provoke and Cover, Priests cast\n"
+                "Heal at <50% HP, and Dark Lords spam burst physical skills."
+            )
+        }
+        for i, (fn, b) in enumerate(arc_bar.files):
+            if fn == "Talk_Random04.adv.bin":
+                arc_bar.files[i] = (fn, update_teaching_script(b, repl_bar))
+        bar_target = os.path.join(GAME_SCRIPT_DIR, "ShopBar.pck")
+        arc_bar.save(bar_target)
+        print(f"Applied Tavern mercenary archetype dialogue to: {bar_target}")
+
 if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
@@ -754,6 +890,9 @@ if __name__ == "__main__":
     update_enemy_attacks()
     update_classes()
     update_ui_strings()
+    update_traps()
+    update_trophies()
+    update_shop_dialogue()
     print("=== Complete Mod Execution Finished Successfully! ===")
 
 

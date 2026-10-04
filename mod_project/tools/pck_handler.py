@@ -680,5 +680,57 @@ class EquipmentHelper:
         return bytes(res)
 
 
+class TrapHelper:
+    """Helper for reading and writing TrapData .bin structures safely."""
+    
+    @staticmethod
+    def read_trap(bin_data):
+        p_name = struct.unpack('<I', bin_data[8:12])[0]
+        name = bin_data[p_name:bin_data.find(b'\x00', p_name)].decode('latin-1', 'replace')
+        return name
+
+    @staticmethod
+    def write_trap(bin_data, new_name):
+        hdr = bytearray(bin_data[:0x20])
+        struct.pack_into('<I', hdr, 0x08, 0x20)
+        b_name = new_name.encode('latin-1') + b'\x00'
+        pad = (8 - ((0x20 + len(b_name)) % 8)) % 8
+        b_name += b'\x00' * pad
+        return bytes(hdr + b_name)
+
+
+class TrophyHelper:
+    """Helper for reading and writing TrophyData .bin structures safely."""
+    
+    @staticmethod
+    def read_trophy(bin_data):
+        p_title = struct.unpack('<I', bin_data[8:12])[0]
+        p_desc = struct.unpack('<I', bin_data[16:20])[0]
+        title = bin_data[p_title:bin_data.find(b'\x00', p_title)].decode('latin-1', 'replace')
+        desc = bin_data[p_desc:bin_data.find(b'\x00', p_desc)].decode('latin-1', 'replace')
+        return {'title': title, 'desc': desc}
+
+    @staticmethod
+    def write_trophy(bin_data, new_desc, new_title=None):
+        p_title = struct.unpack('<I', bin_data[8:12])[0]
+        orig_title = bin_data[p_title:bin_data.find(b'\x00', p_title)].decode('latin-1')
+        title_str = new_title if new_title is not None else orig_title
+        
+        hdr = bytearray(bin_data[:24])
+        b_title = title_str.encode('latin-1') + b'\x00'
+        pad_title = (8 - (len(b_title) % 8)) % 8
+        b_title += b'\x00' * pad_title
+        
+        new_p_desc = 24 + len(b_title)
+        struct.pack_into('<I', hdr, 16, new_p_desc)
+        
+        b_desc = new_desc.encode('latin-1') + b'\x00'
+        pad_desc = (8 - (len(b_desc) % 8)) % 8
+        b_desc += b'\x00' * pad_desc
+        
+        return bytes(hdr + b_title + b_desc)
+
+
+
 
 
