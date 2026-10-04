@@ -14,8 +14,10 @@ The mod ships as **two variants that are built separately**.
 
 | Variant | Goal | May change game values | State |
 |---|---|---|---|
-| **QoL** | Show more information about the base game. | No. Every figure shown is the original one. | Skills built and verified. Everything else pending. |
-| **Balance** | Rebalance, and show the information of the rebalanced game. | Yes, each change as data. | Not defined yet. |
+| **QoL** | Everything the player needs to make an informed decision is in the game, clean, understandable and easy to read. | No. Every figure shown is the original one. | In progress, and the current focus. Skill text built and verified against the binary; not yet reviewed on screen. Everything else pending. |
+| **Balance** | Address the biggest complaints of Japanese players (`COMMUNITY_BALANCE_COMPLAINTS.md`), and show the information of the rebalanced game. | Yes, each change as data. | Starts when QoL is right. Not defined yet. |
+
+Tools are built once for both variants: the variant is a parameter of the build, not a second toolchain.
 
 | Output | Built by | Content |
 |---|---|---|
