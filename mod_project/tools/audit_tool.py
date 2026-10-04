@@ -272,14 +272,39 @@ def run_audit():
         print(f"    Total UI Strings Indexed:   {ws_ui.max_row - 1}")
         print(f"    Modified/Active Strings:    {modified_ui}")
 
-    # 11. Verify Game Binary & PCK Files
-    print(f"\n[11] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    # 11. Check Equipment table
+    equip_path = os.path.join(TABLES_DIR, 'equipment.xlsx')
+    if os.path.exists(equip_path):
+        wb_eq = openpyxl.load_workbook(equip_path)
+        ws_eq = wb_eq["Equipment"] if "Equipment" in wb_eq.sheetnames else wb_eq.active
+        modified_eq = 0
+        for r in range(2, ws_eq.max_row + 1):
+            name = ws_eq.cell(row=r, column=3).value
+            status = ws_eq.cell(row=r, column=7).value
+            m_desc = ws_eq.cell(row=r, column=6).value or ""
+            if status in ['Approved', 'Applied', 'Draft'] and m_desc:
+                modified_eq += 1
+                lines = m_desc.split('\n')
+                if len(lines) > 3:
+                    errors.append(f"[EQUIPMENT ROW {r}] '{name}': Exceeds 3 lines ({len(lines)} lines)")
+                for line_idx, l in enumerate(lines):
+                    if len(l) > 85:
+                        errors.append(f"[EQUIPMENT ROW {r}] '{name}' Line {line_idx+1}: Exceeds 85 chars ({len(l)}): '{l}'")
+                    if '~' in l:
+                        errors.append(f"[EQUIPMENT ROW {r}] '{name}' Line {line_idx+1}: Contains invalid tilde (~)")
+        print(f"\n[11] EQUIPMENT DATA TABLE CHECK:")
+        print(f"    Total Equipment Indexed:    {ws_eq.max_row - 1}")
+        print(f"    Modified/Active Equipment:  {modified_eq}")
+
+    # 12. Verify Game Binary & PCK Files
+    print(f"\n[12] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
     param_pcks = [
         'TechniqueSkillData.pck', 
         'PassiveSkillData.pck', 
         'MagicSkillData.pck', 
         'UniqueSkillData.pck', 
         'ItemData.pck',
+        'EquipmentData.pck',
         'SealScrollData.pck',
         'JoinSkillData.pck',
         'EnchantData.pck',
@@ -318,7 +343,7 @@ def run_audit():
             print(f"    [FAIL] {pck_file} corrupted: {e}")
             errors.append(str(e))
 
-    print(f"\n[12] VERSION CONTROL STATUS:")
+    print(f"\n[13] VERSION CONTROL STATUS:")
     tracked_files = os.popen("git status -s").read().strip().splitlines()
     print(f"    Tracked/Changed files in repo: {len(tracked_files)}")
     

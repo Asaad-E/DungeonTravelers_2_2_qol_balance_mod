@@ -11,7 +11,8 @@ from pck_handler import (
     FoodMenuHelper,
     EnemyAttackHelper,
     ClassDataHelper,
-    StringDataHelper
+    StringDataHelper,
+    EquipmentHelper
 )
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -103,6 +104,41 @@ def update_items():
     target_path = os.path.join(GAME_PARAM_DIR, "ItemData.pck")
     archive.save(target_path)
     print(f"Applied {applied_count} items to: {target_path}")
+
+def update_equipment():
+    excel_path = os.path.join(TABLES_DIR, 'equipment.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping Equipment.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Equipment"]
+    
+    edits = {} # fn -> mod_desc
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[1]:
+            continue
+        idx, fn, name, eq_type, orig_desc, mod_desc, status = row[:7]
+        if status in ['Approved', 'Applied', 'Draft'] and mod_desc:
+            edits[fn] = mod_desc
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "EquipmentData.pck")
+    archive = PckArchive(pck_path)
+    
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if fn in edits:
+            new_desc = edits[fn]
+            new_bin = EquipmentHelper.write_equipment(b, new_desc)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "EquipmentData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} equipment items to: {target_path}")
 
 def update_grand_seals():
     excel_path = os.path.join(TABLES_DIR, 'grand_seals.xlsx')
@@ -707,6 +743,7 @@ if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
     update_items()
+    update_equipment()
     update_grand_seals()
     update_joint_skills()
     update_teaching()

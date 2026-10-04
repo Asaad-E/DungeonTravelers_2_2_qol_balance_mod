@@ -617,4 +617,68 @@ class StringDataHelper:
         return bytes(hdr + b_str)
 
 
+class EquipmentHelper:
+    """Helper for reading and writing EquipmentData .bin structures safely."""
+    
+    @staticmethod
+    def read_equipment(bin_data):
+        p0 = struct.unpack('<I', bin_data[8:12])[0]
+        p1 = struct.unpack('<I', bin_data[16:20])[0]
+        p2 = struct.unpack('<I', bin_data[24:28])[0]
+        p70 = struct.unpack('<I', bin_data[0x70:0x74])[0] if len(bin_data) > 0x74 else 0
+        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1', 'replace')
+        desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1', 'replace')
+        s2 = bin_data[p2:bin_data.find(b'\x00', p2)].decode('latin-1', 'replace') if p2 < len(bin_data) else ""
+        s70 = bin_data[p70:bin_data.find(b'\x00', p70)].decode('latin-1', 'replace') if p70 < len(bin_data) else name
+        return {'name': name, 'desc': desc, 's2': s2, 's70': s70}
+
+    @staticmethod
+    def write_equipment(bin_data, new_desc):
+        fixed_hdr = bytearray(bin_data[:0x80])
+        p0 = struct.unpack('<I', bin_data[8:12])[0]
+        p2 = struct.unpack('<I', bin_data[24:28])[0]
+        p70 = struct.unpack('<I', bin_data[0x70:0x74])[0]
+        
+        name_str = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
+        s2_str = bin_data[p2:bin_data.find(b'\x00', p2)].decode('latin-1')
+        s70_str = bin_data[p70:bin_data.find(b'\x00', p70)].decode('latin-1') if p70 < len(bin_data) else name_str
+
+        name_bytes = name_str.encode('latin-1') + b'\x00'
+        desc_bytes = new_desc.encode('latin-1') + b'\x00'
+        s2_bytes = s2_str.encode('latin-1') + b'\x00'
+        s70_bytes = s70_str.encode('latin-1') + b'\x00'
+
+        new_p0 = 0x80
+        pad0 = (8 - (len(name_bytes) % 8)) % 8
+        name_bytes += b'\x00' * pad0
+
+        new_p1 = new_p0 + len(name_bytes)
+        pad1 = (8 - (len(desc_bytes) % 8)) % 8
+        desc_bytes += b'\x00' * pad1
+
+        new_p2 = new_p1 + len(desc_bytes)
+        pad2 = (8 - (len(s2_bytes) % 8)) % 8
+        s2_bytes += b'\x00' * pad2
+
+        new_p70 = new_p2 + len(s2_bytes)
+        pad70 = (8 - (len(s70_bytes) % 8)) % 8
+        s70_bytes += b'\x00' * pad70
+
+        struct.pack_into('<I', fixed_hdr, 8, new_p0)
+        struct.pack_into('<I', fixed_hdr, 16, new_p1)
+        struct.pack_into('<I', fixed_hdr, 24, new_p2)
+        struct.pack_into('<I', fixed_hdr, 0x70, new_p70)
+
+        res = bytearray(fixed_hdr)
+        res.extend(name_bytes)
+        res.extend(desc_bytes)
+        res.extend(s2_bytes)
+        res.extend(s70_bytes)
+
+        pad_end = (8 - (len(res) % 8)) % 8
+        res.extend(b'\x00' * pad_end)
+        return bytes(res)
+
+
+
 
