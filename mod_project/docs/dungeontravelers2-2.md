@@ -146,6 +146,7 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 * **Description boxes: 3 lines, 85 characters per line** **[verified]** measured on screen by the user. The description counts as a line: a skill has 1 description line and at most 2 level-up lines.
 * **Equipment box** **[verified]** on a screenshot of the earlier build: the game draws the item's enchantments (their `EnchantData` names) on lines 2 and 3 of the box, in two columns, on top of whatever the description has there. All 551 vanilla equipment descriptions are one line (77 characters at most). An equipment description must stay on **line 1**.
 * The equipment title bar already shows `[Sword - 2 Hand - Short Range] Speed E+`: weapon type, hands, range and speed rank. Do not repeat them.
+* The game lists innate enchantments there too (seen: Legendary Duster shows `Max HP +10%` and `Interrupt Rate -25%`), and draws the stat change of the item (`ATK+24`) at the right end of line 1. An `Innate:` line in the description repeats the first and a long line 1 would run into the second.
 * Because the game lists the enchantments by name, the place to add information about them is the enchant name (`Fire Magic +15%`), not the item description.
 * Whether item and skill boxes draw anything of their own on lines 2-3 has not been checked on screen. All 576 vanilla item descriptions are one line.
 * The tilde `~` has no glyph. Use `->` or `-`.
@@ -167,35 +168,40 @@ A figure is never typed from a guide or from memory. If the binary does not hold
 
 ---
 
-## 6. Skill text style guide (under review, not agreed)
+## 6. Skill text
 
-> **Superseded.** This section describes what `generate_qol_skill_text.py` produces today. It was written without the user's agreement and breaks the user's own specification, `SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md`: averaged ranges (`avg +3.33%/Lv`, in 69 boxes) are forbidden there, and lines packed with ` | ` pieces are what it sets out to avoid. That specification is the standard. This section and the generator are to be redone after the review with the user.
+**The standard is `SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md`.** It is a style guide: its mockups show the form, not the figures. Figures always come from `vanilla_source_of_truth.xlsx`.
 
-Kept from the earlier mod: its layout. Dropped from it: its figures, which were not taken from the binary.
+What the player must see at a glance: what the skill does now, what the next level gives, what it costs.
 
 * **Line 1**: the vanilla description, untouched.
-* **Line 2**: what the skill does. **Line 3**: what it costs, in the order `Turns | TP Cost | Speed | Chant`.
-* One piece = `Label: values`. Pieces are joined with ` | `.
-* **Linear table** -> range with its step, which loses nothing: `Stun: 30% -> 38% (+2%/Lv)`.
-* **Any other table** -> one value per level: `ATK: 85% -> 90% -> 94% -> 98% -> 102% (L1-5)`; with more than 5 levels the unit goes on the first and last value only: `ATK (L1-10): 80% -> 83 -> 86 -> ... -> 110%`.
-* **Only when that does not fit** -> range with the average step, `ATK: 80% -> 110% (avg +3.33%/Lv)`, or, last, the bare range `Speed: 0.65x -> 0.75x`. The `Shortened_Tables` column lists where this happened.
-* `TP Cost` and `Turns` are written one value per level whenever they fit.
-* The first table of a box carries the level count: `(L1-5)`, `(+2%/Lv, L1-10)` or `Label (L1-10):`.
-* A value that never changes is written once: `Speed: 0.85x`.
-* Labels: `ATK` (damage as % of a normal hit), `Pwr` (magic power), `TP Cost`, `Turns`, `Speed`, `Chant`, `Accuracy`, the ailment name (`Stun`, `Instakill`...), `HP Absorb`, `TP Absorb`, `Targets`, `Heal Cap`. Any other label is the wording of the vanilla level-up phrase (`"ATK increase UP"` -> `ATK increase`).
-* A vanilla phrase whose table is not known for certain stays as the game wrote it (`Damage UP`).
-* Unique skills: `Lv1-9: 7% -> 15% (+1%/Lv) | Crown EX: 25%`.
+* **Line 2**: the effect, level by level. **Line 3**: `Turns | TP Cost | Speed`.
+* One value per level with `->`. Up to 5 levels every value carries its unit; with more, only the first and last: `ATK: 125% -> 134 -> 143 -> ... -> 200% (L10)`.
+* A table with the same step at every level may be written as base, exact step and cap when the list does not fit: `ATK: 130% (+8%/Lv) -> 202% (L10 Max)`, `Accuracy: +20% (+2%/Lv)`.
+* Speed, chant and long durations are written first -> last: `Speed: 0.8x -> 0.9x`.
+* **Never an average.** `text_checks.py` rejects `avg`, and rejects a step that is not exact.
+* Labels: `ATK` (damage as % of a normal hit), `Pwr` (magic power), `Turns`, `TP Cost`, `Speed`, `Chant`, `Accuracy`, the ailment name, `HP Absorb`, `TP Absorb`, `Targets`, `Heal Cap`. Buffs and debuffs take the stat with its sign, as in the mockups: `"ATK increase UP"` -> `ATK: +8%`, `"DEF decrease UP"` -> `DEF: -11%`. Any other label is the wording of the vanilla level-up phrase.
 
-Examples (vanilla -> QoL):
+How `generate_qol_skill_text.py` applies it when a box cannot hold everything, in this order:
 
-| Skill | Vanilla level-up text | QoL level-up text |
+1. The main effect, level by level. Never shortened while it fits on its line.
+2. The TP cost, level by level.
+3. The duration, then secondary effects (ailment chance, accuracy, a second stat), then speed, then chant: each is added if it fits, first -> last or base + step when that is what fits, and otherwise left out.
+
+The workbook lists what was shortened (`First_To_Last_Only`) and what was left out (`Left_Out`) for every skill, so each case can be worded by hand. Today: 267 boxes; in 57 a secondary effect is left out (accuracy in 27), in 72 speed or chant is.
+
+**Open, to decide with the user:** what to do with a secondary effect that does not fit next to a full main list and a full TP list (Halving Slice's instakill chance, Backward Swing's paralysis). The alternative is to keep every effect as first -> last and let a linear TP cost become base + step.
+
+Examples (vanilla level-up text -> QoL):
+
+| Skill | Line 2 | Line 3 |
 |---|---|---|
-| Halving Slice | `LvUp: Damage UP Time until next turn DOWN` / `Instakill rate UP TP Cost UP` | `ATK (L1-10): 80% -> 83 -> 86 -> 89 -> 91 -> 94 -> 97 -> 100 -> 105 -> 110%` / `Instakill: 10% -> 20% \| TP Cost: 38 -> 74 (+4/Lv) \| Speed: 0.65x -> 0.75x` |
-| Shield Bash | `LvUp: Damage UP Accuracy UP` / `Stun rate UP TP Cost UP` | `ATK: 85% -> 90% -> 94% -> 98% -> 102% (L1-5) \| Accuracy: +6% -> +20% (avg +3.5%/Lv)` / `Stun: 30% -> 38% (+2%/Lv) \| TP Cost: 6 -> 8 -> 10 -> 12 -> 14 \| Speed: 0.55x` |
-| Crimson Flare | `LvUp: Damage UP Accuracy UP` / `TP Cost UP Chant time UP` | `Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5) \| Accuracy: 82% -> 90% (+2%/Lv)` / `TP Cost: 40 -> 50 -> 60 -> 72 -> 84 \| Speed: 1.5x \| Chant: 0.75x -> 0.7x` |
-| Concentrate | `LvUp: Interruption rate DOWN` | `Interruption rate: -10% -> -50% (-10%/Lv, L1-5)` |
+| War Cry | `ATK: +8% -> +10% -> +12% -> +15% -> +18% (L1-5 Max)` | `Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 5 -> 7 -> 9 -> 11 -> 13` |
+| Raging Smash | `ATK: 125% -> 134 -> 143 -> 152 -> 161 -> 170 -> 178 -> 186 -> 193 -> 200% (L10)` | `TP Cost: 5 -> 8 -> 11 -> 14 -> 17 -> 20 -> 22 -> 24 -> 26 -> 28 \| Speed: 0.8x -> 0.9x` |
+| Fireball | `Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)` | `TP Cost: 5 -> 7 -> 9 -> 11 -> 14 -> 17 -> 20 -> 24 -> 28 -> 32 \| Speed: 2.25x` |
+| Mad Zapper | `ATK: 130% (+8%/Lv) -> 202% (L10 Max) \| Slow: 25% -> 45% \| Accuracy: -5% (+2%/Lv)` | `TP Cost: 24 -> 27 -> 30 -> 33 -> 36 -> 39 -> 42 -> 45 -> 48 -> 50 \| Speed: 0.75x` |
 
-How a vanilla phrase is tied to a table (`generate_qol_skill_text.py`):
+How a vanilla phrase is tied to a table:
 
 | Vanilla phrase | Table | Evidence |
 |---|---|---|
@@ -208,24 +214,24 @@ How a vanilla phrase is tied to a table (`generate_qol_skill_text.py`):
 | "X rate" of an ailment | Effect 113-122 | Trap names |
 | Anything else | The only unexplained table of the skill | Only when exactly one phrase and one table are left |
 
-Coverage today: 246 boxes with every phrase resolved, 21 partly, 15 left as vanilla, 48 internal skills skipped; 50 per-level tables of 31 skills are not shown because they could not be tied to a phrase (`Tables_Not_Shown`).
+Coverage: 246 boxes with every vanilla phrase resolved, 21 partly, 15 left as vanilla, 48 internal skills skipped; 50 per-level tables of 31 skills are not tied to any phrase (`Tables_Not_Shown`).
 
-Not decided yet: whether the skill menu already shows the TP cost (if it does, the line can drop it), and the wording of items, equipment and the rest of the QoL text.
+Editing by hand: change `QoL_Desc` / `QoL_LvUp` in `qol_skill_text.xlsx` and write `yes` in `Edited`; the generator leaves that row alone and the build still checks its figures.
 
 ---
 
 ## 7. Tests (what each guards)
 
-`python -m unittest discover -s mod_project/tests -p "test_*.py"` (24 tests).
+`python -m unittest discover -s mod_project/tests -p "test_*.py"` (25 tests).
 
 | File | Guards |
 |---|---|
 | `test_pck_roundtrip.py` | Every backup archive rebuilds byte-identically; every skill entry rewrites identically; the battle message survives a text change. |
 | `test_source_of_truth.py` | Layout assumptions on the real files; figures confirmed with the guides; vanilla weapon delays; the saved workbook is not stale. |
-| `test_text_checks.py` | The figure checker accepts every notation of section 6 and rejects wrong values, steps and level counts. |
+| `test_text_checks.py` | The checker accepts every approved notation and rejects wrong values, inexact steps, wrong level counts and averages. |
 | `test_qol_variant.py` | Text table within the limits and with true figures; a clean build has no problems; a wrong figure, a long line, a stale table, a changed game value and a lost battle message each stop the build. |
 
-Verified without the game: container and entry round trips, numeric identity of the QoL build, 795 figures in the built text against the built binary. Never run in the game: everything.
+Verified without the game: container and entry round trips, numeric identity of the QoL build, 675 figures in the built text against the built binary. Never run in the game: everything.
 
 ---
 

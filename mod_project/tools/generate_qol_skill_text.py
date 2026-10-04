@@ -11,12 +11,13 @@ Workbook: mod_project/data_tables/qol_skill_text.xlsx
   * Every number comes from data_tables/vanilla_source_of_truth.xlsx. Numbers in
     edited rows are checked against the binary by the build and by the tests.
 
-Style (see docs/dungeontravelers2-2.md, "Skill text style guide")
+Style: docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md (the user's standard)
   Line 1  vanilla description, untouched
-  Line 2  what the skill does:   ATK: 80% -> 110% (avg +3.33%/Lv, L1-10) | Instakill: 10% -> 20% (...)
-  Line 3  what it costs:         Turns | TP Cost | Speed | Chant
-  A linear table is written as a range with its step (lossless); any other table as
-  one value per level; only when that does not fit, as a range with the average step.
+  Line 2  what the skill does, level by level:  ATK: 125% -> 134 -> 143 -> ... -> 200%
+  Line 3  what it costs:                        Turns | TP Cost | Speed
+  Allowed forms only: one value per level; base + exact step for a linear table
+  ("ATK: 130% (+8%/Lv) -> 202% (L10 Max)"); first -> last for durations and speed.
+  Never an average. What does not fit is left out and listed in the Left_Out column.
 """
 import os
 import re
@@ -37,7 +38,7 @@ MAX_LINE = 85        # measured on screen
 MAX_BOX_LINES = 3    # description + level-up lines
 SEP = ' | '
 HEADERS = ['Category', 'Filename', 'Skill_Name', 'Levels', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp',
-           'Edited', 'Coverage', 'Phrases_Kept_As_Vanilla', 'Tables_Not_Shown', 'Shortened_Tables',
+           'Edited', 'Coverage', 'Phrases_Kept_As_Vanilla', 'Tables_Not_Shown', 'First_To_Last_Only', 'Left_Out',
            'Previous_Mod_Desc', 'Previous_Mod_LvUp']
 
 # Effect ids whose meaning is established (see the Effects sheet of the source of truth).
@@ -69,7 +70,7 @@ ARRAY_LABELS = collections.OrderedDict([
     ('speed', ('Speed', 'mult')),
     ('cast', ('Chant', 'mult')),
 ])
-LIST_FIRST = ('TP Cost', 'Turns')   # short integer tables read best one value per level
+COST_KINDS = {'Turns': 'turns', 'TP Cost': 'tp', 'Speed': 'speed', 'Chant': 'chant'}
 
 
 # ---------------------------------------------------------------------------
@@ -139,6 +140,8 @@ STYLES = {   # style -> (transform, unit, show the sign)
     'abs_pct': (lambda v: 100 * abs(v), '%', False),
     'neg_pct': (lambda v: -100 * v, '%', False),
     'signed_pct': (lambda v: 100 * v, '%', True),
+    'plus_pct': (lambda v: 100 * abs(v), '%', True),      # "ATK: +8%"
+    'minus_pct': (lambda v: -100 * abs(v), '%', False),   # "DEF: -11%"
     'num': (lambda v: v, '', False),
     'abs_num': (lambda v: abs(v), '', False),
     'neg_num': (lambda v: -v, '', False),
@@ -166,30 +169,57 @@ class Segment:
         diffs = {round(b - a, 2) for a, b in zip(shown, shown[1:])}
         return len(shown) >= 3 and len(diffs) == 1
 
-    def modes(self):
-        """Ways to print the table, best first. 'list' and 'step' are lossless; 'avg' and 'bare' are not."""
+    def kind(self):
         if not self.is_data():
-            return ['text']
-        if self.is_constant():
-            return ['const']
-        if len(self.values) == 2:
-            return ['list']
-        if self.style == 'mult':   # the average step of a multiplier says little: go straight to the bare range
-            return ['step', 'bare'] if self.is_linear() else ['list', 'bare']
-        compact = 'step' if self.is_linear() else 'avg'
-        if self.label in LIST_FIRST:
-            return ['list', compact, 'bare']
-        return ['step', 'bare'] if self.is_linear() else ['list', 'avg', 'bare']
+            return 'text'
+        return COST_KINDS.get(self.label, 'effect') if self.group == 'B' else 'effect'
 
-    def cost(self, mode):
-        """How much detail is lost by printing the table this way (0 = none)."""
-        if mode == 'bare':
-            return 1 if self.style == 'mult' else 4
-        if mode == 'avg':
-            return 3 if self.label in LIST_FIRST else 2
+    def modes(self, main=False):
+        """Ways the specification allows this table to be printed, best first.
+
+        list   one value per level                     lossless
+        step   base (+step/Lv) [-> max]                lossless, linear tables only
+        ends   first -> last                           hides the middle
+        drop   left out of the box
+        """
+        kind = self.kind()
+        if kind == 'text':
+            return ['text', 'drop']
+        if self.is_constant():
+            return ['const'] if main else ['const', 'drop']
+        if len(self.values) == 2:
+            return ['list'] if main or kind == 'tp' else ['list', 'drop']
+        if kind in ('speed', 'chant'):
+            return ['ends', 'drop']
+        if kind == 'turns':
+            return ['list', 'ends', 'drop']
+        modes = ['list'] + (['step'] if self.is_linear() else []) + ['ends']
+        return modes if main or kind == 'tp' else modes + ['drop']
+
+    def cost(self, mode, main=False):
+        """What the player loses when the table is printed this way (0 = nothing).
+
+        Order of the specification: the main effect and the TP cost level by level come
+        first; a secondary effect, the duration, the speed and the chant give way to them.
+        """
+        kind = self.kind()
+        if mode == 'drop':
+            if kind == 'turns':
+                return 4
+            if kind in ('speed', 'chant'):
+                return 1
+            return 3 if kind == 'text' else 2.5
+        if mode == 'ends':
+            if kind in ('speed', 'chant'):
+                return 0
+            if kind == 'turns':
+                return 1
+            return 100 if main else 6 if kind == 'tp' else 1.5
+        if mode == 'step':   # exact, but the player has to add: only when the list does not fit
+            return 2 if main or kind == 'tp' else 1.5
         return 0
 
-    def render(self, mode, tag=None):
+    def render(self, mode, main=False, levels=None):
         if mode == 'text':
             return self.text
         _, unit, signed = STYLES[self.style]
@@ -203,14 +233,17 @@ class Segment:
         if mode == 'list':
             if len(shown) <= 5:
                 body = ' -> '.join(one(v) for v in shown)
-                return f'{self.label}: {body}' + (f' (L1-{tag})' if tag else '')
-            body = ' -> '.join([one(shown[0])] + [one(v, False) for v in shown[1:-1]] + [one(shown[-1])])
-            return f'{self.label}' + (f' (L1-{tag})' if tag else '') + f': {body}'
-        if mode == 'bare':
-            return f'{self.label}: {one(shown[0])} -> {one(shown[-1])}' + (f' (L1-{tag})' if tag else '')
-        step = (shown[-1] - shown[0]) / (len(shown) - 1)
-        note =('avg ' if mode == 'avg' else '') + ('+' if step >= 0 else '') + num(step) + unit + '/Lv'
-        return f'{self.label}: {one(shown[0])} -> {one(shown[-1])} ({note}' + (f', L1-{tag}' if tag else '') + ')'
+                return f'{self.label}: {body}' + (f' (L1-{levels} Max)' if main and levels else '')
+            return f'{self.label}: ' + ' -> '.join(
+                [one(shown[0])] + [one(v, False) for v in shown[1:-1]] + [one(shown[-1])])
+        if mode == 'ends':
+            return f'{self.label}: {one(shown[0])} -> {one(shown[-1])}'
+        step = shown[1] - shown[0]
+        note = ('+' if step >= 0 else '') + num(step) + unit + '/Lv'
+        if main or self.kind() == 'tp':
+            return (f'{self.label}: {one(shown[0])} ({note}) -> {one(shown[-1])}'
+                    + (f' (L{levels} Max)' if main and levels else ''))
+        return f'{self.label}: {one(shown[0])} ({note})'
 
 
 # ---------------------------------------------------------------------------
@@ -326,7 +359,14 @@ def build_segments(skill):
 
     def take(idx, key, values):
         stem, direction = stem_of(phrases[idx])
-        resolved[idx] = [Segment(stem, values, generic_style(stem, values, direction))]
+        label, style = stem, generic_style(stem, values, direction)
+        # "ATK increase UP" -> "ATK: +8%", "DEF decrease UP" -> "DEF: -11%" (the approved mockups),
+        # unless the short label is one the cost line already uses.
+        m = re.match(r'^(.*\S) (increases?|decrease)$', stem)
+        if m and is_fraction(values) and m.group(1) not in COST_KINDS:
+            label = m.group(1)
+            style = 'plus_pct' if m.group(2).startswith('increase') else 'minus_pct'
+        resolved[idx] = [Segment(label, values, style)]
         used.add(key)
 
     while True:
@@ -395,45 +435,74 @@ def build_segments(skill):
 # ---------------------------------------------------------------------------
 # Fitting into the text box
 # ---------------------------------------------------------------------------
-DROP_COST = 2   # leaving out a value no vanilla phrase mentions (fixed speed, fixed chant...)
+OVERFLOW_COST = 0.5   # an effect printed on the cost line
 
 
-def split_points(segments):
-    """Where the second line may start, the natural break (effects / costs) first."""
-    natural = sum(1 for s in segments if s.group == 'A') or len(segments)
-    return sorted(range(1, len(segments) + 1), key=lambda cut: abs(cut - natural))
+def line_fits(parts):
+    return sum(len(p) for p in parts) + len(SEP) * max(len(parts) - 1, 0) <= MAX_LINE
 
 
 def fit(segments, levels, max_lines):
-    """Returns (lines, what was shortened or left out), or (None, []) when nothing fits.
+    """Returns (lines, shortened, left out), or (None, [], []) when nothing fits.
 
-    Tries every way of printing each table and keeps the one that loses the least detail.
+    Line 2 is for effects and line 3 for costs. Tries every allowed way of printing
+    each table and keeps the layout in which the player loses the least.
     """
-    tag_at = next((i for i, s in enumerate(segments) if s.is_data() and not s.is_constant()), None)
-    mode_sets = [s.modes() + (['drop'] if s.extra else []) for s in segments]
+    main_at = next((i for i, s in enumerate(segments) if s.kind() == 'effect'), None)
+    if main_at is None:
+        main_at = next((i for i, s in enumerate(segments) if s.is_data()), None)
+    mode_sets = [s.modes(main=(i == main_at)) for i, s in enumerate(segments)]
 
     def cost(i, mode):
-        return DROP_COST if mode == 'drop' else segments[i].cost(mode)
+        return segments[i].cost(mode, main=(i == main_at))
 
     combos = sorted(itertools.product(*[range(len(m)) for m in mode_sets]),
                     key=lambda c: (sum(cost(i, mode_sets[i][k]) for i, k in enumerate(c)), sum(c)))
+    best = None
     for combo in combos:
+        base = sum(cost(i, mode_sets[i][k]) for i, k in enumerate(combo))
+        if best and base >= best[0]:
+            break
         chosen = [(i, mode_sets[i][k]) for i, k in enumerate(combo) if mode_sets[i][k] != 'drop']
-        kept = [segments[i] for i, _ in chosen]
-        if not any(s.is_data() for s in kept):
+        if not any(segments[i].is_data() for i, _ in chosen):
             continue
-        parts = [segments[i].render(m, levels if i == tag_at and levels > 1 else None) for i, m in chosen]
-        sizes = [len(p) for p in parts]
-        for cut in split_points(kept) if max_lines >= 2 else [len(kept)]:
-            lines = [parts[:cut], parts[cut:]]
-            if all(sum(len(p) for p in line) + len(SEP) * max(len(line) - 1, 0) <= MAX_LINE for line in lines):
-                lossy = [segments[i].label for i, k in enumerate(combo) if cost(i, mode_sets[i][k])]
-                return [SEP.join(line) for line in lines if line], lossy
-    return None, []
+        parts = [(segments[i].group, segments[i].render(m, main=(i == main_at), levels=levels if levels > 1 else None))
+                 for i, m in chosen]
+        effects = [p for g, p in parts if g == 'A']
+        costs = [p for g, p in parts if g == 'B']
+        # (lines, penalty): effects on line 2 and costs on line 3; an effect that does not fit
+        # on line 2 may open line 3 at a small price, and a box with only one kind may use both.
+        if max_lines < 2:
+            layouts = [([effects + costs], 0)]
+        elif effects and costs:
+            layouts = [([effects[:cut], effects[cut:] + costs], OVERFLOW_COST * (len(effects) - cut))
+                       for cut in range(len(effects), 0, -1)]
+        else:
+            only = effects or costs
+            layouts = [([only], 0)] + [([only[:cut], only[cut:]], 0) for cut in range(len(only) - 1, 0, -1)]
+        for lines, penalty in layouts:
+            if all(line_fits(line) for line in lines) and (best is None or base + penalty < best[0]):
+                shortened = [segments[i].label for i, k in enumerate(combo)
+                             if mode_sets[i][k] == 'ends' and cost(i, 'ends')]
+                left_out = [segments[i].label or segments[i].text for i, k in enumerate(combo)
+                            if mode_sets[i][k] == 'drop']
+                best = (base + penalty, [SEP.join(line) for line in lines], shortened, left_out)
+                break
+    if best is None:
+        return None, [], []
+    lines = best[1]
+    # A long main list says where it ends when there is room: "... -> 520 (L10)"
+    main = segments[main_at] if main_at is not None else None
+    if main and main.kind() == 'effect' and levels > 5:
+        head = lines[0].split(SEP)[0]
+        if head.count(' -> ') == levels - 1 and len(lines[0]) + len(f' (L{levels})') <= MAX_LINE:
+            lines[0] = head + f' (L{levels})' + lines[0][len(head):]
+    return lines, best[2], best[3]
 
 
 def generate_skill(skill):
-    row = {'coverage': 'Unchanged', 'lvup': skill['lvup'], 'unresolved': [], 'hidden': [], 'averaged': []}
+    row = {'coverage': 'Unchanged', 'lvup': skill['lvup'], 'unresolved': [], 'hidden': [],
+           'shortened': [], 'left_out': []}
     if skill['lvup'].startswith('dummy'):
         row['coverage'] = 'Skipped (internal)'
         return row
@@ -441,11 +510,11 @@ def generate_skill(skill):
     row['unresolved'], row['hidden'] = unresolved, hidden
     if not any(s.is_data() for s in segments):
         return row    # nothing to add: keep the vanilla text byte for byte
-    lines, averaged = fit(segments, skill['levels'], MAX_BOX_LINES - len(skill['desc'].split('\n')))
+    lines, shortened, left_out = fit(segments, skill['levels'], MAX_BOX_LINES - len(skill['desc'].split('\n')))
     if lines is None:
         row['coverage'] = 'ERROR: does not fit'
         return row
-    row['lvup'], row['averaged'] = '\n'.join(lines), averaged
+    row['lvup'], row['shortened'], row['left_out'] = '\n'.join(lines), shortened, left_out
     row['coverage'] = 'Partial' if unresolved else 'Full'
     return row
 
@@ -457,11 +526,8 @@ def generate_unique(unique):
         style = 'signed_pct'
     levels = Segment('Lv1-9', values[:9], style)
     crown = Segment('Crown EX', values[9:], style)
-    for mode in levels.modes():
-        line = levels.render(mode) + SEP + crown.render('const')
-        if len(line) <= MAX_LINE:
-            return unique['desc'] + '\n' + line, [levels.label] if levels.cost(mode) else []
-    return unique['desc'], []
+    line = levels.render('const' if levels.is_constant() else 'list') + SEP + crown.render('const')
+    return unique['desc'] + '\n' + line
 
 
 # ---------------------------------------------------------------------------
@@ -526,10 +592,10 @@ def main():
         prev = previous.get(key, ('', ''))
         rows.append([skill['category'], skill['fn'], skill['name'], skill['levels'], skill['desc'], skill['lvup'],
                      desc, lvup, flag, row['coverage'], '; '.join(row['unresolved']), ', '.join(row['hidden']),
-                     ', '.join(row['averaged']), prev[0], prev[1]])
+                     ', '.join(row['shortened']), ', '.join(row['left_out']), prev[0], prev[1]])
     for unique in uniques:
         key = ('Unique', unique['fn'])
-        desc, averaged = generate_unique(unique)
+        desc = generate_unique(unique)
         flag, kind = '', 'Full'
         if key in edited:
             desc, flag, kind = edited[key][0], 'yes', 'Edited by hand'
@@ -537,7 +603,7 @@ def main():
         check_box(unique['name'], unique['desc'], desc, '', problems)
         prev = previous.get(key, ('', ''))
         rows.append(['Unique', unique['fn'], unique['name'], 10, unique['desc'], '', desc, '', flag, kind, '', '',
-                     ', '.join(averaged), prev[0], prev[1]])
+                     '', '', prev[0], prev[1]])
 
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
@@ -551,7 +617,9 @@ def main():
         ['Keep your wording', 'Write "yes" in Edited. Rows without it are regenerated by generate_qol_skill_text.py.'],
         ['Numbers', 'Checked against the binary by build_variant.py and the tests: a wrong figure stops the build.'],
         ['Limits', f'{MAX_BOX_LINES} lines per box (description included), {MAX_LINE} characters per line, no tilde.'],
-        ['Notation', 'Label: 80% -> 110% (+3%/Lv, L1-10)  |  Label: 10 -> 14 -> 18 (L1-3)  |  Label: 0.85x'],
+        ['Standard', 'docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md. Line 1 vanilla, line 2 effect, line 3 costs.'],
+        ['Notation', 'ATK: 125% -> 134 -> ... -> 200%  |  ATK: 130% (+8%/Lv) -> 202% (L10 Max)  |  Speed: 0.8x -> 0.9x'],
+        ['Never', 'Averages such as "(avg +3.33%/Lv)". A step is written only when it is the same at every level.'],
         ['Previous_Mod_*', 'Wording of the earlier mod, for reference only. Its numbers were not taken from the binary.'],
     ])
     wb.save(OUTPUT_PATH)

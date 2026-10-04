@@ -1,25 +1,29 @@
 """
-Checks that every number written in a skill text is the value stored in a binary.
+Checks a skill text against the binary and against the display specification
+(docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md).
 
-Used by the variant build and by the test suite, so hand-edited wording is free
-while the figures stay tied to the data.
+Used by the variant build and by the test suite, so the wording of each skill can be
+edited by hand while its figures stay tied to the data.
 
-Understood notation (the project style guide):
-    Label: 80% -> 110% (+3%/Lv, L1-10)       range with the per-level step
-    Label: 80% -> 110% (avg +3.33%/Lv)       range of a non-linear table
-    Label: 10 -> 14 -> 18 -> 21 -> 24 (L1-5) one value per level
-    Label (L1-10): 70 -> 105 -> ... -> 520   one value per level, long form
-    Label: 0.85x                             value that does not change
+Understood notation:
+    Label: 125% -> 134 -> 143 -> ... -> 200% (L10)     one value per level
+    Label: +8% -> +10% -> +12% -> +15% -> +18% (L1-5 Max)
+    Label: 130% (+8%/Lv) -> 202% (L10 Max)             base, exact step, cap (linear tables)
+    Label: +20% (+2%/Lv)                               base and exact step
+    Label: 0.8x -> 0.9x                                first -> last
+    Label: 0.85x                                       value that does not change
+Rejected: averages, e.g. "(avg +3.33%/Lv)".
 """
 import re
 from extract_vanilla import SKILL_LAYOUTS, SLOT_SIZE, LEVELS, i32, read_array, leading_nonzero
 
 NUM = r'[+-]?\d+(?:\.\d+)?'
-VALUE = rf'{NUM}[%x]?'
-SERIES_RE = re.compile(
-    rf'(?P<series>{VALUE}(?: -> {VALUE})*)'
-    rf'(?: \((?P<avg>avg )?(?P<step>{NUM})[%x]?/Lv(?:, L1-(?P<lv_step>\d+))?\)| \(L1-(?P<lv_list>\d+)\))?')
-SEGMENT_RE = re.compile(r'^(?P<label>[^:]+?)(?: \(L1-(?P<lv>\d+)\))?: (?P<body>.+)$')
+SEGMENT_RE = re.compile(r'^(?P<label>[^:]+?): (?P<body>.+)$')
+# "12% Max HP -> 15% -> 18%": each value may carry a unit and a few plain words.
+VALUE_RE = rf'{NUM}[%x]?(?: [A-Za-z][A-Za-z ]*?)?'
+SERIES_RE = re.compile(rf'^{VALUE_RE}(?: -> {VALUE_RE})*$')
+STEP_RE = re.compile(rf'^(?P<step>[+-]\d+(?:\.\d+)?)[%x]?/Lv$')
+LEVELS_RE = re.compile(r'^L(?:1-)?(?P<n>\d+)(?: Max)?$')
 
 AILMENT_LABELS = {
     'Poison': 113, 'Freeze': 114, 'Paralysis': 115, 'Sleep': 116, 'Silence': 117,
@@ -67,14 +71,14 @@ def series_fits(shown, table):
     return len(shown) == 2 and close(shown[0], table[0]) and close(shown[1], table[-1])
 
 
-def step_fits(step, is_avg, table):
+def step_fits(shown, step, table):
+    """'base (+step/Lv)' or 'base (+step/Lv) -> cap': the table must rise by exactly that step."""
     table = [round(v, 2) for v in table]
-    if len(table) < 2:
+    if len(table) < 2 or not close(shown[0], table[0]):
         return False
-    diffs = [b - a for a, b in zip(table, table[1:])]
-    if is_avg:
-        return abs(abs(step) - abs(round((table[-1] - table[0]) / (len(table) - 1), 2))) < 0.011
-    return all(abs(abs(round(d, 2)) - abs(step)) < 0.006 for d in diffs)
+    if len(shown) > 1 and not close(shown[-1], table[-1]):
+        return False
+    return all(abs(abs(round(b - a, 2)) - abs(step)) < TOLERANCE for a, b in zip(table, table[1:]))
 
 
 def expected_tables(label, category, tables):
@@ -112,6 +116,9 @@ def check_skill_text(category, b, text):
     problems, verified, loose = [], 0, []
 
     for segment in [s.strip() for line in text.split('\n') for s in line.split(' | ')]:
+        if re.search(r'\bavg\b', segment):
+            problems.append(f"'{segment}': averages are not allowed by the display specification")
+            continue
         if not re.search(r'\d', segment):
             continue
         m = SEGMENT_RE.match(segment)
@@ -119,11 +126,14 @@ def check_skill_text(category, b, text):
             loose.append(segment)
             continue
         label, body = m.group('label'), m.group('body')
-        sm = SERIES_RE.match(body)
-        if not sm:
+        notes = re.findall(r'\(([^)]*)\)', body)
+        plain = re.sub(r'\s*\([^)]*\)', '', body).strip()
+        if not SERIES_RE.match(plain):
             loose.append(segment)
             continue
-        shown = [float(re.match(NUM, x).group()) for x in sm.group('series').split(' -> ')]
+        shown = [float(x) for x in re.findall(rf'(?:^|-> )({NUM})', plain)]
+        step = next((float(STEP_RE.match(n).group('step')) for n in notes if STEP_RE.match(n)), None)
+
         # A reserved label is held to its own table; if the skill has no such table
         # (a passive whose vanilla phrase is "Speed UP"), any table of the skill may explain it.
         allowed = [t for t in (expected_tables(label, category, tables) or []) if t]
@@ -133,13 +143,13 @@ def check_skill_text(category, b, text):
         match = None
         for table in candidates:
             for disp in displays(table):
-                if series_fits(shown, disp):
+                if (step_fits(shown, step, disp) if step is not None else series_fits(shown, disp)):
                     match = disp
                     break
             if match:
                 break
         if match is None:
-            if strict or len(shown) > 1:
+            if strict or len(shown) > 1 or step is not None:
                 problems.append(f"'{segment}' does not match the binary"
                                 + (f" ({[round(v, 2) for v in candidates[0]]})" if strict and candidates else ''))
             else:
@@ -147,9 +157,8 @@ def check_skill_text(category, b, text):
             continue
         verified += 1
 
-        if sm.group('step') is not None and not step_fits(float(sm.group('step')), bool(sm.group('avg')), match):
-            problems.append(f"'{segment}': the per-level step is not the one of the binary table")
-        for lv in (m.group('lv'), sm.group('lv_step'), sm.group('lv_list')):
-            if lv is not None and int(lv) != tables['levels']:
-                problems.append(f"'{segment}': says L1-{lv} but the skill has {tables['levels']} levels")
+        for note in notes:
+            lv = LEVELS_RE.match(note)
+            if lv and int(lv.group('n')) not in (1, tables['levels']):
+                problems.append(f"'{segment}': says level {lv.group('n')} but the skill has {tables['levels']} levels")
     return problems, verified, loose

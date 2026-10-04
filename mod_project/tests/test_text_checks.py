@@ -1,4 +1,4 @@
-"""The number checker accepts true figures and rejects wrong ones, whatever the wording."""
+"""The checker accepts true figures in the approved notation and rejects wrong figures and averages."""
 import os
 import unittest
 
@@ -19,6 +19,7 @@ class Checker(unittest.TestCase):
     def setUpClass(cls):
         cls.halving = entry('Technique', 'TechniqueSkillData.pck', 'Halving Slice')
         cls.shield = entry('Technique', 'TechniqueSkillData.pck', 'Shield Bash')
+        cls.first_aid = entry('Technique', 'TechniqueSkillData.pck', 'First Aid')
         cls.flare = entry('Magic', 'MagicSkillData.pck', 'Crimson Flare')
         cls.concentrate = entry('Passive', 'PassiveSkillData.pck', 'Concentrate')
         cls.third_eye = entry('Unique', 'UniqueSkillData.pck', 'Third Eye Wide')
@@ -26,15 +27,18 @@ class Checker(unittest.TestCase):
     def problems(self, category, b, text):
         return check_skill_text(category, b, text)[0]
 
-    def test_true_figures_pass_in_every_notation(self):
+    def test_true_figures_pass_in_every_approved_notation(self):
         good = [
-            ('Technique', self.halving, 'ATK (L1-10): 80% -> 83 -> 86 -> 89 -> 91 -> 94 -> 97 -> 100 -> 105 -> 110%'),
-            ('Technique', self.halving, 'ATK: 80% -> 110% (avg +3.33%/Lv, L1-10) | Instakill: 10% -> 20%'),
-            ('Technique', self.halving, 'TP Cost: 38 -> 74 (+4/Lv) | Speed: 0.65x -> 0.75x'),
-            ('Technique', self.shield, 'Stun: 30% -> 38% (+2%/Lv) | TP Cost: 6 -> 8 -> 10 -> 12 -> 14 (L1-5) | Speed: 0.55x'),
-            ('Magic', self.flare, 'Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5) | Accuracy: 82% -> 90% (+2%/Lv)'),
-            ('Passive', self.concentrate, 'Interruption rate: -10% -> -50% (-10%/Lv, L1-5)'),
-            ('Unique', self.third_eye, 'Lv1-9: 7% -> 15% (+1%/Lv) | Crown EX: 25%'),
+            ('Technique', self.halving, 'ATK: 80% -> 83 -> 86 -> 89 -> 91 -> 94 -> 97 -> 100 -> 105 -> 110% (L10)'),
+            ('Technique', self.halving, 'Instakill: 10% -> 20%'),
+            ('Technique', self.halving, 'TP Cost: 38 (+4/Lv) -> 74 | Speed: 0.65x -> 0.75x'),
+            ('Technique', self.halving, 'TP Cost: 38 -> 42 -> 46 -> 50 -> 54 -> 58 -> 62 -> 66 -> 70 -> 74'),
+            ('Technique', self.shield, 'ATK: 85% -> 90% -> 94% -> 98% -> 102% (L1-5 Max)'),
+            ('Technique', self.shield, 'Stun: 30% (+2%/Lv) | TP Cost: 6 -> 8 -> 10 -> 12 -> 14 | Speed: 0.55x'),
+            ('Technique', self.first_aid, 'Heal: 12% Max HP -> 15% -> 18% -> 21% -> 25% (L1-5 Max)'),
+            ('Magic', self.flare, 'Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5 Max) | Accuracy: 82% (+2%/Lv)'),
+            ('Passive', self.concentrate, 'Interruption rate: -10% -> -20% -> -30% -> -40% -> -50% (L1-5 Max)'),
+            ('Unique', self.third_eye, 'Lv1-9: 7% -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% | Crown EX: 25%'),
         ]
         for category, b, text in good:
             with self.subTest(text=text):
@@ -43,17 +47,21 @@ class Checker(unittest.TestCase):
     def test_wrong_figures_are_rejected(self):
         bad = [
             ('Technique', self.halving, 'TP Cost: 15 -> 18 -> 21 -> 24 -> 28'),            # the earlier mod's text
-            ('Technique', self.halving, 'ATK: 115% -> 175% (+15%/Lv)'),
+            ('Technique', self.halving, 'ATK: 115% -> 175%'),
             ('Technique', self.halving, 'Instakill: 10% -> 25%'),
-            ('Technique', self.halving, 'TP Cost: 38 -> 74 (+5/Lv)'),                      # right ends, wrong step
-            ('Technique', self.halving, 'ATK: 80% -> 110% (+3.33%/Lv)'),                   # not linear: must say avg
-            ('Technique', self.halving, 'TP Cost: 38 -> 74 (+4/Lv, L1-5)'),                # wrong level count
-            ('Magic', self.flare, 'Pwr (L1-10): 620 -> 680 -> 750 -> 830 -> 920 -> 1010 -> 1100 -> 1200 -> 1250 -> 1300'),
-            ('Unique', self.third_eye, 'Lv1-9: 7% -> 15% (+1%/Lv) | Crown EX: 22.5%'),     # "+50% over Lv 9"
+            ('Technique', self.halving, 'TP Cost: 38 (+5/Lv) -> 74'),                      # right ends, wrong step
+            ('Technique', self.halving, 'ATK: 80% (+3%/Lv) -> 110% (L10 Max)'),            # not a linear table
+            ('Technique', self.halving, 'TP Cost: 38 (+4/Lv) -> 74 (L5 Max)'),             # wrong level count
+            ('Magic', self.flare, 'Pwr: 620 -> 680 -> 750 -> 830 -> 920 -> 1010 -> 1100 -> 1200 -> 1250 -> 1300'),
+            ('Unique', self.third_eye, 'Lv1-9: 7% -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% | Crown EX: 22.5%'),
         ]
         for category, b, text in bad:
             with self.subTest(text=text):
                 self.assertNotEqual(self.problems(category, b, text), [])
+
+    def test_averages_are_rejected_even_when_the_numbers_are_true(self):
+        problems = self.problems('Technique', self.halving, 'ATK: 80% -> 110% (avg +3.33%/Lv)')
+        self.assertTrue(any('averages are not allowed' in p for p in problems), problems)
 
     def test_reserved_labels_are_held_to_their_own_table(self):
         # 10 -> 20 is the instakill table (in %), so it must not be accepted as a TP cost.
