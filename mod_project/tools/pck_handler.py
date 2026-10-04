@@ -105,9 +105,10 @@ class PckArchive:
         res.extend(pack_hdr)
         res.extend(data_section)
 
-        # Pad total file to 16 bytes
-        pad_end = (16 - (len(res) % 16)) % 16
-        res.extend(b'\x00' * pad_end)
+        # Original archives end with the data section padded to 16 bytes
+        # (relative to data_start) followed by 8 zero bytes.
+        pad_end = (16 - (len(data_section) % 16)) % 16
+        res.extend(b'\x00' * (pad_end + 8))
         return bytes(res)
 
 
@@ -121,11 +122,16 @@ class SkillHelper:
         desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
         
         lvup = ""
+        msg = ""
         if category in ['Technique', 'Magic', 'Passive']:
             p2 = struct.unpack('<Q', bin_data[24:32])[0]
             if p2 < len(bin_data):
                 lvup = bin_data[p2:bin_data.find(b'\x00', p2)].decode('latin-1')
-                
+            # 4th string: battle message shown when the skill triggers ("%name danced the %skill!")
+            p3 = struct.unpack('<Q', bin_data[32:40])[0]
+            if p3 < len(bin_data):
+                msg = bin_data[p3:bin_data.find(b'\x00', p3)].decode('latin-1')
+
         max_lv = 0
         tp_prog = []
         if category in ['Technique', 'Magic']:
@@ -141,6 +147,7 @@ class SkillHelper:
             'name': name,
             'desc': desc,
             'lvup': lvup,
+            'msg': msg,
             'max_lv': max_lv,
             'tp_prog': tp_prog
         }
@@ -183,13 +190,23 @@ class SkillHelper:
             pad3 = (8 - (new_p3 % 8)) % 8
             lvup_bytes += b'\x00' * pad3
             new_p3 += pad3
-            
+
+            # Keep the battle message the 4th pointer refers to (empty for most skills)
+            old_p3 = struct.unpack('<Q', fixed_hdr[32:40])[0]
+            if old_p3 < len(bin_data):
+                msg_bytes = bytes(bin_data[old_p3:bin_data.find(b'\x00', old_p3)+1])
+            else:
+                msg_bytes = b'\x00'
+            pad4 = (8 - ((new_p3 + len(msg_bytes)) % 8)) % 8
+            msg_bytes += b'\x00' * pad4
+
             struct.pack_into('<Q', new_bin, 24, new_p2)
             struct.pack_into('<Q', new_bin, 32, new_p3)
-            
+
             new_bin.extend(name_bytes)
             new_bin.extend(desc_bytes)
             new_bin.extend(lvup_bytes)
+            new_bin.extend(msg_bytes)
         else:
             new_bin.extend(name_bytes)
             new_bin.extend(desc_bytes)
