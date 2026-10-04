@@ -405,8 +405,7 @@ class EnchantHelper:
         res.extend(name_bytes)
         res.extend(prefix_bytes)
         res.extend(suffix_bytes)
-        pad_end = (16 - (len(res) % 16)) % 16
-        res.extend(b'\x00' * pad_end)
+        # Each string is padded to 8 bytes; the entry itself is not padded further.
         return bytes(res)
 
 
@@ -695,6 +694,28 @@ class EquipmentHelper:
         pad_end = (8 - (len(res) % 8)) % 8
         res.extend(b'\x00' * pad_end)
         return bytes(res)
+
+
+class WeaponRankHelper:
+    """WeaponRankData entry: int index, -1, u64 name pointer, float delay multiplier at 0x10, -1, name at 0x18."""
+    HEADER = 0x18
+
+    @staticmethod
+    def read_rank(bin_data):
+        p_name = struct.unpack_from('<Q', bin_data, 8)[0]
+        return {
+            'index': struct.unpack_from('<i', bin_data, 0)[0],
+            'delay': struct.unpack_from('<f', bin_data, 0x10)[0],
+            'name': bin_data[p_name:bin_data.find(b'\x00', p_name)].decode('latin-1'),
+        }
+
+    @staticmethod
+    def write_rank(bin_data, new_name):
+        hdr = bytearray(bin_data[:WeaponRankHelper.HEADER])
+        struct.pack_into('<Q', hdr, 8, WeaponRankHelper.HEADER)
+        b_name = new_name.encode('latin-1') + b'\x00'
+        b_name += b'\x00' * ((8 - (len(b_name) % 8)) % 8)
+        return bytes(hdr + b_name)
 
 
 class TrapHelper:

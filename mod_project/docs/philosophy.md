@@ -27,6 +27,7 @@ This document outlines the scope, principles, and architectural reasoning of the
    - The compiled `.bin` / `.pck` files are what the PC executable actually parses. Community guides often hold stale PS Vita launch assumptions. The binary data is always the primary fact base.
    - A figure shown to the player is read from the binary of the variant being built. If the binary does not hold it, the text does not state it.
    - What a field means is inferred until proven; say so. A guide that agrees is corroboration, not proof.
+   - Order of sources: binary first, then player guides of this same game (the Japanese community documented it best). A guide is used only for what the binary does not hold, every such figure names its guide, and it stays tagged as inferred. A figure from another game is a candidate, not a fact.
 2. **Single Source of Truth:**
    - Original values live in `data_tables/vanilla_source_of_truth.xlsx`, generated from the backups. Hand-written text lives in the workbooks of `data_tables/`.
    - Binaries are generated from those by a build script into `build/<variant>/`. Never hand-edit a `.pck`, and never build straight into the game folder.
