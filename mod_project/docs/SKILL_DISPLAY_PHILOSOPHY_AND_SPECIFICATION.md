@@ -1,129 +1,146 @@
-# Dungeon Travelers 2-2: Filosofía y Especificación de Presentación de Habilidades
+# Dungeon Travelers 2-2: Skill Display Specification & Design Philosophy
 
-Este documento define la **filosofía de diseño**, los **principios de legibilidad** y la **especificación técnica estricta** acordada para la presentación de habilidades en *Dungeon Travelers 2-2*. Sirve como estándar unificado y guía definitiva tanto para la edición manual como para cualquier script de automatización del mod.
-
----
-
-## 1. Filosofía de Diseño: Los Principios Rectores
-
-### Principio 1: Cero "Fricción de Calculadora" (El Síndrome de la Hoja de Excel)
-* **La Regla de Oro:** *Un jugador en mitad de una mazmorra no debe verse obligado a jugar con una calculadora al lado.*
-* **El Problema:** Expresiones estadísticas abstractas como `(avg +3.33%/Lv)` o fórmulas crípticas con abreviaciones condensadas saturan la mente del jugador y rompen la inmersión. 
-* **La Solución:** El jugador debe poder consultar el menú, mirar la habilidad y entender **en medio segundo**:
-  1. ¿Cuánto hace la habilidad ahora mismo?
-  2. ¿Cuánto ganará si gasta 1 SP en el siguiente nivel?
-  3. ¿Cuánto maná (TP) le va a costar usarla?
+**Document Status:** Official Project Standard & Design Directive  
+**Target Platform:** Dungeon Travelers 2-2 (PC / Steam EN)  
+**Applicability:** Data tables (`skills.xlsx`, `qol_skill_text.xlsx`), injection scripts (`pck_handler.py`, `apply_mod.py`), and multi-agent development pipelines.
 
 ---
 
-### Principio 2: Preservación del Alma y Nomenclatura Original (Línea 1 Intacta)
-* **La Regla de Oro:** *El texto de los desarrolladores originales de Aquaplus/Sting se respeta al 100%.*
-* **Implementación:** La **Línea 1** de cada recuadro de habilidad debe conservar la descripción original en inglés sin alteraciones, sin recortes y sin añadir notas de desarrollo. 
-* **Justificación:** Mantiene la atmósfera del juego original intacta y evita que el mod se sienta como un producto tosco o no oficial.
+## 1. User Feedback, Core Complaints & Design Mandates
+
+This standard was forged directly through iterative playtesting feedback, player critiques, and explicit directives provided by the user. Any future modification or automated generation script **must strictly comply** with these user-defined mandates:
+
+### Mandate A: Elimination of "Spreadsheet Friction" & Verbose Formulas
+* **The User's Complaint (Step 186):**
+  > *"I don't like it, it's way too verbose. Why are you showing me confusing ranges? I just want to know what it does, what damage it deals, and what cost it has right now and next level. You have the numbers in the game, why make it harder?"*
+* **The Design Rule:**
+  * **Strictly Prohibited:** Statistical formulas such as `(avg +3.33%/Lv)`, aggregated summaries, or mathematical jargon.
+  * **Required:** Players in the middle of a dungeon crawl must not be forced to do mental algebra or play with a calculator. Information must be readable **at a glance in under 0.5 seconds**.
 
 ---
 
-### Principio 3: Respuesta a la Limitación del Motor (Texto Estático Único)
-* **La Limitación Técnica:** El motor de *Dungeon Travelers 2-2* no dispone de textos dinámicos por nivel. Lee una única cadena fija para toda la habilidad tanto en la pantalla de aprendizaje como en combate.
-* **El Dilema:** Si solo se mostrara el valor del nivel 1, el jugador a nivel 8 no sabría qué hace su técnica. Si solo se mostrara el nivel máximo, un jugador a nivel 1 no sabría qué tiene en ese momento.
-* **La Solución Acordada:** Mostrar la progresión directa secuencial mediante flechas (`->`) para que el jugador identifique de inmediato su nivel actual y el salto al siguiente nivel.
+### Mandate B: Pure In-Universe Nomenclature (Line 1 Untouched)
+* **The User's Directive (Step 197):**
+  > *"When I say in-game, I don't mean a generic RPG style. Use the exact nomenclature and descriptions that the game uses normally. Nothing outside."*
+* **The Design Rule:**
+  * **Line 1 belongs 100% to Aquaplus/Sting.** The original English flavor text and descriptive prose must never be replaced, rewritten with modder jargon, or trimmed.
+  * Mechanical data must be neatly categorized on Lines 2 and 3 without interfering with Line 1.
 
 ---
 
-### Principio 4: Verdad Binaria Absoluta (Anti-Placebo)
-* **La Regla de Oro:** *Cada cifra mostrada debe existir realmente en el binario del juego.*
-* **Lección Aprendida:** Jamás se deben escribir en el texto mecánicas que el motor no ejecuta (por ejemplo, afirmar que una magia tiene *"penetración elemental 50"* o que una técnica otorga *"inmunidad a críticos"* cuando el código binario no tiene esa función). Si el motor no lo hace, no se pone en el texto.
+### Mandate C: Solving the Engine's Static String Limitation
+* **The Technical Dilemma (Steps 208–210):**
+  * The *Dungeon Travelers 2-2* engine reads a **single static string** per skill entry. It cannot dynamically render separate text based on the character's current skill level.
+  * If a tooltip only showed Level 1, a player at Level 8 would have no clue what their skill does. If it only showed Max Level, a rookie player would have no idea what they currently possess.
+* **The Approved Solution:**
+  * Direct sequential progression using arrows (`->`). The player immediately sees their current level's value, the next level's value, and the final cap.
 
 ---
 
-### Principio 5: Restricciones Físicas Infranqueables del Motor Gráfico
-Para garantizar que el juego jamás sufra desbordamientos de interfaz ni textos cortados:
-1. **Límite de Líneas:** Máximo **3 líneas** por caja de texto (Línea 1: Descripción vanilla; Línea 2: Efecto y escalado; Línea 3: Costes y turnos).
-2. **Límite de Longitud:** Máximo **85 caracteres por línea** (medido píxel a píxel sobre la caja de diálogo de la interfaz en inglés).
-3. **Seguridad de Fuentes:** **Cero tildes (`~`)**. La fuente original de DT2-2 en inglés tiene caracteres reservados y el uso de la tilde provoca glitcheos y caracteres corruptos. En su lugar se utilizan flechas (`->`) o guiones (`-`).
+### Mandate D: Rejection of Automated "Average" Compression
+* **The User's Complaint on Automated Scripts (`qol_skill_text.xlsx`):**
+  > Automated scripts attempting to adhere to character limits took shortcuts by reintroducing compressed statistical formulas: e.g. `ATK: 80% -> 110% (avg +3.33%/Lv, L1-10)`.
+* **The Directive:**
+  * The user explicitly rejected this format. If a 10-level skill cannot fit all 10 numbers due to wide values, it must use clean, explicit step progression (e.g., `ATK: 125% (+8%/Lv) -> 200% (L10 Max)`), **never** fractional averages like `(avg +3.33%/Lv)`.
 
 ---
 
-## 2. Especificación Técnica de Formato
+## 2. Hard Engine Constraints (Non-Negotiable)
 
-### Estructura Estándar de 3 Líneas
+1. **Physical Line Limit:** **Maximum 3 lines** per skill box.
+   * Line 1: Original Vanilla Description.
+   * Line 2: Primary Effect, Scaling & Values across levels.
+   * Line 3: Costs (TP), Durations (Turns), and Action Delay / Speed.
+2. **Character Width Limit:** **Maximum 85 characters per line** (calibrated to the English UI dialog box width to prevent text overflow or word-wrapping).
+3. **Font Encoding Safety:** **ZERO tildes (`~`)**.
+   * The DT2-2 English font engine uses reserved bytes for special symbols; literal tildes cause severe font corruption and broken glyphs. Use arrows (`->`) or hyphens (`-`).
+4. **Absolute Binary Grounding (Anti-Placebo):**
+   * Every number must originate from verified bytes in the game binary (`TechniqueSkillData.pck`, `MagicSkillData.pck`, `PassiveSkillData.pck`). Never invent mechanics that the engine does not support (e.g. fake "elemental resistance penetration" or "Defend crit immunity").
+
+---
+
+## 3. Concrete Line-by-Line Formatting Specification
+
+### Layout Blueprint
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ [Línea 1] Vanilla Description (Intacta de fábrica)                                     │
+│ [Line 1] Original Vanilla Description (Untouched from game binary)                     │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ [Línea 2] Efecto Principal: [Valor L1] -> [L2] -> [L3] -> [L4] -> [Valor Máx]          │
-│ [Línea 3] Turns: [L1] -> [Máx] | TP Cost: [L1] -> [L2] -> [L3] -> [Máx] | Speed: [X]  │
+│ [Line 2] Effect: [L1 Value] -> [L2 Value] -> [L3 Value] -> ... -> [Max Value]          │
+│ [Line 3] Turns: [L1] -> [Max] | TP Cost: [L1] -> [L2] -> ... | Speed: [Value]          │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Reglas de Presentación para 5 Niveles vs. 10 Niveles
+### Progression Formatting Rules
 
-#### A. Habilidades de 5 Niveles (Buffs, Pasivas y Técnicas intermedias)
-Dado que tienen pocos niveles, **siempre se escriben todos los números explícitos** separados por flechas:
+#### 1. Five-Level Skills (Buffs, Debuffs, Utility Techniques)
+Since 5 levels fit comfortably within 85 characters, **all 5 values must be written explicitly**:
 * `ATK: +8% -> +10% -> +12% -> +14% -> +18% (L1-5 Max)`
 * `Turns: 4 -> 5 -> 6 -> 7 -> 8 | TP Cost: 5 -> 7 -> 9 -> 11 -> 13`
 
-#### B. Habilidades de 10 Niveles (Ataques físicos principales y Hechizos)
-1. **Caso 1 (Caben los 10 valores en $\le 85$ caracteres):** Se escriben los 10 valores completos:
-   * `TP Cost: 5 -> 8 -> 11 -> 14 -> 17 -> 20 -> 22 -> 24 -> 26 -> 28`
-   * `Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520`
-2. **Caso 2 (No caben los 10 valores por cifras largas):** Se utiliza la notación de incremento exacto por nivel indicando claramente el valor base, el paso y el tope máximo:
-   * **CORRECTO:** `ATK: 125% (+8%/Lv) -> 200% (L10 Max) | Hit Rate: +20% (+2%/Lv)`
-   * **PROHIBIDO:** `ATK: 80% -> 110% (avg +3.33%/Lv, L1-10)` *(Los promedios confusos están estrictamente vetados).*
+#### 2. Ten-Level Skills (Primary Physical Techniques & Magic Spells)
+* **Standard Case (All 10 values fit within 85 chars):** Write all 10 values explicitly:
+  * `TP Cost: 5 -> 8 -> 11 -> 14 -> 17 -> 20 -> 22 -> 24 -> 26 -> 28`
+  * `Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)`
+* **Tight Case (Large 3-digit values that exceed 85 chars):** Write starting base, exact step, and max cap:
+  * **CORRECT:** `ATK: 125% (+8%/Lv) -> 200% (L10 Max) | Hit Rate: +20% (+2%/Lv)`
+  * **STRICTLY PROHIBITED:** `ATK: 125% -> 200% (avg +8.33%/Lv)`
 
 ---
 
-## 3. Muestrario de Referencia por Clase (Los Mockups Aprobados)
+## 4. Approved Reference Archetypes (The Approved Mockups)
 
-### 1. ⚔️ Fighter: `War Cry` (Buff Grupal de 5 Niveles)
+These mockups were rendered on real game screenshots and formally approved by the user in Step 231:
+
+### 1. ⚔️ Fighter: `War Cry` (5-Level Party Buff)
 ```text
 Raise the party's ATK.
 ATK: +8% -> +10% -> +12% -> +14% -> +18% (L1-5 Max)
 Turns: 4 -> 5 -> 6 -> 7 -> 8 | TP Cost: 5 -> 7 -> 9 -> 11 -> 13
 ```
-* **Lectura al instante:** Sabes que en Lv 1 da +8% ATK por 4 turnos (5 TP), y en Lv 2 pasa a +10% ATK por 5 turnos (7 TP).
+* **At a glance:** Level 1 gives +8% ATK for 4 turns at 5 TP. Level 2 gives +10% ATK for 5 turns at 7 TP. Clear, instant, zero cognitive load.
 
-### 2. ⚔️ Fighter: `Raging Smash` (Ataque Físico de 10 Niveles)
+### 2. ⚔️ Fighter: `Raging Smash` (10-Level Physical Burst)
 ```text
 Short-range skill. Powerful strike to one enemy.
 ATK: 125% -> 133 -> 141 -> 150 -> 158 -> 166 -> 175 -> 183 -> 191 -> 200%
 TP Cost: 5 -> 8 -> 11 -> 14 -> 17 -> 20 -> 22 -> 24 -> 26 -> 28 | Speed: 0.8x -> 0.9x
 ```
-* **Lectura al instante:** Ves cada incremento de daño y cada salto de coste de TP sin calcular nada.
+* **At a glance:** Every level's exact damage multiplier and TP cost is immediately visible.
 
-### 3. 🔮 Magic User: `Fireball` (Magia Elemental de 10 Niveles)
+### 3. 🔮 Magic User: `Fireball` (10-Level Elemental Spell)
 ```text
 Deal fire damage to one enemy.
 Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)
 TP Cost: 5 -> 7 -> 9 -> 11 -> 14 -> 17 -> 20 -> 24 -> 28 -> 32 (Max)
 ```
-* **Lectura al instante:** El poder base real del motor se visualiza escalón por escalón.
+* **At a glance:** Real spell power straight from the binary structs, showing exact non-linear scaling.
 
-### 4. 🏹 Scout: `Evade` (Buff Personal de Evasión)
+### 4. 🏹 Scout: `Evade` (5-Level Evasion Buff)
 ```text
 Increase own physical evasion rate.
 EVA: +15% -> +20% -> +25% -> +30% -> +35% (L1-5 Max)
 Turns: 4 -> 5 -> 6 -> 7 -> 8 | TP Cost: 4 -> 6 -> 8 -> 10 -> 12
 ```
 
-### 5. ☕ Maid: `First Aid` (Curación Porcentual)
+### 5. ☕ Maid: `First Aid` (Percentage Healing Technique)
 ```text
 Heal one ally's HP.
 Heal: 12% Max HP -> 15% -> 18% -> 21% -> 25% (L1-5 Max)
 TP Cost: 2 -> 4 -> 6 -> 8 -> 10 | Affected by Maid Mastery
 ```
 
-### 6. 🎲 Spieler: `Coffee Break` (Recuperación y Turnos Rápidos)
+### 6. 🎲 Spieler: `Coffee Break` (Self-Sustain & Fast Recovery)
 ```text
 Take a break to heal own HP and raise Pep. Fast turn recovery.
 Heal: 20% Max HP -> 25% -> 30% -> 35% -> 40% (L1-5 Max)
 TP Cost: 6 -> 7 -> 8 -> 9 -> 10 | Action delay: 1.50x
 ```
 
-### 7. 🔵 Pasiva: `Sword Mastery`
+### 7. 🔵 Passive Skill: `Sword Mastery` (10-Level Passive ATK)
 ```text
 Increases equipped sword base ATK.
 ATK: +3% (L1) -> +5% -> +7% -> +9% -> +11% -> +12% -> +13% -> +14% -> +15% (L10)
@@ -131,25 +148,26 @@ ATK: +3% (L1) -> +5% -> +7% -> +9% -> +11% -> +12% -> +13% -> +14% -> +15% (L10)
 
 ---
 
-## 4. Comparativa: Lo Aprobado vs. El Enfoque del Script Automatizado
+## 5. Direct Comparison: User-Approved Standard vs. Script-Generated Text
 
-| Aspecto | Formato Aprobado por el Usuario | Formato Automatizado (`qol_skill_text.xlsx`) |
+| Dimension | User-Approved Standard (This Document) | Automated Script Format (`qol_skill_text.xlsx`) |
 | :--- | :--- | :--- |
-| **Escalado no lineal** | Progresión directa nivel por nivel (`70 -> 105 -> 140...`) | Promedios matemáticos comprimidos (`avg +3.33%/Lv`) |
-| **Experiencia de usuario** | Inmediata y cómoda; no requiere pensar | Mentalmente agotadora; obliga a calcular aumentos |
-| **Línea 1** | 100% Original del juego | 100% Original del juego |
-| **Separadores** | Flechas limpias `->` con saltos de línea ordenados | Barras verticales saturadas `\|` en bloque denso |
-| **Límite de caracteres** | $\le 85$ caracteres estrictos | $\le 85$ caracteres estrictos |
-| **Tildes** | 0 tildes (`~`) | 0 tildes (`~`) |
+| **Non-Linear Values** | Sequential progression: `70 -> 105 -> 140...` | Statistical compression: `avg +3.33%/Lv` |
+| **Cognitive Load** | Zero. Player looks and knows immediately. | High. Player has to calculate what each level does. |
+| **Line 1 Handling** | Untouched vanilla text. | Untouched vanilla text. |
+| **Line Separators** | Clean arrow transitions (`->`) with breathing room. | Dense vertical pipes (`\|`) squeezed together. |
+| **Screen Limits** | Strictly verified $\le 85$ characters. | Strictly verified $\le 85$ characters. |
+| **Encoding Safety** | Zero tildes (`~`). | Zero tildes (`~`). |
+| **Player Verdict** | **Approved.** | **Rejected (violates Step 186 directive).** |
 
 ---
 
-## 5. Directriz para el Futuro del Proyecto
+## 6. Implementation Mandate for Future Modding
 
-1. **Si el mod es una versión QoL (Solo Transparencia):**
-   * Se toman los números **reales extraídos del binario original** (`vanilla_source_of_truth.xlsx`).
-   * Se formatea el texto utilizando **exclusivamente el estándar de este documento** (flechas directas, sin fórmulas `avg`).
-2. **Si el mod es una versión Balance:**
-   * Primero se parchean los structs y bytes en el archivo `.pck` de destino.
-   * Luego se escribe en el Excel el texto que refleje con total fidelidad esos nuevos números modificados.
-   * Nunca jamás se escribe en el texto un número que el motor no tenga en su código.
+1. **For QoL / Transparency Builds:**
+   * Numbers must be extracted directly from the verified vanilla binary (`vanilla_source_of_truth.xlsx`).
+   * Tooltip text formatting must follow **only the approved sequential arrow standard** defined in this document.
+2. **For Balance Builds:**
+   * Binary parameters (struct arrays for TP, power, chant delay) must be modified in the `.pck` files first.
+   * Tooltip descriptions must then be generated to reflect the exact newly patched binary numbers.
+   * No mechanical claims may ever be published without matching executable/binary code backing them up.
