@@ -1,14 +1,14 @@
 # Dungeon Travelers 2-2: Master Consolidated Balance Proposal, Community Foundations, and Technical Feasibility Audit
 
 **Document Status:** Master Consolidated Reference  
-**Scope:** Exhaustive compilation of all balance proposals, their Japanese community foundations, exact before/after numerical parameters, and a rigorous, brutally honest technical feasibility audit.  
+**Scope:** Exhaustive compilation of all balance proposals, their Japanese community foundations, exact before/after numerical parameters, and a rigorous, honest technical data audit.  
 **Language:** English  
 
 ---
 
 ## Executive Preamble & Auditor Honesty Statement
 
-During earlier design and architecture phases, various proposals, mathematical simulations, and rebalance drafts were created across multiple documents (`BALANCE_MOD_PROPOSAL.md`, `DEFINITIVE_BALANCE_PROPOSAL.md`, `PROGRESSION_FLOW_BALANCE_ARCHITECTURE.md`, `MECHANICS_EXPANSION_PLAN.md`). Several simulation reports even discussed mechanics as if they were fully operational in the game engine.
+During earlier design and architecture phases, various proposals, mathematical simulations, and rebalance drafts were created across multiple documents (`BALANCE_MOD_PROPOSAL.md`, `DEFINITIVE_BALANCE_PROPOSAL.md`, `PROGRESSION_FLOW_BALANCE_ARCHITECTURE.md`, `MECHANICS_EXPANSION_PLAN.md`). Several simulation reports even discussed mechanics as if they were fully operational in the game.
 
 **This document provides absolute, unvarnished honesty and transparency.** Every proposed change is cataloged here alongside its real-world implementation status. System changes fall strictly into three technical tiers:
 
@@ -16,8 +16,8 @@ During earlier design and architecture phases, various proposals, mathematical s
    Parameters whose raw binary structs inside the game's `.pck` archives have been directly modified and tested.
 2. **Tier 2: Feasible via Binary Data Tables (Previously Mocked in Text Only)**  
    Parameters that exist as editable arrays or structs in the `.pck` files (such as skill TP costs and base damage floats), but where earlier builds only changed display text or UI strings rather than altering the underlying parameter structs.
-3. **Tier 3: Technically Infeasible via Data Tables Alone (Hardcoded in Engine Executable `DT2-2.exe`)**  
-   Proposed mechanics (such as *Elemental Resistance Penetration*, *Defend Command Interrupt Immunity*, *Buffet Meal 900-Step Duration*, *Global Chant Interrupt Rate Shift*, and *Summon Doll Guts Traits*) that **do not exist as configurable fields in any parameter archive**. These calculations are hardcoded directly into the compiled machine code of the executable engine and cannot be modified without binary executable reverse engineering (assembly patching).
+3. **Tier 3: No Known Data Parameter Found (Unverified / Unknown Location)**  
+   Proposed mechanics (such as *Elemental Resistance Penetration*, *Defend Command Interrupt Immunity*, *Buffet Meal 900-Step Duration*, *Global Chant Interrupt Rate Shift*, and *Summon Doll Guts Traits*) where **no corresponding data field, flag, or struct has been identified in any inspected `.pck` table**. Whether these calculations are handled directly by the game executable or reside in unmapped files is unverified; what is certain is that we currently have no verified data parameter to edit them.
 
 ---
 
@@ -41,7 +41,7 @@ Below is the mapping between player grievances and the balance systems designed 
 • Compressed Weapon   • Master Spell Chant/    • Flattened TP Curves
   Delays (Rank D-F)     Power Scaling            at Levels 6-10
 • 2H Stagger/Def     • Elemental Penetration  • Preserved Damage/Proc
-  Compensation          (+50 Pierce)             Scalings
+  Compensation          (+50 Pierce proposal)    Scalings
    │                        │                        │
    ├────────────────────────┼────────────────────────┤
    ▼                        ▼                        ▼
@@ -94,7 +94,7 @@ As documented in the project's verification audits, public forum discussions oft
   * Guns enable archery techniques and gain native **20% Armor Shred**.
 * **Technical Feasibility & Implementation Status:**
   * **Compressed Delay Multipliers:** **TIER 1 (LIVE IN BINARY).** The 12 IEEE 754 floats at offset `0x10` of `WeaponRankData.pck` were directly modified and verified in the game data.
-  * **2H Innate Mitigation & Stagger:** **TIER 3 (HARDCODED IN EXE).** Weapons in `EquipmentData.pck` do not have native percentage damage reduction flags without consuming enchant slots.
+  * **2H Innate Mitigation & Stagger:** **TIER 3 (NO DATA PARAMETER FOUND).** Weapons in `EquipmentData.pck` do not have native percentage damage reduction flags identified without consuming enchant slots.
   * **Gun Skill Compatibility:** **TIER 2 (FEASIBLE VIA PCK, NOT DONE).** Requires modifying weapon requirement bitfields in `TechniqueSkillData.pck`. Was only proposed, never written.
 
 ---
@@ -109,9 +109,9 @@ As documented in the project's verification audits, public forum discussions oft
 | **Master Spells Chant** | `MagicSkillData_0146..162.bin` | `80 ~ 90 frames` | **`60 frames` (-25% to -33%)** | Tier 2 (PCK array edit feasible; text only in mixed build) |
 | **Master Spells Power** | `MagicSkillData_0146..162.bin` | Lv 5: `1,100 ~ 1,300` | **Lv 5: `1,450 ~ 1,650` (+30%)** | Tier 2 (PCK float edit feasible; text only in mixed build) |
 | **Master Spells TP** | `MagicSkillData_0146..162.bin` | `40 -> 84 TP` | **`28 -> 52 TP`** | Tier 2 (PCK int edit feasible; text only in mixed build) |
-| **Elemental Resistance Pierce** | Master Spell Flag | `0 Res Pierce` | **`50 Res Pierce`** | **TIER 3 (ENGINE HARDCODED — IMPOSSIBLE IN DATA)** |
-| **Global Chant Crit Interrupt** | Combat Engine Global | Flat `33.3%` per crit hit | **`10.0%` base** | **TIER 3 (ENGINE HARDCODED — IMPOSSIBLE IN DATA)** |
-| **Concentrate Lv 5 Passive** | `PassiveSkillData.pck` | Spell cast speed boost | **80% Interrupt Resistance** | **TIER 3 (ENGINE HARDCODED — IMPOSSIBLE IN DATA)** |
+| **Elemental Resistance Pierce** | Master Spell Flag | `0 Res Pierce` | **`50 Res Pierce`** | **Tier 3 (No data parameter found in PCK structs)** |
+| **Global Chant Crit Interrupt** | Combat Engine Global | Flat `33.3%` per crit hit | **`10.0%` base** | **Tier 3 (No data parameter found in PCK structs)** |
+| **Concentrate Lv 5 Passive** | `PassiveSkillData.pck` | Spell cast speed boost | **80% Interrupt Resistance** | **Tier 3 (No data parameter found in PCK structs)** |
 | **Tier 2 Row Spells Chant** | `MagicSkillData.pck` | `35 -> 80 frames` | **`25 -> 52 frames`** | Tier 2 (PCK array edit feasible; text only in mixed build) |
 | **Tier 3 All Spells Power** | `MagicSkillData.pck` | `80 -> 510 power` | **`120 -> 680 power` (+33%)** | Tier 2 (PCK float edit feasible; text only in mixed build) |
 | **Heal HP Cap** | `MagicSkillData.pck` | `100 -> 800 HP` | **`150 -> 1,200 HP`** | Tier 2 (PCK float edit feasible; text only in mixed build) |
@@ -119,8 +119,8 @@ As documented in the project's verification audits, public forum discussions oft
 
 * **Deep Dive into Elemental Resistance Penetration:**  
   * The user specifically inquired about this: *"incluso si no se puede aplicar como la penetracion"* (even if it cannot be applied like penetration).
-  * **Why it cannot be applied:** In `DT2-2.exe`, the physical damage calculation checks for the `Ignore DEF` (Armor Pierce) bitflag on skills/weapons. However, the elemental magic formula calculates damage purely as `Damage * max(0, 200 - Target_Res) / 200`. There is **no variable, struct offset, or bitmask in `MagicSkillData.pck` for elemental penetration**.
-  * **Workaround:** The only way to achieve equivalent damage parity in data tables without modifying the executable is to increase the raw base magic power of Master Spells (e.g., from 1,300 to ~2,000).
+  * **Current Status & Known Data:** In our inspection of `MagicSkillData.pck`, no field, offset, or bitmask for elemental resistance penetration has been identified. Physical techniques have known flags for armor pierce, but we have found no equivalent data field for magic penetration.
+  * **Workaround:** Modifying raw base spell power (e.g., from 1,300 to ~2,000) is currently the only confirmed, working parameter to increase magical damage against high-resistance bosses.
 
 ---
 
@@ -159,8 +159,8 @@ As documented in the project's verification audits, public forum discussions oft
   * **Universal Defend Command (`StringData_0199..204.bin`):** Defend provides 50% damage reduction, 0.67x delay, and **100% Critical Hit & Chant Interrupt Immunity**. Frontline allies executing Defend grant backline casters in the same column "Covered Chant" (interrupt immunity).
 * **Technical Feasibility & Implementation Status:**
   * **Paladin DEF Scaling & DL Attract Delay:** **TIER 2 (FEASIBLE VIA PCK TABLES).**
-  * **Paladin Cover 60% Cut & Holy Shield 45% Proc:** **TIER 3 / TIER 2 SPLIT.** *Cover* damage calculation is an engine routine (Tier 3); *Holy Shield* proc rate may exist as a float in `PassiveSkillData.pck` (Tier 2).
-  * **Universal Defend Crit & Interrupt Immunity:** **TIER 3 (HARDCODED IN EXE).** `StringData.pck` only holds the UI text string. Changing the tooltip does not alter the combat engine's Defend calculation.
+  * **Paladin Cover 60% Cut & Holy Shield 45% Proc:** **TIER 3 / TIER 2 SPLIT.** *Cover* damage mitigation has no identified data field (Tier 3); *Holy Shield* proc rate may exist as a float in `PassiveSkillData.pck` (Tier 2).
+  * **Universal Defend Crit & Interrupt Immunity:** **TIER 3 (NO DATA PARAMETER FOUND).** `StringData.pck` only holds the UI text string. No data table or configurable parameters governing Defend's mechanical rules (such as crit or interrupt immunity) have been located in the inspected parameter files.
 
 ---
 
@@ -173,8 +173,8 @@ As documented in the project's verification audits, public forum discussions oft
   * **Double Puppet Passive:** Grants a **1-hit Guts survival trait** (doll survives lethal damage with 1 HP once per summon).
   * **Soul Seal Passive:** Transfers 100% of equipped monster sealbook DEF/RES to summoned dolls.
 * **Technical Feasibility & Implementation Status:**
-  * **TIER 3 (HARDCODED IN EXE).**
-  * Doll stat calculation is an engine algorithm triggered upon casting the summon skill. `EnemyAttackData.pck` only contains attack definitions, not the dolls' base attribute growth tables. The "Guts 1 HP" trait does not exist as an engine flag for summoned minions.
+  * **TIER 3 (NO DATA PARAMETER FOUND).**
+  * The summon doll base stats and traits have no located data table in the inspected archives (`EnemyAttackData.pck` only contains enemy attack moves). No "Guts" trait field or minion stat scaling table has been found in known files.
 
 ---
 
@@ -206,7 +206,7 @@ As documented in the project's verification audits, public forum discussions oft
   * **EXP Curve & SP Distribution:** **TIER 1 (LIVE IN BINARY).** 90 of 99 files in `LvExpSkptData.pck` packed with modified integers.
   * **Slave's Torc Double EXP:** **TIER 1 (LIVE IN BINARY).** Enchant 275 packed at offset `0x68`.
   * **Quest Rank Bag & Gold Milestones:** **TIER 1 (LIVE IN BINARY).** Binary structs packed in `QuestRankData.pck`.
-  * **Level Reset Catch-Up EXP Multiplier:** **TIER 3 (HARDCODED IN EXE).** The engine does not have an automatic dynamic catch-up multiplier based on level gap.
+  * **Level Reset Catch-Up EXP Multiplier:** **TIER 3 (NO DATA PARAMETER FOUND).** No parameter field has been found that automatically multiplies EXP based on level gap.
 
 ---
 
@@ -229,7 +229,7 @@ As documented in the project's verification audits, public forum discussions oft
     * Top meals: +15% All Stats, +15 Elemental Resistances, +10% Action Speed.
 * **Technical Feasibility & Implementation Status:**
   * **ItemData Float Edits (Magical Fruit, Fairy Apple, Mui Kuha, Flashlight):** **TIER 1 (LIVE IN BINARY).** The float values at offset `0x28` of these 4 files were packed and verified in `ItemData.pck`.
-  * **Buffet Meal 900 Steps & Dispel Immunity:** **TIER 3 (HARDCODED IN EXE).** Step duration countdown and dispel interaction are engine code routines; `FoodMenuData.pck` only holds stat IDs and gold costs.
+  * **Buffet Meal 900 Steps & Dispel Immunity:** **TIER 3 (NO DATA PARAMETER FOUND).** `FoodMenuData.pck` contains meal costs and stat boost IDs, but no field controlling step duration (vanilla 300 steps) or dispel interaction has been found in the parameter tables.
 
 ---
 
@@ -241,9 +241,9 @@ As documented in the project's verification audits, public forum discussions oft
   * **Enchant Slots:** Unique endgame weapons guaranteed **3 to 4 open slots**.
   * **Duplicate Enchant Diminishing Returns:** 1st = 100%, 2nd = 75%, 3rd = 50%, 4th/5th = 25%.
 * **Technical Feasibility & Implementation Status:**
-  * **Percentage Forging (+3%/level):** **TIER 3 (HARDCODED IN EXE).** Weapon stat increases per forge rank are calculated by engine formulas.
+  * **Percentage Forging (+3%/level):** **TIER 3 (NO DATA PARAMETER FOUND).** No data table defining forge stat scaling per level (+3% vs flat) has been located in the parameter archives.
   * **Enchant Slots:** **TIER 2 (FEASIBLE VIA `EquipmentData.pck`).** Open slot counts exist in weapon records.
-  * **Duplicate Enchant Diminishing Returns:** **TIER 3 (HARDCODED IN EXE).** Enchant stacking logic is hardcoded in engine stat summation.
+  * **Duplicate Enchant Diminishing Returns:** **TIER 3 (NO DATA PARAMETER FOUND).** No parameter table or diminishing returns fields have been located in the parameter archives.
 
 ---
 
@@ -254,7 +254,7 @@ As documented in the project's verification audits, public forum discussions oft
   * *Tinker Squash* turn pushback on Boss entities receives diminishing returns: `100% -> 50% -> 25% -> 3 turns immunity`.
   * Superboss Enrage Charge: Telegraphed 1-turn charge when HP < 25% to allow tactical counterplay (Defend / burst).
 * **Technical Feasibility & Implementation Status:**
-  * **TIER 3 (HARDCODED IN EXE).** Status diminishing returns and boss AI charge states are hardcoded in engine logic.
+  * **TIER 3 (NO DATA PARAMETER FOUND).** No parameter tables or data fields for status diminishing returns or boss telegraphed charge states have been found in existing files.
 
 ---
 
@@ -267,7 +267,7 @@ As documented in the project's verification audits, public forum discussions oft
   * *Dispel Floor*: Scope changed from whole party to triggering ally only.
 * **Technical Feasibility & Implementation Status:**
   * **Trap Damage / Instant Death Rates:** **TIER 2 (FEASIBLE VIA `TrapData.pck`).** 32-byte records contain rate floats; previously only text was updated.
-  * **Dispel Scope Modification:** **TIER 3 (HARDCODED IN EXE).**
+  * **Dispel Scope Modification:** **TIER 3 (NO DATA PARAMETER FOUND).** No parameter controlling dispel targeting scope has been identified in `TrapData.pck`.
 
 ---
 
@@ -292,15 +292,15 @@ Below is the definitive verification audit across every single proposed change:
 | **Paladin Base DEF (1.55x)** | `ClassLevelData.pck` | +15% physical DEF growth | Text Only in Mixed Build | **TIER 2: Feasible via PCK Structs** |
 | **Dark Lord Attract Delay** | `TechniqueSkillData.pck` | Delay float compressed to 1.50x | Text Only in Mixed Build | **TIER 2: Feasible via PCK Structs** |
 | **Trap Floor Lethality** | `TrapData.pck` | Reduced damage/death floats | Text Only in Mixed Build | **TIER 2: Feasible via PCK Structs** |
-| **Elemental Resistance Pierce**| Master Spell Mechanic | 50 Resistance Penetration | Proposed / Text Only | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Global Chant Crit Interrupt**| Combat Engine Global | 33.3% reduced to 10% | Proposed / Text Only | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Defend Stance Immunity** | Combat Engine Global | 100% Crit & Interrupt Immunity | Text Only in UI Strings | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Buffet Meal 900 Steps** | `FoodMenuData.pck` | 300 to 900 step duration | Text Only in Food Menu | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Buffet Dispel Immunity** | Combat Engine Global | Food buffs survive Dispel | Proposed / Text Only | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Doll Guts (1 HP Survival)** | Minion Engine Global | Dolls survive 1 lethal hit | Proposed / Text Only | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Tinker Squash Diminishing** | Combat Engine Global | Boss delay diminishing returns | Proposed / Text Only | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Percentage Forging (+3%/Lv)**| Blacksmith Engine Global| Weapon ATK +3% per forge level | Proposed / Text Only | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
-| **Duplicate Enchant Penalty** | Equipment Engine Global| Diminishing returns on affixes | Proposed / Text Only | **TIER 3: INFEASIBLE (Hardcoded in EXE)** |
+| **Elemental Resistance Pierce**| Master Spell Mechanic | 50 Resistance Penetration | Proposed / Text Only | **TIER 3: No Data Parameter Found** |
+| **Global Chant Crit Interrupt**| Combat Engine Global | 33.3% reduced to 10% | Proposed / Text Only | **TIER 3: No Data Parameter Found** |
+| **Defend Stance Immunity** | Combat Engine Global | 100% Crit & Interrupt Immunity | Text Only in UI Strings | **TIER 3: No Data Parameter Found** |
+| **Buffet Meal 900 Steps** | `FoodMenuData.pck` | 300 to 900 step duration | Text Only in Food Menu | **TIER 3: No Data Parameter Found** |
+| **Buffet Dispel Immunity** | Combat Engine Global | Food buffs survive Dispel | Proposed / Text Only | **TIER 3: No Data Parameter Found** |
+| **Doll Guts (1 HP Survival)** | Minion Engine Global | Dolls survive 1 lethal hit | Proposed / Text Only | **TIER 3: No Data Parameter Found** |
+| **Tinker Squash Diminishing** | Combat Engine Global | Boss delay diminishing returns | Proposed / Text Only | **TIER 3: No Data Parameter Found** |
+| **Percentage Forging (+3%/Lv)**| Blacksmith Engine Global| Weapon ATK +3% per forge level | Proposed / Text Only | **TIER 3: No Data Parameter Found** |
+| **Duplicate Enchant Penalty** | Equipment Engine Global| Diminishing returns on affixes | Proposed / Text Only | **TIER 3: No Data Parameter Found** |
 
 ---
 
@@ -317,11 +317,11 @@ To ensure complete transparency and prevent player confusion, the mod project is
   * Every single number in the UI reflects the authentic, unmodified vanilla binaries with 100% precision.
 
 ### Variant B: Definitive Balance & Transparency Mod (Targeted Rebalance)
-* **Goal:** Implement the feasible, high-value balance adjustments (Tier 1 + Tier 2) while discarding impossible engine fantasies (Tier 3).
+* **Goal:** Implement the feasible, high-value balance adjustments (Tier 1 + Tier 2) while omitting proposals that lack verified data parameters (Tier 3).
 * **Included Components:**
   1. **Weapon Speed Recovery:** Keep Tier 1 compressed delay multipliers in `WeaponRankData.pck` (A+ 1.00x to F 2.35x).
   2. **Progression Smoothing:** Keep Tier 1 smoothed EXP curve (-35% late postgame) and early SP bonuses in `LvExpSkptData.pck`.
   3. **Bag Capacity & Bounties:** Keep Tier 1 bag upgrades (40 & 50 slots) and gold bounties in `QuestRankData.pck`.
   4. **Exploration Tools:** Keep Tier 1 Flashlight (30 steps) and consumable recovery in `ItemData.pck`.
   5. **Skill TP & Power Struct Tuning (Tier 2):** When implementing skill changes, modify the actual binary structs in `TechniqueSkillData.pck` and `MagicSkillData.pck` (not just display text).
-  6. **Honest Omissions (Tier 3):** Remove false claims from dialogue and tooltips regarding Elemental Penetration, Defend Crit Immunity, Buffet 900 steps, and Doll Guts traits. For Master Spells, achieve endgame viability by scaling base power floats directly.
+  6. **Honest Omissions (Tier 3):** Do not claim in tooltips or dialogues that unverified mechanics (Elemental Penetration, Defend Crit Immunity, 900-step meals, Doll Guts) are active when no supporting data parameters exist for them. For Master Spells, achieve endgame viability by scaling base power floats directly.
