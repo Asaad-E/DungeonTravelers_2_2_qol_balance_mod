@@ -99,12 +99,21 @@ def update_items():
     for i, (fn, b) in enumerate(archive.files):
         if fn in edits:
             new_desc = edits[fn]
-            if fn == 'ItemData_0020.bin':
-                # Quality of Life: Expand Flashlight duration from 10 to 30 steps!
-                import struct
-                b_mod = bytearray(b)
-                struct.pack_into('<f', b_mod, 40, 30.0)
-                b = bytes(b_mod)
+            b_mod = bytearray(b)
+            import struct
+            if fn == 'ItemData_0019.bin':
+                # Magical Fruit: Restores 50 TP (up from 25)
+                struct.pack_into('<f', b_mod, 0x28, 50.0)
+            elif fn == 'ItemData_0020.bin':
+                # Fairy Apple: Restores 100 TP (up from 50)
+                struct.pack_into('<f', b_mod, 0x28, 100.0)
+            elif fn == 'ItemData_0026.bin':
+                # Mui Kuha Medicine: Revive 30% HP (up from 10%)
+                struct.pack_into('<f', b_mod, 0x28, 30.0)
+            elif fn == 'ItemData_0029.bin':
+                # Flashlight: 30 steps duration (up from 10 steps)
+                struct.pack_into('<f', b_mod, 0x28, 30.0)
+            b = bytes(b_mod)
             new_bin = ItemHelper.write_item(b, new_desc)
             archive.files[i] = (fn, new_bin)
             applied_count += 1
