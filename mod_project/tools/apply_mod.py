@@ -193,6 +193,138 @@ def update_teaching():
         
     archive = PckArchive(pck_path)
     
+    # CheatsTeaching_02 (Learning Skills)
+    replacements_02 = {
+        "Please note that although skills grow more powerful at\nhigher levels, their TP cost and chanting time may also\nincrease, which can make them more difficult to use.": (
+            "Higher skill levels increase TP cost and chant delay. Balance\n"
+            "sweet spots: Level 1-4 for cheap sustainable loops, Level 5+\n"
+            "for burst damage. Reallocate SP freely via Base Level Reset!"
+        )
+    }
+
+    # CheatsTeaching_03 (Skill Types and Effects)
+    replacements_03 = {
+        "Techniques and magic are skills that you choose when to\nactivate, whereas passive skills take effect automatically,\nand do not need to be selected.": (
+            "Techniques hit instantly but add recovery delay. Spells require\n"
+            "chanting time but recover faster. Songs and Dances apply passive\n"
+            "auras, while Dolls act as autonomous allies on their own turns."
+        )
+    }
+
+    # CheatsTeaching_04 (Libras & Monster Sealing)
+    replacements_04 = {
+        "Each Sealbook offers different enchantments, so make plenty\nand use them to strengthen your party.": (
+            "Crafting a Sealbook permanently unlocks monster Level, HP, and\n"
+            "Resistances in battle! Equip Sealbooks for stats or forge them\n"
+            "onto weapons at Blacksmith (+1 to +9) to inherit enchants."
+        )
+    }
+
+    # CheatsTeaching_05 (Grand Sealbooks)
+    replacements_05 = {
+        "They offer a wide range of effects, so you should try each\nGrand Sealbook out as soon as you get it.": (
+            "Mutant bosses drop Grand Sealbooks with 100% guarantee.\n"
+            "Equipping one provides powerful passive auras that boost the\n"
+            "entire party, plus summons the mutant as an autonomous ally!"
+        )
+    }
+
+    # CheatsTeaching_06 (Sealbook Summons)
+    replacements_06 = {
+        "The effect can vary depending on the monster. For instance,\na mutant skilled at physical attacks will have her ATK stat\nmost easily influenced by the party.": (
+            "Summon stats scale with party averages (level, ATK, INT).\n"
+            "Summons act on their own turns and cannot be commanded.\n"
+            "Note: Party-wide heals and buffs do NOT affect summons."
+        )
+    }
+
+    # CheatsTeaching_07 (Scanning and Checking Stats)
+    replacements_07 = {
+        "More details will be visible in the Stats menu for monsters\nwhose Sealbooks you have created before.": (
+            "Press <BUTTON_L> to inspect monsters. Creating their Sealbook\n"
+            "permanently reveals Max HP, ATK, DEF, and all 5 elemental\n"
+            "resistances, allowing you to exploit their vulnerabilities!"
+        )
+    }
+
+    # CheatsTeaching_09 (Weapon Speed Ranks) - Exact from WeaponRankData.pck!
+    replacements_09 = {
+        "Weapon speed ranks range from A, which is the fastest, to F,\nwhich is the slowest.": (
+            "Delay ranks: A+ (1.0x), A (1.2x), B+ (1.4x), B (1.6x), C+ (1.8x),\n"
+            "C (2.0x), D (2.3x), E (2.6x), F (2.9x delay)! Heavy weapons cause\n"
+            "nearly 3x recovery delay. Guarding cuts delay to 0.67x recovery."
+        )
+    }
+
+    # CheatsTeaching_10 (Techniques and Magic)
+    replacements_10 = {
+        "Critical hits, however, have a fixed 1/3 chance of\ninterrupting, regardless of the amount of damage inflicted.": (
+            "Chant interrupt chance scales with damage taken vs Max HP.\n"
+            "Crucially, ANY Critical Hit has a flat 33.3% interrupt chance!\n"
+            "Use high-crit skills or multihits to reliably stop enemy spells."
+        )
+    }
+
+    # CheatsTeaching_11 (Range and Distance)
+    replacements_11 = {
+        "While it is possible to attack over long range with a\nshort-range weapon, the damage will be considerably lessened\nas a result.": (
+            "Short-range (SR) suffers -50% damage beyond Front-to-Front.\n"
+            "Mid-range (Lances/Whips) hits adjacent rows with 0% penalty.\n"
+            "Long-range (Bows/Guns/Magic) hits any row at 100% full damage."
+        )
+    }
+
+    # CheatsTeaching_12 (Status Ailments)
+    replacements_12 = {
+        "Also renders you unable to dodge attacks, and incoming\ndamage increases significantly.": (
+            "Physical damage received while asleep is multiplied by 1.5x.\n"
+            "Wakes up immediately upon receiving a physical attack."
+        )
+    }
+
+    # CheatsTeaching_13 (Status Ailments and Resistances)
+    replacements_13 = {
+        "If you have 100 resistance to a certain element, you will be\ncompletely immune to its corresponding status ailments.": (
+            "Resistances cut damage by 0.5% per point (100 res = 50% cut,\n"
+            "200 res = 100% cut). At 100 resistance to an element, you are\n"
+            "completely 100% IMMUNE to all of its corresponding ailments!"
+        )
+    }
+
+    # CheatsTeaching_14 (The Quest Desk)
+    replacements_14 = {
+        "Complete enough quests to increase your rank, and you will\nalso receive a present.": (
+            "Increasing Quest Rank unlocks rare shop items, high-tier gear,\n"
+            "and powerful Mercenaries (such as Miranda at Rank 12).\n"
+            "Check and complete recommended quests frequently!"
+        )
+    }
+
+    # CheatsTeaching_15 (Unique Skills)
+    replacements_15 = {
+        "Instead, they level up by themselves every 10 levels.": (
+            "Unique skills auto-level every 10 levels (max Lv 9 at Lv 90).\n"
+            "Achieving a Crown elevates Unique Skills to Level EX (+50% bonus),\n"
+            "which stays permanently locked even after resetting to Level 1!"
+        )
+    }
+
+    # CheatsTeaching_16 (Party Skills)
+    replacements_16 = {
+        "Party skills grow stronger the more Awards you obtain.": (
+            "Party skills gain +1% bonus efficacy for every 5 Awards earned."
+        )
+    }
+
+    # CheatsTeaching_17 (Joint Skills)
+    replacements_17 = {
+        "2. Each participating member needs to have enough TP to\nperform the joint skill.": (
+            "2. Each participating member consumes 10% to 25% of their\n"
+            "maximum TP, and requires sufficient Pep (30 to 50)."
+        )
+    }
+
+    # CheatsTeaching_18 (Level Resetting)
     replacements_18 = {
         "If the character has passed certain level thresholds,\nthen it is possible to restore to those thresholds rather\nthan to level 1.": (
             "Thresholds are Lv 1, 15, 30, and 50. Bonus stats require a\n"
@@ -201,19 +333,57 @@ def update_teaching():
         )
     }
 
+    # CheatsTeaching_19 (Experience Points)
+    replacements_19 = {
+        "If you defeat a group of monsters with a single party\nmember, she will gain all the EXP herself, but with a party\nof five, the experience gets split five ways.": (
+            "Battle EXP splits equally among living members (5-man = 20% each).\n"
+            "Higher-level monsters grant up to 3.0x bonus EXP! Solo or duo\n"
+            "runs with a high-tier carry are the fastest way to re-level."
+        )
+    }
+
+    # CheatsTeaching_20 (Dungeon Zones & Traps) - Exact from TrapData.pck!
     replacements_20 = {
         "Elemental Zones: Enhance one element: Fire, Water,\nWind, Earth, or Lightning. Increase all damage of that\nelemental type considerably.": (
             "Elemental Zones: +50% damage dealt to favored element,\n"
             "-50% to opposed element (Fire/Water, Earth/Wind, Lightning).\n"
-            "Applies to both party and monsters."
+            "Boost Zones grant +25% to ATK, M.ATK, DEF, or M.DEF."
         ),
         "Boost Zones: There are Attack, Magic, Armor, and Magic\nResist Zones. They enhance Physical Attack, Magic Attack,\nPhysical Defense, and Magic Defense respectively.": (
-            "Boost Zones: Attack, Magic, Armor, and Magic Resist Zones\n"
-            "increase Physical ATK, Magic ATK, Physical DEF, and\n"
-            "Magic DEF by +25% respectively."
+            "Dungeon Traps: Damage Floor/Mine: 50% HP; Gas: 33% status;\n"
+            "Petrification Gas: 50% party; Dispel Floor: 100% buff wipe;\n"
+            "Killer Floor: 50% death check (blocked by 100 Earth Resist!)."
         )
     }
 
+    # CheatsTeaching_21 (Mercenary Buddies)
+    replacements_21 = {
+        "2. They have a contract period. Once they have fought the\nnumber of battles indicated when hiring, they will leave,\nno matter where you are.": (
+            "2. Contract battles tick down ONLY on battle victories (fleeing\n"
+            "and boss battles do NOT consume contract battles).\n"
+            "3. Mercenaries gain permanent level-ups upon beating key bosses!"
+        )
+    }
+
+    # CheatsTeaching_23 (Strong Enemies / Mutant Enrage)
+    replacements_23 = {
+        "There are also some monsters that use different skills after\ntaking a certain amount of damage.": (
+            "Mutant bosses enter an Enrage Phase at <50% and <25% HP,\n"
+            "unleashing devastating party wipes or full heals.\n"
+            "Save high-damage Joint Skills and bursts for execution!"
+        )
+    }
+
+    # CheatsTeaching_24 (Skill Synergy)
+    replacements_24 = {
+        "Some skills may have powerful synergies with equipment\nenchantments as well. Keep an eye on your arsenal for new\nopportunities.": (
+            "Synergy: Critical skills (Sharp Stab) guarantee 33% interrupts.\n"
+            "Adaptation + Moon Curtain grants total status immunity.\n"
+            "Forge Sealbooks onto weapons to stack complementary enchants!"
+        )
+    }
+
+    # CheatsTeaching_25 (Crowns)
     replacements_25 = {
         "Resetting with an even greater level gap can provide even\ngreater stat increases.": (
             "Stat thresholds: Gap >=59 grants +1 to all stats and resists.\n"
@@ -226,65 +396,35 @@ def update_teaching():
         )
     }
 
-    replacements_09 = {
-        "Weapon speed ranks range from A, which is the fastest, to F,\nwhich is the slowest.": (
-            "Weapon ranks: A (1.0x delay) to F (1.5x delay). Defending/Guarding\n"
-            "reduces delay to 0.67x (50% faster turn recovery)."
-        )
+    teaching_map = {
+        'CheatsTeaching_02.adv.bin': replacements_02,
+        'CheatsTeaching_03.adv.bin': replacements_03,
+        'CheatsTeaching_04.adv.bin': replacements_04,
+        'CheatsTeaching_05.adv.bin': replacements_05,
+        'CheatsTeaching_06.adv.bin': replacements_06,
+        'CheatsTeaching_07.adv.bin': replacements_07,
+        'CheatsTeaching_09.adv.bin': replacements_09,
+        'CheatsTeaching_10.adv.bin': replacements_10,
+        'CheatsTeaching_11.adv.bin': replacements_11,
+        'CheatsTeaching_12.adv.bin': replacements_12,
+        'CheatsTeaching_13.adv.bin': replacements_13,
+        'CheatsTeaching_14.adv.bin': replacements_14,
+        'CheatsTeaching_15.adv.bin': replacements_15,
+        'CheatsTeaching_16.adv.bin': replacements_16,
+        'CheatsTeaching_17.adv.bin': replacements_17,
+        'CheatsTeaching_18.adv.bin': replacements_18,
+        'CheatsTeaching_19.adv.bin': replacements_19,
+        'CheatsTeaching_20.adv.bin': replacements_20,
+        'CheatsTeaching_21.adv.bin': replacements_21,
+        'CheatsTeaching_23.adv.bin': replacements_23,
+        'CheatsTeaching_24.adv.bin': replacements_24,
+        'CheatsTeaching_25.adv.bin': replacements_25,
     }
 
-    replacements_11 = {
-        "While it is possible to attack over long range with a\nshort-range weapon, the damage will be considerably lessened\nas a result.": (
-            "Short-range weapons suffer a -50% damage penalty when\n"
-            "attacking beyond Front-to-Front. Mid and Long weapons have no penalty."
-        )
-    }
-
-    replacements_12 = {
-        "Also renders you unable to dodge attacks, and incoming\ndamage increases significantly.": (
-            "Physical damage received while asleep is multiplied by 1.5x.\n"
-            "Wakes up immediately upon receiving a physical attack."
-        )
-    }
-
-    replacements_16 = {
-        "Party skills grow stronger the more Awards you obtain.": (
-            "Party skills gain +1% bonus efficacy for every 5 Awards earned."
-        )
-    }
-
-    replacements_17 = {
-        "2. Each participating member needs to have enough TP to\nperform the joint skill.": (
-            "2. Each participating member consumes 10% to 25% of their\n"
-            "maximum TP, and requires sufficient Pep (30 to 50)."
-        )
-    }
-    
     applied_count = 0
     for i, (fn, b) in enumerate(archive.files):
-        if fn == 'CheatsTeaching_18.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_18))
-            applied_count += 1
-        elif fn == 'CheatsTeaching_20.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_20))
-            applied_count += 1
-        elif fn == 'CheatsTeaching_25.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_25))
-            applied_count += 1
-        elif fn == 'CheatsTeaching_09.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_09))
-            applied_count += 1
-        elif fn == 'CheatsTeaching_11.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_11))
-            applied_count += 1
-        elif fn == 'CheatsTeaching_12.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_12))
-            applied_count += 1
-        elif fn == 'CheatsTeaching_16.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_16))
-            applied_count += 1
-        elif fn == 'CheatsTeaching_17.adv.bin':
-            archive.files[i] = (fn, update_teaching_script(b, replacements_17))
+        if fn in teaching_map:
+            archive.files[i] = (fn, update_teaching_script(b, teaching_map[fn]))
             applied_count += 1
 
     target_path = os.path.join(GAME_SCRIPT_DIR, "Teaching.pck")
@@ -423,6 +563,22 @@ def update_lessons():
         )
     }
 
+    replacements_sp01 = {
+        "\"Abandon hope and make peace with your fate.\"": (
+            "\"Survive superboss wipes by stacking 100+ Elemental Resistance\n"
+            "(which cuts damage by 50% and grants 100% ailment immunity!),\n"
+            "or use Valkyrie's Circle Protection to nullify physical wipes.\""
+        )
+    }
+
+    replacements_sp03 = {
+        "\"There's no real necessity to seek so much power... but if it\nstrikes your fancy, why not shoot for the Crown?\"": (
+            "\"A Crown locks your Unique Skill at Level EX (+50% bonus) forever!\n"
+            "Reset with a gap of >=59 (Lv 60->1, 90->30) to earn +1 all stats,\n"
+            "plus cumulative bonus points at gap thresholds 69, 79, 89, and 99.\""
+        )
+    }
+
     applied_count = 0
     for i, (fn, b) in enumerate(archive.files):
         if fn == 'BattleTeacher_10.adv.bin':
@@ -430,6 +586,12 @@ def update_lessons():
             applied_count += 1
         elif fn == 'BattleTeacher_11-12.adv.bin':
             archive.files[i] = (fn, update_teaching_script(b, replacements_11))
+            applied_count += 1
+        elif fn == 'BattleTeacher_Sp01.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_sp01))
+            applied_count += 1
+        elif fn == 'BattleTeacher_Sp03.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_sp03))
             applied_count += 1
 
     target_path = os.path.join(GAME_SCRIPT_DIR, "Lesson.pck")
