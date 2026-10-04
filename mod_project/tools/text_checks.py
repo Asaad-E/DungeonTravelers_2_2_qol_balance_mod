@@ -10,6 +10,7 @@ Understood notation:
     Label: +8% -> +10% -> +12% -> +15% -> +18% (L1-5 Max)
     Label: 130% (+8%/Lv) -> 202% (L10 Max)             base, exact step, cap (linear tables)
     Label: +20% (+2%/Lv)                               base and exact step
+    Label: 10% (+1-2%/Lv) -> 20%                       base, bounds of an uneven step, cap
     Label: 0.8x -> 0.9x                                first -> last
     Label: 0.85x                                       value that does not change
 Rejected: averages, e.g. "(avg +3.33%/Lv)".
@@ -22,7 +23,7 @@ SEGMENT_RE = re.compile(r'^(?P<label>[^:]+?): (?P<body>.+)$')
 # "12% Max HP -> 15% -> 18%": each value may carry a unit and a few plain words.
 VALUE_RE = rf'{NUM}[%x]?(?: [A-Za-z][A-Za-z ]*?)?'
 SERIES_RE = re.compile(rf'^{VALUE_RE}(?: -> {VALUE_RE})*$')
-STEP_RE = re.compile(rf'^(?P<step>[+-]\d+(?:\.\d+)?)[%x]?/Lv$')
+STEP_RE = re.compile(r'^(?P<step>[+-]\d+(?:\.\d+)?)(?:-(?P<step_hi>\d+(?:\.\d+)?))?[%x]?/Lv$')
 LEVELS_RE = re.compile(r'^L(?:1-)?(?P<n>\d+)(?: Max)?$')
 
 AILMENT_LABELS = {
@@ -72,13 +73,18 @@ def series_fits(shown, table):
 
 
 def step_fits(shown, step, table):
-    """'base (+step/Lv)' or 'base (+step/Lv) -> cap': the table must rise by exactly that step."""
+    """'base (+step/Lv) [-> cap]': the table must rise by exactly that step at every level.
+    'base (+lo-hi/Lv) -> cap': lo and hi must be the smallest and the largest rise."""
+    lo, hi = step
     table = [round(v, 2) for v in table]
     if len(table) < 2 or not close(shown[0], table[0]):
         return False
     if len(shown) > 1 and not close(shown[-1], table[-1]):
         return False
-    return all(abs(abs(round(b - a, 2)) - abs(step)) < TOLERANCE for a, b in zip(table, table[1:]))
+    diffs = [abs(round(b - a, 2)) for a, b in zip(table, table[1:])]
+    if hi is None:
+        return all(abs(d - abs(lo)) < TOLERANCE for d in diffs)
+    return len(shown) > 1 and abs(min(diffs) - abs(lo)) < TOLERANCE and abs(max(diffs) - hi) < TOLERANCE
 
 
 def expected_tables(label, category, tables):
@@ -132,7 +138,8 @@ def check_skill_text(category, b, text):
             loose.append(segment)
             continue
         shown = [float(x) for x in re.findall(rf'(?:^|-> )({NUM})', plain)]
-        step = next((float(STEP_RE.match(n).group('step')) for n in notes if STEP_RE.match(n)), None)
+        step = next(((float(sm.group('step')), float(sm.group('step_hi')) if sm.group('step_hi') else None)
+                     for sm in map(STEP_RE.match, notes) if sm), None)
 
         # A reserved label is held to its own table; if the skill has no such table
         # (a passive whose vanilla phrase is "Speed UP"), any table of the skill may explain it.

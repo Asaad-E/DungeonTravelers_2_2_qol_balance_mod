@@ -148,6 +148,7 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 * The equipment title bar already shows `[Sword - 2 Hand - Short Range] Speed E+`: weapon type, hands, range and speed rank. Do not repeat them.
 * The game lists innate enchantments there too (seen: Legendary Duster shows `Max HP +10%` and `Interrupt Rate -25%`), and draws the stat change of the item (`ATK+24`) at the right end of line 1. An `Innate:` line in the description repeats the first and a long line 1 would run into the second.
 * Because the game lists the enchantments by name, the place to add information about them is the enchant name (`Fire Magic +15%`), not the item description.
+* The enchant values shown by the earlier build are **not verified**: vanilla names carry no figure (`Max HP UP`, `Max HP MiniUP`, `Fire magic buff`) and the earlier build assigned one by tier word (`UP` -> +10%, `MiniUP` -> +5%, `buff` -> +15%). No field holding the magnitude has been found in `EnchantData`, and there is no enchant guide in `Data/`. They need a source before QoL shows them.
 * Whether item and skill boxes draw anything of their own on lines 2-3 has not been checked on screen. All 576 vanilla item descriptions are one line.
 * The tilde `~` has no glyph. Use `->` or `-`.
 * Strings are stored as Latin-1 bytes.
@@ -182,23 +183,24 @@ What the player must see at a glance: what the skill does now, what the next lev
 * **Never an average.** `text_checks.py` rejects `avg`, and rejects a step that is not exact.
 * Labels: `ATK` (damage as % of a normal hit), `Pwr` (magic power), `Turns`, `TP Cost`, `Speed`, `Chant`, `Accuracy`, the ailment name, `HP Absorb`, `TP Absorb`, `Targets`, `Heal Cap`. Buffs and debuffs take the stat with its sign, as in the mockups: `"ATK increase UP"` -> `ATK: +8%`, `"DEF decrease UP"` -> `DEF: -11%`. Any other label is the wording of the vanilla level-up phrase.
 
-How `generate_qol_skill_text.py` applies it when a box cannot hold everything, in this order:
+How `generate_qol_skill_text.py` applies it when a box cannot hold everything (rule chosen by the user: **every effect of the skill stays in the box**):
 
-1. The main effect, level by level. Never shortened while it fits on its line.
-2. The TP cost, level by level.
-3. The duration, then secondary effects (ailment chance, accuracy, a second stat), then speed, then chant: each is added if it fits, first -> last or base + step when that is what fits, and otherwise left out.
+1. The main effect is shown level by level.
+2. Every other effect stays. If its list does not fit it becomes base + step: `Accuracy: +20% (+2%/Lv)` when the step is the same at every level, or the real bounds of the step when it is not, `Instakill: 10% (+1-2%/Lv) -> 20%`. The bounds are the smallest and largest rise between two levels; this is not an average.
+3. The TP cost is shown level by level while it fits; otherwise `TP Cost: 38 (+4/Lv) -> 74` or `TP Cost: 5 (+2-3/Lv) -> 28`.
+4. Speed and chant are the first to be left out, then a long duration shrinks to first -> last.
 
-The workbook lists what was shortened (`First_To_Last_Only`) and what was left out (`Left_Out`) for every skill, so each case can be worded by hand. Today: 267 boxes; in 57 a secondary effect is left out (accuracy in 27), in 72 speed or chant is.
+An effect that does not fit on line 2 opens line 3, before the costs. `text_checks.py` verifies exact steps and step bounds against the binary.
 
-**Open, to decide with the user:** what to do with a secondary effect that does not fit next to a full main list and a full TP list (Halving Slice's instakill chance, Backward Swing's paralysis). The alternative is to keep every effect as first -> last and let a linear TP cost become base + step.
+The workbook lists, per skill, what is not level by level (`Not_Level_By_Level`) and what was left out (`Left_Out`). Today: 267 boxes, no effect left out; speed is left out in 37 and chant in 39; TP is level by level in 109 boxes, base + exact step in 25, base + step bounds in 27.
 
-Examples (vanilla level-up text -> QoL):
+Examples:
 
 | Skill | Line 2 | Line 3 |
 |---|---|---|
 | War Cry | `ATK: +8% -> +10% -> +12% -> +15% -> +18% (L1-5 Max)` | `Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 5 -> 7 -> 9 -> 11 -> 13` |
-| Raging Smash | `ATK: 125% -> 134 -> 143 -> 152 -> 161 -> 170 -> 178 -> 186 -> 193 -> 200% (L10)` | `TP Cost: 5 -> 8 -> 11 -> 14 -> 17 -> 20 -> 22 -> 24 -> 26 -> 28 \| Speed: 0.8x -> 0.9x` |
-| Fireball | `Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)` | `TP Cost: 5 -> 7 -> 9 -> 11 -> 14 -> 17 -> 20 -> 24 -> 28 -> 32 \| Speed: 2.25x` |
+| Halving Slice | `ATK: 80% -> 83 -> 86 -> 89 -> 91 -> 94 -> 97 -> 100 -> 105 -> 110% (L10)` | `Instakill: 10% (+1-2%/Lv) -> 20% \| TP Cost: 38 (+4/Lv) -> 74 \| Speed: 0.65x -> 0.75x` |
+| Fireball | `Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)` | `Accuracy: 86% (+1%/Lv) \| TP Cost: 5 (+2-4/Lv) -> 32 \| Speed: 2.25x` |
 | Mad Zapper | `ATK: 130% (+8%/Lv) -> 202% (L10 Max) \| Slow: 25% -> 45% \| Accuracy: -5% (+2%/Lv)` | `TP Cost: 24 -> 27 -> 30 -> 33 -> 36 -> 39 -> 42 -> 45 -> 48 -> 50 \| Speed: 0.75x` |
 
 How a vanilla phrase is tied to a table:
@@ -231,7 +233,7 @@ Editing by hand: change `QoL_Desc` / `QoL_LvUp` in `qol_skill_text.xlsx` and wri
 | `test_text_checks.py` | The checker accepts every approved notation and rejects wrong values, inexact steps, wrong level counts and averages. |
 | `test_qol_variant.py` | Text table within the limits and with true figures; a clean build has no problems; a wrong figure, a long line, a stale table, a changed game value and a lost battle message each stop the build. |
 
-Verified without the game: container and entry round trips, numeric identity of the QoL build, 675 figures in the built text against the built binary. Never run in the game: everything.
+Verified without the game: container and entry round trips, numeric identity of the QoL build, 733 figures in the built text against the built binary. Never run in the game: everything.
 
 ---
 

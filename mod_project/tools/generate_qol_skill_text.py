@@ -38,7 +38,7 @@ MAX_LINE = 85        # measured on screen
 MAX_BOX_LINES = 3    # description + level-up lines
 SEP = ' | '
 HEADERS = ['Category', 'Filename', 'Skill_Name', 'Levels', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp',
-           'Edited', 'Coverage', 'Phrases_Kept_As_Vanilla', 'Tables_Not_Shown', 'First_To_Last_Only', 'Left_Out',
+           'Edited', 'Coverage', 'Phrases_Kept_As_Vanilla', 'Tables_Not_Shown', 'Not_Level_By_Level', 'Left_Out',
            'Previous_Mod_Desc', 'Previous_Mod_LvUp']
 
 # Effect ids whose meaning is established (see the Effects sheet of the source of truth).
@@ -169,6 +169,14 @@ class Segment:
         diffs = {round(b - a, 2) for a, b in zip(shown, shown[1:])}
         return len(shown) >= 3 and len(diffs) == 1
 
+    def step_bounds(self):
+        """(smallest, largest) rise per level when the table always rises but not evenly; else None."""
+        shown = self.shown()
+        diffs = [round(b - a, 2) for a, b in zip(shown, shown[1:])]
+        if len(shown) < 3 or min(diffs) <= 0 or min(diffs) == max(diffs):
+            return None
+        return min(diffs), max(diffs)
+
     def kind(self):
         if not self.is_data():
             return 'text'
@@ -177,10 +185,11 @@ class Segment:
     def modes(self, main=False):
         """Ways the specification allows this table to be printed, best first.
 
-        list   one value per level                     lossless
-        step   base (+step/Lv) [-> max]                lossless, linear tables only
-        ends   first -> last                           hides the middle
-        drop   left out of the box
+        list    one value per level                    10% -> 12 -> 13 -> ... -> 20%
+        step    base, exact step [and cap]             38 (+4/Lv) -> 74        same step at every level
+        srange  base, bounds of the step, cap          10% (+1-2%/Lv) -> 20%   step changes between levels
+        ends    first -> last                          0.65x -> 0.75x
+        drop    left out of the box
         """
         kind = self.kind()
         if kind == 'text':
@@ -193,30 +202,31 @@ class Segment:
             return ['ends', 'drop']
         if kind == 'turns':
             return ['list', 'ends', 'drop']
-        modes = ['list'] + (['step'] if self.is_linear() else []) + ['ends']
+        modes = ['list'] + (['step'] if self.is_linear() else ['srange'] if self.step_bounds() else []) + ['ends']
         return modes if main or kind == 'tp' else modes + ['drop']
 
     def cost(self, mode, main=False):
         """What the player loses when the table is printed this way (0 = nothing).
 
-        Order of the specification: the main effect and the TP cost level by level come
-        first; a secondary effect, the duration, the speed and the chant give way to them.
+        Rule agreed with the user: every effect of the skill stays in the box. The main
+        effect is shown level by level; to make room, the TP cost and the secondary
+        effects turn into base + step, and speed and chant are the first to go.
         """
         kind = self.kind()
         if mode == 'drop':
-            if kind == 'turns':
-                return 4
             if kind in ('speed', 'chant'):
                 return 1
-            return 3 if kind == 'text' else 2.5
+            return {'turns': 4, 'text': 3}.get(kind, 8)
         if mode == 'ends':
             if kind in ('speed', 'chant'):
                 return 0
             if kind == 'turns':
                 return 1
-            return 100 if main else 6 if kind == 'tp' else 1.5
-        if mode == 'step':   # exact, but the player has to add: only when the list does not fit
-            return 2 if main or kind == 'tp' else 1.5
+            return 100 if main else 6 if kind == 'tp' else 2.5
+        if mode == 'step':     # exact, but the player has to add
+            return 2 if main else 1
+        if mode == 'srange':   # bounds of the step: true, less precise than the list
+            return 3 if main else 2.5 if kind == 'tp' else 1.2
         return 0
 
     def render(self, mode, main=False, levels=None):
@@ -238,6 +248,10 @@ class Segment:
                 [one(shown[0])] + [one(v, False) for v in shown[1:-1]] + [one(shown[-1])])
         if mode == 'ends':
             return f'{self.label}: {one(shown[0])} -> {one(shown[-1])}'
+        if mode == 'srange':   # the step changes between levels: give its real bounds, never an average
+            lo, hi = self.step_bounds()
+            note = f'+{num(lo)}-{num(hi)}{unit}/Lv'
+            return f'{self.label}: {one(shown[0])} ({note}) -> {one(shown[-1])}'
         step = shown[1] - shown[0]
         note = ('+' if step >= 0 else '') + num(step) + unit + '/Lv'
         if main or self.kind() == 'tp':
@@ -483,7 +497,7 @@ def fit(segments, levels, max_lines):
         for lines, penalty in layouts:
             if all(line_fits(line) for line in lines) and (best is None or base + penalty < best[0]):
                 shortened = [segments[i].label for i, k in enumerate(combo)
-                             if mode_sets[i][k] == 'ends' and cost(i, 'ends')]
+                             if mode_sets[i][k] in ('ends', 'srange') and cost(i, mode_sets[i][k])]
                 left_out = [segments[i].label or segments[i].text for i, k in enumerate(combo)
                             if mode_sets[i][k] == 'drop']
                 best = (base + penalty, [SEP.join(line) for line in lines], shortened, left_out)

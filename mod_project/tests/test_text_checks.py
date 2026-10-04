@@ -31,6 +31,7 @@ class Checker(unittest.TestCase):
         good = [
             ('Technique', self.halving, 'ATK: 80% -> 83 -> 86 -> 89 -> 91 -> 94 -> 97 -> 100 -> 105 -> 110% (L10)'),
             ('Technique', self.halving, 'Instakill: 10% -> 20%'),
+            ('Technique', self.halving, 'Instakill: 10% (+1-2%/Lv) -> 20%'),               # uneven step: its real bounds
             ('Technique', self.halving, 'TP Cost: 38 (+4/Lv) -> 74 | Speed: 0.65x -> 0.75x'),
             ('Technique', self.halving, 'TP Cost: 38 -> 42 -> 46 -> 50 -> 54 -> 58 -> 62 -> 66 -> 70 -> 74'),
             ('Technique', self.shield, 'ATK: 85% -> 90% -> 94% -> 98% -> 102% (L1-5 Max)'),
@@ -51,6 +52,8 @@ class Checker(unittest.TestCase):
             ('Technique', self.halving, 'Instakill: 10% -> 25%'),
             ('Technique', self.halving, 'TP Cost: 38 (+5/Lv) -> 74'),                      # right ends, wrong step
             ('Technique', self.halving, 'ATK: 80% (+3%/Lv) -> 110% (L10 Max)'),            # not a linear table
+            ('Technique', self.halving, 'Instakill: 10% (+2-3%/Lv) -> 20%'),               # wrong step bounds
+            ('Technique', self.halving, 'Instakill: 10% (+1-2%/Lv)'),                      # uneven step needs its cap
             ('Technique', self.halving, 'TP Cost: 38 (+4/Lv) -> 74 (L5 Max)'),             # wrong level count
             ('Magic', self.flare, 'Pwr: 620 -> 680 -> 750 -> 830 -> 920 -> 1010 -> 1100 -> 1200 -> 1250 -> 1300'),
             ('Unique', self.third_eye, 'Lv1-9: 7% -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% | Crown EX: 22.5%'),
