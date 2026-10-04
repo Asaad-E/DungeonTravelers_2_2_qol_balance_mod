@@ -340,8 +340,23 @@ def run_audit():
         print(f"    Total Trophies Indexed:     {ws_tp.max_row - 1}")
         print(f"    Modified/Active Trophies:   {modified_tp}")
 
-    # 14. Verify Game Binary & PCK Files
-    print(f"\n[14] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
+    # 14. Check EXP Curve table
+    exp_path = os.path.join(TABLES_DIR, 'exp_curve.xlsx')
+    if os.path.exists(exp_path):
+        wb_exp = openpyxl.load_workbook(exp_path)
+        ws_exp = wb_exp["ExpCurve"] if "ExpCurve" in wb_exp.sheetnames else wb_exp.active
+        modified_exp = 0
+        for r in range(2, ws_exp.max_row + 1):
+            lv = ws_exp.cell(row=r, column=1).value
+            status = ws_exp.cell(row=r, column=8).value
+            if status in ['Approved', 'Applied', 'Draft']:
+                modified_exp += 1
+        print(f"\n[14] EXP CURVE & SP DATA TABLE CHECK:")
+        print(f"    Total Levels Indexed:       {ws_exp.max_row - 1}")
+        print(f"    Modified/Active Levels:     {modified_exp}")
+
+    # 15. Verify Game Binary & PCK Files
+    print(f"\n[15] GAME BINARY & PCK ARCHIVE INTEGRITY CHECK:")
     param_pcks = [
         'TechniqueSkillData.pck', 
         'PassiveSkillData.pck', 
@@ -358,7 +373,9 @@ def run_audit():
         'ClassData.pck',
         'StringData.pck',
         'TrapData.pck',
-        'TrophyData.pck'
+        'TrophyData.pck',
+        'QuestRankData.pck',
+        'LvExpSkptData.pck'
     ]
     for pck_file in param_pcks:
         game_pck = os.path.join(GAME_PARAM_DIR, pck_file)
@@ -389,7 +406,7 @@ def run_audit():
             print(f"    [FAIL] {pck_file} corrupted: {e}")
             errors.append(str(e))
 
-    print(f"\n[15] VERSION CONTROL STATUS:")
+    print(f"\n[16] VERSION CONTROL STATUS:")
     tracked_files = os.popen("git status -s").read().strip().splitlines()
     print(f"    Tracked/Changed files in repo: {len(tracked_files)}")
     

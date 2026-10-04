@@ -140,6 +140,12 @@ def update_equipment():
     for i, (fn, b) in enumerate(archive.files):
         if fn in edits:
             new_desc = edits[fn]
+            if fn == 'EquipmentData_0744.bin':
+                # Slave's Torc training gear: Replace duplicate enchant 66 at 0x68 with 275 (Double EXP)
+                b_copy = bytearray(b)
+                import struct
+                struct.pack_into('<I', b_copy, 0x68, 275)
+                b = bytes(b_copy)
             new_bin = EquipmentHelper.write_equipment(b, new_desc)
             archive.files[i] = (fn, new_bin)
             applied_count += 1
@@ -1004,6 +1010,48 @@ def update_quest_ranks():
     archive.save(target_path)
     print(f"Applied {applied_count} Quest Rank bag capacity expansions to: {target_path}")
 
+def update_exp_curve():
+    excel_path = os.path.join(TABLES_DIR, 'exp_curve.xlsx')
+    if not os.path.exists(excel_path):
+        print(f"Notice: {excel_path} not found, skipping EXP curve.")
+        return
+        
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb['ExpCurve']
+    
+    edits = {} # level -> (modded_exp, modded_sp)
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or row[0] is None:
+            continue
+        lv, van_exp, mod_exp, van_sp, mod_sp = row[:5]
+        status = row[7] if len(row) > 7 else 'Approved'
+        if status in ['Approved', 'Applied', 'Draft']:
+            edits[int(lv)] = (int(mod_exp), int(mod_sp))
+            
+    if not edits:
+        return
+        
+    pck_path = os.path.join(BACKUP_DIR, "LvExpSkptData.pck")
+    archive = PckArchive(pck_path)
+    
+    import struct
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        try:
+            lv_num = int(fn.replace('LvExpSkptData_', '').replace('.bin', ''))
+        except ValueError:
+            continue
+            
+        if lv_num in edits:
+            mod_exp, mod_sp = edits[lv_num]
+            new_bin = struct.pack('<III', lv_num, mod_exp, mod_sp)
+            archive.files[i] = (fn, new_bin)
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "LvExpSkptData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} balanced EXP & SP levels to: {target_path}")
+
 if __name__ == "__main__":
     print("=== Applying Comprehensive Mod Suite to Game PCKs ===")
     update_skills()
@@ -1024,6 +1072,7 @@ if __name__ == "__main__":
     update_trophies()
     update_shop_dialogue()
     update_quest_ranks()
+    update_exp_curve()
     print("=== Complete Mod Execution Finished Successfully! ===")
 
 
