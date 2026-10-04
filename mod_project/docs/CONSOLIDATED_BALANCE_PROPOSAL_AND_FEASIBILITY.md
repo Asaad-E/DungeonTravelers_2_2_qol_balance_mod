@@ -1,7 +1,7 @@
 # Dungeon Travelers 2-2: Master Consolidated Balance Proposal, Community Foundations, and Technical Feasibility Audit
 
 **Document Status:** Master Consolidated Reference  
-**Scope:** Exhaustive compilation of all balance proposals, their Japanese community foundations, exact before/after numerical parameters, and a rigorous, honest technical data audit.  
+**Scope:** Exhaustive compilation of all balance proposals, their Japanese community foundations, exact before/after numerical parameters, in-game script & dialogue modifications, and a rigorous, honest technical data audit.  
 **Language:** English  
 
 ---
@@ -10,7 +10,9 @@
 
 During earlier design and architecture phases, various proposals, mathematical simulations, and rebalance drafts were created across multiple documents (`BALANCE_MOD_PROPOSAL.md`, `DEFINITIVE_BALANCE_PROPOSAL.md`, `PROGRESSION_FLOW_BALANCE_ARCHITECTURE.md`, `MECHANICS_EXPANSION_PLAN.md`). Several simulation reports even discussed mechanics as if they were fully operational in the game.
 
-**This document provides absolute, unvarnished honesty and transparency.** Every proposed change is cataloged here alongside its real-world implementation status. System changes fall strictly into three technical tiers:
+**This document provides absolute, unvarnished honesty and transparency.** Every proposed change is cataloged here alongside its real-world implementation status, including the EXP progression curve, script dialogue modifications, shop economy quirks, trap data discrepancies, and equipment UI overdraw bugs discovered during systematic cross-system validation.
+
+System changes fall strictly into three technical tiers:
 
 1. **Tier 1: Implemented & Verified in Binary Data Tables (Live in PCKs)**  
    Parameters whose raw binary structs inside the game's `.pck` archives have been directly modified and tested.
@@ -50,7 +52,7 @@ Below is the mapping between player grievances and the balance systems designed 
    │                        │                        │
    ▼                        ▼                        ▼
 • Paladin DEF Boost   • Doll Stat Inheritance  • Smoothed EXP Curve
-• Dark Lord Attract     (60% HP/DEF/RES)         (-35% at Lv71-99)
+• Dark Lord Attract     (60% HP/DEF/RES)         (-35.7% at Lv71-99)
 • Universal Defend    • Double Puppet Guts     • Bag Storage Milestones
   Stance Immunity       (1 HP Survival)          (40 & 50 slots)
 ```
@@ -145,6 +147,7 @@ As documented in the project's verification audits, public forum discussions oft
   * **TIER 2 (FEASIBLE VIA PCK, PREVIOUSLY MOCKED IN TEXT ONLY).**
   * The integer arrays for TP costs (offset `0x5c..0x80`) and float arrays for damage/rates (offset `0x130..0x154`) exist in `TechniqueSkillData.pck` and `MagicSkillData.pck`.
   * **The Reality:** In the previous mixed build, `apply_mod.py` only updated `mod_desc` and `mod_lvup` string records. The actual binary integer values were **never modified**. Characters in game still consume vanilla TP and deal vanilla damage.
+  * **Discrepancy Audit:** 125 of 141 skills displayed TP costs in text that differed from the underlying binary; 37 of 39 displayed physical power numbers that differed from binary; 17 of 22 displayed magic power numbers that differed from binary.
 
 ---
 
@@ -178,24 +181,41 @@ As documented in the project's verification audits, public forum discussions oft
 
 ---
 
-### System F: Progression Pacing, EXP Catch-Up & Bag Storage (`LvExpSkptData.pck`, `QuestRankData.pck`)
+### System F: Progression Pacing, EXP Curve, SP Economy & Level Resets (`LvExpSkptData.pck`, `QuestRankData.pck`)
 
 * **Community Friction:** Grinding from Lv 1 to Lv 99 after a Crown Reset requires a staggering 37.6 million EXP. Bag storage starts at 30 slots, causing chronic inventory exhaustion and constant premature town exits.
 * **Exact Numerical Parameters:**
   * **EXP Curve Requirements (`LvExpSkptData.pck`):**
     * Lv 1–9: Identical to vanilla (Preserves early story challenge).
+    * Cumulative EXP to Lv 50: **264,055 EXP** (Vanilla: 336,323 EXP; **78.5% of vanilla**).
     * Lv 11–30: **-20%** EXP required.
     * Lv 31–70: **-25%** EXP required.
-    * Lv 71–99: **-35.7%** EXP required (Lv 71–99 cumulative EXP reduced from 2,050,065 to 1,317,866).
-    * Total EXP to Lv 99: Reduced from ~37.6M to ~27.2M EXP (-27.7% grind reduction).
-  * **Early Skill Point (SP) Distribution (`LvExpSkptData.pck`):**
-    * Lv 2–14: +1 bonus SP per level (2 SP/level instead of 1).
-    * Lv 15–26: +1 bonus SP per level (3 SP/level instead of 2).
-    * Total +25 extra SP across leveling.
-  * **Training Gear Synergy:**
-    * `Slave's Torc` (`EquipmentData_0744.bin`): Native Double EXP enchant (`Enchant ID 275`) packed at offset `0x68`.
-    * `Grand Sealbook [Dragon Papi]` (`SealScrollData.pck`): +50% Higher-Level Enemy EXP aura.
-    * Theoretical Catch-Up EXP: +100% to +150% EXP multiplier when current level < peak level - 10.
+    * Lv 71–99: Cumulative EXP **1,317,866 EXP** (Vanilla: 2,050,065 EXP; **-35.7% reduction**).
+    * Total cumulative EXP to Lv 99: Reduced from ~37.6M to ~27.2M EXP (-27.7% total grind reduction).
+    * *Curve Nuance:* The reduction factor per level falls smoothly from 1.00 (Lv 9) to 0.60 (Lv 99). However, the underlying curve preserves vanilla's sudden increment jumps where required EXP doubles (Lv 30->31, 40->41, 50->51, 80->81, 84->85, 90->91, 94->95).
+  * **The Negative NEXT EXP Phenomenon:**
+    * When loading a pre-mod save file into the modded EXP curve, characters can display a negative `NEXT` EXP on the status screen. For example, a Lv 20 character with 22,501 EXP displays `NEXT: -1,577` because the mod lowered the cumulative threshold for Lv 21 to 20,924. This resolves naturally after winning a single battle.
+  * **The Unannounced +25 Skill Point (SP) Bonus (`LvExpSkptData.pck`):**
+    * Lv 2–14: +1 bonus SP per level (2 SP/level instead of vanilla 1 SP).
+    * Lv 15–26: +1 bonus SP per level (3 SP/level instead of vanilla 2 SP).
+    * Total +25 extra SP across character progression. (Note: this was baked into `LvExpSkptData.pck` without being mentioned in earlier release notes or dialogue).
+  * **The Matrix Level 70 -> 99 Benchmark Model:**
+    * Mathematical benchmark: Matrix Floors 20–30, 6,400 EXP per character per battle, 50 seconds per battle.
+    * Equipment synergy: `Slave's Torc` (native Double EXP enchant 275, `x2.0`) + `Grand Sealbook [Dragon Papi]` (enchant 270 +50% Higher-Level Enemy EXP, `x1.5`).
+    * Combined multiplier: **x3.0 EXP**.
+    * Progression comparison:
+      * *Mod + Torc + Papi:* **68.6 battles (~57.2 minutes)**.
+      * *Mod + Torc only:* 103.0 battles (~85.8 minutes).
+      * *Mod, no gear:* 205.9 battles (~171.6 minutes).
+      * *Vanilla, no gear:* 320.3 battles (~266.9 minutes).
+    * *Caveats:* 6,400 EXP and 50s are baseline assumptions; Dragon Papi's bonus applies only if enemies are higher level than the character. If Matrix F20-30 enemies fall below character level, time moves toward 85.8 min.
+  * **The Level Reset Permanent Stat Formula:**
+    * Permanent base attribute bonuses require a level gap: $\text{Level Gap} = \text{Current Level} - \text{Reset Target Level} \ge 59$.
+    * Gap $\ge 59$: $+1$ to all base attributes.
+    * Gap $\ge 69$: $+2$ to all base attributes.
+    * Gap $\ge 79$: $+3$ to all base attributes.
+    * Gap $\ge 89$: $+4$ to all base attributes.
+    * Gap $\ge 98$ (Lv 99 Reset to Lv 1 gives gap 98, NOT 99): $+5$ to all base attributes + Crown Milestone. (Earlier tutorials mistakenly wrote $\ge 99$, but the maximum possible gap in the game is 98).
   * **Bag Storage & Gold Milestones (`QuestRankData.pck`):**
     * Quest Rank 2: +10 bag slots -> **40 slots** (achieved in Chapter 1).
     * Quest Rank 8: +10 bag slots -> **50 slots** (engine hard cap).
@@ -206,23 +226,55 @@ As documented in the project's verification audits, public forum discussions oft
   * **EXP Curve & SP Distribution:** **TIER 1 (LIVE IN BINARY).** 90 of 99 files in `LvExpSkptData.pck` packed with modified integers.
   * **Slave's Torc Double EXP:** **TIER 1 (LIVE IN BINARY).** Enchant 275 packed at offset `0x68`.
   * **Quest Rank Bag & Gold Milestones:** **TIER 1 (LIVE IN BINARY).** Binary structs packed in `QuestRankData.pck`.
-  * **Level Reset Catch-Up EXP Multiplier:** **TIER 3 (NO DATA PARAMETER FOUND).** No parameter field has been found that automatically multiplies EXP based on level gap.
+  * **Level Reset Dynamic Catch-Up Multiplier:** **TIER 3 (NO DATA PARAMETER FOUND).** No parameter field has been found that automatically multiplies EXP based on level gap.
 
 ---
 
-### System G: Items, Consumables & Buffet Meals (`ItemData.pck`, `FoodMenuData.pck`)
+### System G: In-Game Script Modifications, NPC Dialogues & Classroom Lectures
+
+During mod development, text modifications were injected across **6 script archives** (`.adv.bin` files) to teach players mechanics and reflect system changes. A rigorous audit revealed critical implementation flaws, voice breaks, and pricing errors:
+
+#### 1. The Script Patching Match Bug (11 of 47 replacements failed)
+* **The Cause:** The script updater (`update_teaching_script` in `apply_mod.py`) searched for the original text string followed by a NUL byte (`orig_bytes + b'\x00'`). In spoken dialogue files, the spoken line ends with a quotation mark (`"`) before the NUL byte. As a result, the pattern never matched, and **11 of 47 dialogue replacements silently failed to apply**:
+  * 8 lines in `Lesson.pck` (Euthys classroom lectures).
+  * 2 lines in `ShopStore.pck` (Rin-Rin Mart).
+  * 1 line in `ShopBar.pck` (Tavern Patron).
+* The script still falsely reported success (*"Applied 10 BattleTeacher lecture scripts"*).
+
+#### 2. Rin-Rin Mart Pricing Blunder (`ShopStore.pck`)
+* The intended dialogue lines for Rin-Rin quoted items' **sell values** rather than their store buy prices:
+  * Proposed line: *"Mag-i-cal Fruit (50 TP for 100 G)"* $\to$ Store buy price is actually **300 G** (100 G is the sell price).
+  * Proposed line: *"Fair-y Ap-ples (100 TP for 300 G)"* $\to$ Store buy price is actually **900 G** (300 G is the sell price).
+* **Live Dialogue Desync:** Because Rin-Rin's dialogue replacement failed to apply, she still tells players that Fairy Apples *"re-cov-er 50 TP for the low price of 900 gold"* while the item in the binary was modified to restore 100 TP.
+
+#### 3. Character Voice & Persona Integrity Issues
+* **Euthys (`Lesson.pck`):**
+  * `BattleTeacher_Sp01`: **Broke Fried's famous save joke.** Original: Fried asks what to do against attacks that exceed his max HP; Euthys answers: *"Abandon hope and make peace with your fate."* Fried: *"Seriously?!"* Euthys: *"Well... it's for times like these that you should be saving frequently."* The mod replaced Euthys's line with dry tactical advice, making the subsequent voiced lines completely nonsensical.
+  * `BattleTeacher_Sp03`: **Wrong Crown information.** The injected text claimed that resetting with a 59+ level gap awards a Crown. In reality, a 59 gap only awards +1 to base stats; achieving a Crown requires a Level 99 reset back to Lv 1.
+* **Wandering Blacksmith (`ShopBlacksmith.pck`):**
+  * Vanilla blacksmith speaks in a polite, formal tone (*"I'm afraid I must politely decline your request"*, *"I advise you plan well..."*). Injected mod lines used informal slang (*"'em"*, *"you'll blow my workshop sky-high"*), clashing with neighbouring dialogue.
+* **Mary Conductor (`ShopQuest.pck`):**
+  * `Talk_Random08` exceeded the engine UI budget by using 4 lines and a 66-character line (original UI boxes never exceed 3 lines / 62 characters).
+* **Library Guide (`Teaching.pck`):**
+  * Injected developer jargon into in-universe lore: *"heavy delay capped at 2.35x"*, *"hidden combat telemetry"*, *"Covered Chant procs"*, *"sweet spots"*, *"sustainable loops"*, *"DPS"*.
+  * Duplicate numbering in `Teaching_21` caused the rule explaining that mercenaries leave after contract expiration to be lost.
+
+---
+
+### System H: Items, Consumables & Buffet Meals (`ItemData.pck`, `FoodMenuData.pck`)
 
 * **Community Friction:** Early TP starvation before unlocking Maid skills; revived party members instantly dying on boss AoE sweeps due to 1 HP revives; food buffs expiring after only 300 steps in 600-step dungeon floors.
 * **Exact Numerical Parameters:**
   * **TP Consumables (`ItemData.pck`):**
     * *Magical Fruit* (`ItemData_0019.bin`): Restores **50 TP** (up from 25 TP).
     * *Fairy Apple* (`ItemData_0020.bin`): Restores **100 TP** (up from 50 TP).
-    * *Golden Apple*: Restores **100% Full TP** (up from 100 flat TP).
+    * *Golden Apple*: Binary value is 100 TP (unchanged). Text claimed "(Full TP)", but Golden Apple now restores the exact same 100 TP as Fairy Apple.
   * **Revival Items (`ItemData.pck`):**
-    * *Mui Kuha Medicine* (`ItemData_0026.bin`): Revives with **30% Max HP** (up from 10%).
+    * *Mui Kuha Medicine* (`ItemData_0026.bin`): Revives with **30% Max HP** (up from 10%). Float at `0x28` set to `30.0`.
+    * *Peggy's Revivifying Tonic*: Float at `0x28` is `1.0` and says "Revive 100% HP". (Demonstrates that float interpretation across item types was inconsistent).
     * *Mandragora Root*: Revives with **60% Max HP** (up from 1 HP / 20%).
   * **Exploration Tools (`ItemData.pck`):**
-    * *Flashlight* (`ItemData_0029.bin`): Duration extended to **30.0 steps** (up from 10.0 steps).
+    * *Flashlight* (`ItemData_0029.bin`): Duration extended to **30.0 steps** (up from 10.0 steps). Float at `0x28` set to `30.0`.
   * **Buffet Meals (`FoodMenuData.pck`):**
     * Step duration extended from 300 steps to **900 steps** (3x duration).
     * Dispel immunity (food buffs persist through Dispel floors / Dispel attacks).
@@ -233,13 +285,17 @@ As documented in the project's verification audits, public forum discussions oft
 
 ---
 
-### System H: Blacksmith Forging & Enchantment Scaling (`EnchantData.pck`, `EquipmentData.pck`)
+### System I: Blacksmith Forging, Enchantment Scaling & Equipment Display (`EnchantData.pck`, `EquipmentData.pck`)
 
 * **Community Friction:** Vanilla forging (+1 to +9) grants flat +2 to +4 ATK (+25 ATK at +9), completely insignificant against 200,000 HP postgame bosses. Players stack 5x of the same enchant (e.g. 5x Speed UP) rather than building diverse setups.
 * **Exact Numerical Parameters:**
   * **Percentage Forging:** Each forge level grants **+3% Base Weapon ATK** and **+2% Shield/Armor DEF**. At +9, weapons gain **+27% total base weapon power**.
   * **Enchant Slots:** Unique endgame weapons guaranteed **3 to 4 open slots**.
   * **Duplicate Enchant Diminishing Returns:** 1st = 100%, 2nd = 75%, 3rd = 50%, 4th/5th = 25%.
+* **The In-Game Equipment Text Overdraw Bug:**
+  * **Visual Clutter:** On the equipment inspection screen, the game engine natively draws the item's enchantments on lines 2 and 3 of the text box. When the mod added detailed spec sheets to all 551 equipment descriptions, the engine drew the enchantment text directly over lines 2 and 3 of the description, causing unreadable visual overdraw (`Fire Magic +15%` printed over `[Weapon | Range: Short | Delay: E+ (2.05x) | Slots: 0]`).
+  * **Slot Calculation Flaw:** The `Slots: N` label was populated from a field that equals the number of innate enchants, so items with 2 enchants showed `Slots: 0`.
+  * **Omitted Enchant ID 0:** 86 equipment descriptions omitted enchant ID 0 ("Max HP +10%").
 * **Technical Feasibility & Implementation Status:**
   * **Percentage Forging (+3%/level):** **TIER 3 (NO DATA PARAMETER FOUND).** No data table defining forge stat scaling per level (+3% vs flat) has been located in the parameter archives.
   * **Enchant Slots:** **TIER 2 (FEASIBLE VIA `EquipmentData.pck`).** Open slot counts exist in weapon records.
@@ -247,7 +303,7 @@ As documented in the project's verification audits, public forum discussions oft
 
 ---
 
-### System I: Anti-Cheese & Boss Mechanics
+### System J: Anti-Cheese & Boss Mechanics
 
 * **Community Friction:** Papillon's *Tinker Squash* turn-delay pushback allows players to cheese superbosses with infinite delay locks.
 * **Exact Numerical Parameters:**
@@ -258,13 +314,17 @@ As documented in the project's verification audits, public forum discussions oft
 
 ---
 
-### System J: Dungeon Hazards & Traps (`TrapData.pck`)
+### System K: Dungeon Hazards, Traps & Display Bugs (`TrapData.pck`)
 
 * **Community Friction:** *Killer Floor* instant death check (50% chance) and *Dispel Floor* party-wide buff wipe cause frustrating random wipes.
 * **Exact Numerical Parameters:**
   * *Damage Floor / Mine*: Damage reduced from 50% to **25% current HP**.
   * *Killer Floor*: Instant death chance reduced from 50% to **25%** (or 0% if Earth Res $\ge 80 / 100$).
   * *Dispel Floor*: Scope changed from whole party to triggering ally only.
+* **Trap Data Discrepancies & Flaws:**
+  * **The 25% vs 50% Contradiction:** Labels in `TrapData.pck` and `Teaching_20` stated "Killer Floor (25% KO)", but the underlying binary float was still `0.5` (50% instant death check).
+  * **Elemental Affinity Inversions:** Injected labels assigned incorrect resistances: Poison Gas was labeled "Earth Res" (Poison is Water element in DT2-2), Sleep Gas was labeled "Water Res" (Sleep is Wind element in DT2-2), and Paralysis Gas was labeled "Thunder" (engine terminology is Lightning).
+  * **String Insertion Bug:** The trap label is dynamically inserted into the combat log: `"You triggered a %name trap!"`. Injecting verbose labels produced awkward game text: `"You triggered a Killer Floor (25% KO / Earth Res) trap!"`.
 * **Technical Feasibility & Implementation Status:**
   * **Trap Damage / Instant Death Rates:** **TIER 2 (FEASIBLE VIA `TrapData.pck`).** 32-byte records contain rate floats; previously only text was updated.
   * **Dispel Scope Modification:** **TIER 3 (NO DATA PARAMETER FOUND).** No parameter controlling dispel targeting scope has been identified in `TrapData.pck`.
@@ -312,16 +372,18 @@ To ensure complete transparency and prevent player confusion, the mod project is
 * **Goal:** 100% vanilla data tables and formulas. Zero balance modifications.
 * **Content:**
   * Exact numeric skill descriptions formatted according to [`SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md`](file:///c:/Users/user/Personal/Physics/DungeonTraveler2-2/mod_project/docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md).
-  * Equipment weapon ranges, speed ranks, delays, and slots documented transparently.
+  * Equipment weapon ranges, speed ranks, delays, and slots documented transparently without overdrawing the enchantment list (Line 1 preserved, Line 2 concise).
   * Item recovery amounts, food buff effects, trap formulas, grand seal auras, and joint skill requirements revealed.
+  * Dialogue scripts preserve all original humor, jokes, and character personas (Fried's save joke in Sp01 preserved).
   * Every single number in the UI reflects the authentic, unmodified vanilla binaries with 100% precision.
 
 ### Variant B: Definitive Balance & Transparency Mod (Targeted Rebalance)
 * **Goal:** Implement the feasible, high-value balance adjustments (Tier 1 + Tier 2) while omitting proposals that lack verified data parameters (Tier 3).
 * **Included Components:**
   1. **Weapon Speed Recovery:** Keep Tier 1 compressed delay multipliers in `WeaponRankData.pck` (A+ 1.00x to F 2.35x).
-  2. **Progression Smoothing:** Keep Tier 1 smoothed EXP curve (-35% late postgame) and early SP bonuses in `LvExpSkptData.pck`.
+  2. **Progression Smoothing:** Keep Tier 1 smoothed EXP curve (-35.7% late postgame) and early SP bonuses (+25 SP) in `LvExpSkptData.pck`.
   3. **Bag Capacity & Bounties:** Keep Tier 1 bag upgrades (40 & 50 slots) and gold bounties in `QuestRankData.pck`.
   4. **Exploration Tools:** Keep Tier 1 Flashlight (30 steps) and consumable recovery in `ItemData.pck`.
   5. **Skill TP & Power Struct Tuning (Tier 2):** When implementing skill changes, modify the actual binary structs in `TechniqueSkillData.pck` and `MagicSkillData.pck` (not just display text).
-  6. **Honest Omissions (Tier 3):** Do not claim in tooltips or dialogues that unverified mechanics (Elemental Penetration, Defend Crit Immunity, 900-step meals, Doll Guts) are active when no supporting data parameters exist for them. For Master Spells, achieve endgame viability by scaling base power floats directly.
+  6. **Script Bug Fixes:** Correct the string replacement bug in `apply_mod.py` so quotes don't prevent dialogue updates, fix Rin-Rin's buy vs sell prices, and remove developer patch-notes jargon.
+  7. **Honest Omissions (Tier 3):** Do not claim in tooltips or dialogues that unverified mechanics (Elemental Penetration, Defend Crit Immunity, 900-step meals, Doll Guts) are active when no supporting data parameters exist for them. For Master Spells, achieve endgame viability by scaling base power floats directly.
