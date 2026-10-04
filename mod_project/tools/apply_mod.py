@@ -225,6 +225,40 @@ def update_teaching():
             "over Lv 9) and unlocks the maximum base attribute cap."
         )
     }
+
+    replacements_09 = {
+        "Weapon speed ranks range from A, which is the fastest, to F,\nwhich is the slowest.": (
+            "Weapon ranks: A (1.0x delay) to F (1.5x delay). Defending/Guarding\n"
+            "reduces delay to 0.67x (50% faster turn recovery)."
+        )
+    }
+
+    replacements_11 = {
+        "While it is possible to attack over long range with a\nshort-range weapon, the damage will be considerably lessened\nas a result.": (
+            "Short-range weapons suffer a -50% damage penalty when\n"
+            "attacking beyond Front-to-Front. Mid and Long weapons have no penalty."
+        )
+    }
+
+    replacements_12 = {
+        "Also renders you unable to dodge attacks, and incoming\ndamage increases significantly.": (
+            "Physical damage received while asleep is multiplied by 1.5x.\n"
+            "Wakes up immediately upon receiving a physical attack."
+        )
+    }
+
+    replacements_16 = {
+        "Party skills grow stronger the more Awards you obtain.": (
+            "Party skills gain +1% bonus efficacy for every 5 Awards earned."
+        )
+    }
+
+    replacements_17 = {
+        "2. Each participating member needs to have enough TP to\nperform the joint skill.": (
+            "2. Each participating member consumes 10% to 25% of their\n"
+            "maximum TP, and requires sufficient Pep (30 to 50)."
+        )
+    }
     
     applied_count = 0
     for i, (fn, b) in enumerate(archive.files):
@@ -236,6 +270,21 @@ def update_teaching():
             applied_count += 1
         elif fn == 'CheatsTeaching_25.adv.bin':
             archive.files[i] = (fn, update_teaching_script(b, replacements_25))
+            applied_count += 1
+        elif fn == 'CheatsTeaching_09.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_09))
+            applied_count += 1
+        elif fn == 'CheatsTeaching_11.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_11))
+            applied_count += 1
+        elif fn == 'CheatsTeaching_12.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_12))
+            applied_count += 1
+        elif fn == 'CheatsTeaching_16.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_16))
+            applied_count += 1
+        elif fn == 'CheatsTeaching_17.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_17))
             applied_count += 1
 
     target_path = os.path.join(GAME_SCRIPT_DIR, "Teaching.pck")
