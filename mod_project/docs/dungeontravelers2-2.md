@@ -167,7 +167,9 @@ A figure is never typed from a guide or from memory. If the binary does not hold
 
 ---
 
-## 6. Skill text style guide (decided with the user)
+## 6. Skill text style guide (under review, not agreed)
+
+> **Superseded.** This section describes what `generate_qol_skill_text.py` produces today. It was written without the user's agreement and breaks the user's own specification, `SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md`: averaged ranges (`avg +3.33%/Lv`, in 69 boxes) are forbidden there, and lines packed with ` | ` pieces are what it sets out to avoid. That specification is the standard. This section and the generator are to be redone after the review with the user.
 
 Kept from the earlier mod: its layout. Dropped from it: its figures, which were not taken from the binary.
 
