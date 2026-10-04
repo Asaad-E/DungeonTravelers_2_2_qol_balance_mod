@@ -961,15 +961,14 @@ def update_shop_dialogue():
         repl_sq = {
             "(Incidentally, quests from below your current rank\nwill still grant their rewards, but no trust points.)": (
                 "(Quests below your rank still yield bounties, but no Trust Points.\n"
-                "Take on current assignments: Ranks 2 and 8 award larger bags,\n"
-                "and reaching Rank 16 earns you clearance for The Matrix!)"
+                "Focus on current-rank work to advance; reaching Rank 16\n"
+                "earns you official clearance into The Matrix!)"
             )
         }
         repl_sq_10 = {
             "(If you complete many quests... something good might happen.)": (
-                "(Monster hunts earn Trust Points to advance your Guild standing,\n"
-                "while item delivery requests reward you with fine weapons\n"
-                "and generous pouches of gold.)"
+                "(Prove yourself to the Guild: reaching Ranks 2 and 8\n"
+                "will expand your bag space up to 50 slots!)"
             )
         }
         for i, (fn, b) in enumerate(arc_sq.files):
