@@ -267,6 +267,15 @@ def update_teaching():
         
     archive = PckArchive(pck_path)
     
+    # CheatsTeaching_01 (Turn Order & Delay Tiers)
+    replacements_01 = {
+        "Turn order is a fundamental aspect of combat, so be sure to\ncheck it often and strategize efficiently.": (
+            "Turn delay falls into three tiers: Agile (A+ 1.0x to A 1.15x),\n"
+            "Balanced (B to C+ 1.30-1.75x), and Colossal (D to F 1.85-2.35x).\n"
+            "Use Defend (0.67x delay) to quickly recover your turn order!"
+        )
+    }
+
     # CheatsTeaching_02 (Learning Skills)
     replacements_02 = {
         "Please note that although skills grow more powerful at\nhigher levels, their TP cost and chanting time may also\nincrease, which can make them more difficult to use.": (
@@ -318,6 +327,15 @@ def update_teaching():
             "Press <BUTTON_L> to inspect monsters. Creating their Sealbook\n"
             "permanently reveals Max HP, ATK, DEF, and all 5 elemental\n"
             "resistances, allowing you to exploit their vulnerabilities!"
+        )
+    }
+
+    # CheatsTeaching_08 (Battle Log & Combat Telemetry)
+    replacements_08 = {
+        "If you missed something that happened, you can refer to the\nbattle log to see who did what during battle.": (
+            "The log reveals hidden combat telemetry: Covered Chant procs,\n"
+            "exact status resistance checks, boss Enrage phase triggers,\n"
+            "and turn delay immunities. Review it to refine your tactics!"
         )
     }
 
@@ -476,12 +494,14 @@ def update_teaching():
     }
 
     teaching_map = {
+        'CheatsTeaching_01.adv.bin': replacements_01,
         'CheatsTeaching_02.adv.bin': replacements_02,
         'CheatsTeaching_03.adv.bin': replacements_03,
         'CheatsTeaching_04.adv.bin': replacements_04,
         'CheatsTeaching_05.adv.bin': replacements_05,
         'CheatsTeaching_06.adv.bin': replacements_06,
         'CheatsTeaching_07.adv.bin': replacements_07,
+        'CheatsTeaching_08.adv.bin': replacements_08,
         'CheatsTeaching_09.adv.bin': replacements_09,
         'CheatsTeaching_10.adv.bin': replacements_10,
         'CheatsTeaching_11.adv.bin': replacements_11,
@@ -935,9 +955,17 @@ def update_shop_dialogue():
                 "each (reaching 50 slots early!), and Rank 16 unlocks The Matrix!)"
             )
         }
+        repl_sq_10 = {
+            "(If you complete many quests... something good might happen.)": (
+                "(Extermination quests grant Trust Points to raise your rank,\n"
+                "while fetch quests yield rare weapons and heavy gold rewards.)"
+            )
+        }
         for i, (fn, b) in enumerate(arc_sq.files):
             if fn == "Talk_Random08.adv.bin":
                 arc_sq.files[i] = (fn, update_teaching_script(b, repl_sq))
+            elif fn == "Talk_Random10.adv.bin":
+                arc_sq.files[i] = (fn, update_teaching_script(b, repl_sq_10))
         sq_target = os.path.join(GAME_SCRIPT_DIR, "ShopQuest.pck")
         arc_sq.save(sq_target)
         print(f"Applied Quest Desk progression dialogue to: {sq_target}")
@@ -960,11 +988,19 @@ def update_shop_dialogue():
                 "instead to ensure 100% seal chances without risk.)"
             )
         }
+        repl_sb_11 = {
+            "(Grand Sealbooks are outside my expertise,\nand if we tried it blind, anything could happen...)": (
+                "(Grand Sealbooks belong in the Grand Seal slot for party\n"
+                "auras and summons, not for ordinary equipment enchants!)"
+            )
+        }
         for i, (fn, b) in enumerate(arc_sb.files):
             if fn == "Talk_Random00.adv.bin":
                 arc_sb.files[i] = (fn, update_teaching_script(b, repl_sb_00))
             elif fn == "Talk_Random10.adv.bin":
                 arc_sb.files[i] = (fn, update_teaching_script(b, repl_sb_10))
+            elif fn == "Talk_Random11.adv.bin":
+                arc_sb.files[i] = (fn, update_teaching_script(b, repl_sb_11))
         sb_target = os.path.join(GAME_SCRIPT_DIR, "ShopBlacksmith.pck")
         arc_sb.save(sb_target)
         print(f"Applied Blacksmith strategic forge dialogue to: {sb_target}")
@@ -986,6 +1022,33 @@ def update_shop_dialogue():
         bar_target = os.path.join(GAME_SCRIPT_DIR, "ShopBar.pck")
         arc_bar.save(bar_target)
         print(f"Applied Tavern mercenary archetype dialogue to: {bar_target}")
+
+    # 4. ShopStore.pck (General Store / Monica)
+    ss_path = os.path.join(BACKUP_DIR, "ShopStore.pck")
+    if os.path.exists(ss_path):
+        arc_ss = PckArchive(ss_path)
+        repl_ss_01 = {
+            "Do you have Crois-sants and E-mer-gen-cy Ex-its in your\npos-ses-sion? They are es-sen-tial i-tems for rook-ie\nad-ventur-ers.": (
+                "Al-so car-ry Flash-lights! They now il-lu-mi-nate dark zones\n"
+                "for 30 steps (3x lon-ger) to re-veal hid-den walls\n"
+                "and traps with-out wast-ing pre-cious bag space."
+            )
+        }
+        repl_ss_11 = {
+            "If you find your-self run-ning out of TP, then I\nre-com-mend you pur-chase Fair-y Ap-ples! They re-cov-er 50\nTP for the low price of 900 gold.": (
+                "For bud-get ex-pe-di-tions, try Dried Ber-ries (20 TP for 40 G)\n"
+                "or Ba-nan-go Sli-ces (35 TP for 80 G) to sus-tain your loop\n"
+                "with-out emp-ty-ing your wal-let on Fair-y Ap-ples!"
+            )
+        }
+        for i, (fn, b) in enumerate(arc_ss.files):
+            if fn == "Talk_Random01.adv.bin":
+                arc_ss.files[i] = (fn, update_teaching_script(b, repl_ss_01))
+            elif fn == "Talk_Random11.adv.bin":
+                arc_ss.files[i] = (fn, update_teaching_script(b, repl_ss_11))
+        ss_target = os.path.join(GAME_SCRIPT_DIR, "ShopStore.pck")
+        arc_ss.save(ss_target)
+        print(f"Applied General Store exploration dialogue to: {ss_target}")
 
 def update_quest_ranks():
     pck_path = os.path.join(BACKUP_DIR, "QuestRankData.pck")

@@ -407,7 +407,7 @@ def run_audit():
             errors.append(str(e))
 
     # Script PCKs
-    script_pcks = ['Teaching.pck', 'Lesson.pck', 'ShopQuest.pck', 'ShopBlacksmith.pck', 'ShopBar.pck']
+    script_pcks = ['Teaching.pck', 'Lesson.pck', 'ShopQuest.pck', 'ShopBlacksmith.pck', 'ShopBar.pck', 'ShopStore.pck']
     for pck_file in script_pcks:
         game_pck = os.path.join(GAME_SCRIPT_DIR, pck_file)
         if not os.path.exists(game_pck):

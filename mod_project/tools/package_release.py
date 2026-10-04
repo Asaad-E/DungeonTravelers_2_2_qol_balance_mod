@@ -18,7 +18,7 @@ MODIFIED_PARAM_PCKS = [
 ]
 
 MODIFIED_SCRIPT_PCKS = [
-    'Teaching.pck', 'Lesson.pck', 'ShopQuest.pck', 'ShopBlacksmith.pck', 'ShopBar.pck'
+    'Teaching.pck', 'Lesson.pck', 'ShopQuest.pck', 'ShopBlacksmith.pck', 'ShopBar.pck', 'ShopStore.pck'
 ]
 
 README_CONTENT = """============================================================
