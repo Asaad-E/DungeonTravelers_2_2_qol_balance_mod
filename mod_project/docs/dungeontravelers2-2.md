@@ -21,7 +21,8 @@ Tools are built once for both variants: the variant is a parameter of the build,
 
 | Output | Built by | Content |
 |---|---|---|
-| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 267 of 330 entries with new text, numeric data identical to the original. **[untested]** in the game. |
+| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 267 of 330 boxes with level-by-level data; line 1 of 63 techniques and spells with a damage word and the ailment chance; numeric data identical to the original. Skill menu box **[verified]** on screen. |
+| `build/qol/Data/ENG/Parameter/EnemyAttackData.pck` | `tools/build_variant.py qol` | 858 of 2,375 enemy attacks (also the abilities of summoned monsters) with the exact ailment chance on their data line; prose identical to the original. **[untested]** on screen. |
 | `build/qol/Data/ENG/Parameter/EnchantData.pck` | `tools/build_variant.py qol` | 142 of 280 enchant names carry their figure (`Max HP +10%`, `Water resistance -20%`, `Enmity -5%`); flags, prefix and suffix identical to the original. Installed; **[untested]** on screen. |
 | `build/qol/Data/ENG/Parameter/ItemData.pck` | `tools/build_variant.py qol` | 9 of 576 descriptions: the exact amount replaces the vague size (`Restore an ally's HP (+250).`); prices and effects identical to the original. Installed; **[untested]** on screen. |
 | `build/qol/Data/ENG/Parameter/WeaponRankData.pck` | `tools/build_variant.py qol` | Rank names generated from the multiplier of each rank (`E+ (2.45x)`); multipliers identical to the original. **[untested]** in the game. |
@@ -29,7 +30,8 @@ Tools are built once for both variants: the variant is a parameter of the build,
 | `data_tables/qol_skill_text.xlsx` | `tools/generate_qol_skill_text.py`, then edited by hand | Text of the QoL skills (`QoL_Desc`, `QoL_LvUp`). The editable source for that text. |
 | `data_tables/qol_enchant_text.xlsx` | `tools/generate_qol_enchant_text.py`, then edited by hand | Name of each enchantment in QoL (`QoL_Name`) and the guide its figure comes from (`Figure_Source`). |
 | `data_tables/qol_item_text.xlsx` | `tools/generate_qol_item_text.py`, then edited by hand | Description of each item in QoL (`QoL_Desc`). |
-| The game folder | `tools/install_variant.py` (run by `build_variant.py`) | Holds **the QoL variant and nothing else** since 2026-10-04: the 7 built archives over the 29 untouched originals (section 8.1). |
+| The game folder | `tools/install_variant.py` (run by `build_variant.py`) | Holds **the QoL variant and nothing else** since 2026-10-04: the 8 built archives over the 28 untouched originals (section 8.1). |
+| `docs/QOL_ROADMAP.md` | by hand, from the build output | Every pack with its state, what is left and the order of work. The checklist for calling QoL finished. |
 | Installed game + `dist/DT22_Definitive_QoL_Balance_Mod_v1.0.zip` | `tools/apply_mod.py`, `tools/package_release.py` | The **earlier mixed build** (text and value changes together). Not releasable: see section 8 and `CROSS_SYSTEM_VALIDATION_REPORT.md`. Two files of the installed game were replaced at the user's request (section 8.1). |
 
 ---
@@ -58,6 +60,7 @@ DungeonTraveler2-2/
 | `vanilla_source_of_truth.xlsx` | No (generated) | Original values of skills, items, equipment, enemy attacks, traps, ranks, EXP. `Fields` sheet = meaning and confidence of every column. |
 | `qol_skill_text.xlsx` | Yes | QoL skill text. Write `yes` in `Edited` to keep a row from being regenerated. |
 | `qol_enchant_text.xlsx` | Yes | QoL enchant names. Same `Edited` rule. `Figure_Source` names the guide of each figure; `Previous_Mod_Check` says how the earlier build's figure stands against the guides. |
+| `qol_enemy_attack_text.xlsx` | Yes | QoL enemy attack text (2,375 rows). Same `Edited` rule; only line 1 may change. |
 | `qol_item_text.xlsx` | Yes | QoL item descriptions. Same `Edited` rule. `Effect_Pairs` lists the raw effect pairs of each item. |
 | `skills.xlsx`, `items.xlsx`, `equipment.xlsx`, `enchants.xlsx`, `grand_seals.xlsx`, `joint_skills.xlsx`, `party_skills.xlsx`, `food_menu.xlsx`, `enemy_attacks.xlsx`, `classes.xlsx`, `ui_strings.xlsx`, `traps.xlsx`, `trophies.xlsx`, `exp_curve.xlsx`, `quest_ranks.xlsx` | Yes | Tables of the earlier mixed build (15), read by `apply_mod.py`. Their "vanilla" columns match the backups; many of their figures do not match the binaries (section 8). |
 
@@ -72,6 +75,8 @@ DungeonTraveler2-2/
 | `enchant_values.py` | The figure of each enchantment and the guide it comes from (the binary holds none). `SHOWN_SOURCES` decides which guides QoL trusts. |
 | `generate_qol_enchant_text.py` | Proposes the QoL enchant names from `enchant_values.py`. Leaves rows marked `Edited` alone. |
 | `weapon_rank_labels.py` | Writes the delay multiplier of each weapon rank into its name. Used by the build; also `weapon_rank_labels.py SOURCE.pck DEST.pck` for any `WeaponRankData.pck`. |
+| `magnitude_words.py` | Line 1 of a skill: the damage scale, the chance forms, where they go in the sentence, and the check against the binary. |
+| `generate_qol_enemy_attack_text.py` | Proposes the enemy attack text: ailment chances on the data line, prose untouched. |
 | `generate_qol_item_text.py` | Proposes the QoL item descriptions: the exact amount in place of `(small)` / `(medium)` / `(large)`. Leaves rows marked `Edited` alone. |
 | `build_variant.py` | Builds a variant into `build/<variant>/`, verifies it and, only if the verification passes, installs it into the game (`--no-install` to skip). |
 | `install_variant.py` | Puts the game folder in the state of a variant: its built files, and the original for every other backed-up file. Saves what it replaces in `build/installed_backup/<time>/`. |
@@ -86,6 +91,7 @@ python mod_project/tools/extract_vanilla.py
 python mod_project/tools/generate_qol_skill_text.py
 python mod_project/tools/generate_qol_enchant_text.py
 python mod_project/tools/generate_qol_item_text.py
+python mod_project/tools/generate_qol_enemy_attack_text.py
 python mod_project/tools/build_variant.py qol
 python -m unittest discover -s mod_project/tests -p "test_*.py"
 ```
@@ -149,10 +155,10 @@ Effect ids are shared by skills, enemy attacks and traps. Named with evidence (2
 
 | Helper | Rewriting the original text reproduces the entry |
 |---|---|
-| Skills (all four), `ItemHelper`, `EquipmentHelper`, `EnchantHelper`, `WeaponRankHelper`, `ClassDataHelper`, `StringDataHelper`, `TrapHelper`, `TrophyHelper` | Yes, every entry **[verified]** |
+| Skills (all four), `ItemHelper`, `EquipmentHelper`, `EnchantHelper`, `EnemyAttackHelper`, `WeaponRankHelper`, `ClassDataHelper`, `StringDataHelper`, `TrapHelper`, `TrophyHelper` | Yes, every entry **[verified]** |
 | `JoinSkillHelper` | 51 of 52. Drops a string in one entry (`"Genocide Rain(St) pours down!"`). |
 | `PartySkillHelper` | 0 of 20. Replaces the full-width space of the second string with two normal spaces. |
-| `EnemyAttackHelper`, `SealScrollHelper`, `FoodMenuHelper` | 1,220 of 2,375; 339 of 374; 10 of 16. Same strings, different padding. |
+| `SealScrollHelper`, `FoodMenuHelper` | 339 of 374; 10 of 16. Same strings, different padding. |
 
 Fix a writer (make its round trip exact, add it to the tests) before building its table for any variant.
 
@@ -166,7 +172,9 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 * The game lists innate enchantments there too (seen: Legendary Duster shows `Max HP +10%` and `Interrupt Rate -25%`), and draws the stat change of the item (`ATK+24`) at the right end of line 1. An `Innate:` line in the description repeats the first and a long line 1 would run into the second.
 * Because the game lists the enchantments by name, the place to add information about them is the enchant name (`Max HP +10%`), not the item description (section 6.1).
 * Enchant name length: 40 characters for enchantments that random equipment can roll (they are drawn in two columns in the equipment box), 46 otherwise. These are the longest vanilla names, **[inferred]** as safe, not measured.
-* **Battle bar** **[verified]** on screenshots: when a skill or item is highlighted in battle the game shows only its description (line 1), in one line, without the level. A figure that depends on the skill level must not be there: the player cannot tell which value applies. Line 1 of a skill stays the vanilla sentence; an item may carry its amount because it has only one.
+* **Battle bar** **[verified]** on screenshots: when a skill or item is highlighted in battle the game shows only its description (line 1), in one line, without the level. A figure that depends on the level cannot be read there, so line 1 of a skill carries only the main points (section 6.2). Its width in characters is **[untested]**.
+* **Skill menu box** **[verified]** on a screenshot (Provoke): title bar `Provoke [Technique] Lv 2 TP Cost 2` drawn by the game, then the description and the two level-up lines; nothing is drawn over lines 2-3.
+* **Enemy attack box** **[verified]** on a screenshot (summon Cupid, Poison Shot): three lines, the first is a data line written in the text itself (`Target: Single / Type: Stab / Range: Long`), then prose.
 * **Title bar with the rank label** **[verified]** on a screenshot: `Dungeon Prez Rod [Staff - 1 Hand - Short Range] Speed C (1.75x)` fits.
 * Whether item and skill boxes draw anything of their own on lines 2-3 has not been checked on screen. All 576 vanilla item descriptions are one line.
 * The tilde `~` has no glyph. Use `->` or `-`.
@@ -276,11 +284,45 @@ Figures from the first game's guide: physical and magic attack +4% / +2%, speed 
 
 **Weapon rank labels.** `weapon_rank_labels.py` writes each rank name from the multiplier stored in the same entry: `E+` -> `E+ (2.45x)`. The label is never typed: when Balance changes a multiplier, the same step produces the new figure, and the build fails if a label and its multiplier differ. The multiplier is the same kind of figure as `Speed: 0.65x` in a skill box: time until the next turn, lower is faster.
 
+### 6.2 Line 1 of a skill, and enemy attacks
+
+**Line 1 of techniques and spells** (`tools/magnitude_words.py`). It is the only line the battle bar shows, and it shows it without the level, so it carries the main points and nothing else:
+
+* Damage as one word, chosen by the average of the real per-level values. The words and the 80% floor are the user's; the other bounds come from the data.
+
+| Word | Physical: average ATK | Magic: average Pwr | Skills today |
+|---|---|---|---|
+| negligible | below 80% | below 80 | 1 |
+| minor | 80% - 124% | 80 - 249 | 9 |
+| moderate | 125% - 149% | 250 - 399 | 21 |
+| major | 150% - 174% | 400 - 499 | 7 |
+| severe | 175% - 224% | 500 - 699 | 11 |
+| tremendous | 225% and above | 700 and above | 5 (the game's own word for exactly these spells; out of the scale) |
+
+* Ailment chance as the shortest true figure: `(25%)` when it is the same at every level, `(30%+)` when it rises by 10 points or less, `(20-50%)` when it rises by more. Nothing when it always happens. No tilde: the font has none.
+* Where the word goes: before the kind of damage (`Deal minor bash damage`), in place of the game's own grading word (`Powerful strike` -> `Major strike`), or `Attack one enemy` -> `Deal moderate damage to one enemy`. Five sentences that name no damage have a hand-written place (`TEMPLATES`).
+* A skill whose power is not fully understood gets no word (24 today, listed in `Line1_Notes`): Spiral Arrow is ATK 88% but carries effect 73 at 3.3 to 4.0.
+* Examples: `Shield skill. Deal minor bash damage to one enemy. May stun (30%+).` `Deal moderate fire damage to one enemy.` `Stun one enemy (65%+).` `Deal tremendous fire damage to one enemy.`
+
+The build checks every word and chance against the built binary, and rejects any other figure in line 1.
+
+**Enemy attacks** (`tools/generate_qol_enemy_attack_text.py`), which are also the abilities of summoned monsters. Their text is a data line followed by prose. The prose, jokes included, is never touched (the build compares it with the original); exact figures are added to the data line in its own format:
+
+```
+Target: Single / Type: Stab / Range: Long / Poison: 30%
+Fire an arrow doused in some real toxic stuff.
+If it hits, it may inflict poison. Also, ouch.
+```
+
+An attack has no levels, so its figures are exact. Shown so far: the chance of each of the 9 ailments (858 attacks, 922 chances). Equal chances share an item (`Freeze/Silence: 20%`). Entry layout: header `0xA0`, four `u64` string pointers (name, Japanese name, a third string, description), each string padded to 8 bytes; `0x48` effect count, then `(int id, float value, int tail)` slots of 12 bytes from `0x4C`. **[verified]**: 2,375 of 2,375 rewrite identically.
+
+**Rule for every other text** (set by the user): whatever a screen shows must give the precise data, and the jokes and the in-game prose stay. Data is added beside the prose, in a place that already holds data when there is one.
+
 ---
 
 ## 7. Tests (what each guards)
 
-`python -m unittest discover -s mod_project/tests -p "test_*.py"` (55 tests).
+`python -m unittest discover -s mod_project/tests -p "test_*.py"` (72 tests).
 
 | File | Guards |
 |---|---|
@@ -291,6 +333,7 @@ Figures from the first game's guide: physical and magic attack +4% / +2%, speed 
 
 | `test_qol_enchants_and_ranks.py` | Enchant and weapon rank entries rewrite identically; names keep the game's wording and add the sourced figure; a source that is not trusted is not shown; names fit; an unsourced figure, an overlong name, a changed flag and a changed multiplier each stop the build; a rank label follows its multiplier and is idempotent. |
 | `test_qol_items_and_install.py` | Item table matches the backups; the amount replaces the vague size and no text states both; a wrong amount, a wrong kind and a changed item value stop the build. The install leaves the game as the variant and nothing else, saves what it replaces, and a second install changes nothing. |
+| `test_qol_line1_and_enemy_attacks.py` | Bounds of the damage scale and forms of the chance; line 1 of real skills; a skill with an effect that is not understood stays as written; a wrong word, a wrong chance or a level figure in line 1 stops the build. Enemy attack writer exact; chance on the data line; prose never changed; a wrong chance, an edited joke and a changed value stop the build. |
 
 Verified without the game: container and entry round trips, numeric identity of the QoL build, 733 figures in the built skill text and 9 item amounts against the built binary, every rank label against its multiplier, the game folder against the variant after an install. Enchant figures cannot be verified against the binary (it holds none): they are checked against the source table only. Seen on screen by the user: the rank label in the title bar. Everything else of the QoL build is installed and waiting for a look.
 
@@ -316,8 +359,8 @@ The user asked for every build to be installed so the work can be checked on scr
 
 | File in the game folder | Now | Effect |
 |---|---|---|
-| `TechniqueSkillData`, `MagicSkillData`, `PassiveSkillData`, `UniqueSkillData`, `EnchantData`, `ItemData`, `WeaponRankData` | QoL build. | Text only; every value is the original one. Weapon ranks read `C (2.00x)`, `E+ (2.45x)`: the original multipliers, not the 1.75x / 2.05x of the earlier build. |
-| The other 29 backed-up archives, among them `EquipmentData`, `ClassData`, `EnemyAttackData`, `LvExpSkptData`, `QuestRankData`, `StringData`, `TrapData` and the scripts `Lesson`, `Teaching`, `ShopStore`, `ShopQuest`, `ShopBlacksmith` | The original from `backups/`. | The value changes of the earlier build are gone from the game: EXP curve and +25 SP, weapon delays, 4 items, Slave's Torc, 5 quest rank rewards, and all of its text. |
+| `TechniqueSkillData`, `MagicSkillData`, `PassiveSkillData`, `UniqueSkillData`, `EnchantData`, `ItemData`, `EnemyAttackData`, `WeaponRankData` | QoL build. | Text only; every value is the original one. Weapon ranks read `C (2.00x)`, `E+ (2.45x)`: the original multipliers, not the 1.75x / 2.05x of the earlier build. |
+| The other 28 backed-up archives, among them `EquipmentData`, `ClassData`, `LvExpSkptData`, `QuestRankData`, `StringData`, `TrapData` and the scripts `Lesson`, `Teaching`, `ShopStore`, `ShopQuest`, `ShopBlacksmith` | The original from `backups/`. | The value changes of the earlier build are gone from the game: EXP curve and +25 SP, weapon delays, 4 items, Slave's Torc, 5 quest rank rewards, and all of its text. |
 
 To undo an install, copy the matching `build/installed_backup/<time>/` folder back over `DungeonTravelers2-2_EN/Data/ENG/`.
 
@@ -354,4 +397,4 @@ To undo an install, copy the matching `build/installed_backup/<time>/` folder ba
 * The Balance variant: its changes as data, and its own verification rule.
 * Packaging per variant (today `package_release.py` zips the game folder). Install is done: `install_variant.py`.
 * Dialogue replacement that fails loudly, and the corrected lines.
-* Review on screen of the installed QoL build: skill boxes, item boxes, enchant list of the equipment box.
+* Everything still open is listed, pack by pack and with its size, in `QOL_ROADMAP.md`. That file is the checklist for calling QoL finished.

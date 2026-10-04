@@ -204,3 +204,63 @@ def check_item_text(b, text):
         else:
             verified += 1
     return problems, verified
+
+
+# ---------------------------------------------------------------------------
+# Enemy attacks (also the abilities of summoned monsters)
+# ---------------------------------------------------------------------------
+ENEMY_SLOT_COUNT = 0x48      # int, then (int effect id, float value, int tail) slots of 12 bytes
+ENEMY_SLOTS = 0x4C
+ENEMY_DATA_LINE = 'Target:'  # vanilla line 1: "Target: Single / Type: Stab / Range: Long"
+ENEMY_TOKEN_RE = re.compile(r'^(?P<labels>[A-Za-z]+(?:/[A-Za-z]+)*): (?P<pct>\d+(?:\.\d+)?)%$')
+AILMENT_NAMES = {v: k for k, v in AILMENT_LABELS.items()}
+
+
+def enemy_attack_slots(b):
+    count = struct.unpack_from('<i', b, ENEMY_SLOT_COUNT)[0]
+    return [struct.unpack_from('<ifi', b, ENEMY_SLOTS + 12 * k) for k in range(count)]
+
+
+def enemy_ailments(b):
+    """{ailment label: chance in %} of an enemy attack, or None when the data cannot be stated plainly
+    (the same ailment twice, or a chance outside 0-100%)."""
+    found = {}
+    for effect_id, value, _ in enemy_attack_slots(b):
+        if effect_id not in AILMENT_NAMES:
+            continue
+        pct = round(value * 100, 1)
+        if AILMENT_NAMES[effect_id] in found or not 0 < pct <= 100:
+            return None
+        found[AILMENT_NAMES[effect_id]] = pct
+    return found
+
+
+def enemy_ailment_tokens(b):
+    """['Poison: 30%', 'Freeze/Silence: 20%']: ailments in slot order, grouped when the chance is the same."""
+    found = enemy_ailments(b)
+    groups = {}
+    for label, pct in (found or {}).items():
+        groups.setdefault(pct, []).append(label)
+    return [f"{'/'.join(labels)}: {pct:g}%" for pct, labels in groups.items()]
+
+
+def check_enemy_attack_text(b, text, vanilla_text):
+    """The prose must be the vanilla prose; line 1 may only gain the ailment chances stored in the entry.
+    Returns (problems, verified claims)."""
+    lines, vanilla_lines = text.split('\n'), vanilla_text.split('\n')
+    if lines[1:] != vanilla_lines[1:]:
+        return [f"'{text}': the prose differs from the original"], 0
+    if lines[0] == vanilla_lines[0]:
+        return [], 0
+    if not vanilla_lines[0].startswith(ENEMY_DATA_LINE) or not lines[0].startswith(vanilla_lines[0] + ' / '):
+        return [f"'{lines[0]}': line 1 may only add data after the original data line"], 0
+    stated = {}
+    for token in lines[0][len(vanilla_lines[0]) + 3:].split(' / '):
+        m = ENEMY_TOKEN_RE.match(token)
+        if not m or any(label not in AILMENT_LABELS for label in m.group('labels').split('/')):
+            return [f"'{token}': not a known 'Ailment: N%' token"], 0
+        for label in m.group('labels').split('/'):
+            stated[label] = float(m.group('pct'))
+    if stated != enemy_ailments(b):
+        return [f"'{lines[0]}' does not match the binary ({enemy_ailments(b)})"], 0
+    return [], len(stated)

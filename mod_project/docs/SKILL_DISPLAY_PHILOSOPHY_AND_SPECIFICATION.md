@@ -171,3 +171,19 @@ ATK: +3% (L1) -> +5% -> +7% -> +9% -> +11% -> +12% -> +13% -> +14% -> +15% (L10)
    * Binary parameters (struct arrays for TP, power, chant delay) must be modified in the `.pck` files first.
    * Tooltip descriptions must then be generated to reflect the exact newly patched binary numbers.
    * No mechanical claims may ever be published without matching executable/binary code backing them up.
+
+---
+
+## 7. Amendment of 2026-10-04: line 1 in battle
+
+Decided by the user after seeing the battle bar, which shows line 1 alone and without the skill level. It replaces "Line 1 untouched" for techniques and spells; everything else in this document stands.
+
+1. Line 1 keeps the game's sentence and gains only the main points:
+   * **Damage as one word**, placed inside the sentence ("Deal minor bash damage to one enemy"): Negligible (only below 80%), Minor, Moderate, Major, Severe. The word is chosen by the average of the real values over the levels. Magic uses the same words. A value beyond the scale is an exception and gets its own word (the game's "tremendous").
+   * **Ailment chance as a figure**: the value itself when it never changes ("May stun (25%)"), the starting value and a plus when it changes little ("May stun (30%+)"), first and last level when it changes more ("May poison (20-50%)"). The tilde of "~30%+" is not available in the game font.
+2. No other figure goes in line 1: the level is not visible in battle, so a per-level list cannot be read there.
+3. When the exact value is shown, the vague word next to it is removed ("(medium) (+250 HP)" is wrong; "(+250)" is right).
+4. The words of the game are kept (Enmity, resistance); no concept is renamed.
+5. Everything a screen shows must give the precise data, without removing the jokes or the in-game prose.
+
+Bounds of the scale and the rules of placement: `tools/magnitude_words.py` and section 6.2 of `dungeontravelers2-2.md`.

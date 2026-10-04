@@ -5,7 +5,7 @@ Mod project for *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginni
 - **QoL**: shows more information about the base game and changes no value.
 - **Balance**: rebalances the game and shows the information of the rebalanced game. Not defined yet.
 
-Start with `docs/philosophy.md` (why) and `docs/dungeontravelers2-2.md` (what was done, formats, style guide, what is left).
+Start with `docs/philosophy.md` (why), `docs/dungeontravelers2-2.md` (what was done, formats, style guide) and `docs/QOL_ROADMAP.md` (every pack with its state, and what is left before QoL is finished).
 
 ---
 
@@ -20,6 +20,7 @@ DungeonTraveler2-2/
 │   │   ├── qol_skill_text.xlsx            QoL skill text, edited by hand
 │   │   ├── qol_enchant_text.xlsx          QoL enchant names, edited by hand
 │   │   ├── qol_item_text.xlsx             QoL item descriptions, edited by hand
+│   │   ├── qol_enemy_attack_text.xlsx     QoL enemy attack text, edited by hand
 │   │   └── *.xlsx                         tables of the earlier mixed build
 │   ├── build/<variant>/         build output, not versioned
 │   ├── tools/
@@ -30,6 +31,8 @@ DungeonTraveler2-2/
 │   │   ├── enchant_values.py              enchant figures and the guide each comes from
 │   │   ├── generate_qol_enchant_text.py   proposes the QoL enchant names
 │   │   ├── generate_qol_item_text.py      proposes the QoL item descriptions
+│   │   ├── generate_qol_enemy_attack_text.py   ailment chances on the data line of enemy attacks
+│   │   ├── magnitude_words.py             line 1 of a skill: damage word and ailment chance
 │   │   ├── weapon_rank_labels.py          rank names generated from their delay multiplier
 │   │   ├── install_variant.py             puts a built variant into the game, saving what it replaces
 │   │   ├── build_variant.py               builds and verifies a variant
@@ -59,6 +62,10 @@ python mod_project/tools/generate_qol_enchant_text.py
 
 ```bash
 python mod_project/tools/generate_qol_item_text.py
+```
+
+```bash
+python mod_project/tools/generate_qol_enemy_attack_text.py
 ```
 
 ```bash

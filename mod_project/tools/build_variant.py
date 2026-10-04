@@ -14,6 +14,7 @@ Variants
           the four skill PCKs      from data_tables/qol_skill_text.xlsx
           EnchantData.pck          from data_tables/qol_enchant_text.xlsx (enchant names with their figure)
           ItemData.pck             from data_tables/qol_item_text.xlsx (exact amount in place of a vague size)
+          EnemyAttackData.pck      from data_tables/qol_enemy_attack_text.xlsx (ailment chances on the data line)
           WeaponRankData.pck       rank names generated from the delay multiplier of each rank
 
 The build fails (exit code 1) when
@@ -21,8 +22,11 @@ The build fails (exit code 1) when
   * the text table was generated from other backups than the ones being built,
   * any numeric field of a built entry differs from the original (QoL rule),
   * a built text differs from the table, breaks the box limits,
-  * a figure shown in a skill or item text differs from the value stored in the built binary
-    (tools/text_checks.py),
+  * a figure shown in a skill, item or enemy attack text differs from the value stored in the built
+    binary (tools/text_checks.py),
+  * a magnitude word in line 1 of a skill is not the one the averages of the binary give
+    (tools/magnitude_words.py),
+  * the prose of an enemy attack differs from the original,
   * an enchant name shows a figure that neither a trusted guide nor a hand edit accounts for
     (the binary holds no enchant magnitudes: tools/enchant_values.py), or
   * a weapon rank label differs from the multiplier stored in the same entry.
@@ -34,9 +38,10 @@ import struct
 import argparse
 import collections
 import openpyxl
-from pck_handler import PckArchive, SkillHelper, EnchantHelper, WeaponRankHelper, ItemHelper
+from pck_handler import PckArchive, SkillHelper, EnchantHelper, WeaponRankHelper, ItemHelper, EnemyAttackHelper
 from extract_vanilla import SKILL_LAYOUTS
-from text_checks import check_skill_text, check_item_text
+from text_checks import check_skill_text, check_item_text, check_enemy_attack_text, skill_tables
+import magnitude_words
 import enchant_values
 import weapon_rank_labels
 import install_variant
@@ -66,10 +71,14 @@ RANK_PCK = 'WeaponRankData.pck'
 ITEM_PCK = 'ItemData.pck'
 ITEM_HEADER = 0x70
 ITEM_POINTERS = (8, 16, 0x60)
+ENEMY_PCK = 'EnemyAttackData.pck'
+ENEMY_HEADER = 0xA0
+ENEMY_POINTERS = (8, 16, 24, 32)
 
 VARIANTS = {
     'qol': {'skill_text': 'qol_skill_text.xlsx', 'enchant_text': 'qol_enchant_text.xlsx',
-            'item_text': 'qol_item_text.xlsx', 'numeric_changes_allowed': False},
+            'item_text': 'qol_item_text.xlsx', 'enemy_attack_text': 'qol_enemy_attack_text.xlsx',
+            'numeric_changes_allowed': False},
 }
 
 
@@ -127,6 +136,15 @@ def load_item_text(path):
             for r in ws.iter_rows(min_row=2, values_only=True)}
 
 
+def load_enemy_attack_text(path):
+    """The hand-editable enemy attack table: the build uses exactly what its QoL_Desc column says."""
+    ws = openpyxl.load_workbook(path)['EnemyAttacks']
+    header = [c.value for c in ws[1]]
+    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
+    return {r[col['Filename']]: {'vanilla_desc': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
+            for r in ws.iter_rows(min_row=2, values_only=True)}
+
+
 def read_archive(pck):
     path = os.path.join(BACKUP_DIR, pck)
     with open(path, 'rb') as f:
@@ -140,7 +158,9 @@ def self_test_writers(problems):
     checked = 0
     for pck, rewrite in ((ENCHANT_PCK, lambda b: EnchantHelper.write_enchant(b, EnchantHelper.read_enchant(b)['name'])),
                          (RANK_PCK, lambda b: WeaponRankHelper.write_rank(b, WeaponRankHelper.read_rank(b)['name'])),
-                         (ITEM_PCK, lambda b: ItemHelper.write_item(b, ItemHelper.read_item(b)['desc']))):
+                         (ITEM_PCK, lambda b: ItemHelper.write_item(b, ItemHelper.read_item(b)['desc'])),
+                         (ENEMY_PCK, lambda b: EnemyAttackHelper.write_enemy_attack(
+                             b, EnemyAttackHelper.read_enemy_attack(b)['desc']))):
         archive, raw = read_archive(pck)
         if archive.build() != raw:
             problems.append(f"{pck}: rebuilding the untouched archive does not reproduce the original file")
@@ -230,6 +250,27 @@ def build_items(out_dir, table, problems):
     return stats
 
 
+def build_enemy_attacks(out_dir, table, problems):
+    stats = collections.Counter()
+    archive = PckArchive(os.path.join(BACKUP_DIR, ENEMY_PCK))
+    for i, (fn, b) in enumerate(archive.files):
+        row = table.get(fn)
+        if row is None:
+            problems.append(f"{ENEMY_PCK}/{fn}: no row in the enemy attack table")
+            continue
+        desc = EnemyAttackHelper.read_enemy_attack(b)['desc']
+        if row['vanilla_desc'] != desc:
+            problems.append(f"{ENEMY_PCK}/{fn}: enemy attack table is stale (its vanilla text is not the one in the backup)")
+            continue
+        if row['desc'] == desc:
+            stats['kept'] += 1
+            continue
+        archive.files[i] = (fn, EnemyAttackHelper.write_enemy_attack(b, row['desc']))
+        stats['rewritten'] += 1
+    archive.save(os.path.join(out_dir, ENEMY_PCK))
+    return stats
+
+
 def build_weapon_ranks(out_dir):
     """Rank names are generated from the multiplier of each entry; the multipliers are not touched."""
     archive = PckArchive(os.path.join(BACKUP_DIR, RANK_PCK))
@@ -265,6 +306,18 @@ def verify_skills(out_dir, table, variant, problems):
                 problems.append(f"{label}: built text differs from the text table")
             if (row['desc'], row['lvup']) == (row['vanilla_desc'], row['vanilla_lvup']) and bytes(new) != bytes(old):
                 problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
+
+            # Line 1 is what the battle bar shows, without the level: no new figures, and only the
+            # magnitude words the binary gives.
+            if category in ('Technique', 'Magic'):
+                if desc != row['vanilla_desc']:
+                    if len(desc) > MAX_LINE or desc.count('\n') != row['vanilla_desc'].count('\n'):
+                        problems.append(f"{label}: line 1 must keep its line count and stay within {MAX_LINE} chars")
+                    if sorted(re.findall(r'\d+', magnitude_words.strip_chances(desc))) != sorted(re.findall(r'\d+', row['vanilla_desc'])):
+                        problems.append(f"{label}: line 1 carries a figure the vanilla sentence does not have")
+                found, verified = magnitude_words.check_line1(desc, row['vanilla_desc'], skill_tables(category, new)['slots'])
+                problems.extend(f"{label}: {p}" for p in found)
+                counts['words'] += verified
 
             lines = desc.split('\n') + (lvup.split('\n') if lvup else [])
             if (desc, lvup) != (row['vanilla_desc'], row['vanilla_lvup']):
@@ -358,6 +411,37 @@ def verify_items(out_dir, table, variant, problems):
     return counts
 
 
+def verify_enemy_attacks(out_dir, table, variant, problems):
+    counts = collections.Counter()
+    original = PckArchive(os.path.join(BACKUP_DIR, ENEMY_PCK)).files
+    built = PckArchive(os.path.join(out_dir, ENEMY_PCK)).files
+    if [fn for fn, _ in built] != [fn for fn, _ in original]:
+        problems.append(f"{ENEMY_PCK}: entry list differs from the original")
+        return counts
+    for (fn, old), (_, new) in zip(original, built):
+        row, was, now = table[fn], EnemyAttackHelper.read_enemy_attack(old), EnemyAttackHelper.read_enemy_attack(new)
+        label = f"{ENEMY_PCK}/{fn} ({was['name']})"
+        counts['entries'] += 1
+        if not variant['numeric_changes_allowed'] and \
+                numeric_part(new, ENEMY_HEADER, ENEMY_POINTERS) != numeric_part(old, ENEMY_HEADER, ENEMY_POINTERS):
+            problems.append(f"{label}: numeric data differs from the original")
+        if bytes(new[ENEMY_HEADER:now['p3']]) != bytes(old[ENEMY_HEADER:was['p3']]):
+            problems.append(f"{label}: a name string changed")
+        if now['desc'] != row['desc']:
+            problems.append(f"{label}: built text differs from the enemy attack table")
+        if now['desc'] == was['desc']:
+            if bytes(new) != bytes(old):
+                problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
+            continue
+        counts['modified'] += 1
+        if len(now['desc'].split('\n')[0]) > MAX_LINE or '~' in now['desc']:
+            problems.append(f"{label}: data line longer than {MAX_LINE} chars, or a tilde")
+        found, verified = check_enemy_attack_text(new, now['desc'], was['desc'])
+        problems.extend(f"{label}: {p}" for p in found)
+        counts['numbers'] += verified
+    return counts
+
+
 def verify_weapon_ranks(out_dir, variant, problems):
     original = PckArchive(os.path.join(BACKUP_DIR, RANK_PCK)).files
     archive = PckArchive(os.path.join(out_dir, RANK_PCK))
@@ -385,11 +469,13 @@ def main():
     table_path = os.path.join(TABLES_DIR, variant['skill_text'])
     enchant_path = os.path.join(TABLES_DIR, variant['enchant_text'])
     item_path = os.path.join(TABLES_DIR, variant['item_text'])
-    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, RANK_PCK]
+    enemy_path = os.path.join(TABLES_DIR, variant['enemy_attack_text'])
+    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, RANK_PCK]
 
     print(f"=== Building variant '{args.variant}' ===")
     for path, generator in ((table_path, 'generate_qol_skill_text.py'), (enchant_path, 'generate_qol_enchant_text.py'),
-                            (item_path, 'generate_qol_item_text.py')):
+                            (item_path, 'generate_qol_item_text.py'),
+                            (enemy_path, 'generate_qol_enemy_attack_text.py')):
         if not os.path.exists(path):
             print(f"Error: {path} not found. Run tools/{generator} first.")
             sys.exit(1)
@@ -402,6 +488,7 @@ def main():
         print("    Writers are not exact; nothing was built.")
     else:
         table, enchants, items = load_skill_text(table_path), load_enchant_text(enchant_path), load_item_text(item_path)
+        enemy_attacks = load_enemy_attack_text(enemy_path)
         stats = build_skills(out_dir, table, problems)
         print(f"[2] Built {len(SKILL_PCKS)} skill PCKs: {stats['rewritten']} entries with new text, "
               f"{stats['kept']} kept byte-identical")
@@ -409,6 +496,8 @@ def main():
         print(f"    Built {ENCHANT_PCK}: {stats['rewritten']} names with their figure, {stats['kept']} kept byte-identical")
         stats = build_items(out_dir, items, problems)
         print(f"    Built {ITEM_PCK}: {stats['rewritten']} descriptions with an exact amount, {stats['kept']} kept byte-identical")
+        stats = build_enemy_attacks(out_dir, enemy_attacks, problems)
+        print(f"    Built {ENEMY_PCK}: {stats['rewritten']} data lines with ailment chances, {stats['kept']} kept byte-identical")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:
@@ -417,6 +506,7 @@ def main():
             print(f"    numeric data identical to the original in all of them")
             print(f"    {counts['modified']} modified boxes within {MAX_BOX_LINES} lines / {MAX_LINE} chars")
             print(f"    {counts['numbers']} figures in the text checked against the built binary")
+            print(f"    {counts['words']} damage words and ailment chances in line 1 checked against the built binary")
             if untraced:
                 print(f"    {len(untraced)} figure(s) could not be tied to a table (hand-written notes, not checked):")
                 for line in untraced[:20]:
@@ -428,6 +518,9 @@ def main():
             counts = verify_items(out_dir, items, variant, problems)
             print(f"    Verified {counts['entries']} items: values and names identical to the original;")
             print(f"    {counts['numbers']} amounts in the text checked against the built binary")
+            counts = verify_enemy_attacks(out_dir, enemy_attacks, variant, problems)
+            print(f"    Verified {counts['entries']} enemy attacks: values, names and prose identical to the original;")
+            print(f"    {counts['numbers']} ailment chances on the data line checked against the built binary")
             labels = verify_weapon_ranks(out_dir, variant, problems)
             print(f"    Verified {len(labels)} weapon ranks: multipliers identical to the original, "
                   f"each label shows its own multiplier")

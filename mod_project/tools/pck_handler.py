@@ -565,7 +565,7 @@ class EnemyAttackHelper:
         res.extend(s2_bytes)
         res.extend(new_desc_bytes)
         
-        pad_end = (16 - (len(res) % 16)) % 16
+        pad_end = (8 - (len(res) % 8)) % 8   # every string is padded to 8 bytes, the last one too
         res.extend(b'\x00' * pad_end)
         return bytes(res)
 

@@ -12,7 +12,9 @@ Workbook: mod_project/data_tables/qol_skill_text.xlsx
     edited rows are checked against the binary by the build and by the tests.
 
 Style: docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md (the user's standard)
-  Line 1  vanilla description, untouched
+  Line 1  vanilla description; techniques and spells get a damage word and the ailment chance in it
+          and nothing else ("Deal minor bash damage to one enemy. May stun (30%+)."), because this
+          is the one line shown in battle, where the level is unknown (tools/magnitude_words.py)
   Line 2  what the skill does, level by level:  ATK: 125% -> 134 -> 143 -> ... -> 200%
   Line 3  what it costs:                        Turns | TP Cost | Speed
   Allowed forms only: one value per level; base + exact step for a linear table
@@ -27,6 +29,7 @@ import collections
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
+import magnitude_words
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
@@ -39,7 +42,7 @@ MAX_BOX_LINES = 3    # description + level-up lines
 SEP = ' | '
 HEADERS = ['Category', 'Filename', 'Skill_Name', 'Levels', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp',
            'Edited', 'Coverage', 'Phrases_Kept_As_Vanilla', 'Tables_Not_Shown', 'Not_Level_By_Level', 'Left_Out',
-           'Previous_Mod_Desc', 'Previous_Mod_LvUp']
+           'Previous_Mod_Desc', 'Previous_Mod_LvUp', 'Line1_Notes']
 
 # Effect ids whose meaning is established (see the Effects sheet of the source of truth).
 POWER_PHYS = 26      # damage = 100% + value
@@ -538,6 +541,14 @@ def generate_skill(skill):
     return row
 
 
+def generate_line1(skill, row):
+    """Line 1 of a technique or spell with its magnitude words. Returns (text, notes)."""
+    if skill['category'] not in ('Technique', 'Magic') or row['coverage'] == 'Skipped (internal)':
+        return skill['desc'], []
+    slots = [(s['id'], s['tail'], s['values']) for s in skill['slots']]
+    return magnitude_words.propose(skill['desc'], slots, MAX_LINE)
+
+
 def generate_unique(unique):
     values = unique['values']
     style = 'pct' if is_fraction(values) else 'num'
@@ -596,14 +607,16 @@ def main():
     previous, edited = load_previous_mod(), load_edited_rows()
 
     problems, rows = [], []
-    coverage = collections.Counter()
+    coverage, line1 = collections.Counter(), collections.Counter()
     for skill in skills:
         key = (skill['category'], skill['fn'])
         row = generate_skill(skill)
-        desc, lvup, flag = skill['desc'], row['lvup'], ''
+        lvup, flag = row['lvup'], ''
+        desc, line1_notes = generate_line1(skill, row)
         if key in edited:
             desc, lvup = edited[key]
-            flag, row['coverage'] = 'yes', 'Edited by hand'
+            flag, row['coverage'], line1_notes = 'yes', 'Edited by hand', []
+        line1[('changed' if desc != skill['desc'] else 'noted' if line1_notes else 'vanilla')] += 1
         coverage[(skill['category'], row['coverage'])] += 1
         if row['coverage'].startswith('ERROR'):
             problems.append(f"{skill['name']}: proposed text does not fit in {MAX_BOX_LINES} lines")
@@ -611,7 +624,8 @@ def main():
         prev = previous.get(key, ('', ''))
         rows.append([skill['category'], skill['fn'], skill['name'], skill['levels'], skill['desc'], skill['lvup'],
                      desc, lvup, flag, row['coverage'], '; '.join(row['unresolved']), ', '.join(row['hidden']),
-                     ', '.join(row['shortened']), ', '.join(row['left_out']), prev[0], prev[1]])
+                     ', '.join(row['shortened']), ', '.join(row['left_out']), prev[0], prev[1],
+                     '; '.join(line1_notes)])
     for unique in uniques:
         key = ('Unique', unique['fn'])
         desc = generate_unique(unique)
@@ -622,7 +636,7 @@ def main():
         check_box(unique['name'], unique['desc'], desc, '', problems)
         prev = previous.get(key, ('', ''))
         rows.append(['Unique', unique['fn'], unique['name'], 10, unique['desc'], '', desc, '', flag, kind, '', '',
-                     '', '', prev[0], prev[1]])
+                     '', '', prev[0], prev[1], ''])
 
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
@@ -637,6 +651,11 @@ def main():
         ['Numbers', 'Checked against the binary by build_variant.py and the tests: a wrong figure stops the build.'],
         ['Limits', f'{MAX_BOX_LINES} lines per box (description included), {MAX_LINE} characters per line, no tilde.'],
         ['Standard', 'docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md. Line 1 vanilla, line 2 effect, line 3 costs.'],
+        ['Line 1', 'The line shown in battle, where the level is unknown. One word for damage, chosen from the average of '
+                   'the real values (negligible below 80%, minor, moderate, major, severe; tremendous beyond the scale), '
+                   'and the ailment chance as (25%) when it never changes, (30%+) when it rises by 10 points or less, '
+                   '(20-50%) otherwise. No tilde: the game font has none. The build rejects what the binary does not give.'],
+        ['Line1_Notes', 'Why a skill got no word: it carries an effect that is not understood, or the sentence would not fit.'],
         ['Notation', 'ATK: 125% -> 134 -> ... -> 200%  |  ATK: 130% (+8%/Lv) -> 202% (L10 Max)  |  Speed: 0.8x -> 0.9x'],
         ['Never', 'Averages such as "(avg +3.33%/Lv)". A step is written only when it is the same at every level.'],
         ['Previous_Mod_*', 'Wording of the earlier mod, for reference only. Its numbers were not taken from the binary.'],
@@ -646,6 +665,7 @@ def main():
     print(f"    {'Coverage':<22}" + ''.join(f'{c:>11}' for c in cats))
     for k in kinds:
         print(f"    {k:<22}" + ''.join(f'{coverage[(c, k)]:>11}' for c in cats))
+    print(f"    Line 1: {line1['changed']} sentences with a magnitude word, {line1['noted']} left vanilla with a note")
     print(f"Saved: {OUTPUT_PATH}")
 
     if problems:
