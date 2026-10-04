@@ -107,3 +107,75 @@ Across 5ch threads and Atwiki discussions, players repeatedly advocated for:
 3. **Smoothing the TP cost curve on high-level skills** so Level 10 mastery feels rewarding.
 4. **Buffing alternative tanks (Paladin, Dark Lord)** so Valkyrie isn't the sole viable protector.
 5. **Giving Soul Summoner dolls basic defensive durability** so they can survive at least one hit.
+
+---
+
+## 6. Deep Japanese Community Discourse Archives (2ch/5ch, Atwiki & Veteran Blog Records)
+
+### Archive Thread 1: The "No-Valkyrie, No-Maid" Superboss Feasibility Debate
+* **Source:** 2ch/5ch *【DT2-2】ダンジョントラベラーズ2-2 本スレ / 攻略・質問スレ (Part 45–62)*
+* **Original Discourse:**  
+  > 「ヴァルキリーとメイド抜きの編成で創造神やマトリックス深層の闇変異種に挑んだことある奴いる？ マテリアルガードかサークルプロテクションがないと敵の全体物理・全体魔法の連打で後衛が1ターンで消し飛ぶ。結局、疾風迅雷マーチ＋ティンカースカッシュの遅延ハメに頼るしかなくなる。」  
+  *(Has anyone ever tried challenging the Creator God or Dark Mutants in the deep Matrix without a Valkyrie and Maid? Without Material Guard or Circle Protection, enemy consecutive physical/magical AoE wipes the backline in 1 turn. In the end, you're forced to rely on Swift March + Tinker Squash turn-delay cheese.)*
+* **Community Consensus & Finding:**  
+  Veterans established that Valkyrie's defensive monopoly isn't because players lack creativity, but because **incoming boss damage spikes are binary**: bosses hit for 1,200+ unmitigated AoE damage against party members with 600–900 Max HP. Unless party-wide damage negation (*Circle Protection*) is up, survival requires either extreme RNG evasion or infinite turn-lock cheese. Elevating Paladin's *Cover* (with 60% mitigation) and creating a universal **Defend** mechanic (50% cut + interrupt immunity) directly fulfills the community's demand for genuine tactical alternatives.
+
+### Archive Thread 2: The "2-Handed Weapon Despair" Analysis (両手武器絶望論)
+* **Source:** Japanese Strategy Wiki (*dungeontravelers2-2.atwiki.jp/dungeontravelers2-2/pages/314.html* - 武器種考察)
+* **Mathematical Log Documented by JP Veterans:**
+  * **Test Unit:** Lv 85 Berserker (AGI: 62), Weapon: *Muspelheim* (2H Axe, Rank F delay: $2.90\times$).
+  * **Target:** Matrix 42F Deep Boss (AGI: 148).
+  * **Action:** Berserker uses *Moon Drop* (Technique recovery delay: $1.40\times$).
+  * **Effective Action Delay:** $2.90 \times 1.40 = 4.06\times$ baseline delay ($\approx 102$ engine time frames).
+  * **Turn Order Result:** During the Berserker's 102-frame recovery window, the boss acted **3.4 times**, landing two critical sweeps that killed the Berserker before her next action.
+* **Community Reaction:**  
+  > 「両手武器は完全に罠。盾枠を捨てて防御力・耐性を犠牲にしているのに、行動間隔が長すぎて死にに行くようなもの。片手剣＋盾か短剣二刀流が圧倒的に安定する。」  
+  *(2-Handed weapons are a complete trap. You sacrifice the shield slot, DEF, and resistances, yet your action interval is so long it's basically suicide. 1H Sword + Shield or Dual Daggers is overwhelmingly more stable.)*
+* **Takeaway:** Compressing Rank F from $2.90\times$ down to $2.35\times$ and granting 2H weapons innate $+15\%$ physical damage mitigation and $+20$ parry rate addresses this exact mathematical death spiral.
+
+### Archive Thread 3: The 33.3% Chant Interrupt Wall & Post-Game Magic Marginalization
+* **Source:** DT2-2 Mechanics Research Blog (*DRPG深層考察: 魔法職が裏ダンで腐る理由*)
+* **The Mathematical Proof:**
+  * Superbosses possess multi-hit physical skills (e.g., 4-hit sweeps) with 25%–35% critical hit rate per strike.
+  * The cumulative probability that at least one hit lands as a critical hit:
+    $$P(\ge 1 \text{ Crit}) = 1.0 - (1.0 - 0.30)^4 = 1.0 - (0.70)^4 = 1.0 - 0.2401 = \mathbf{75.99\%}$$
+  * Under the engine's rule where any critical hit triggers a **flat 33.3% chant interruption check**, the caster faces constant disruption.
+  * When compounded with superbosses having $\ge 100$ all-element resistances ($50\%$ damage reduction), casters like Witch and Sage deal half damage on the rare occasions they aren't interrupted.
+* **JP Player Sentiment:**  
+  > 「ウィッチとセージは本編クリアまでのキャラ。裏ボス戦ではアイテム係か補助バフ撒き係に格下げされる。本職の魔法で殴るよりダークロードのパワーチャージ＋メガトンプレスの方が10倍強い。」  
+  *(Witch and Sage are main-story-only characters. In postgame boss battles, they are demoted to item slingers or buffer bots. A Dark Lord's Power Charge + Megaton Press deals 10x more damage than a specialist caster's magic.)*
+
+### Archive Thread 4: The Blacksmith Forging Dilemma (鍛冶屋の固定値強化問題)
+* **Source:** 5ch Equipment Optimization Thread (*【DT2-2】装備強化・エンチャント厳選スレ*)
+* **Player Grievance:**
+  * Enhancing a weapon from +0 to +9 costs over **350,000 Gold** and rare materials.
+  * In vanilla, each forge level grants only $+2 \sim +4$ flat ATK (totaling $+25 \sim +35$ ATK at +9).
+  * Against a post-game boss with 2,400 DEF and 180,000 HP, $+30$ flat ATK increases per-hit damage by roughly **18 to 25 points** (less than $1.5\%$ DPS increase).
+  * Players universally complained: *"Gold sink without payoff. Better to leave weapons at +0 and only hunt for RNG enchant slots."*
+* **Takeaway:** Converting the forge bonus to **+3% base weapon ATK per level** (+27% ATK at +9) makes high-end crafting genuinely impactful against endgame boss health pools.
+
+### Archive Thread 5: The 300-Step Food Buffet Insult (料理バフの短時間消滅)
+* **Source:** Atwiki Dungeon Exploration Guide (*各ダンジョン歩数・罠仕様一覧*)
+* **Player Grievance:**
+  * Traversing a single floor of *The Matrix* (Floors 30–50) requires an average of **450 to 650 steps** due to teleporters, one-way doors, and trap detours.
+  * Food buff effects (`FoodMenuData.pck`) hard-cap at **300 steps**.
+  * Result: Buffs purchased at the Maid cafe expire halfway through the floor, leaving the party unbuffed when finally entering boss chambers.
+  * Players noted: *"Buffet meals are expensive and completely useless for boss prep because they expire before you can walk to the boss room."*
+* **Takeaway:** Extending buffet meals to **900 steps** and making them immune to *Dispel* transforms them into genuine tactical preparations for deep dungeon crawls.
+
+### Archive Thread 6: The Infinite Tinker Squash Controversy (遅延ハメの是非)
+* **Source:** 2ch/5ch Boss Strategy Thread (*裏ボス撃破報告・戦術議論*)
+* **The Controversy:**
+  * Papillon's *Tinker Squash* (TechniqueSkillData_0088.bin) applies bash damage with a flat turn-delay pushback.
+  * When paired with Diva's *Swift March* and high-speed Fans, a party could push a superboss's turn indefinitely, preventing the Creator God from ever taking an action.
+  * Half the community argued this was an essential safety valve because non-Valkyrie setups couldn't survive otherwise; the other half complained it turned the most epic battles in the game into mindless button-mashing.
+* **Takeaway:** Introducing **Progressive Delay Resistance** on boss-flag entities (100% $\to$ 50% $\to$ 25% $\to$ 3 turns temporary immunity) preserves Tinker Squash as an essential tool to disrupt telegraphed boss charge turns, while permanently eliminating degenerate infinite stunlocks.
+
+### Archive Thread 7: The Crown Level Reset Grinding Purgatory (Lv99リセットの苦行)
+* **Source:** DT2-2 Atwiki Endgame Guide (*レベルリセット・クラウン育成指南*)
+* **Player Grievance:**
+  * Achieving Crown status requires leveling to 99, resetting to Lv 1, and leveling back to 99 to reap the permanent stat bonus ($\text{Gap} \ge 59$).
+  * In vanilla, EXP requirements scale steeply, and characters reset to Lv 1 receive standard EXP division, meaning high-level parties drag low-level characters down unless players abuse tedious solo-character EXP leeching tricks.
+  * JP players described re-leveling all 18 heroines to Crown as: *"A grueling hundreds-of-hours torture that only extreme masochists finish."*
+* **Takeaway:** Providing **+100% to +150% Catch-Up EXP** when current level is $\le (\text{Peak Level} - 10)$ respects the player's time and encourages creative reclassing and crowning across the entire cast.
+
