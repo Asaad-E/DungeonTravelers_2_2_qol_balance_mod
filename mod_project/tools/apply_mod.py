@@ -443,8 +443,8 @@ def update_teaching():
         ),
         "With these things in mind, you might be able to quickly\nbring characters whose levels you have reset back up to\ntheir former strength.": (
             "Equip Slave's Torc (Double EXP) and Grand Seal Dragon Papi\n"
-            "(+50% Higher-Level EXP) to power-level under the smoothed\n"
-            "-35% Lv 71-99 curve, earning bonus SP in early levels!"
+            "(+50% Higher-Level EXP) to power-level under our smooth\n"
+            "1-hour endgame curve, earning bonus SP in early levels!"
         )
     }
 
@@ -704,7 +704,7 @@ def update_lessons():
         "\"So even though level resetting will lower a character's\nlevel, it won't be long before she catches up to the rest of\nthe party as you go about your adventures.\"": (
             "\"Equip the Slave's Torc training gear (Double EXP) and summon\n"
             "Dragon Papi (+50% higher-level EXP) to catch up smoothly\n"
-            "under our rebalanced -35% Lv 71-99 Crown leveling curve!\""
+            "under our smooth, calibrated 1-hour endgame Crown curve!\""
         )
     }
 
@@ -1045,9 +1045,9 @@ def update_shop_dialogue():
         }
         repl_ss_11 = {
             "If you find your-self run-ning out of TP, then I\nre-com-mend you pur-chase Fair-y Ap-ples! They re-cov-er 50\nTP for the low price of 900 gold.": (
-                "For bud-get ex-pe-di-tions, try Dried Ber-ries (20 TP for 40 G)\n"
-                "or Ba-nan-go Sli-ces (35 TP for 80 G) to sus-tain your loop\n"
-                "with-out emp-ty-ing your wal-let on Fair-y Ap-ples!"
+                "For bud-get ex-pe-di-tions, try Mag-i-cal Fruit (50 TP for 100 G)\n"
+                "or Fair-y Ap-ples (100 TP for 300 G) to sus-tain your loop\n"
+                "with-out run-ning out of re-sour-ces in deep dun-geons!"
             )
         }
         for i, (fn, b) in enumerate(arc_ss.files):
