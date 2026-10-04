@@ -142,6 +142,30 @@ def update_equipment():
     archive.save(target_path)
     print(f"Applied {applied_count} equipment items to: {target_path}")
 
+def update_weapon_ranks():
+    pck_path = os.path.join(BACKUP_DIR, "WeaponRankData.pck")
+    if not os.path.exists(pck_path):
+        print(f"Notice: {pck_path} not found, skipping Weapon Ranks.")
+        return
+        
+    archive = PckArchive(pck_path)
+    # Balanced compressed delay floats:
+    # A+ 1.00, A 1.15, B+ 1.30, B 1.45, C+ 1.60, C 1.75, D+ 1.85, D 1.95, E+ 2.05, E 2.15, F+ 2.25, F 2.35
+    balanced_mults = [1.00, 1.15, 1.30, 1.45, 1.60, 1.75, 1.85, 1.95, 2.05, 2.15, 2.25, 2.35]
+    
+    import struct
+    applied_count = 0
+    for i, (fn, b) in enumerate(archive.files):
+        if i < len(balanced_mults):
+            b_new = bytearray(b)
+            struct.pack_into('<f', b_new, 0x10, balanced_mults[i])
+            archive.files[i] = (fn, bytes(b_new))
+            applied_count += 1
+            
+    target_path = os.path.join(GAME_PARAM_DIR, "WeaponRankData.pck")
+    archive.save(target_path)
+    print(f"Applied {applied_count} Weapon Rank delay adjustments to: {target_path}")
+
 def update_grand_seals():
     excel_path = os.path.join(TABLES_DIR, 'grand_seals.xlsx')
     if not os.path.exists(excel_path):
@@ -288,9 +312,9 @@ def update_teaching():
     # CheatsTeaching_09 (Weapon Speed Ranks) - Exact from WeaponRankData.pck!
     replacements_09 = {
         "Weapon speed ranks range from A, which is the fastest, to F,\nwhich is the slowest.": (
-            "Delay ranks: A+ (1.0x), A (1.2x), B+ (1.4x), B (1.6x), C+ (1.8x),\n"
-            "C (2.0x), D (2.3x), E (2.6x), F (2.9x delay)! Heavy weapons cause\n"
-            "nearly 3x recovery delay. Guarding cuts delay to 0.67x recovery."
+            "Delay ranks: A+ (1.00x), A (1.15x), B+ (1.30x), B (1.45x), C+ (1.60x),\n"
+            "C (1.75x), D (1.95x), E (2.15x), F (2.35x delay)! Heavy delay capped\n"
+            "at 2.35x. Guarding cuts recovery delay down to 0.67x."
         )
     }
 
@@ -388,9 +412,9 @@ def update_teaching():
             "Boost Zones grant +25% to ATK, M.ATK, DEF, or M.DEF."
         ),
         "Boost Zones: There are Attack, Magic, Armor, and Magic\nResist Zones. They enhance Physical Attack, Magic Attack,\nPhysical Defense, and Magic Defense respectively.": (
-            "Dungeon Traps: Damage Floor/Mine: 50% HP; Gas: 33% status;\n"
+            "Dungeon Traps: Damage Floor/Mine: 25% HP; Gas: 33% status;\n"
             "Petrification Gas: 50% party; Dispel Floor: 100% buff wipe;\n"
-            "Killer Floor: 50% death check (blocked by 100 Earth Resist!)."
+            "Killer Floor: 25% death check (blocked by 100 Earth Resist!)."
         )
     }
 
@@ -583,6 +607,38 @@ def update_lessons():
         
     archive = PckArchive(pck_path)
     
+    replacements_04 = {
+        "This information is extremely important during battle, so I\nhighly suggest that you make use of it when battling against\nthreatening enemies.": (
+            "This information is crucial. Remember: heavy weapons like 2H swords\n"
+            "and rifles have delayed turns (capped at 2.35x delay in Rank F)!\n"
+            "Weave in Defend (0.67x delay) to recover your turn order quickly."
+        )
+    }
+
+    replacements_07 = {
+        "Well, that was something of a brief lesson, but let's leave\nit here for today.": (
+            "Remember: mid-range spears and whips ignore penalties from back row,\n"
+            "while bows and magic strike across all rows at 100% full power!\n"
+            "Position your allies carefully, Fried, or expect extra homework."
+        )
+    }
+
+    replacements_08 = {
+        "Precisely. Against certain monsters, raising your\nresistances can be considerably more effective than raising\nyour defense directly.": (
+            "Precisely! Stacking 100 resistance also cuts elemental damage by 50%.\n"
+            "Pair this with Paladin's 60% Cover or Dark Lord's HP leeching,\n"
+            "and your front line will hold fast even against divine spells."
+        )
+    }
+
+    replacements_09 = {
+        "Presents include gold, rare equipment, and even additional\nbag space.": (
+            "Bag space expands by +5 at Ranks 8, 11, 15, and 20! Furthermore,\n"
+            "Rank 16 unlocks The Matrix dungeon. Combine this with the +100%\n"
+            "catch-up EXP boost, and your squad will level up in no time."
+        )
+    }
+
     replacements_10 = {
         "Party skills also grow stronger according to the number of\nawards you amass.": (
             "Party skills scale up to +100% bonus according to the\n"
@@ -601,11 +657,27 @@ def update_lessons():
         )
     }
 
+    replacements_13 = {
+        "Is that right...? There aren't many restaurants around these\nparts, so I've been frequenting it quite often.": (
+            "I visit often! Always eat before exploring: food buffs last 900 steps,\n"
+            "and top ramen bowls grant +10% all stats and elemental guards that\n"
+            "persist across entire floors without being wiped by Dispel traps."
+        )
+    }
+
     replacements_sp01 = {
         "\"Abandon hope and make peace with your fate.\"": (
             "\"Survive superboss wipes by stacking 100+ Elemental Resistance\n"
             "(which cuts damage by 50% and grants 100% ailment immunity!),\n"
             "or use Valkyrie's Circle Protection to nullify physical wipes.\""
+        )
+    }
+
+    replacements_sp02 = {
+        "Dark Aura debuffs enemies' stats when they inflict\nshort-range damage. No monsters are immune to such debuffs,\nso you can even use it in boss battles.": (
+            "Dark Aura debuffs on contact. When bosses enter Enrage at <25% HP,\n"
+            "remember Tinker Squash has diminishing returns, so coordinate your\n"
+            "Joint Skills to execute them swiftly before they overwhelm you!"
         )
     }
 
@@ -619,14 +691,32 @@ def update_lessons():
 
     applied_count = 0
     for i, (fn, b) in enumerate(archive.files):
-        if fn == 'BattleTeacher_10.adv.bin':
+        if fn == 'BattleTeacher_04.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_04))
+            applied_count += 1
+        elif fn == 'BattleTeacher_07.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_07))
+            applied_count += 1
+        elif fn == 'BattleTeacher_08.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_08))
+            applied_count += 1
+        elif fn == 'BattleTeacher_09.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_09))
+            applied_count += 1
+        elif fn == 'BattleTeacher_10.adv.bin':
             archive.files[i] = (fn, update_teaching_script(b, replacements_10))
             applied_count += 1
         elif fn == 'BattleTeacher_11-12.adv.bin':
             archive.files[i] = (fn, update_teaching_script(b, replacements_11))
             applied_count += 1
+        elif fn == 'BattleTeacher_13.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_13))
+            applied_count += 1
         elif fn == 'BattleTeacher_Sp01.adv.bin':
             archive.files[i] = (fn, update_teaching_script(b, replacements_sp01))
+            applied_count += 1
+        elif fn == 'BattleTeacher_Sp02.adv.bin':
+            archive.files[i] = (fn, update_teaching_script(b, replacements_sp02))
             applied_count += 1
         elif fn == 'BattleTeacher_Sp03.adv.bin':
             archive.files[i] = (fn, update_teaching_script(b, replacements_sp03))
@@ -880,6 +970,7 @@ if __name__ == "__main__":
     update_skills()
     update_items()
     update_equipment()
+    update_weapon_ranks()
     update_grand_seals()
     update_joint_skills()
     update_teaching()
