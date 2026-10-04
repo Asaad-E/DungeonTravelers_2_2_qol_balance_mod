@@ -442,9 +442,9 @@ def update_teaching():
             "runs with a high-tier carry are the fastest way to re-level."
         ),
         "With these things in mind, you might be able to quickly\nbring characters whose levels you have reset back up to\ntheir former strength.": (
-            "Equip Slave's Torc (Double EXP) and Grand Seal Dragon Papi\n"
-            "(+50% Higher-Level EXP) to power-level under our smooth\n"
-            "1-hour endgame curve, earning bonus SP in early levels!"
+            "Veterans catch up swiftly with the right training gear:\n"
+            "equip the Slave's Torc to double experience, and invoke\n"
+            "Dragon Papi's aura when facing stronger foes in the labyrinth!"
         )
     }
 
@@ -655,9 +655,9 @@ def update_lessons():
     
     replacements_04 = {
         "This information is extremely important during battle, so I\nhighly suggest that you make use of it when battling against\nthreatening enemies.": (
-            "This information is crucial. Remember: heavy weapons like 2H swords\n"
-            "and rifles have delayed turns (capped at 2.35x delay in Rank F)!\n"
-            "Weave in Defend (0.67x delay) to recover your turn order quickly."
+            "Pay close attention: huge 2H blades and rifles hit hard, but\n"
+            "their heavy delay means enemies will lap you in turns!\n"
+            "Have them Defend to shave that delay and get back in action."
         )
     }
 
@@ -679,9 +679,9 @@ def update_lessons():
 
     replacements_09 = {
         "Presents include gold, rare equipment, and even additional\nbag space.": (
-            "Bag space expands by +10 at Ranks 2 and 8, reaching the 50-slot\n"
-            "maximum early! Rank 16 unlocks The Matrix, and underleveled allies\n"
-            "gain +100% catch-up EXP to power-level smoothly."
+            "Presents include fat bags of gold, rare gear, and bag expansions\n"
+            "at Ranks 2 and 8! Prove yourself all the way to Rank 16, and\n"
+            "the Guild will even grant you entry to the infamous Matrix!"
         )
     }
 
@@ -690,9 +690,10 @@ def update_lessons():
             "Party skills scale up to +100% bonus according to the\n"
             "number of awards you amass (maxed out at 50 awards)."
         ),
-        "I would if I could, but I don't even know what half of them\ndo. You sure I shouldn't just stick to my regular skills?": (
-            "Check the Joint Skill menu: each skill now lists exact\n"
-            "party requirements, Pep costs, and formula breakdown."
+        "\"Try to use one, and you might be surprised.\"": (
+            "\"Don't be lazy, Fried! Check your menu to see who needs\n"
+            "to line up and save your Pep. A proper Joint Skill will turn\n"
+            "the tides faster than any basic trick!\""
         )
     }
 
@@ -702,41 +703,41 @@ def update_lessons():
             "level gap of >=59 grants permanent stats and resists!"
         ),
         "\"So even though level resetting will lower a character's\nlevel, it won't be long before she catches up to the rest of\nthe party as you go about your adventures.\"": (
-            "\"Equip the Slave's Torc training gear (Double EXP) and summon\n"
-            "Dragon Papi (+50% higher-level EXP) to catch up smoothly\n"
-            "under our smooth, calibrated 1-hour endgame Crown curve!\""
+            "\"Just slap a Slave's Torc on her, summon Dragon Papi for extra\n"
+            "juice, and she'll soak up so much EXP she'll catch right back\n"
+            "up to the squad before you can even complain about grinding!\""
         )
     }
 
     replacements_13 = {
         "Is that right...? There aren't many restaurants around these\nparts, so I've been frequenting it quite often.": (
-            "I visit often! Always eat before exploring: food buffs last 900 steps,\n"
-            "and top ramen bowls grant +10% all stats and elemental guards that\n"
-            "persist across entire floors without being wiped by Dispel traps."
+            "I'm a regular! A hearty bowl keeps you buffed for 900 steps,\n"
+            "and top ramen grants +10% stats with elemental guards that\n"
+            "even pesky Dispel traps can't ruin. Delicious and practical!"
         )
     }
 
     replacements_sp01 = {
         "\"Abandon hope and make peace with your fate.\"": (
-            "\"Survive superboss wipes by stacking 100+ Elemental Resistance\n"
+            "\"Don't just lie down and die, Fried! Stack 100+ Elemental Resist\n"
             "(which cuts damage by 50% and grants 100% ailment immunity!),\n"
-            "or use Valkyrie's Circle Protection to nullify physical wipes.\""
+            "or order a Valkyrie to pop Circle Protection on wipe turns!\""
         )
     }
 
     replacements_sp02 = {
         "Dark Aura debuffs enemies' stats when they inflict\nshort-range damage. No monsters are immune to such debuffs,\nso you can even use it in boss battles.": (
-            "Dark Aura debuffs on contact. When bosses enter Enrage at <25% HP,\n"
-            "remember Tinker Squash has diminishing returns, so coordinate your\n"
-            "Joint Skills to execute them swiftly before they overwhelm you!"
+            "Dark Aura debuffs on contact. When bosses get mad at <25% HP,\n"
+            "cheap delay tricks stop working on them, so blast them with\n"
+            "your heaviest Joint Skills before they turn you into paste!"
         )
     }
 
     replacements_sp03 = {
         "\"There's no real necessity to seek so much power... but if it\nstrikes your fancy, why not shoot for the Crown?\"": (
-            "\"A Crown locks your Unique Skill at Level EX (+50% bonus) forever!\n"
-            "Reset with a gap of >=59 (Lv 60->1, 90->30) to earn +1 all stats,\n"
-            "plus cumulative bonus points at gap thresholds 69, 79, 89, and 99.\""
+            "\"Want to turn your favorite girl into a walking calamity?\n"
+            "Earn a Crown by resetting with a 59+ level gap to permanently\n"
+            "boost all her stats and supercharge her unique skill to EX!\""
         )
     }
 
@@ -959,15 +960,16 @@ def update_shop_dialogue():
         arc_sq = PckArchive(sq_path)
         repl_sq = {
             "(Incidentally, quests from below your current rank\nwill still grant their rewards, but no trust points.)": (
-                "(Quests below your rank grant rewards but 0 Trust Points.\n"
-                "Prioritize current quests: Ranks 2 & 8 grant +10 Bag Storage\n"
-                "each (reaching 50 slots early!), and Rank 16 unlocks The Matrix!)"
+                "(Quests below your rank still yield bounties, but no Trust Points.\n"
+                "Take on current assignments: Ranks 2 and 8 award larger bags,\n"
+                "and reaching Rank 16 earns you clearance for The Matrix!)"
             )
         }
         repl_sq_10 = {
             "(If you complete many quests... something good might happen.)": (
-                "(Extermination quests grant Trust Points to raise your rank,\n"
-                "while fetch quests yield rare weapons and heavy gold rewards.)"
+                "(Monster hunts earn Trust Points to advance your Guild standing,\n"
+                "while item delivery requests reward you with fine weapons\n"
+                "and generous pouches of gold.)"
             )
         }
         for i, (fn, b) in enumerate(arc_sq.files):
@@ -985,22 +987,23 @@ def update_shop_dialogue():
         arc_sb = PckArchive(sb_path)
         repl_sb_00 = {
             "(You can enchant up to five times... An item\nwon't be able to handle more than that.)": (
-                "(Equipment holds up to 5 enchant slots, but can be forged\n"
-                "up to +9 level! Each +level boosts base stats and activates\n"
-                "Sealbook enchants. Plan your forge progression well...)"
+                "(I can hammer gear up to +9 to sharpen its bite and guard...\n"
+                "but 5 enchant slots is the limit. Overload it, and it\n"
+                "shatters... So choose your Sealbooks carefully...)"
             )
         }
         repl_sb_10 = {
             "(Furthermore, monsters with Petrification\ncan't be sealed either... That's just how it is.)": (
-                "(Monsters that flee, self-destruct, or suffer Petrification\n"
-                "CANNOT be sealed into Sealbooks! Inflict Paralysis or Sleep\n"
-                "instead to ensure 100% seal chances without risk.)"
+                "(Turn 'em to stone, let 'em blow up, or let 'em run, and you\n"
+                "won't get any Sealbook... Put 'em to Sleep or shock 'em\n"
+                "with Paralysis if you want a clean seal...)"
             )
         }
         repl_sb_11 = {
             "(Grand Sealbooks are outside my expertise,\nand if we tried it blind, anything could happen...)": (
-                "(Grand Sealbooks belong in the Grand Seal slot for party\n"
-                "auras and summons, not for ordinary equipment enchants!)"
+                "(Don't bring Grand Sealbooks to my anvil... Those are for\n"
+                "party auras and battlefield summons. Try hammering one into\n"
+                "armor, and you'll blow my workshop sky-high...)"
             )
         }
         for i, (fn, b) in enumerate(arc_sb.files):
@@ -1020,9 +1023,9 @@ def update_shop_dialogue():
         arc_bar = PckArchive(bar_path)
         repl_bar = {
             "When hiring a merc, you can check their stats and skills,\nbut you obviously can't tell how they're going to behave.": (
-                "Mercenary AI follows fixed class role archetypes:\n"
-                "Paladins prioritize Provoke and Cover, Priests cast\n"
-                "Heal at <50% HP, and Dark Lords spam burst physical skills."
+                "Mercs have their own habits in a brawl: Paladins always rush to\n"
+                "Cover and Provoke, Priests save their heals for critical wounds,\n"
+                "while Dark Lords just unleash pure carnage. Pick the right backup!"
             )
         }
         for i, (fn, b) in enumerate(arc_bar.files):
@@ -1038,9 +1041,9 @@ def update_shop_dialogue():
         arc_ss = PckArchive(ss_path)
         repl_ss_01 = {
             "Do you have Crois-sants and E-mer-gen-cy Ex-its in your\npos-ses-sion? They are es-sen-tial i-tems for rook-ie\nad-ventur-ers.": (
-                "Al-so car-ry Flash-lights! They now il-lu-mi-nate dark zones\n"
-                "for 30 steps (3x lon-ger) to re-veal hid-den walls\n"
-                "and traps with-out wast-ing pre-cious bag space."
+                "Al-so car-ry Flash-lights! They il-lu-mi-nate pitch-black halls\n"
+                "for 30 steps to re-veal hid-den traps and paths\n"
+                "with-out fum-bling in the dark!"
             )
         }
         repl_ss_11 = {
