@@ -30,6 +30,13 @@ VALUE_CAP = 0.92               # 0x44a341
 SPEED_RANDOM = (0.0, 0.01, 0.02, 0.03, 0.04, 0.05)   # 0x449bb1 - 0x449bd4: ((x mod 12) / 2) / 100
 CRIT_DEX = 0.2                 # message 0x653230
 CRIT_LEVEL = 0.5               # message 0x6531b8
+CRIT_UP, CRIT_MINI_UP = 4.0, 2.0                  # 0x44f357, 0x44f3eb   enchantments 45, 46 of the attacker
+CRIT_ENCHANT_MAX, CRIT_ENCHANT_MIN = 50.0, -50.0  # 0x44f41a, 0x44f459
+CRIT_PER_EARLIER_HIT = 5.0     # 0x44f49b   effect 125
+CRIT_MIN, CRIT_MIN_268, CRIT_MAX = 5.0, 20.0, 50.0   # 0x44f4cd, 0x44f4c3, 0x44f4db
+CRIT_FACTOR = 1.25             # 0x44f5a6
+MIN_DAMAGE = 3                 # 0x44cb49   1 or 2 at random on a critical hit (0x44cb3c)
+WARNING_SHOT = 0.3             # 0x44caed   final damage * 3 / 10
 
 
 def clamp(value, low, high):
@@ -95,7 +102,8 @@ def physical_damage(atk, target_def, modifiers=0.0, target_modifiers=0.0, enchan
                     times=1.0, ignore_defence=False, range_factor=1.0, damage_cut=1.0, race=1.0, resistance=0.0,
                     zone=1.0, defending=False, critical=1.0, other=0.0):
     """Damage of one physical hit before the final changes (minimum, fixed damage and the like).
-    range_factor, race, zone and critical are factors the caller supplies: their code is not read yet."""
+    race and zone are factors the caller supplies; critical is CRIT_FACTOR or 1. The floor of a hit that
+    comes out at 0 or less (MIN_DAMAGE) is applied by the caller, since it depends on the roll."""
     defence = 0.0 if ignore_defence else defence_value(target_def, target_modifiers, target_enchant)
     a = attack_value(atk, modifiers, enchant, swing) * times - defence
     b = a * range_factor * max(DAMAGE_CUT_FLOOR, damage_cut)
@@ -132,11 +140,29 @@ def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0):
     return clamp(a - enchant, 0.0, INTERRUPT_MAX)
 
 
-def critical_rate(dex, target_agi, level, target_level, skill=0.0, enchant=0.0, target_enchant=0.0):
-    """Critical rate in percent, as the messages state it (its function is not read yet: no cap applied)."""
+def critical_enchant(up=0, mini_up=0):
+    """Own side: pieces with enchantment 45 and 46. Target's side: pass its pieces of 47 and 48 and negate."""
+    return min(CRIT_ENCHANT_MAX, CRIT_UP * up + CRIT_MINI_UP * mini_up)
+
+
+def critical_rate(dex, target_agi, level, target_level, skill=0.0, enchant=0.0, target_enchant=0.0, earlier_hits=0,
+                  floor_268=False, fixed=None):
+    """Critical rate in percent (0x44f190). enchant: critical_enchant() of the attacker; target_enchant: minus
+    that of the target's pieces of 47 and 48. earlier_hits: only with effect 125. fixed: the value of effect 70,
+    which replaces the rate after its limits."""
+    if fixed is not None:
+        return fixed * 100.0
     a = (dex * CRIT_DEX) / (dex + target_agi) * 100.0
-    b = (level - target_level) * CRIT_LEVEL
-    return (a + b + skill) * (1 + enchant * 0.02) * (1 + target_enchant * 0.02)
+    b = max(0.0, (level - target_level) * CRIT_LEVEL)
+    rate = (a + b + skill) * (1 + min(CRIT_ENCHANT_MAX, enchant) * 0.02) * (1 + max(CRIT_ENCHANT_MIN, target_enchant) * 0.02)
+    rate += CRIT_PER_EARLIER_HIT * earlier_hits
+    return clamp(rate, CRIT_MIN_268 if floor_268 else CRIT_MIN, CRIT_MAX)
+
+
+def expected_critical_factor(rate):
+    """Mean factor on damage of a hit with this critical rate: the roll is an integer below 100 against the rate
+    cut to an integer."""
+    return 1.0 + (CRIT_FACTOR - 1.0) * int(rate) / 100.0
 
 
 # --- range (0x44a7d0, _GetAttackRangeRevision) -----------------------------------------------------

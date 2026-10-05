@@ -111,19 +111,26 @@ final     = damage C * (1 + other bonuses) * critical
 * Read in the code (`0x44d370`): the hit chance is kept between 25 and 95 (`0x44da2b`, `0x44da37`); magic accuracy enchantments count 3 per piece, capped at 50 (`0x44d67b`, `0x44d699`); attack A is `INT * (2 + swing)` (`0x44dc97`); the power of the spell is effect 1; the enchantments that boost the magic of one element add 0.20 per piece (`0x44e070` and the five blocks after it, effects 325 to 329).
 * **[open]** the rest of this function (defence side, the caps of the other enchantments), the zones ("攻撃値Ａ倍率変更": a zone multiplies attack A, before defence, as the guide says).
 
-## 4. Critical hits (`0x44f190`) **[message + code]**
+## 4. Critical hits (`0x44f190`, returns the factor of the hit) **[message + code]**
 
 ```
 value A = (own DEX * 0.2) / (own DEX + target AGI) * 100                              (0x44f1d8 - 0x44f20d)
 value B = (own level - target level) * 0.5, not below 0                               (0x44f250, 0x44f258)
 rate    = (value A + value B + skill) * (1 + own enchantments * 0.02) * (1 + target enchantments * 0.02)
+rate    = rate + 5 * hits already landed by this attack        only with effect 125   (0x44f49b)
+rate    = between 5 and 50; the floor is 20 with a piece of enchantment 268           (0x44f4c3 - 0x44f4ea)
+factor  = 1.25 when a roll below 100 is under the rate (cut to an integer), else 1    (0x44f599 - 0x44f5b2)
 ```
 
 * skill: effects 31 (critical rate of the skill or buff), 32 (the target's vulnerability), 174 and 211, added together.
-* Enchantments: critical rate UP counts 4 per piece and its DOWN version subtracts 4, with the sum capped at 50; the target's side is kept at -50 or above (`0x44f357 - 0x44f459`). Through the factor of 0.02 one piece is worth +8% of the rate.
-* Effect 125 adds 5 per earlier hit of the same attack (`0x44f49b`), the "+5 from the second hit" of the messages.
-* The rate is then limited (constants 5, 20 and 50 at `0x44f4c3 - 0x44f4db`) and overridden by effect 70 (a fixed rate) and effect 110, and rolled out of 100.
-* **[open]** the exact limits, and the multiplier a critical hit applies to damage.
+* Own enchantments: 4 per piece of 45 and 2 per piece of 46, at most 50. Target's: -4 per piece of 47 and -2 per piece
+  of 48, not below -50 (`0x44f325 - 0x44f459`). Through the factor of 0.02 a piece of 45 is worth +8% of the rate.
+* After the limits, effect 70 replaces the rate with its own value (`0x44f4f4`), and effect 110 makes it 100 against
+  a target of race 2 (`0x44f523 - 0x44f58d`; the message calls it a critical hit on beasts).
+* The factor 1.25 is the "critical value" that multiplies basic damage C (section 2.4).
+
+**Minimum damage** (`0x44cb12 - 0x44cb4e`, physical): when the final figure is 0 or less it becomes 3, or 1 or 2 at
+random when the hit was critical. Warning Shot (flag 0x105 of the attacker) first cuts the final figure to 3/10.
 
 ## 5. Order of turns (`0x4499d0`, `Battle::CBattle::_SetTime`, "行動時間の計算") **[message + code, checked]**
 
@@ -198,8 +205,8 @@ The messages also name every chance roll of a passive or unique skill as it is r
 
 1. In `_SetTime`: which of `F1`, `F2` is the skill speed.
 2. The magic function, instruction by instruction.
-3. Critical: function, multiplier, the "1 in 3" interruption.
-4. Range factor `0x44fbb0`; the guaranteed minimum.
+3. The "1 in 3" interruption of a chant by a critical hit; the minimum of a spell.
+4. Zone factor `0x44fbb0`, case by case.
 5. Turn delay (effect 54) and turn skipping: their rolls and what makes an enemy immune.
 6. Healing constants and caps; EXP division and the factor by level gap. Of targeting (section 9.1): the code that
    returns the formation row, and the name of every attack scope.

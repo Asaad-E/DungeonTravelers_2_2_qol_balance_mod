@@ -103,5 +103,24 @@ class Targets(unittest.TestCase):
         self.assertEqual(f.target_weight(14, down=5), f.ENMITY_MIN)
 
 
+
+class Critical(unittest.TestCase):
+    def test_limits(self):
+        self.assertEqual(f.critical_rate(1, 999, 1, 99), f.CRIT_MIN)
+        self.assertEqual(f.critical_rate(1, 999, 1, 99, floor_268=True), f.CRIT_MIN_268)
+        self.assertEqual(f.critical_rate(999, 1, 99, 1, skill=80), f.CRIT_MAX)
+        self.assertEqual(f.critical_rate(1, 999, 1, 99, fixed=1.0), 100.0)
+
+    def test_equal_dex_and_agi_give_ten_and_a_piece_adds_eight_percent_of_it(self):
+        self.assertAlmostEqual(f.critical_rate(100, 100, 50, 50), 10.0)
+        self.assertAlmostEqual(f.critical_rate(100, 100, 50, 50, enchant=f.critical_enchant(up=1)), 10.8)
+        self.assertAlmostEqual(f.critical_rate(100, 100, 50, 50, target_enchant=-f.critical_enchant(up=2)), 8.4)
+        self.assertEqual(f.critical_enchant(up=20), f.CRIT_ENCHANT_MAX)
+
+    def test_a_critical_hit_is_a_quarter_more_damage(self):
+        self.assertAlmostEqual(f.expected_critical_factor(50.0), 1.125)       # the most a build can average
+        self.assertAlmostEqual(f.expected_critical_factor(5.9), 1.0125)       # the rate is cut to an integer
+
+
 if __name__ == '__main__':
     unittest.main()
