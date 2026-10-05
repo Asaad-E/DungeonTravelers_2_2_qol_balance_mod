@@ -203,10 +203,23 @@ All proposed adjustments originated from documented friction in Japanese communi
     * Gap $\ge 79$: $+3$ to all base attributes.
     * Gap $\ge 89$: $+4$ to all base attributes.
     * Gap $\ge 98$ (Lv 99 Reset to Lv 1 yields gap 98, the engine maximum): $+5$ to all base attributes + Crown Milestone.
-  * **The Matrix Level 70 -> 99 Benchmark & Dragon Papi:**
-    * `Slave's Torc` provides native Double EXP (Enchant ID 275, `x2.0`).
-    * `Grand Sealbook [Dragon Papi]` carries Enchant 270: **+15% EXP against higher-level enemies** (Atwiki JP ground truth, not +50%).
-    * Combined multiplier with Torc + Papi is **x2.30**, resulting in ~74.6 to ~85.8 minutes for Lv 70->99 in The Matrix.
+  * **The Complete EXP & Leveling Gear Ecosystem:**
+    * **Enchant 275 (Double EXP, `x2.0`):**
+      * *Vanilla Distribution:* Exists exclusively on ultra-endgame/postgame gear: *Lord Mashiro's Fan* (`EquipmentData_0475.bin`, Fan weapon) and *Therion's Crown* (`EquipmentData_0627.bin`, Helm).
+      * *Mod Training Gear Implementation:* Packed into *Slave's Torc* (`EquipmentData_0744.bin`, Accessory) at offset `0x68`. This transforms an early-accessible accessory (which in vanilla only possessed AGI DOWN and damage reduction) into dedicated training gear for catch-up and Crown resets.
+    * **Enchant 270 (Higher-Level Enemy EXP, `+15%`):**
+      * *Single Monster Sealbooks:* *Sealbook [Grimoire]* (ID 308) and *Sealbook [Great-Fruit]* (ID 515).
+      * *Grand Sealbook Aura:* *Grand Sealbook [Dragon Papi]* (ID 896), projecting Enchant 270 party-wide.
+      * *Real Ground-Truth Multiplier:* Japanese Atwiki confirms Enchant 270 provides **+15% EXP against higher-level enemies** (not +50%). Stacking *Slave's Torc* (`x2.0`) with *Dragon Papi* yields a real combined multiplier of **`x2.30`** (~74.6 to ~85.8 minutes for Lv 70->99 in The Matrix).
+    * **Active Party EXP Buff (Bard Hymn):**
+      * *Experience Paean* (`MagicSkillData_0214.bin`, Effect 218): Bard active hymn that boosts party-wide EXP earned while the song remains active, scaling up with skill level.
+    * **Direct Skill Point (SP) Consumables:**
+      * *Magical Skill Garnish* (`ItemData_0031.bin`): Permanent consumable item granting **+3 SP**.
+      * *Dazzling Skill Garnish* (`ItemData_0032.bin`): Permanent consumable item granting **+9 SP**.
+    * **Engine Combat EXP Division & Solo/Duo Power-Leveling Synergy:**
+      * *Engine Division Rule (`Teaching.pck`):* Total battle EXP is divided equally among surviving party members:
+        $$\text{EXP per Member} = \frac{\text{Total Encounter EXP}}{\text{Surviving Party Members}}$$
+      * *Catch-Up Synergy:* When a high-level carry escorts a single underleveled trainee equipped with *Slave's Torc* (`x2.0`), the trainee receives $50\%$ of the encounter EXP (instead of $20\%$ in a 5-person party). Combined with Double EXP, this concentrates **$5.0\times$ the effective progression rate** onto the trainee, allowing a reset character to catch up from Lv 1 to Lv 50 in only a few high-level encounters.
   * **Quest Rank Bag & Gold Milestones (`QuestRankData.pck`):**
     * Rank 2: +10 slots -> **40 slots**.
     * Rank 8: +10 slots -> **50 slots** (engine maximum).
