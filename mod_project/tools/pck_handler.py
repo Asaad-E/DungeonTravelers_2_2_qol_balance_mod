@@ -12,10 +12,18 @@ class PckArchive:
         if filepath:
             self.load(filepath)
 
+    @classmethod
+    def from_bytes(cls, data, name='<bytes>'):
+        """An archive held in memory: the entries of Enemy.pck, Dungeon.pck and Summon.pck are archives themselves."""
+        archive = cls()
+        archive.parse(bytes(data), name)
+        return archive
+
     def load(self, filepath):
         with open(filepath, 'rb') as f:
-            data = f.read()
+            self.parse(f.read(), filepath)
 
+    def parse(self, data, filepath='<bytes>'):
         pack_idx = data.find(b'Pack                ')
         if pack_idx == -1:
             raise ValueError(f"Not a valid PCK archive (missing 'Pack' header): {filepath}")
