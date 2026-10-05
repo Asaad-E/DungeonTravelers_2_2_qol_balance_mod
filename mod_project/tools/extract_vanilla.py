@@ -212,15 +212,24 @@ FIELD_DOCS = [
      'Range 0-11 on weapons only'),
     ('Equipment', 'Enchant_Count / EnchantN_ID', 'EquipmentData 0x5C / 0x60-0x6C', 'int',
      'Innate enchantments (ids into the Enchants sheet)', 'Verified', 'Count equals number of ids in all 551 entries'),
-    ('Equipment', 'w_0x24..w_0x58', 'EquipmentData', 'int/float', 'Stats and price, not individually identified',
-     'Unknown', '0x24 looks like ATK, 0x58 like price'),
+    ('Equipment', 'ATK, DEF, INT, RES, DEX, AGI', 'EquipmentData 0x24-0x38', 'int',
+     'Stats of the piece without upgrades. A stat of 0 stays 0 whatever the upgrade', 'Verified',
+     'Six getters from 0x4e12a0: base + int(upgrade level * Upgrade_Rate)'),
+    ('Equipment', 'Upgrade_Rate', 'EquipmentData 0x3C', 'float', 'What each upgrade level adds to every stat the piece has',
+     'Verified', 'Same getters (mulss by the float at 0x3C)'),
+    ('Equipment', 'Swing', 'EquipmentData 0x48', 'float', 'Spread of the damage of the weapon (docs/FORMULAS.md 2.2)',
+     'Verified', 'Accessor 0x5593f0 reads it for the attack roll'),
+    ('Equipment', 'mask_0x40, w_0x44, w_0x54, w_0x58', 'EquipmentData', 'int', 'Not individually identified',
+     'Unknown', '0x40 looks like the classes that can equip it, 0x58 like the price'),
     ('WeaponRanks', 'Delay_Mult', 'WeaponRankData 0x10', 'float', 'Turn delay multiplier of the weapon rank', 'Verified', ''),
     ('Traps', 'Status_ID / Rate', 'TrapData 0x10 / 0x14', 'int / float', 'Effect id and rate of the trap', 'Verified',
      'Trap names match effect ids'),
     ('QuestRanks', 'Reward_Type / Value', 'QuestRankData 0x10 / 0x24', 'int', 'Reward kind and amount', 'Verified',
      'Reward messages'),
     ('ExpCurve', 'Req_EXP / SP', 'LvExpSkptData 0x04 / 0x08', 'int', 'EXP needed for the level and SP granted', 'Verified', ''),
-    ('EnemyAttacks', 'Power_0x44', 'EnemyAttackData 0x44', 'float', 'Physical power multiplier', 'Inferred', ''),
+    ('EnemyAttacks', 'Speed_0x34, Speed_0x44', 'EnemyAttackData 0x34, 0x44', 'float',
+     'The two factors of the attack in the order of turns (docs/FORMULAS.md 5). Neither is a power', 'Verified',
+     '_SetTime 0x4499d0 multiplies the speed of the enemy by both'),
     ('EnemyAttacks', 'EffN_ID / Value / Tail', 'EnemyAttackData 0x4C (+12 per slot)', 'int + number + int',
      'Effect slots (same effect ids as skills)', 'Verified', 'Effect count equals used slots in all 2375 entries'),
     ('FoodMenu', 'EffN_ID / Value', 'FoodMenuData 0x20 (+8 per pair)', 'int + float', 'Meal effects', 'Inferred', ''),
@@ -588,8 +597,8 @@ def write_workbook(problems):
                             'Eff4_Type', 'Eff4_Value'] + [f'w_{o:#04x}' for o in range(0x44, 0x60, 4)]
               + ['Vanilla_Desc'], build_item_rows())
     add_sheet(wb, 'Equipment', ['Filename', 'Equip_ID', 'Name', 'Unidentified_Name', 'Category_Code', 'Category']
-              + [f'w_{o:#04x}' for o in range(0x24, 0x3C, 4)]
-              + ['f_0x3c', 'mask_0x40', 'w_0x44', 'f_0x48', 'Rank_Idx', 'Rank', 'Delay_Mult', 'Type_Code', 'w_0x54',
+              + ['ATK', 'DEF', 'INT', 'RES', 'DEX', 'AGI']
+              + ['Upgrade_Rate', 'mask_0x40', 'w_0x44', 'Swing', 'Rank_Idx', 'Rank', 'Delay_Mult', 'Type_Code', 'w_0x54',
                  'w_0x58', 'Enchant_Count', 'Enchant1_ID', 'Enchant1_Name', 'Enchant2_ID', 'Enchant2_Name',
                  'Enchant3_ID', 'Enchant3_Name', 'Enchant4_ID', 'Enchant4_Name', 'Vanilla_Desc'],
               build_equipment_rows(enchant_names, ranks, problems))
@@ -602,7 +611,7 @@ def write_workbook(problems):
                                  'w_0x20', 'Value', 'Message'], build_quest_rank_rows())
     add_sheet(wb, 'ExpCurve', ['Filename', 'Level', 'Req_EXP', 'SP'], build_exp_rows())
     enemy_headers = ['Filename', 'Skill_ID', 'Name', 'Header_Line', 'Anim_0x28', 'Target_Code', 'Target',
-                     'Attr_Code', 'Attr', 'f_0x34', 'f_0x38', 'w_0x3c', 'w_0x40', 'Power_0x44', 'Effect_Count']
+                     'Attr_Code', 'Attr', 'Speed_0x34', 'f_0x38', 'w_0x3c', 'w_0x40', 'Speed_0x44', 'Effect_Count']
     for k in range(1, 6):
         enemy_headers += [f'Eff{k}_ID', f'Eff{k}_Name', f'Eff{k}_Value', f'Eff{k}_Tail']
     add_sheet(wb, 'EnemyAttacks', enemy_headers + ['Trailer', 'Vanilla_Desc'], enemy_rows)

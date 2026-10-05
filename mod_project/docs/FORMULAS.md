@@ -307,3 +307,11 @@ and the two enchantments.
   `tools/class_data.py` holds the table; the figures are in `generated/BALANCE_BASELINE.md`.
 * The bonus per stat sits at offsets 0xdc onwards of the character, the figure added to every stat at 0x120.
   **[open]** what feeds each (equipment, passive skills, crowns).
+
+### 10.1 Stats of a piece of equipment (six getters from `0x4e12a0`) **[code]**
+
+    stat = base + int(upgrade level * upgrade rate)        a stat whose base is 0 stays 0
+
+`EquipmentData` holds the six bases at 0x24 to 0x38 (ATK, DEF, INT, RES, DEX, AGI), the upgrade rate at 0x3C and the
+swing of a weapon at 0x48 (section 2.2). The upgrade level is kept on the piece itself (offset 0x74 of the object).
+The columns of the `Equipment` sheet of `vanilla_source_of_truth.xlsx` carry these names.
