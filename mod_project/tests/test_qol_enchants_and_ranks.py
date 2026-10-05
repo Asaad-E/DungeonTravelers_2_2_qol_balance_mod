@@ -38,8 +38,8 @@ class EnchantValues(unittest.TestCase):
     def test_names_keep_the_game_wording_and_add_the_sourced_figure(self):
         self.assertEqual(enchant_values.qol_name(0, 'Max HP UP'), 'Max HP +10%')
         self.assertEqual(enchant_values.qol_name(71, 'Received damage MiniDOWN'), 'Received damage -4%')
-        # Resistance is written with %.
-        self.assertEqual(enchant_values.qol_name(93, 'Water resistance DOWN'), 'Water resistance -20%')
+        # Resistance is written as the status screen writes it: a plain number, no percent sign.
+        self.assertEqual(enchant_values.qol_name(93, 'Water resistance DOWN'), 'Water resistance -20')
         # The game says Enmity; the name keeps the game's word.
         self.assertEqual(enchant_values.qol_name(50, 'Enmity DOWN'), 'Enmity -5%')
         # Known only from the first game's guide: shown by decision of the user, and labelled as such.

@@ -32,7 +32,7 @@ Tools are built once for both variants: the variant is a parameter of the build,
 | `data_tables/qol_item_text.xlsx` | `tools/generate_qol_item_text.py`, then edited by hand | Description of each item in QoL (`QoL_Desc`). |
 | The game folder | `tools/install_variant.py` (run by `build_variant.py`) | Holds **the QoL variant and nothing else** since 2026-10-04: the 8 built archives over the 39 untouched originals (47 files checked by the install) (section 8.1). |
 | `docs/QOL_ROADMAP.md` | by hand, from the build output | Every pack with its state, what is left and the order of work. The checklist for calling QoL finished. |
-| Installed game + `dist/DT22_Definitive_QoL_Balance_Mod_v1.0.zip` | `tools/apply_mod.py`, `tools/package_release.py` | The **earlier mixed build** (text and value changes together). Not releasable: see section 8 and `CROSS_SYSTEM_VALIDATION_REPORT.md`. Two files of the installed game were replaced at the user's request (section 8.1). |
+| Earlier mixed build (QoL and balance in one) | Removed from the repository on 2026-10-04 at the user's request, with its 26 tools and 15 workbooks. It is in the git history before that date |
 
 ---
 
@@ -65,7 +65,6 @@ DungeonTraveler2-2/
 | `qol_rules.xlsx` | Yes | **The rules of the QoL text.** Every wording, label, scale and guide figure that reaches the screen and is not read from the game: the damage scale, shortened sentences, labels of the skill box and of the enemy data line, enchant figures with their guide, the wording of item effects, the bounds of party skills, the sentences of joint skills. Its `About` sheet lists the sheets. Read through `tools/rules.py`; no tool holds such a table in code. |
 | `qol_food_text.xlsx`, `qol_party_skill_text.xlsx` | Yes | Meals and party skills. Same `Edited` rule; the build accepts the original line or the one the rules produce. |
 | `qol_joint_skill_text.xlsx` | No (generated) | Joint skill sentences filled with the stored values, and what each entry holds (participants, TP share, Pep, power, effects). The sentences are edited in `qol_rules.xlsx`, sheet `JointSkillSentences`. |
-| `skills.xlsx`, `items.xlsx`, `equipment.xlsx`, `enchants.xlsx`, `grand_seals.xlsx`, `joint_skills.xlsx`, `party_skills.xlsx`, `food_menu.xlsx`, `enemy_attacks.xlsx`, `classes.xlsx`, `ui_strings.xlsx`, `traps.xlsx`, `trophies.xlsx`, `exp_curve.xlsx`, `quest_ranks.xlsx` | Yes | Tables of the earlier mixed build (15), read by `apply_mod.py`. Their "vanilla" columns match the backups; many of their figures do not match the binaries (section 8). |
 
 ### 2.2 Tools
 
@@ -83,7 +82,6 @@ DungeonTraveler2-2/
 | `generate_qol_item_text.py` | Proposes the QoL item descriptions: the exact amount in place of `(small)` / `(medium)` / `(large)`. Leaves rows marked `Edited` alone. |
 | `build_variant.py` | Builds a variant into `build/<variant>/`, verifies it and, only if the verification passes, installs it into the game (`--no-install` to skip). |
 | `install_variant.py` | Puts the game folder in the state of a variant: its built files, and the original for every other backed-up file. Saves what it replaces in `build/installed_backup/<time>/`. |
-| `apply_mod.py`, `audit_tool.py`, `package_release.py` | Earlier mixed build: compiles straight into the game folder, checks line lengths, zips from the game folder. |
 
 Dependencies: Python standard library and `openpyxl`.
 
@@ -390,6 +388,15 @@ The build stops on a modified line longer than its limit. Texts of the original 
 
 **Package.** `tools/package_variant.py qol` -> `dist/DT22_qol_<date>.zip`: the files that differ from the original, their originals under `Original/`, and the player README kept in `release/README_QoL.txt`.
 
+### 6.7 QoL closed (2026-10-04)
+
+The user accepted the QoL variant ("todo perfecto") with two last decisions:
+
+* **Resistances are written without `%`**, as the status and enemy screens write them (`Bs Res -20`, `+15`): `Fire resistance +20`, `Resistance: 20 -> 24 -> 28 -> 32 -> 36`, `Slash resistance increased (up to +25).`, Moon Curtain `(+25)` in Gjallarhorn. Critical rate keeps its `%` (setting `percent_points`).
+* **The earlier mixed build is deleted**: its tools (`apply_mod.py`, `audit_tool.py`, `package_release.py`, the `populate_*`, `update_*`, `generate_enchants`... scripts) and its 15 workbooks. The `Previous_Mod_*` columns of the text workbooks are now empty.
+
+What the Balance variant inherits: the backups, `pck_handler.py` (every writer exact), `vanilla_source_of_truth.xlsx`, the rules workbook and its limits (70 / 50 / 85 characters, the voice of the game, nothing hardcoded), `build_variant.py` with its per-pack build and verify, `install_variant.py` and `package_variant.py`. A Balance build is a new entry in `VARIANTS` with `numeric_changes_allowed: True`, its own table of changed values, and texts generated from the changed values with the same generators.
+
 
 ## 7. Tests (what each guards)
 
@@ -411,7 +418,7 @@ Verified without the game: container and entry round trips, numeric identity of 
 
 ---
 
-## 8. State of the earlier mixed build
+## 8. The earlier mixed build (removed on 2026-10-04; kept here as the record of why)
 
 Audited at commit `28c7d90`; details in `CROSS_SYSTEM_VALIDATION_REPORT.md`. It is what the game folder and the zip currently contain.
 
@@ -467,6 +474,6 @@ To undo an install, copy the matching `build/installed_backup/<time>/` folder ba
 * The cost of a joint skill (share of max TP, Pep) is decoded and not shown; see `QOL_ROADMAP.md` 2.7.
 * Decoding `ClassData`, the equipment stats and the 188 effects named only by the game's table.
 * The Balance variant: its changes as data, and its own verification rule.
-* Packaging per variant (today `package_release.py` zips the game folder). Install is done: `install_variant.py`.
+* Packaging per variant is done: `package_variant.py`. Install is done: `install_variant.py`.
 * Dialogue replacement that fails loudly, and the corrected lines.
 * Everything still open is listed, pack by pack and with its size, in `QOL_ROADMAP.md`. That file is the checklist for calling QoL finished.

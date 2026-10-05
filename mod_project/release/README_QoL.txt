@@ -14,7 +14,7 @@ What you will see
   of its ailment, e.g. "May freeze (20-50%)".
 * Unique skills: the values of levels 1-9 and of the Crown.
 * Items: the original sentence, then what the item does: "(HP +30, TP +40)".
-* Enchantments: the figure in place of UP / MiniUP: "DEX +10%", "Recover 2 TP every turn".
+* Enchantments: the figure in place of UP / MiniUP: "DEX +10%", "Fire resistance +20", "Recover 2 TP every turn".
   They show on equipment and on sealbooks.
 * Weapons: the title shows the speed rank with its multiplier: "Speed E+ (2.45x)".
 * Summons and enemy abilities: exact chances and amounts on the data line

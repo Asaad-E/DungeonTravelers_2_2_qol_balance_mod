@@ -72,7 +72,9 @@ for _row in _LABELS['multi']:
     MULTI_STEMS.setdefault(_row['Vanilla_Phrase'], []).append((int(_row['Effect_ID']), _row['Label'], _row['Style']))
 DAMAGE_EFFECTS = [(int(r['Effect_ID']), r['Label'], r['Style']) for r in _LABELS['damage']]
 SUMMON_TURNS = 147          # "Duration UP" of a summon skill
-POINT_STEMS = re.compile(r'resistance|critical rate', re.I)   # stored in points; one point is 1%
+# Stored in points and written with %. Resistance is also in points but the game writes it as a plain
+# number on the status screen, so it gets no sign (decision of the user). Setting percent_points.
+POINT_STEMS = re.compile(rules.setting('percent_points'), re.I)
 NO_GUESS_EFFECTS = {228, 229, 230, 231, 233}   # parameters of a summoned doll: what they scale is not known
 # Known effects that no vanilla phrase mentions. They are shown always, also when the value is the same
 # at every level (rule of the user: a value the skill has is in its box). Labels are the game's words.

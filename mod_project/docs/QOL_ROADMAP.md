@@ -1,6 +1,6 @@
 # QoL roadmap: what must be true before QoL is called finished
 
-State on 2026-10-04, after every step of section 4 that can be done without the user or the executable. What is left is listed in section 6. Every number here was read from the files in `mod_project/backups/` or from the output of `build_variant.py qol`; nothing is estimated. Balance is out of scope until this list is closed.
+**QoL is closed.** State on 2026-10-04: the user accepted the variant; every step of section 4 that can be done without the executable is done, and what stays unknown is listed in section 6 and carried over to the Balance work. Every number here was read from the files in `mod_project/backups/` or from the output of `build_variant.py qol`; nothing is estimated.
 
 Tags: **[done]** built, verified by the build and installed. **[seen]** also looked at on screen by the user. **[open]** not started or not finished. **[blocked]** needs something that is not known yet.
 
@@ -37,7 +37,7 @@ QoL is finished when all ten hold. Each one is checked by a tool or by a look at
 | `MagicSkillData` | 98 | 188 | 89 | Skill menu box, battle bar | **[seen]** battle bar. Open items below (2.3) |
 | `PassiveSkillData` | 71 | 123 | 43 | Skill menu box | **[seen]** (Sword Mastery: `ATK bonus: 3% -> 5 -> ... -> 15% (L10)`). 62 boxes with data; line 1 is the game's sentence |
 | `UniqueSkillData` | 18 | 21 | 4 | Skill menu box | **[seen]** (Shadow Heart, Arcane Shield). 18 with the values of levels 1-9 and of the Crown. 13 say what the numbers measure (`Activation rate: 7% -> ...`, `Reflected: 50% -> ...`, sheet `UniqueSkillLabels`); Shadow Heart, Positive Trance, Undaunted Spirit, Yearning and Demon Wall keep `Lv1-9` (not known, or no room). Arcane Shield has a third line, `Activation rate: 15%`, from the DT2-2 wiki |
-| `EnchantData` | 280 | 243 | 104 | Equipment box (two columns), blacksmith, sealbooks | **[seen]** in the equipment box. 142 names with figure (99 from this game's guide, 43 from the first game's), 37 already had one, 101 have none in any guide |
+| `EnchantData` | 280 | 243 | 104 | Equipment box (two columns), blacksmith, sealbooks | **[seen]** in the equipment box and on sealbooks. 142 names with figure (99 from this game's guide, 43 from the first game's), 37 already had one, 101 have none in any guide. Resistances without `%` (`Fire resistance +20`) |
 | `ItemData` | 576 | 609 | 41 | Item box, battle bar, shops | **[seen]** in the item box. 425 items state what they do, in one line of at most 70 characters (the battle bar): 204 as original sentence + (data), 221 with the sentence shortened to fit. 21 carry an effect that is not decoded (2.6) |
 | `EnemyAttackData` | 2,375 | 2,521 | 693 | "View the details of your teammates' abilities" (summons); enemy info | **[seen]** for a summon. 1,456 entries with exact data on the data line; 11 corrections of the prose. Open items below (2.4) |
 | `WeaponRankData` | 12 | names | 0 | Equipment title bar | **[seen]** `Speed E+ (2.45x)` |
@@ -156,7 +156,7 @@ The install puts the build in the game after every run. One screenshot of each c
 | Skill menu box | Yes (Provoke; Ice Storm and Self-Sacrifice in the skill learning screen) | Three lines render; nothing drawn over lines 2-3. The title bar shows `Lv 2 TP Cost 2`. Ice Storm: line 3 of 78 characters whole. Self-Sacrifice showed the same range in line 1 and in line 2: line 1 no longer repeats values |
 | Equipment title bar | Yes | `Firewhorling Claymore of Ability+4 [Sword - 2 Hand - Short Range] Speed E+ (2.45x)` fits (83 characters) |
 | Equipment box with two enchants | Yes | `Fire magic +20%` and `Physical accuracy MiniUP` in two columns; the description stays on line 1 |
-| Status screen | Yes | The game writes resistance as a plain number and abbreviates: `Fi Res 0`, `Bs Res -20`. The enchant names say `Bash resistance -20%` (decision 2 of section 5) |
+| Status screen | Yes | The game writes resistance as a plain number and abbreviates: `Fi Res 0`, `Bs Res -20`. The mod writes resistances the same way, without `%` |
 | Summon ability box | Yes (Cupid, Poison Shot; Eros, Bra Unhooker) | `Target: Single / Type: Neutral / Range: Short / DEF/Magic defense: -15%`, prose below, intact |
 | Battle bar, skill highlighted | Yes (Freeze Shot, Circle Brave, Self-Sacrifice) | `Bow skill. Deal moderate stab damage to one enemy. May freeze (20-50%).` is drawn whole: 71 characters, a little wider than the purple band (about 68). `Distribute all of one's TP to the target (TP transfer bonus 100-140%).` (70) also whole. The skill list beside it shows the TP cost of the current level |
 | Battle bar, item highlighted | Yes, before the item data | One centred line. To confirm: `Old-fashioned rice cracker covered in soy sauce. (HP +75)` |
@@ -180,7 +180,7 @@ Each step ends with a build that passes, an install, and a look at the screen.
 5. **[done, with a remainder] One pack at a time, smallest first.** Items (425), meals (16), party skills (20) and joint skills (52) built; traps, classes and sealbooks kept as written, each with its reason in 2.1. Remainder: 21 items (2.6), the cost of joint skills (2.7).
 6. **[done] Texts that state rules.** Lessons, tutorials, shops, `StringData`, `QuestData`, `QuestRankData`, `TrophyData`: every figure that a pack holds was compared with it, the rules of the executable with the DT2-2 wiki. One sentence was false (a tutorial) and is corrected; results per pack in 2.1.
 7. **[blocked] Enchant figures without a source**: 43 from the first game to confirm and 101 with none. They are computed in the executable; no guide of this game gives them. It needs reading that code or measuring in the game, neither of which was done. Until then those 43 show the first game's figure and the 101 keep the game's word (`Physical accuracy MiniUP`).
-8. **[done, with a remainder] Release.** `python mod_project/tools/package_variant.py qol` writes `mod_project/dist/DT22_qol_<date>.zip`: the 12 files the variant changes, the original of each under `Original/` to uninstall, and `README.txt` (`mod_project/release/README_QoL.txt`). Remainder, for the user: a play-through of the first dungeon, and whether to delete the tools and tables of the earlier mixed build (`apply_mod.py`, `audit_tool.py`, `package_release.py`, the 15 old workbooks); they were left in place because another session works in this repository.
+8. **[done] Release.** `python mod_project/tools/package_variant.py qol` writes `mod_project/dist/DT22_qol_<date>.zip`: the 12 files the variant changes, the original of each under `Original/` to uninstall, and `README.txt` (`mod_project/release/README_QoL.txt`). The tools and tables of the earlier mixed build were deleted on 2026-10-04. Left for the user: a play-through of the first dungeon.
 
 ---
 ---
@@ -193,9 +193,9 @@ For the user:
 |---|---|---|
 | 1 | Read the sentences reworded by hand: 221 items, 44 skills, 35 joint skills, 19 party skills | `data_tables/qol_rules.xlsx`: `ShortItems`, `ShortSkills`, `JointSkillSentences`, `PartySkillBounds` |
 | 2 | A screenshot of the joint skill menu: does the game show the TP and Pep cost? If not, the sentences are shortened to hold the share of max TP | 2.7 |
-| 3 | Two open decisions: `%` on resistances (the status and enemy screens write `+15`), and `tremendous` or `ultimate` | section 5 |
+| 3 | Nothing left to decide: resistances go without `%`, `tremendous` stays, the earlier build is deleted | section 5 |
 | 4 | `Enmity: 250` on Provoke is the stored value; whether it is a percentage is not known | 2.1 |
-| 5 | Play the first dungeon with the mod; decide whether the earlier build's tools and tables are deleted | step 8 |
+| 5 | Play the first dungeon with the mod | step 8 |
 
 Blocked on something that is not known:
 
@@ -222,6 +222,7 @@ Answered by the user on 2026-10-04 and applied:
 | Skills whose line 1 did not fit | The original is made shorter so that it fits |
 | Spiral Arrow and Holy Gavel | Look in the Japanese guides: the wiki lists the multiplier as ATK%, so both are graded by it |
 | Tables written in the tools (`shortened_text.py`) | Nothing hardcoded: everything in a workbook, for quick editing. Done as `data_tables/qol_rules.xlsx` |
+| The tools and tables of the earlier mixed build | Deleted |
 | Values in line 1 of a skill (`(TP transfer bonus 100-140%)`) | Removed: the box below has them, in line 1 they are bloat. This replaces the earlier answer on buffs, heals and passives |
 | Width of the battle bar | The Self-Sacrifice line (70 characters) is the most that fits well; anything longer is rewritten |
 | Party skill box | Limit is the line that overflowed minus 3 (50), held by a test |
@@ -231,5 +232,5 @@ Still open:
 
 | # | Question | Default applied until answered |
 |---|---|---|
-| 2 | The status screen writes resistance without `%` and abbreviated (`Bs Res -20`); the enchant names and skill boxes say `Bash resistance -20%`. Keep the `%`? | With `%`, as asked |
-| 3 | Beyond the damage scale the text uses `tremendous`, the game's own word for exactly those five spells. `ultimate` was the other option. | `tremendous` |
+| 2 | Resistances with or without `%` | **Answered: without**, as the status screen writes them |
+| 3 | `tremendous` or `ultimate` beyond the damage scale | **Answered by acceptance** ("todo perfecto"): `tremendous` stays |

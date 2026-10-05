@@ -273,7 +273,7 @@ class PartySkills(unittest.TestCase):
         by_name = {self.helper.read_party_skill(b)['name']: self.table[fn] for fn, b in self.entries}
         self.assertEqual(by_name['Full of Guts']['effect'], 'Max HP increased (up to +100).')
         self.assertEqual(by_name['Sales Experience']['effect'],
-                         'Up to wind resistance +20% and AGI +10.')
+                         'Up to wind resistance +20 and AGI +10.')
         self.assertEqual(by_name['Celebrities']['effect'], 'Lightning resistance increased.')    # no guide gives it
 
     def test_every_bound_belongs_to_an_effect_of_the_pack(self):
@@ -399,7 +399,7 @@ class PartySkillBox(unittest.TestCase):
             with self.subTest(skill=skill['name']):
                 self.assertLessEqual(len(table[fn]['effect']), PARTY_LINE, table[fn]['effect'])
             if skill['name'] == 'Veteran Soldiers':
-                self.assertEqual(table[fn]['effect'], 'Slash resistance increased (up to +25%).')
+                self.assertEqual(table[fn]['effect'], 'Slash resistance increased (up to +25).')
                 self.assertNotEqual(check_party_skill_text(b, self.OVERFLOWED, skill['effect'])[0], [])
 
 

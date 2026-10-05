@@ -23,7 +23,6 @@ DungeonTraveler2-2/
 │   │   ├── qol_enemy_attack_text.xlsx     QoL enemy attack text, edited by hand
 │   │   ├── qol_food_text.xlsx, qol_party_skill_text.xlsx, qol_joint_skill_text.xlsx   meals, party and joint skills
 │   │   ├── qol_rules.xlsx                 every wording, scale and guide figure the tools use; edited by hand
-│   │   └── *.xlsx                         tables of the earlier mixed build
 │   ├── build/<variant>/         build output, not versioned
 │   ├── tools/
 │   │   ├── pck_handler.py                 archive and record reader/writer
@@ -40,7 +39,6 @@ DungeonTraveler2-2/
 │   │   ├── install_variant.py             puts a built variant into the game, saving what it replaces
 │   │   ├── build_variant.py               builds and verifies a variant
 │   │   ├── package_variant.py             zips a built variant for players, with originals to uninstall
-│   │   └── apply_mod.py, audit_tool.py, package_release.py   earlier mixed build
 │   ├── tests/                   unittest suite
 │   └── docs/
 ├── Data/                        GameFAQs pages (.mhtml), cross-check only
