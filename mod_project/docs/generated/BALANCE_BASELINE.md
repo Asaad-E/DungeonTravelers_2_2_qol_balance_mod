@@ -537,7 +537,176 @@ Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wis
 | St23_0140 | 20 | 3.0 | 5 | 77-98 | 24,723 | 21,974 | 3,362 | 27% |
 | St23_0150 | 1 | 1.0 | 1 | 35-35 | 500 | 410 | 0 | 0% |
 
-352 of the 516 enemies appear in a random formation; the others are placed by events.
+352 of the 516 enemies appear in a random formation; the other 164 are placed by events (bosses, chests that bite, quest targets). Who fights beside whom in those battles is not decoded.
+
+### Enemies placed by events
+
+| Enemy | Habitat | Race | Lv | HP | ATK | DEF | INT | RES | DEX | AGI | EXP | Weight | Attacks | Cannot receive |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Wanton Witch | Ruined Shrine Cave | Magic Beings | 5 | 345 | 25 | 20 | 11 | 16 | 10 | 13 | 108 | 1.00 | 4 | petrification, instant death |
+| Bigfoot | Mt. Kongol Fortress | Beasts | 7 | 480 | 33 | 31 | 16 | 24 | 17 | 10 | 280 | 1.35 | 4 | petrification, instant death |
+| Mad Catter? | Mt. Kongol Fortress | Apparitions | 7 | 180 | 32 | 23 | 10 | 14 | 14 | 16 | 60 | 0.85 | 3 | petrification, instant death, shadow sew |
+| Mad Catter | Mt. Kongol Fortress | Apparitions | 9 | 666 | 38 | 32 | 6 | 29 | 21 | 20 | 440 | 0.90 | 6 | stun, petrification, instant death |
+| Ghast | Tower of Wind | Undead | 12 | 773 | 45 | 42 | 15 | 33 | 21 | 17 | 512 | 0.60 | 4 | petrification, instant death, poison, paralysis |
+| Sorrowful Songstress | Tower of Wind | Beasts | 13 | 1,274 | 57 | 39 | 14 | 41 | 24 | 28 | 920 | 0.80 | 5 | silence, petrification, instant death |
+| Doll | Vrachia Town | race 1 | 13 | 825 | 55 | 46 | 22 | 33 | 25 | 24 | 300 | 0.75 | 5 | sleep, petrification, instant death, poison |
+| Cupid | Vrachia Town | Demons | 15 | 1,587 | 49 | 44 | 19 | 37 | 24 | 23 | 1,120 | 0.65 | 4 | petrification, instant death, poison |
+| Countess of Vrachia | Vrachia Town | Undead | 16 | 1,991 | 70 | 54 | 20 | 36 | 27 | 31 | 1,340 | 0.65 | 6 | sleep, petrification, instant death, freeze, poison |
+| Heqet | Dragon Palace | Apparitions | 18 | 2,179 | 61 | 55 | 25 | 39 | 30 | 25 | 1,580 | 0.50 | 6 | petrification, instant death, freeze |
+| Boozehound Samurai | Hall of Time Storage Room | Humans | 18 | 2,685 | 90 | 75 | 21 | 31 | 39 | 42 | 1,800 | 0.40 | 7 | stun, petrification, instant death, freeze, slow |
+| Oarfish | Dragon Palace | race 1 | 19 | 452 | 66 | 55 | 24 | 49 | 30 | 20 | 180 | 1.50 | 3 | petrification, instant death |
+| Snapper | Dragon Palace | race 1 | 19 | 410 | 71 | 59 | 32 | 44 | 27 | 26 | 180 | 1.25 | 3 | petrification, instant death, paralysis |
+| Halibut | Dragon Palace | race 1 | 19 | 432 | 60 | 64 | 30 | 55 | 24 | 24 | 180 | 1.60 | 4 | stun, petrification, instant death, freeze |
+| Mimic | Dragon Palace | Magic Beings | 20 | 425 | 83 | 55 | 25 | 40 | 25 | 30 | 300 | 0.70 | 4 | petrification, instant death |
+| Eros | Dragon Palace | Demons | 20 | 2,277 | 57 | 55 | 28 | 45 | 48 | 27 | 2,000 | 0.40 | 6 | sleep, petrification, instant death, paralysis |
+| Oh-So-Hime | Dragon Palace | Dragons | 20 | 2,300 | 84 | 66 | 17 | 57 | 34 | 37 | 2,200 | 0.40 | 8 | petrification, instant death, freeze, paralysis, shadow sew |
+| Dark Dolls A | Wall of Yshtar | race 1 | 20 | 500 | 75 | 45 | 14 | 80 | 30 | 22 | 200 | 1.75 | 4 | petrification, instant death, poison, paralysis |
+| Dark Dolls B | Wall of Yshtar | race 1 | 20 | 500 | 60 | 78 | 28 | 45 | 22 | 28 | 200 | 1.40 | 4 | petrification, instant death, poison, paralysis |
+| Warden of the Wall | Wall of Yshtar | Demons | 21 | 2,721 | 83 | 68 | 27 | 48 | 36 | 46 | 3,600 | 0.35 | 5 | sleep, petrification, instant death, freeze, poison |
+| Molle | Royal Villa Gardens | Beasts | 23 | 3,250 | 68 | 76 | 32 | 38 | 41 | 29 | 3,000 | 0.30 | 6 | stun, petrification, instant death |
+| Serika | Rousset Royal Villa | Humans | 25 | 3,160 | 36 | 69 | 47 | 68 | 47 | 34 | 4,000 | 0.25 | 8 | silence, petrification, instant death |
+| Agent M | Rousset Royal Villa | Apparitions | 26 | 3,200 | 101 | 82 | 23 | 50 | 63 | 54 | 5,500 | 0.30 | 7 | stun, petrification, instant death, freeze, shadow sew |
+| Deep Slapyon | Mt. Kongol Fortress | Magic Beings | 28 | 3,770 | 131 | 102 | 40 | 54 | 41 | 44 | 5,000 | 0.27 | 6 | stun, petrification, instant death, freeze, poison, paralysis |
+| Toybox | Rousset Royal Villa | Magic Beings | 28 | 729 | 115 | 80 | 42 | 73 | 40 | 33 | 512 | 0.65 | 4 | petrification, instant death |
+| True Queen Eltricia | Rousset Royal Villa | Magic Beings | 28 | 3,500 | 117 | 88 | 42 | 57 | 45 | 48 | 6,000 | 0.30 | 5 | petrification, instant death, freeze, paralysis |
+| Fuzzy Merchandise | Khorramshahr Outskirts | race 3 | 30 | 852 | 108 | 72 | 33 | 55 | 39 | 26 | 400 | 1.30 | 4 | stun, petrification, instant death, freeze |
+| Fluffy Merchandise | Khorramshahr Outskirts | race 3 | 30 | 824 | 92 | 83 | 42 | 46 | 32 | 35 | 400 | 1.00 | 4 | silence, petrification, instant death, poison, paralysis |
+| Big Bad Beard | Therian Altar | race 3 | 30 | 888 | 124 | 83 | 38 | 45 | 44 | 32 | 750 | 0.75 | 4 | stun, petrification, instant death, freeze, paralysis |
+| Trafficker Twinny | Khorramshahr Outskirts | Beasts | 31 | 3,800 | 142 | 91 | 36 | 63 | 52 | 55 | 8,000 | 0.25 | 6 | stun, sleep, petrification, instant death, freeze, poison, shadow sew |
+| Crybaby Peggin | Therian Altar | race 3 | 31 | 532 | 65 | 62 | 40 | 48 | 21 | 30 | 300 | 1.40 | 5 | silence, petrification, instant death |
+| Spacey Peggin | Therian Altar | race 3 | 31 | 547 | 97 | 64 | 24 | 32 | 42 | 34 | 300 | 1.50 | 4 | petrification, instant death, slow |
+| Grouchy Peggin | Therian Altar | race 3 | 31 | 605 | 118 | 68 | 10 | 45 | 35 | 38 | 300 | 1.30 | 4 | petrification, instant death, freeze |
+| Shy Peggin | Therian Altar | race 3 | 31 | 564 | 90 | 54 | 30 | 35 | 30 | 29 | 300 | 1.60 | 4 | petrification, instant death, paralysis |
+| Cheery Peggin | Therian Altar | race 3 | 31 | 550 | 75 | 60 | 34 | 52 | 25 | 40 | 300 | 1.80 | 4 | petrification, instant death, poison |
+| Moody Peggin | Therian Altar | race 3 | 31 | 572 | 105 | 75 | 25 | 50 | 40 | 33 | 300 | 1.40 | 4 | sleep, petrification, instant death |
+| Siesta | Khorramshahr Outskirts | Apparitions | 33 | 3,400 | 123 | 85 | 38 | 72 | 49 | 45 | 6,000 | 0.27 | 8 | sleep, petrification, instant death, freeze, paralysis |
+| Doc Peggin | Therian Altar | race 3 | 33 | 745 | 112 | 80 | 31 | 54 | 44 | 43 | 400 | 1.00 | 6 | stun, petrification, instant death |
+| Maerchen Little | Therian Altar | Fruit | 33 | 4,405 | 144 | 118 | 49 | 84 | 56 | 53 | 10,000 | 0.30 | 6 | silence, petrification, instant death, freeze, paralysis, turn delay |
+| Afanc | Temple of Wrappl | Beasts | 36 | 4,582 | 152 | 120 | 49 | 77 | 56 | 43 | 8,000 | 0.30 | 6 | stun, petrification, instant death, paralysis |
+| Michelle | Temple of Wrappl | Demons | 36 | 5,025 | 207 | 145 | 38 | 74 | 58 | 42 | 8,000 | 0.40 | 6 | stun, sleep, petrification, instant death, freeze, paralysis, slow |
+| Beatrice | Temple of Wrappl | Undead | 36 | 4,625 | 163 | 123 | 48 | 112 | 47 | 51 | 8,000 | 0.45 | 7 | silence, petrification, instant death, poison, paralysis |
+| Mischief Box | Temple of Wrappl | Magic Beings | 38 | 888 | 165 | 142 | 50 | 131 | 44 | 42 | 1,000 | 0.60 | 4 | petrification, instant death |
+| Martial Artist | Temple of Wrappl | Humans | 38 | 5,810 | 160 | 136 | 48 | 50 | 57 | 40 | 10,000 | 0.20 | 6 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Spirit of Mag Mell | Fae Land of Mag Mell | Apparitions | 39 | 8,200 | 215 | 156 | 53 | 130 | 53 | 57 | 18,000 | 0.32 | 7 | stun, petrification, instant death, paralysis |
+| Forest Guardian | Prizren Wildwood | Magic Beings | 40 | 2,000 | 175 | 163 | 10 | 85 | 50 | 40 | 1,000 | 1.20 | 4 | petrification, instant death, freeze |
+| Heartless Avenger | Prizren Wildwood | Humans | 41 | 8,500 | 236 | 180 | 79 | 108 | 55 | 54 | 0 | 0.35 | 6 | stun, sleep, petrification, instant death, freeze, paralysis, slow |
+| Heartless Avenger | Prizren Wildwood | Humans | 41 | 6,800 | 255 | 162 | 79 | 124 | 76 | 63 | 25,000 | 0.20 | 6 | stun, sleep, petrification, instant death, freeze, poison, paralysis, shadow sew, slow |
+| Default | Dragon Palace | Apparitions | 42 | 9,200 | 138 | 166 | 63 | 132 | 57 | 59 | 20,000 | 0.15 | 8 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Calliope | Fae Land of Mag Mell | Apparitions | 42 | 7,500 | 148 | 158 | 60 | 164 | 72 | 61 | 15,000 | 0.22 | 7 | stun, sleep, petrification, instant death, freeze, shadow sew |
+| Dragon Papi | Prizren Wildwood | Dragons | 42 | 9,400 | 155 | 173 | 42 | 107 | 57 | 56 | 15,000 | 0.20 | 7 | stun, sleep, petrification, instant death, freeze, paralysis |
+| Moby Dick | Actim Castle | Beasts | 44 | 13,280 | 167 | 173 | 80 | 165 | 66 | 55 | 20,000 | 0.20 | 7 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Tres Durian | Fae Land of Mag Mell | Fruit | 44 | 8,888 | 134 | 108 | 62 | 100 | 50 | 35 | 15,000 | 0.45 | 5 | stun, silence, petrification, instant death, freeze, poison, paralysis, shadow sew |
+| Mangos Queen | Fae Land of Mag Mell | Fruit | 44 | 7,777 | 149 | 108 | 50 | 100 | 62 | 42 | 15,000 | 0.25 | 5 | sleep, petrification, instant death, freeze, paralysis, shadow sew, slow |
+| Death Cataphract | Actim Castle | Undead | 46 | 15,000 | 156 | 229 | 74 | 122 | 61 | 52 | 22,500 | 0.20 | 7 | stun, sleep, petrification, instant death, freeze, paralysis, turn delay |
+| Queen of Darkness | Actim Castle | Demons | 46 | 26,800 | 234 | 238 | 148 | 203 | 72 | 75 | 60,000 | 0.20 | 9 | sleep, silence, petrification, instant death, poison, shadow sew |
+| Queen of Darkness | Actim Castle | Demons | 46 | 8,000 | 184 | 175 | 85 | 158 | 51 | 62 | 0 | 0.30 | 8 | silence, petrification, instant death, paralysis |
+| Queen of Darkness | Actim Castle | Demons | 46 | 10,000 | 196 | 183 | 99 | 172 | 57 | 69 | 30,000 | 0.20 | 8 | stun, sleep, silence, petrification, instant death, poison, paralysis, shadow sew |
+| NEET Mimic | Actim Castle | Magic Beings | 48 | 1,785 | 240 | 195 | 65 | 150 | 60 | 50 | 1,425 | 0.50 | 6 | petrification, instant death |
+| Sahohime | Temple of Wrappl | Magic Beings | 48 | 10,000 | 170 | 245 | 72 | 138 | 64 | 44 | 24,000 | 0.40 | 7 | stun, sleep, petrification, instant death, freeze, paralysis, turn delay |
+| Appler | Prizren Wildwood | Fruit | 50 | 15,000 | 275 | 100 | 50 | 50 | 100 | 50 | 7,500 | 0.50 | 5 | stun, petrification, instant death, shadow sew |
+| Melolon | Prizren Wildwood | Fruit | 50 | 15,000 | 275 | 50 | 50 | 100 | 100 | 50 | 7,500 | 0.50 | 6 | stun, petrification, instant death, shadow sew |
+| Bananine | Prizren Wildwood | Fruit | 50 | 15,000 | 275 | 75 | 100 | 75 | 50 | 50 | 7,500 | 0.50 | 5 | stun, petrification, instant death, shadow sew |
+| Azmaria | Prizren Wildwood | Humans | 50 | 15,000 | 255 | 238 | 1 | 187 | 70 | 81 | 20,000 | 0.10 | 8 | sleep, petrification, instant death, freeze, poison, paralysis, shadow sew, slow |
+| Scanner | Dreamscape | Humans | 52 | 14,000 | 173 | 217 | 87 | 132 | 81 | 49 | 25,000 | 0.18 | 7 | stun, sleep, petrification, instant death, freeze, shadow sew |
+| Demon God Fried | Dreamscape | race 1 | 54 | 18,000 | 265 | 224 | 94 | 199 | 71 | 68 | 40,000 | 0.20 | 8 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Iron Maiden | Mage City Gruneworth | Magic Beings | 55 | 16,800 | 187 | 264 | 83 | 155 | 67 | 58 | 28,500 | 0.20 | 7 | stun, sleep, petrification, instant death, freeze, poison, turn delay |
+| Airavata | Rousset Royal Villa | Beasts | 58 | 13,200 | 307 | 288 | 58 | 125 | 65 | 57 | 15,000 | 1.00 | 5 | stun, sleep, petrification, instant death, freeze, shadow sew, turn delay |
+| Shapeshifter | Mage City Gruneworth | Magic Beings | 60 | 2,526 | 315 | 245 | 84 | 165 | 64 | 61 | 2,172 | 0.45 | 6 | petrification, instant death |
+| Vitoria | Rousset Royal Villa | Undead | 60 | 11,950 | 333 | 264 | 91 | 157 | 83 | 72 | 17,000 | 0.75 | 6 | stun, sleep, petrification, instant death, freeze, poison, paralysis, shadow sew |
+| Siegdrad | Rousset Royal Villa | Humans | 60 | 9,850 | 243 | 231 | 143 | 237 | 74 | 65 | 17,000 | 0.60 | 7 | sleep, silence, petrification, instant death, poison, paralysis, shadow sew |
+| Aradia | Ruined Shrine Cave | Humans | 60 | 15,000 | 248 | 228 | 96 | 200 | 73 | 66 | 15,000 | 0.35 | 7 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, turn delay |
+| Kaguya | Vrachia Town North | Demons | 60 | 16,200 | 200 | 241 | 126 | 256 | 92 | 60 | 30,000 | 0.25 | 8 | stun, sleep, silence, petrification, instant death, freeze, shadow sew, slow |
+| Samael | First Sealbook | Demons | 62 | 18,500 | 334 | 258 | 122 | 226 | 75 | 69 | 32,800 | 0.22 | 7 | silence, petrification, instant death, freeze, poison, shadow sew |
+| Euthys | Vrachia Town North | Humans | 64 | 28,000 | 392 | 331 | 161 | 267 | 82 | 73 | 30,000 | 0.20 | 10 | stun, silence, petrification, instant death, freeze, paralysis, shadow sew, slow, turn delay |
+| Melek Taus | First Sealbook | Demons | 65 | 20,800 | 362 | 288 | 118 | 201 | 71 | 65 | 35,000 | 0.26 | 8 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, turn delay |
+| Aradia | Tower of Wind | Beasts | 65 | 20,000 | 350 | 305 | 146 | 255 | 143 | 86 | 25,000 | 0.22 | 9 | stun, petrification, instant death, freeze, poison, paralysis, slow, turn delay |
+| Iktomi | Hell's Hole | Humans | 66 | 21,000 | 248 | 294 | 120 | 268 | 108 | 72 | 36,000 | 0.22 | 8 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Therian Guardsman | Casino Esperanza | race 3 | 68 | 9,999 | 417 | 352 | 172 | 324 | 96 | 85 | 10,000 | 0.35 | 5 | stun, petrification, instant death, freeze |
+| Demiurge | First Sealbook | race 1 | 68 | 24,000 | 378 | 272 | 142 | 207 | 67 | 68 | 0 | 0.22 | 12 | stun, silence, petrification, instant death, freeze, paralysis, shadow sew, turn delay |
+| Sukuna-Hikona | Hell's Hole | Apparitions | 68 | 23,800 | 235 | 286 | 144 | 312 | 208 | 83 | 40,000 | 0.18 | 9 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Overdue | Prizren Wildwood | Magic Beings | 68 | 25,000 | 245 | 365 | 131 | 281 | 88 | 68 | 36,000 | 0.25 | 10 | stun, silence, petrification, instant death, freeze, paralysis, shadow sew, slow, turn delay |
+| Qitian Dasheng | Casino Esperanza | Beasts | 70 | 28,000 | 284 | 315 | 122 | 302 | 163 | 92 | 43,000 | 0.22 | 8 | stun, petrification, instant death, freeze, poison, paralysis, shadow sew |
+| Atialuco | First Sealbook | Beasts | 70 | 21,800 | 400 | 295 | 158 | 226 | 82 | 74 | 0 | 0.20 | 10 | stun, sleep, silence, petrification, instant death, freeze, poison, shadow sew, turn delay |
+| Evil Box | Hell's Hole | Magic Beings | 70 | 3,000 | 360 | 300 | 98 | 191 | 82 | 73 | 3,000 | 0.35 | 6 | petrification, instant death |
+| Aradia | Dragon Palace | Apparitions | 72 | 25,000 | 428 | 381 | 188 | 302 | 146 | 90 | 30,000 | 0.27 | 8 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Azathoth | Casino Esperanza | Demons | 73 | 28,000 | 253 | 337 | 183 | 321 | 99 | 80 | 46,000 | 0.25 | 9 | stun, sleep, silence, petrification, instant death, paralysis, shadow sew |
+| Kuchinawa | Ruined Shrine Cave | Dragons | 75 | 35,000 | 324 | 435 | 142 | 308 | 122 | 84 | 60,000 | 0.25 | 8 | stun, sleep, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
+| Genbu | Matrix | Apparitions | 76 | 30,000 | 310 | 626 | 157 | 287 | 127 | 75 | 50,000 | 0.30 | 7 | stun, petrification, instant death, freeze, poison, paralysis, turn delay |
+| Aradia | Khorramshahr Outskirts | Dragons | 77 | 30,000 | 477 | 512 | 216 | 268 | 132 | 85 | 38,000 | 0.30 | 7 | stun, sleep, silence, petrification, instant death, poison, paralysis, shadow sew, slow, turn delay |
+| Nuwa | Matrix | Dragons | 79 | 33,000 | 336 | 392 | 173 | 276 | 157 | 105 | 55,000 | 0.25 | 7 | stun, sleep, petrification, instant death, paralysis, shadow sew, turn delay |
+| Aradia | Actim Castle | Undead | 80 | 32,500 | 468 | 446 | 229 | 306 | 143 | 97 | 45,000 | 0.40 | 7 | stun, sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew |
+| Peggin Templar | Dreamscape | race 3 | 80 | 7,227 | 482 | 432 | 124 | 308 | 135 | 117 | 5,000 | 1.05 | 5 | stun, silence, petrification, instant death, freeze |
+| Peggy Sniper | Dreamscape | race 3 | 80 | 6,953 | 485 | 426 | 128 | 297 | 157 | 105 | 5,000 | 0.65 | 5 | stun, petrification, instant death, freeze, paralysis, slow |
+| Peggin Etoile | Dreamscape | race 3 | 80 | 7,182 | 420 | 444 | 172 | 262 | 122 | 113 | 5,000 | 0.80 | 6 | sleep, petrification, instant death, freeze, paralysis |
+| Calico Mary | Dreamscape | race 3 | 80 | 6,891 | 467 | 415 | 101 | 288 | 119 | 97 | 5,000 | 0.85 | 5 | sleep, petrification, instant death, freeze |
+| Murasaki Shikibu | Fae Land of Mag Mell | Humans | 82 | 25,000 | 299 | 423 | 192 | 332 | 142 | 113 | 90,000 | 0.38 | 8 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Last Judgment | Plains of Light | Magic Beings | 83 | 38,000 | 324 | 432 | 206 | 336 | 146 | 116 | 100,000 | 0.28 | 9 | stun, sleep, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
+| Aradia | Dreamscape | Demons | 84 | 37,000 | 482 | 453 | 262 | 342 | 161 | 108 | 55,000 | 0.32 | 8 | silence, petrification, instant death, freeze, poison, paralysis, slow |
+| Peggy Oversummoner | Mage City Gruneworth | race 3 | 84 | 8,501 | 485 | 502 | 211 | 312 | 123 | 116 | 7,000 | 0.75 | 5 | stun, petrification, instant death, freeze |
+| Roger Orso | Mage City Gruneworth | race 3 | 84 | 9,121 | 541 | 518 | 39 | 275 | 141 | 100 | 7,000 | 0.85 | 6 | sleep, petrification, instant death, freeze, paralysis |
+| Flannel Mary | Mage City Gruneworth | race 3 | 84 | 8,435 | 513 | 487 | 158 | 299 | 179 | 158 | 7,000 | 0.70 | 7 | stun, sleep, petrification, instant death |
+| Stepgirl Mary | Mage City Gruneworth | race 3 | 84 | 8,342 | 456 | 497 | 143 | 350 | 135 | 128 | 7,000 | 0.90 | 6 | sleep, petrification, instant death, paralysis, shadow sew, slow |
+| Ria the Farsighted | Dreamscape | race 3 | 85 | 25,000 | 562 | 570 | 267 | 415 | 150 | 166 | 30,000 | 0.38 | 6 | stun, petrification, instant death, freeze, paralysis, shadow sew |
+| Chika the Impenetrable | Dreamscape | race 3 | 85 | 25,000 | 642 | 1300 | 168 | 642 | 162 | 143 | 30,000 | 0.35 | 7 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, slow, turn delay |
+| Crom Cruach | Hell's Hole | Dragons | 85 | 42,000 | 532 | 511 | 234 | 375 | 138 | 126 | 200,000 | 0.28 | 7 | stun, petrification, instant death, freeze, paralysis, shadow sew, turn delay |
+| Pandora | Matrix | Magic Beings | 85 | 5,000 | 435 | 425 | 144 | 245 | 100 | 90 | 4,000 | 0.30 | 7 | stun, petrification, instant death |
+| Clotho | Therian Altar | race 3 | 85 | 21,500 | 554 | 467 | 155 | 306 | 148 | 94 | 50,000 | 0.45 | 6 | stun, sleep, silence, petrification, instant death, freeze, shadow sew |
+| Lachesis | Therian Altar | race 3 | 85 | 20,000 | 491 | 453 | 162 | 443 | 139 | 88 | 50,000 | 0.50 | 7 | stun, silence, petrification, instant death, freeze, paralysis, slow, turn delay |
+| Atropos | Therian Altar | race 3 | 85 | 18,500 | 475 | 438 | 231 | 258 | 131 | 112 | 50,000 | 0.40 | 12 | sleep, silence, petrification, instant death, freeze, paralysis, shadow sew |
+| Lolo | Casino Esperanza | Apparitions | 86 | 16,000 | 462 | 321 | 188 | 666 | 372 | 182 | 100,000 | 0.20 | 8 | petrification, instant death, freeze, paralysis, slow |
+| Samael | Dreamscape | Demons | 88 | 45,000 | 453 | 481 | 278 | 475 | 155 | 132 | 250,000 | 0.22 | 12 | stun, silence, petrification, instant death, freeze, poison, paralysis, shadow sew |
+| Mil the Overlord | Mage City Gruneworth | race 3 | 88 | 30,000 | 639 | 622 | 153 | 322 | 162 | 151 | 34,000 | 0.35 | 6 | stun, silence, petrification, instant death, freeze, paralysis |
+| Lina the Statuesque | Mage City Gruneworth | race 3 | 88 | 28,000 | 557 | 581 | 301 | 555 | 201 | 166 | 34,000 | 0.33 | 7 | stun, sleep, silence, petrification, instant death, freeze, paralysis |
+| Aradia | Mage City Gruneworth | Magic Beings | 88 | 41,500 | 591 | 513 | 283 | 413 | 180 | 136 | 70,000 | 0.32 | 8 | stun, petrification, instant death, freeze, poison, paralysis, shadow sew, slow |
+| Tenerezza | Casino Esperanza | Humans | 90 | 45,000 | 597 | 633 | 362 | 548 | 167 | 163 | 150,000 | 0.28 | 16 | stun, silence, petrification, instant death, poison, paralysis, shadow sew, turn delay |
+| Melek Taus | Mage City Gruneworth | Demons | 90 | 56,000 | 487 | 584 | 253 | 469 | 148 | 124 | 300,000 | 0.16 | 11 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, slow, turn delay |
+| Adon | Matrix | Undead | 90 | 25,000 | 951 | 914 | 379 | 844 | 188 | 156 | 100,000 | 0.55 | 7 | stun, sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
+| Samson | Matrix | Undead | 90 | 25,000 | 724 | 805 | 328 | 972 | 165 | 143 | 100,000 | 1.10 | 7 | sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, slow |
+| Hell's Angel | Plains of Light | Undead | 92 | 60,000 | 451 | 573 | 231 | 407 | 172 | 138 | 350,000 | 0.24 | 11 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, turn delay |
+| Magna Meretrix | Matrix | Demons | 93 | 55,000 | 612 | 666 | 276 | 611 | 173 | 165 | 225,000 | 0.25 | 11 | stun, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
+| Peggy Devil Summoner | Casino Esperanza | race 3 | 94 | 26,700 | 682 | 673 | 324 | 415 | 130 | 172 | 60,000 | 0.70 | 8 | stun, sleep, petrification, instant death, freeze, paralysis, slow |
+| Lunatic Mary | Casino Esperanza | race 3 | 94 | 25,480 | 762 | 701 | 282 | 548 | 166 | 143 | 60,000 | 1.00 | 10 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Bearerophon | First Sealbook | race 3 | 94 | 28,800 | 572 | 588 | 1 | 381 | 135 | 150 | 12,000 | 0.38 | 4 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, slow |
+| Tama the Red | Casino Esperanza | race 3 | 95 | 33,280 | 720 | 822 | 293 | 531 | 159 | 147 | 50,000 | 0.60 | 7 | stun, petrification, instant death, freeze, paralysis, shadow sew, slow |
+| Riko the Reclusive | Casino Esperanza | race 3 | 95 | 31,500 | 680 | 814 | 268 | 515 | 148 | 175 | 50,000 | 0.25 | 9 | stun, sleep, petrification, instant death, freeze, shadow sew, slow |
+| Magical Mary | First Sealbook | race 3 | 95 | 23,000 | 635 | 603 | 282 | 434 | 152 | 158 | 12,000 | 0.40 | 7 | sleep, silence, petrification, instant death, freeze, paralysis |
+| Arjuna | Matrix | Humans | 95 | 45,600 | 817 | 721 | 344 | 495 | 178 | 166 | 200,000 | 0.30 | 11 | stun, silence, petrification, instant death, freeze, paralysis, shadow sew, slow |
+| Gam the Wise | Casino Esperanza | race 3 | 96 | 36,820 | 742 | 803 | 333 | 1543 | 150 | 166 | 60,000 | 0.35 | 11 | stun, sleep, silence, petrification, instant death, poison, paralysis, shadow sew |
+| Mor the Drunken | Casino Esperanza | race 3 | 96 | 33,900 | 797 | 741 | 287 | 476 | 180 | 168 | 60,000 | 0.33 | 12 | stun, petrification, instant death, freeze, poison, paralysis, shadow sew, slow |
+| Rai the Sweltering | Casino Esperanza | race 3 | 96 | 50,000 | 5000 | 712 | 311 | 242 | 163 | 138 | 50,000 | 4.00 | 5 | stun, sleep, petrification, instant death, freeze, poison, shadow sew, slow, turn delay |
+| Peggy Sentinel | First Sealbook | race 3 | 96 | 21,250 | 542 | 622 | 217 | 293 | 150 | 147 | 15,000 | 1.00 | 5 | stun, petrification, instant death, freeze, poison |
+| Brian Orso | First Sealbook | race 3 | 96 | 23,480 | 712 | 591 | 112 | 335 | 143 | 128 | 15,000 | 2.25 | 4 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Beard Master | First Sealbook | race 3 | 96 | 32,000 | 675 | 612 | 151 | 327 | 146 | 153 | 12,000 | 0.75 | 7 | stun, petrification, instant death, freeze, paralysis, shadow sew, turn delay |
+| Citlalinicue | Hell's Hole | Demons | 96 | 49,500 | 921 | 806 | 322 | 442 | 163 | 160 | 200,000 | 0.32 | 11 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, slow, turn delay |
+| Peggy Hawkeye | Khorramshahr Outskirts | race 3 | 96 | 26,700 | 842 | 711 | 221 | 513 | 162 | 137 | 75,000 | 1.50 | 6 | stun, silence, petrification, instant death, freeze, paralysis, shadow sew |
+| Velour Mary | Khorramshahr Outskirts | race 3 | 96 | 25,550 | 691 | 657 | 173 | 468 | 201 | 170 | 75,000 | 0.70 | 7 | sleep, silence, petrification, instant death, freeze, paralysis, shadow sew, slow |
+| Beard Warlord | Prizren Wildwood | race 3 | 96 | 29,200 | 722 | 685 | 227 | 452 | 155 | 155 | 75,000 | 1.65 | 6 | sleep, silence, petrification, instant death, freeze, paralysis |
+| Peggin High Priest | Prizren Wildwood | race 3 | 96 | 26,200 | 624 | 662 | 278 | 602 | 134 | 161 | 75,000 | 0.85 | 8 | stun, sleep, petrification, instant death, freeze, shadow sew |
+| Freddie Orso | Temple of Wrappl | race 3 | 96 | 29,550 | 666 | 722 | 282 | 342 | 144 | 122 | 75,000 | 1.60 | 5 | petrification, instant death, freeze, poison, paralysis, shadow sew, slow |
+| Joker Mary | Temple of Wrappl | race 3 | 96 | 26,772 | 751 | 618 | 302 | 462 | 163 | 160 | 75,000 | 0.80 | 6 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Panttalion | Actim Castle | race 3 | 97 | 29,800 | 559 | 662 | 310 | 1023 | 129 | 130 | 100,000 | 0.85 | 9 | sleep, silence, petrification, instant death, freeze, paralysis, shadow sew, slow |
+| Queen Maid Mary | Actim Castle | race 3 | 97 | 31,200 | 638 | 723 | 266 | 631 | 151 | 149 | 100,000 | 1.15 | 7 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Hana the Waterfall | Casino Esperanza | race 3 | 97 | 25,800 | 719 | 642 | 224 | 384 | 219 | 175 | 80,000 | 0.75 | 6 | stun, sleep, silence, petrification, instant death, freeze, shadow sew, slow |
+| Ma the Eccentric | Casino Esperanza | race 3 | 97 | 26,700 | 685 | 728 | 291 | 484 | 182 | 167 | 80,000 | 1.25 | 8 | stun, sleep, silence, petrification, instant death, paralysis, shadow sew, slow |
+| Ruu the Woodsy | Casino Esperanza | race 3 | 97 | 38,000 | 816 | 889 | 284 | 468 | 172 | 181 | 80,000 | 0.30 | 10 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, turn delay |
+| Marduk | Casino Esperanza | Magic Beings | 97 | 52,800 | 765 | 2450 | 311 | 521 | 155 | 158 | 200,000 | 0.33 | 13 | stun, sleep, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
+| Gamble Beard | Casino Esperanza | race 3 | 98 | 34,000 | 801 | 704 | 197 | 422 | 148 | 130 | 100,000 | 1.80 | 7 | sleep, petrification, instant death, freeze, paralysis, turn delay |
+| Lolo | Casino Esperanza | Apparitions | 98 | 28,000 | 821 | 624 | 309 | 745 | 431 | 212 | 200,000 | 0.16 | 8 | stun, petrification, instant death, freeze, paralysis, shadow sew, slow |
+| Mul the Mechanical | First Sealbook | race 3 | 98 | 20,000 | 555 | 597 | 250 | 518 | 159 | 160 | 50,000 | 0.50 | 7 | stun, silence, petrification, instant death, freeze, shadow sew, slow |
+| Zouchou Kuma | Khorramshahr Outskirts | race 3 | 98 | 44,800 | 833 | 666 | 398 | 722 | 153 | 162 | 200,000 | 0.33 | 10 | stun, sleep, silence, petrification, instant death, freeze, shadow sew, slow, turn delay |
+| Yoshitsune | Plains of Light | Humans | 98 | 48,200 | 888 | 712 | 283 | 504 | 182 | 174 | 200,000 | 0.24 | 10 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew |
+| Koumoku Mary | Prizren Wildwood | race 3 | 98 | 45,600 | 1024 | 731 | 345 | 531 | 165 | 134 | 200,000 | 0.50 | 12 | stun, sleep, petrification, instant death, freeze, poison, shadow sew, turn delay |
+| Jikoku Peggin | Temple of Wrappl | race 3 | 98 | 43,200 | 902 | 798 | 342 | 508 | 179 | 179 | 200,000 | 0.45 | 12 | stun, sleep, silence, petrification, instant death, freeze, shadow sew, slow, turn delay |
+| Bishamon Peggy | Actim Castle | race 3 | 99 | 52,000 | 971 | 862 | 400 | 811 | 182 | 157 | 400,000 | 0.35 | 11 | stun, sleep, petrification, instant death, freeze, paralysis, shadow sew, slow, turn delay |
+| Mandra Prince | Casino Esperanza | Fruit | 99 | 27,200 | 666 | 711 | 222 | 507 | 167 | 140 | 120,000 | 1.00 | 8 | stun, silence, petrification, instant death, freeze, paralysis, shadow sew |
+| Mandra Princess | Casino Esperanza | Fruit | 99 | 25,800 | 711 | 666 | 222 | 465 | 173 | 132 | 120,000 | 1.20 | 7 | sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, slow |
+| Tenerezza | Casino Esperanza | Humans | 99 | 60,000 | 1354 | 1127 | 628 | 1648 | 226 | 188 | 600,000 | 0.22 | 16 | stun, sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
+| Aradia | First Sealbook | race 1 | 99 | 52,000 | 666 | 621 | 302 | 452 | 182 | 182 | 400,000 | 0.26 | 10 | stun, sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, slow, turn delay |
+| Crom Cruach | Hell's Hole | Dragons | 99 | 62,000 | 1049 | 802 | 315 | 492 | 216 | 182 | 400,000 | 0.25 | 12 | stun, sleep, silence, petrification, instant death, freeze, paralysis, shadow sew, slow, turn delay |
+| Magna Meretrix | Matrix | Demons | 99 | 55,000 | 1299 | 981 | 526 | 1298 | 237 | 196 | 450,000 | 0.22 | 13 | stun, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, slow, turn delay |
+| Panagia | Plains of Light | Humans | 99 | 45,000 | 677 | 611 | 288 | 556 | 155 | 174 | 100,000 | 0.28 | 12 | sleep, silence, petrification, instant death, freeze, paralysis, shadow sew |
+| Panagia | Plains of Light | Humans | 99 | 22,500 | 665 | 602 | 288 | 532 | 153 | 171 | 100,000 | 0.30 | 12 | stun, sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, slow, turn delay |
+| Radiant Being | Plains of Light | race 1 | 99 | 48,000 | 642 | 578 | 295 | 431 | 166 | 163 | 500,000 | 0.36 | 13 | stun, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
 
 ## Catching up
 

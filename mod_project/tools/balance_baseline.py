@@ -183,7 +183,13 @@ def floor_sections(enemies):
     lines += table(['Zone', 'Formations', 'Enemies per battle', 'Most enemies', 'Enemy levels', 'HP per battle',
                     'EXP per battle', 'Gold per battle', 'Enemies in the back row'], rows)
     seen = {e for floor in floors for f in floor['formations'] for e, _ in f['enemies']}
-    lines += ['', f'{len(seen)} of the {len(enemies)} enemies appear in a random formation; the others are placed by events.']
+    events = sorted((e for e in enemies if e['id'] not in seen), key=lambda e: (e['level'], e['habitat'], e['id']))
+    lines += ['', f'{len(seen)} of the {len(enemies)} enemies appear in a random formation; the other {len(events)} are placed by '
+              'events (bosses, chests that bite, quest targets). Who fights beside whom in those battles is not decoded.', '',
+              '### Enemies placed by events', '']
+    lines += table(['Enemy', 'Habitat', 'Race', 'Lv', 'HP', 'ATK', 'DEF', 'INT', 'RES', 'DEX', 'AGI', 'EXP', 'Weight', 'Attacks', 'Cannot receive'],
+                   [[e['name'], e['habitat'], e['race_name'], e['level'], number(e['hp']), e['atk'], e['def'], e['int'], e['res'], e['dex'],
+                     e['agi'], number(e['exp']), f"{e['weight']:.2f}", len(e['attacks']), ', '.join(e['immune'])] for e in events])
     return lines
 
 
