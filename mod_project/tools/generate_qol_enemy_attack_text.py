@@ -12,7 +12,12 @@ Workbook: mod_project/data_tables/qol_enemy_attack_text.xlsx
         If it hits, it may inflict poison. Also, ouch.
     The prose (jokes included) is never touched. The exact figures go on the data line, in its own
     format:  Target: Single / Type: Stab / Range: Long / Poison: 30%
-  * An attack has no levels, so its figures are exact. Shown so far: the chance of each ailment.
+  * An attack has no levels, so its figures are exact. Shown: the chance of each ailment, then fixed
+    damage, max-HP damage and its cap, fixed accuracy and critical rate, HP/TP absorb, the chances of
+    turn delay, buff cancel, speed decrease and Shadow Sew, stat changes and Pep. A figure the prose
+    already gives is not repeated.
+  * Where the original prose states a figure that the data does not hold, the data wins: only that
+    figure is replaced ("Deal 555 fixed damage" -> "Deal 777 fixed damage").
 """
 import os
 import sys
@@ -21,8 +26,8 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 from pck_handler import PckArchive, EnemyAttackHelper
-from text_checks import (ENEMY_DATA_LINE, AILMENT_NAMES, enemy_attack_slots, enemy_ailments,
-                         enemy_ailment_tokens, check_enemy_attack_text)
+from text_checks import (ENEMY_DATA_LINE, enemy_attack_slots, enemy_ailments, enemy_ailment_tokens,
+                         enemy_effect_tokens, correct_prose, check_enemy_attack_text)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_PATH = os.path.join(BASE_DIR, 'backups', 'EnemyAttackData.pck')
@@ -35,17 +40,25 @@ HEADERS = ['Filename', 'Attack_Name', 'Vanilla_Desc', 'QoL_Desc', 'Edited', 'Eff
 def propose(b, desc):
     """Returns (text, note)."""
     lines = desc.split('\n')
-    has_ailment = any(effect_id in AILMENT_NAMES for effect_id, _, _ in enemy_attack_slots(b))
-    if not has_ailment:
-        return desc, ''
-    if not lines[0].startswith(ENEMY_DATA_LINE):
-        return desc, 'has an ailment chance but no data line to put it on'
+    has_data_line = lines[0].startswith(ENEMY_DATA_LINE)
+    prose = correct_prose(b, '\n'.join(lines[1:] if has_data_line else lines))
+    notes = []
     if enemy_ailments(b) is None:
-        return desc, 'ailment chance outside 0-100% or stated twice: left as written'
-    line = ' / '.join([lines[0]] + enemy_ailment_tokens(b))
-    if len(line) > MAX_LINE:
-        return desc, f'data line would be {len(line)} characters'
-    return '\n'.join([line] + lines[1:]), ''
+        notes.append('ailment chance of 0 or stated twice: not written')
+    tokens = enemy_ailment_tokens(b) + enemy_effect_tokens(b, prose)
+    if not has_data_line:
+        if tokens:
+            notes.append('has data but no data line to put it on')
+        return prose, '; '.join(notes)
+    line, left = lines[0], []
+    for token in tokens:                      # in order of importance; what does not fit is named in the note
+        if len(line) + 3 + len(token) <= MAX_LINE:
+            line += ' / ' + token
+        else:
+            left.append(token)
+    if left:
+        notes.append('no room on the data line for: ' + ', '.join(left))
+    return '\n'.join([line] + ([prose] if prose else [])), '; '.join(notes)
 
 
 def load_edited():
@@ -69,9 +82,16 @@ def build_rows():
         problems, _ = check_enemy_attack_text(b, desc, attack['desc'])
         if problems or any(len(line) > MAX_LINE for line in desc.split('\n')[:1] if desc != attack['desc']):
             raise SystemExit(f"{fn} ({attack['name']}): {problems or 'data line too long'}")
-        stats['edited by hand' if fn in edited else 'ailment chance added to the data line' if desc != attack['desc']
-              else 'could not be stated: ' + note.split(' characters')[0].rstrip('0123456789 ') if note
-              else 'nothing to add'] += 1
+        vanilla_lines, new_lines = attack['desc'].split('\n'), desc.split('\n')
+        if fn in edited:
+            stats['edited by hand'] += 1
+        else:
+            stats['data added to the data line' if new_lines[0] != vanilla_lines[0] else 'data line unchanged'] += 1
+            if new_lines[0].startswith(ENEMY_DATA_LINE) and new_lines[1:] != vanilla_lines[1:]:
+                stats['figure of the prose corrected to the stored value'] += 1
+            for part in note.split('; '):
+                if part:
+                    stats['note: ' + part.split(':')[0]] += 1
         slots = ', '.join(f'{i}:{v:g}' for i, v, _ in enemy_attack_slots(b))
         rows.append([fn, attack['name'], attack['desc'], desc, 'yes' if fn in edited else '', slots, note])
     return rows, stats

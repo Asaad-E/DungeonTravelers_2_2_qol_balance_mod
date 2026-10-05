@@ -13,8 +13,9 @@ Variants
         Built so far:
           the four skill PCKs      from data_tables/qol_skill_text.xlsx
           EnchantData.pck          from data_tables/qol_enchant_text.xlsx (enchant names with their figure)
-          ItemData.pck             from data_tables/qol_item_text.xlsx (exact amount in place of a vague size)
-          EnemyAttackData.pck      from data_tables/qol_enemy_attack_text.xlsx (ailment chances on the data line)
+          ItemData.pck             from data_tables/qol_item_text.xlsx (original sentence + what the item does)
+          EnemyAttackData.pck      from data_tables/qol_enemy_attack_text.xlsx (exact effects on the data line;
+                                   a figure of the prose that the data does not hold is corrected)
           WeaponRankData.pck       rank names generated from the delay multiplier of each rank
 
 The build fails (exit code 1) when
@@ -309,13 +310,16 @@ def verify_skills(out_dir, table, variant, problems):
 
             # Line 1 is what the battle bar shows, without the level: no new figures, and only the
             # magnitude words the binary gives.
-            if category in ('Technique', 'Magic'):
+            if category in ('Technique', 'Magic', 'Passive'):
                 if desc != row['vanilla_desc']:
                     if len(desc) > MAX_LINE or desc.count('\n') != row['vanilla_desc'].count('\n'):
                         problems.append(f"{label}: line 1 must keep its line count and stay within {MAX_LINE} chars")
-                    if sorted(re.findall(r'\d+', magnitude_words.strip_chances(desc))) != sorted(re.findall(r'\d+', row['vanilla_desc'])):
+                    if sorted(re.findall(r'\d+', magnitude_words.strip_chances(desc, row['vanilla_desc']))) != sorted(re.findall(r'\d+', row['vanilla_desc'])):
                         problems.append(f"{label}: line 1 carries a figure the vanilla sentence does not have")
-                found, verified = magnitude_words.check_line1(desc, row['vanilla_desc'], skill_tables(category, new)['slots'])
+                tables = skill_tables(category, new)
+                found, verified = magnitude_words.check_line1(
+                    desc, row['vanilla_desc'], tables['slots'],
+                    [tables[k] for k in ('accuracy', 'turns', 'tp', 'speed', 'cast') if tables.get(k)])
                 problems.extend(f"{label}: {p}" for p in found)
                 counts['words'] += verified
 
@@ -405,7 +409,7 @@ def verify_items(out_dir, table, variant, problems):
             problems.append(f"{label}: text must be one line of at most {MAX_LINE} chars without tilde")
         if re.search(r'\((?:small|medium|large)\)', now['desc']) and re.search(r'\(\+\d', now['desc']):
             problems.append(f"{label}: states both a vague size and an exact amount")
-        found, verified = check_item_text(new, now['desc'])
+        found, verified = check_item_text(new, now['desc'], was['desc'])
         problems.extend(f"{label}: {p}" for p in found)
         counts['numbers'] += verified
     return counts
@@ -495,9 +499,9 @@ def main():
         stats = build_enchants(out_dir, enchants, problems)
         print(f"    Built {ENCHANT_PCK}: {stats['rewritten']} names with their figure, {stats['kept']} kept byte-identical")
         stats = build_items(out_dir, items, problems)
-        print(f"    Built {ITEM_PCK}: {stats['rewritten']} descriptions with an exact amount, {stats['kept']} kept byte-identical")
+        print(f"    Built {ITEM_PCK}: {stats['rewritten']} descriptions with their data, {stats['kept']} kept byte-identical")
         stats = build_enemy_attacks(out_dir, enemy_attacks, problems)
-        print(f"    Built {ENEMY_PCK}: {stats['rewritten']} data lines with ailment chances, {stats['kept']} kept byte-identical")
+        print(f"    Built {ENEMY_PCK}: {stats['rewritten']} entries with data on the data line, {stats['kept']} kept byte-identical")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:
@@ -506,7 +510,7 @@ def main():
             print(f"    numeric data identical to the original in all of them")
             print(f"    {counts['modified']} modified boxes within {MAX_BOX_LINES} lines / {MAX_LINE} chars")
             print(f"    {counts['numbers']} figures in the text checked against the built binary")
-            print(f"    {counts['words']} damage words and ailment chances in line 1 checked against the built binary")
+            print(f"    {counts['words']} damage words, chances and values in line 1 checked against the built binary")
             if untraced:
                 print(f"    {len(untraced)} figure(s) could not be tied to a table (hand-written notes, not checked):")
                 for line in untraced[:20]:
@@ -517,10 +521,11 @@ def main():
                   f"{counts['hand worded']} worded by hand (not checked)")
             counts = verify_items(out_dir, items, variant, problems)
             print(f"    Verified {counts['entries']} items: values and names identical to the original;")
-            print(f"    {counts['numbers']} amounts in the text checked against the built binary")
+            print(f"    {counts['numbers']} pieces of item data checked against the built binary; original sentences intact")
             counts = verify_enemy_attacks(out_dir, enemy_attacks, variant, problems)
-            print(f"    Verified {counts['entries']} enemy attacks: values, names and prose identical to the original;")
-            print(f"    {counts['numbers']} ailment chances on the data line checked against the built binary")
+            print(f"    Verified {counts['entries']} enemy attacks: values and names identical to the original; prose identical")
+            print(f"    except where a figure or word was corrected to what the data holds;")
+            print(f"    {counts['numbers']} figures on the data line and in corrected prose checked against the built binary")
             labels = verify_weapon_ranks(out_dir, variant, problems)
             print(f"    Verified {len(labels)} weapon ranks: multipliers identical to the original, "
                   f"each label shows its own multiplier")

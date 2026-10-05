@@ -42,7 +42,8 @@ class Scales(unittest.TestCase):
         self.assertEqual(chance([0.30, 0.32, 0.34, 0.36, 0.38]), '30%+')  # rises by 10 points or less
         self.assertEqual(chance([0.30, 0.40]), '30%+')
         self.assertEqual(chance([0.20, 0.35, 0.50]), '20-50%')            # rises by more: first - last
-        self.assertIsNone(chance([10.0]))                                 # always happens: nothing to say
+        self.assertEqual(chance([10.0]), '100%')                          # always happens: 100%, never more
+        self.assertEqual(chance([0.95, 1.0]), '95%+')
         self.assertIsNone(mw.chance_text([(117, 4, [0.25, 0.37]), (115, 4, [0.20, 0.32])], [117, 115]))
 
 
@@ -114,9 +115,37 @@ class Line1(unittest.TestCase):
                 self.assertLessEqual(len(row['desc']), bv.MAX_LINE)
                 self.assertNotIn('\n', row['desc'])
                 self.assertNotIn('~', row['desc'])           # no glyph in the game font
-                self.assertEqual(sorted(c for c in mw.strip_chances(row['desc']) if c.isdigit()),
+                self.assertEqual(sorted(c for c in mw.strip_chances(row['desc'], row['vanilla_desc']) if c.isdigit()),
                                  sorted(c for c in row['vanilla_desc'] if c.isdigit()))
         self.assertGreater(changed, 50)
+
+    def test_skills_without_damage_say_how_much_they_do(self):
+        """The user's rule: line 1 gives the value; the level-by-level list is in the box below."""
+        table = bv.load_skill_text(SKILL_TABLE)
+        by_name = {}
+        for category, pck in (('Technique', 'TechniqueSkillData.pck'), ('Magic', 'MagicSkillData.pck'),
+                              ('Passive', 'PassiveSkillData.pck')):
+            for fn, b in PckArchive(os.path.join(_paths.BACKUP_DIR, pck)).files:
+                by_name.setdefault(SkillHelper.read_skill(b, category)['name'], table[(category, fn)]['desc'])
+        expected = {
+            'War Cry': "Raise the party's ATK (8%+).",                                 # +8% -> +18%
+            'Brave': "Raise an ally's ATK (10-22%).",
+            'Berserk': 'Increase own ATK at the price of lowering own DEF (ATK 20-50%, DEF 11-25%).',
+            'Sword Mastery': 'ATK bonus with sword equipped (3-15%).',
+            'Resurrect': 'Revive a dead ally (HP on revival 40-88%).',
+            'Power Charge': 'Deal increased physical damage next turn (1.05-1.3x).',
+            'Moon Curtain': "Raise the party's resistance to fire, water, lightning, wind, and earth (5-25%).",
+        }
+        for name, text in expected.items():
+            with self.subTest(skill=name):
+                self.assertEqual(by_name[name], text)
+
+    def test_checker_rejects_a_value_the_skill_does_not_have(self):
+        category, _, b, desc = self.skills['War Cry']
+        slots = skill_tables(category, b)['slots']
+        self.assertEqual(mw.check_line1("Raise the party's ATK (8%+).", desc, slots), ([], 1))
+        for wrong in ('(10%+)', '(8%)', '(8-20%)', '(ATK 9%+)'):
+            self.assertNotEqual(mw.check_line1(f"Raise the party's ATK {wrong}.", desc, slots)[0], [], wrong)
 
     def test_wrong_word_in_the_table_stops_the_build(self):
         table = copy.deepcopy(bv.load_skill_text(SKILL_TABLE))
@@ -161,15 +190,36 @@ class EnemyAttacks(unittest.TestCase):
         self.assertEqual(enemy_ailment_tokens(self.entries['EnemyAttackData_0614.bin']), ['Freeze/Silence: 20%'])
         self.assertEqual(enemy_ailment_tokens(self.entries['EnemyAttackData_0943.bin']), ['Poison: 60%', 'Silence: 50%'])
 
-    def test_prose_is_never_changed_in_the_table(self):
+    def test_prose_changes_only_where_the_data_corrects_it(self):
         self.assertEqual(set(self.table), set(self.entries))
-        changed = 0
+        changed, corrected = 0, []
         for fn, row in self.table.items():
             changed += row['desc'] != row['vanilla_desc']
+            lines, vanilla = row['desc'].split('\n'), row['vanilla_desc'].split('\n')
+            if vanilla[0].startswith('Target:') and lines[1:] != vanilla[1:]:
+                corrected.append(fn)
             with self.subTest(entry=fn):
-                self.assertEqual(row['desc'].split('\n')[1:], row['vanilla_desc'].split('\n')[1:])
                 self.assertEqual(check_enemy_attack_text(self.entries[fn], row['desc'], row['vanilla_desc'])[0], [])
-        self.assertGreater(changed, 800)
+        self.assertGreater(changed, 1400)
+        # 5 wrong figures and the 6 entries of Heavy Stomp and Mega Stomp ("defense" where the data lowers attack)
+        self.assertEqual(len(corrected), 11)
+
+    def test_other_effects_go_on_the_data_line_and_stat_changes_share_an_item(self):
+        by_name = {}
+        for fn, row in self.table.items():
+            by_name.setdefault(EnemyAttackHelper.read_enemy_attack(self.entries[fn])['name'], row['desc'].split('\n')[0])
+        self.assertEqual(by_name['Tamatebako'], 'Target: Row / Type: Neutral / Range: None / DEF/Magic defense: -25%')
+        self.assertEqual(by_name['Idol Kiss'], 'Target: Single / Type: Neutral / Range: None / Silence: 100% / Fixed damage: 1111')
+        self.assertIn('Physical/Magic accuracy: -25%', by_name['Gungnir'])
+        # A figure the prose already gives is not repeated: "Deal 1111 fixed damage to a row of enemies."
+        self.assertEqual(by_name['Modest Fever'], 'Target: Row / Type: Neutral / Range: None')
+
+    def test_wrong_effect_on_the_data_line_stops_the_build(self):
+        target = next(fn for fn, row in self.table.items() if 'DEF/Magic defense: -25%' in row['desc'])
+
+        def wrong(table):
+            table[target]['desc'] = table[target]['desc'].replace('DEF/Magic defense: -25%', 'DEF/Magic defense: -30%')
+        self.assertTrue(any('does not match the binary' in p for p in self.build(mutate_table=wrong)))
 
     def build(self, mutate_table=None, mutate_built=None):
         table = copy.deepcopy(self.table)

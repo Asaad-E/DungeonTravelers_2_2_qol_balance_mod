@@ -6,10 +6,14 @@ workbook that is edited by hand.
 
 Workbook: mod_project/data_tables/qol_item_text.xlsx
   * QoL_Desc is the text the build uses. Put "yes" in Edited to keep your wording.
-  * Rule: where the vanilla text gives a vague size and the binary holds the exact amount,
-    the amount replaces the word. "Restore an ally's HP (medium)." -> "Restore an ally's HP (+250)."
-    A text never carries both.
-  * Everything else stays vanilla. The same description is shown in battle, so it stays one line.
+  * Rule set by the user: original text + (data). The game's sentence, joke included, stays; what the
+    item does is added in a final parenthesis when the sentence does not already say it:
+        "Sandwich filled with soft, fluffy eggs."  ->  "Sandwich filled with soft, fluffy eggs. (HP/TP +10, cures 1 ailment)"
+  * Where the vanilla text gives a vague size, the amount replaces the word and nothing is appended:
+        "Restore an ally's HP (medium)."  ->  "Restore an ally's HP (+250)."      A text never carries both.
+  * The data is what the item does when used on an ally (its first two effect pairs). Items with an
+    effect that is not decoded, and items whose text would pass 85 characters, stay as written and
+    say why in the Note column. The same description is shown in battle, so it stays one line.
 """
 import os
 import re
@@ -19,7 +23,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 from pck_handler import PckArchive, ItemHelper
-from text_checks import ITEM_RESTORE, item_pairs, check_item_text
+from text_checks import ITEM_RESTORE, ITEM_ALLY_PAIRS, item_pairs, item_data, check_item_text
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_PATH = os.path.join(BASE_DIR, 'backups', 'ItemData.pck')
@@ -28,17 +32,27 @@ PREVIOUS_PATH = os.path.join(TABLES_DIR, 'items.xlsx')
 OUTPUT_PATH = os.path.join(TABLES_DIR, 'qol_item_text.xlsx')
 
 MAX_LINE = 85     # measured on screen
-HEADERS = ['Filename', 'Item_Name', 'Vanilla_Desc', 'QoL_Desc', 'Edited', 'Effect_Pairs', 'Previous_Mod_Desc']
+HEADERS = ['Filename', 'Item_Name', 'Vanilla_Desc', 'QoL_Desc', 'Edited', 'Effect_Pairs', 'Previous_Mod_Desc', 'Note']
 VAGUE_RE = re.compile(r"Restore (?P<what>an ally's HP|an ally's TP|all allies' HP) \((?:small|medium|large)\)")
 
 
 def propose(b, desc):
-    """Replaces the vague size by the amount stored in the first effect pair, when both exist."""
+    """Returns (text, note)."""
     effect_type, value = item_pairs(b)[0]
     m = VAGUE_RE.search(desc)
-    if not m or ITEM_RESTORE[m.group('what')] != effect_type or value != int(value):
-        return desc
-    return desc[:m.start()] + f"Restore {m.group('what')} (+{int(value)})" + desc[m.end():]
+    if m and ITEM_RESTORE[m.group('what')] == effect_type and value == int(value):
+        return desc[:m.start()] + f"Restore {m.group('what')} (+{int(value)})" + desc[m.end():], ''
+    if all(t == -1 for t, _ in item_pairs(b)[:ITEM_ALLY_PAIRS]):
+        return desc, ''
+    every, missing = item_data(b, desc)
+    if every is None:
+        return desc, 'has an effect that is not decoded'
+    if not missing:
+        return desc, ''
+    text = f"{desc} ({', '.join(missing)})"
+    if len(text) > MAX_LINE:
+        return desc, f"no room for ({', '.join(missing)}): {len(text)} characters"
+    return text, ''
 
 
 def load_column(path, sheet, key, value, only_edited=False):
@@ -70,15 +84,18 @@ def build_rows():
     rows, stats = [], collections.Counter()
     for fn, b in PckArchive(BACKUP_PATH).files:
         item = ItemHelper.read_item(b)
-        desc = edited[fn] if fn in edited else propose(b, item['desc'])
-        problems, _ = check_item_text(b, desc)
+        desc, note = (edited[fn], '') if fn in edited else propose(b, item['desc'])
+        problems, _ = check_item_text(b, desc, item['desc'])
         if problems or '\n' in desc or len(desc) > MAX_LINE:
             raise SystemExit(f"{fn} ({item['name']}): '{desc}' {problems or 'breaks the one-line limit'}")
         desc.encode('latin-1')
         stats['edited by hand' if fn in edited else
-              'amount in place of the vague size' if desc != item['desc'] else 'vanilla text kept'] += 1
-        pairs = ', '.join(f'{t}:{v:g}' for t, v in item_pairs(b) if t != -1)
-        rows.append([fn, item['name'], item['desc'], desc, 'yes' if fn in edited else '', pairs, previous.get(fn, '')])
+              'amount in place of the vague size' if VAGUE_RE.search(item['desc']) and desc != item['desc'] else
+              'original + (data)' if desc != item['desc'] else
+              'kept: ' + note.split(':')[0].split(' for (')[0] if note else 'kept: nothing to add'] += 1
+        pairs = ' | '.join(', '.join(f'{t}:{v:g}' for t, v in side if t != -1)
+                           for side in (item_pairs(b)[:ITEM_ALLY_PAIRS], item_pairs(b)[ITEM_ALLY_PAIRS:]))
+        rows.append([fn, item['name'], item['desc'], desc, 'yes' if fn in edited else '', pairs, previous.get(fn, ''), note])
     return rows, stats
 
 
@@ -94,15 +111,18 @@ def main():
         c.font = Font(bold=True, color='FFFFFF')
         c.fill = PatternFill('solid', fgColor='305496')
     ws.freeze_panes = 'C2'
-    for i, width in enumerate([20, 28, 80, 80, 8, 36, 80], 1):
+    for i, width in enumerate([20, 28, 80, 80, 8, 36, 80, 60], 1):
         ws.column_dimensions[get_column_letter(i)].width = width
     how = wb.create_sheet('How to edit')
     for line in [
         'QoL_Desc is the text the build writes into ItemData.pck. One line, 85 characters at most.',
         'To word an item yourself: change QoL_Desc and put "yes" in Edited. The generator keeps that row.',
-        'An amount is written as "Restore an ally\'s HP (+250)." and the build checks it against the binary.',
-        'Effect_Pairs lists the (type:value) pairs of the item. Types read so far: 0 HP, 1 TP, 3 HP of all allies, '
-        '6 cure one ailment, 7 cure all ailments, 8 revive, 9 light steps, 10 escape. The rest are not decoded.',
+        'The original sentence must stay. Data goes in a final parenthesis: "(HP/TP +10, cures 1 ailment)". '
+        'The build checks every piece of it against the binary and rejects a changed sentence.',
+        'An amount in place of a vague size is written as "Restore an ally\'s HP (+250)."',
+        'Effect_Pairs lists the (type:value) pairs: used on an ally | used on an enemy. Types read so far: 0 HP, 1 TP, '
+        '2 HP and TP, 3 party HP, 4 party TP, 6 cure one ailment, 7 cure all ailments, 8 revive (% HP), 9 light '
+        '(x5 steps), 10 leave the dungeon, 16 sleep chance, 22 cancel Shadow Sew, 23 restore lowered stats, 24 skill points.',
     ]:
         how.append([line])
     how.column_dimensions['A'].width = 130
@@ -110,9 +130,6 @@ def main():
     print(f"Wrote {OUTPUT_PATH}: {len(rows)} items")
     for key in sorted(stats):
         print(f"    {stats[key]:4d}  {key}")
-    for r in rows:
-        if r[2] != r[3]:
-            print(f"        {r[1]}: {r[3]}")
 
 
 if __name__ == '__main__':

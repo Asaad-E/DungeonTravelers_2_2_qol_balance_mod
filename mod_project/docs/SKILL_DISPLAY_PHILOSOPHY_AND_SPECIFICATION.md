@@ -187,3 +187,16 @@ Decided by the user after seeing the battle bar, which shows line 1 alone and wi
 5. Everything a screen shows must give the precise data, without removing the jokes or the in-game prose.
 
 Bounds of the scale and the rules of placement: `tools/magnitude_words.py` and section 6.2 of `dungeontravelers2-2.md`.
+
+---
+
+## 8. Amendment of 2026-10-04, second round
+
+Answers of the user to the open questions of the roadmap. They extend section 7.
+
+1. **A value that does not change with the level is always shown** in the box ("Speed decrease: 10%").
+2. **Line 1 says the value for every skill**, not only damage and ailments: buffs, heals and passives too ("Raise the party's ATK (8%+)."). Same three forms: the value when it never changes, the starting value and a plus when it changes little, first and last level when it changes more. The level-by-level list stays in the box.
+3. **A chance of 100% is written as 100%.**
+4. **When a text and the data disagree, the data wins.** The sentence is kept as it is and only the wrong figure or word is replaced.
+5. **Items: the original text plus the data in parentheses** ("Eat, Skill, Love. (SP +3)").
+6. The bounds of the magic scale are confirmed: below 80 negligible, 80-249 minor, 250-399 moderate, 400-499 major, 500-699 severe, above that the exception word.

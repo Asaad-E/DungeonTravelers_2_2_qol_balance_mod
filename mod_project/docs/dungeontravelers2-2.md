@@ -21,10 +21,10 @@ Tools are built once for both variants: the variant is a parameter of the build,
 
 | Output | Built by | Content |
 |---|---|---|
-| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 268 of 330 boxes with level-by-level data; line 1 of 80 techniques and spells with a damage word and the ailment chance; numeric data identical to the original. Skill menu box **[verified]** on screen. |
-| `build/qol/Data/ENG/Parameter/EnemyAttackData.pck` | `tools/build_variant.py qol` | 858 of 2,375 enemy attacks (also the abilities of summoned monsters) with the exact ailment chance on their data line; prose identical to the original. **[untested]** on screen. |
+| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 269 of 330 boxes with level-by-level data (values that never change included); line 1 of 202 techniques, spells and passives with its main point; numeric data identical to the original. Skill box and battle bar **[verified]** on screen. |
+| `build/qol/Data/ENG/Parameter/EnemyAttackData.pck` | `tools/build_variant.py qol` | 1,456 of 2,375 enemy attacks (also the abilities of summoned monsters) with exact data on their data line; prose identical to the original except 11 corrections where it contradicted the data. Summon ability box **[verified]** on screen. |
 | `build/qol/Data/ENG/Parameter/EnchantData.pck` | `tools/build_variant.py qol` | 142 of 280 enchant names carry their figure (`Max HP +10%`, `Water resistance -20%`, `Enmity -5%`); flags, prefix and suffix identical to the original. Installed; **[untested]** on screen. |
-| `build/qol/Data/ENG/Parameter/ItemData.pck` | `tools/build_variant.py qol` | 9 of 576 descriptions: the exact amount replaces the vague size (`Restore an ally's HP (+250).`); prices and effects identical to the original. Installed; **[untested]** on screen. |
+| `build/qol/Data/ENG/Parameter/ItemData.pck` | `tools/build_variant.py qol` | 165 of 576 descriptions: the original sentence plus what the item does (`Eat, Skill, Love. (SP +3)`), or the exact amount in place of a vague size; prices and effects identical to the original. **[untested]** on screen. |
 | `build/qol/Data/ENG/Parameter/WeaponRankData.pck` | `tools/build_variant.py qol` | Rank names generated from the multiplier of each rank (`E+ (2.45x)`); multipliers identical to the original. **[untested]** in the game. |
 | `data_tables/vanilla_source_of_truth.xlsx` | `tools/extract_vanilla.py` | Decoded binaries. The fact base. Generated, never edited. |
 | `data_tables/qol_skill_text.xlsx` | `tools/generate_qol_skill_text.py`, then edited by hand | Text of the QoL skills (`QoL_Desc`, `QoL_LvUp`). The editable source for that text. |
@@ -172,6 +172,8 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 * The game lists innate enchantments there too (seen: Legendary Duster shows `Max HP +10%` and `Interrupt Rate -25%`), and draws the stat change of the item (`ATK+24`) at the right end of line 1. An `Innate:` line in the description repeats the first and a long line 1 would run into the second.
 * Because the game lists the enchantments by name, the place to add information about them is the enchant name (`Max HP +10%`), not the item description (section 6.1).
 * Enchant name length: 40 characters for enchantments that random equipment can roll (they are drawn in two columns in the equipment box), 46 otherwise. These are the longest vanilla names, **[inferred]** as safe, not measured.
+* **Battle bar width** **[verified]** on a screenshot: a 71-character line is drawn whole, a little wider than the purple band (about 68 characters); the skill list next to it shows the TP cost of the current level.
+* **Status screen** **[verified]** on a screenshot: the game itself writes resistance as a plain number with an abbreviated label (`Fi Res 0`, `Bs Res -20`).
 * **Battle bar** **[verified]** on screenshots: when a skill or item is highlighted in battle the game shows only its description (line 1), in one line, without the level. A figure that depends on the level cannot be read there, so line 1 of a skill carries only the main points (section 6.2). Its width in characters is **[untested]**.
 * **Skill menu box** **[verified]** on a screenshot (Provoke): title bar `Provoke [Technique] Lv 2 TP Cost 2` drawn by the game, then the description and the two level-up lines; nothing is drawn over lines 2-3.
 * **Enemy attack box** **[verified]** on a screenshot (summon Cupid, Poison Shot): three lines, the first is a data line written in the text itself (`Target: Single / Type: Stab / Range: Long`), then prose.
@@ -320,11 +322,27 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 
 **Rule for every other text** (set by the user): whatever a screen shows must give the precise data, and the jokes and the in-game prose stay. Data is added beside the prose, in a place that already holds data when there is one.
 
+### 6.3 Rules set by the user on 2026-10-04, second round, and how each is built
+
+| Rule | Built as |
+|---|---|
+| A value the skill has is in its box, also when every level has the same. | `EXTRA_EFFECTS` in `generate_qol_skill_text.py`: `Speed decrease: 10%` (Phoenix), `DEF: -10%` (Justice), `Damage vs. unholy: +65%` (Cross Slash), `HP Absorb: 100%` (Blood Absorb). An effect leaves a box only as the last resort; a test holds that none does. |
+| Line 1 must say the value, also for buffs, heals and passives. When it changes with the level the box has each one. | `put_values` in `magnitude_words.py`, same three forms as the chances: `Raise the party's ATK (8%+).` `ATK bonus with sword equipped (3-15%).` The label goes with the figure when the sentence does not name it: `Revive a dead ally (HP on revival 40-88%).` Skills with several effects list them: `(ATK 20-50%, DEF 11-25%)`. |
+| A chance of 100% says 100%. | `chance_text` and `enemy_ailments` cap a stored chance at 100% and write it. |
+| When the text and the data disagree, the data wins. Keep as much of the original sentence as possible. | `correct_prose` in `text_checks.py`: a figure the prose states (`STATED_FIGURES`) or a word that names another effect (`WORDING_FIXES`) is replaced, nothing else. 11 enemy attacks; the list is in `QOL_ROADMAP.md` 2.5. The build accepts a changed prose only when it equals this correction. |
+| Items: original text + (data). | `generate_qol_item_text.py`: `Sandwich filled with soft, fluffy eggs. (HP/TP +10, cures 1 ailment)`. Data is what the item does on an ally (first two effect pairs); what the sentence already says is not repeated; the sentence itself cannot change. |
+
+**The game's own table of effects.** `CommandData.pck` has one entry per effect id with the game's name for it (317 names: "Fixed Accuracy", "Damage xn", "Power Drops", "Percent HP Damage"). `extract_vanilla.py` reads it into the `Game_Name` column of the `Effects` sheet. Entry layout: `0x00` id, four `u64` name pointers from `0x08`, then battle messages. It confirmed every meaning decoded from the enemy attack texts.
+
+**Enemy attack data line, second pass.** After the ailments: `Fixed damage`, `Max HP damage`, `Cap`, `Accuracy` (fixed), `Critical rate`, `HP Absorb`, `TP Absorb`, `Turn delay rate`, `Buff cancel rate`, `Speed decrease chance`, `Shadow Sew`, the stat changes (`ATK`, `DEF`, `Magic defense`, `Physical evasion`, `Magic evasion`, `Physical accuracy`, `Magic accuracy`, `Speed`) and `Pep`. Stat changes of the same size share an item (`DEF/Magic defense: -25%`, `Physical/Magic accuracy: -25%`). What does not fit in 85 characters is left out in order of importance and named in the `Note` column (32 entries).
+
+**Item effect types** (first two pairs act on an ally, last two on an enemy): `0` HP, `1` TP, `2` HP and TP, `3` party HP, `4` party TP, `6` cure one ailment, `7` cure all ailments, `8` revive (value = % HP), `9` light (value x 5 steps, from the DT2-2 wiki), `10` leave the dungeon, `16` sleep chance, `22` cancel Shadow Sew, `23` restore lowered stats, `24` skill points. **[inferred]** from the DT2-2 wiki item list, which gives the same amounts as the stored values. Other types are not decoded.
+
 ---
 
 ## 7. Tests (what each guards)
 
-`python -m unittest discover -s mod_project/tests -p "test_*.py"` (84 tests).
+`python -m unittest discover -s mod_project/tests -p "test_*.py"` (93 tests).
 
 | File | Guards |
 |---|---|

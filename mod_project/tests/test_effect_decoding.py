@@ -9,24 +9,19 @@ import _paths
 import magnitude_words as mw
 from extract_vanilla import EFFECT_NAMES
 from pck_handler import PckArchive, SkillHelper, EnemyAttackHelper
-from text_checks import enemy_attack_slots, skill_tables
+from extract_vanilla import read_game_effect_names
+from text_checks import STATED_FIGURES, correct_prose, enemy_attack_slots, skill_tables
 
 SKILL_TABLE = os.path.join(_paths.TABLES_DIR, 'qol_skill_text.xlsx')
 
-# effect id -> (how the game words it, factor between the stored value and the figure in the text)
-STATED_FIGURES = {
-    70: (r'fixed critical hit rate of (\d+)%', 100),
-    296: (r'\(Cap: (\d+)\)', 1),
-    8: (r'(?:Deal|does|deals) (\d+) (?:fixed )?damage', 1),
-    55: (r'With (\d+)% accuracy', 100),
-}
 # Places where the original text gives a figure that its own data does not hold. The game does what
-# the data says; these four descriptions are wrong in the original and are listed in QOL_ROADMAP.md.
+# the data says; the QoL text corrects the figure and keeps the sentence (text_checks.correct_prose).
 VANILLA_TEXT_ERRORS = {
     ('Modest Fever', 'Deal 555 fixed damage', 777.0),
     ('Scream of Despair', 'With 50% accuracy', 65.0),
     ('Debilitating Salsa', '(Cap: 500)', 300.0),
     ('Debilitating Geas', '(Cap: 999)', 500.0),
+    ('Weathering', 'fixed 50% chance to hit', 85.0),
 }
 
 
@@ -52,8 +47,27 @@ class GameTextAgainstStoredValues(unittest.TestCase):
                     matches[effect_id] += 1
                 else:
                     errors.add((attack['name'], m.group(0), stored[0]))
-        self.assertEqual(matches, {70: 5, 296: 24, 8: 18, 55: 2})
+        self.assertEqual(matches, {70: 5, 296: 24, 8: 18, 55: 3})
         self.assertEqual(errors, VANILLA_TEXT_ERRORS)
+
+    def test_wrong_figures_are_corrected_and_the_sentence_stays(self):
+        corrected = {}
+        for _, b in PckArchive(os.path.join(_paths.BACKUP_DIR, 'EnemyAttackData.pck')).files:
+            attack = EnemyAttackHelper.read_enemy_attack(b)
+            fixed = correct_prose(b, attack['desc'])
+            if fixed != attack['desc']:
+                corrected.setdefault(attack['name'], set()).add(
+                    tuple((a, c) for a, c in zip(attack['desc'].split(), fixed.split()) if a != c)
+                    if len(attack['desc'].split()) == len(fixed.split()) else ('reworded',))
+        self.assertEqual(corrected['Modest Fever'], {(('555', '777'),)})
+        self.assertEqual(corrected['Scream of Despair'], {(('50%', '65%'),)})
+        self.assertEqual(corrected['Debilitating Salsa'], {(('500)', '300)'),)})
+        self.assertEqual(corrected['Debilitating Geas'], {(('999)', '500)'),)})
+        self.assertEqual(corrected['Weathering'], {(('50%', '85%'),)})
+        # The game's own table names effect 161 "Physical Attack"; the sentence said "defense".
+        self.assertEqual(corrected['Heavy Stomp'], {('reworded',)})
+        self.assertEqual(sorted(corrected), ['Debilitating Geas', 'Debilitating Salsa', 'Heavy Stomp', 'Mega Stomp',
+                                             'Modest Fever', 'Scream of Despair', 'Weathering'])
 
     def test_hit_count_effects_match_their_wording(self):
         wording = {90: r'thrice|three', 92: r'2.{1,3}4', 94: r'0.{1,3}4', 95: r'1.{1,3}5', 96: r'3.{1,3}5', 97: r'twice|two|double'}
@@ -70,6 +84,29 @@ class GameTextAgainstStoredValues(unittest.TestCase):
         said = sum(1 for t in texts if re.search(r'defense|armor|defence', t, re.I))
         self.assertEqual(len(texts), 30)
         self.assertGreaterEqual(said, 24)
+
+
+class GameEffectTable(unittest.TestCase):
+    """CommandData.pck is the game's own list of effects: one entry per effect id, with its name."""
+
+    def test_names_agree_with_what_was_decoded_from_the_text(self):
+        names = read_game_effect_names()
+        self.assertGreater(len(names), 300)
+        expected = {
+            0: 'Physical Attack', 1: 'Magic Attack', 8: 'Fixed-Damage Attack', 26: 'Weapon Attack', 47: 'RES-Based Damage',
+            54: 'Turn Delay', 55: 'Fixed Accuracy', 69: 'Ignore Defense', 70: 'Crit Rate Fixed Modifier',
+            73: 'Damage xn', 74: 'Strip Buffs', 75: 'Absorb HP', 76: 'Absorb TP', 79: 'Speed Change Chance',
+            87: 'Only Damages Living', 88: 'Big Damage to Undead, Demons, and Apparitions', 90: '3 Hits', 92: '2~4 Hits',
+            93: 'Hit Count', 94: '0~4 Hits', 95: '1~5 Hits', 96: '3~5 Hits', 97: '2 Hits', 99: '1~3 Hits',
+            110: 'Crits on Beasts', 111: 'More Damage with Heavy Lance', 113: 'Poison', 118: 'Stun', 122: 'Slow',
+            125: 'More Crits Later', 133: 'Max HP Down', 136: 'Power Drops', 137: 'Target Count',
+            138: 'Percent HP Damage', 161: 'Physical Attack', 162: 'Physical Defense', 163: 'Magic Defense',
+            164: 'Physical Evasion', 165: 'Magic Evasion', 166: 'Physical Accuracy', 167: 'Magic Accuracy',
+            168: 'Speed', 295: 'Healing Cap', 296: 'Damage Cap',
+        }
+        for effect_id, name in expected.items():
+            with self.subTest(effect=effect_id):
+                self.assertEqual(names[effect_id], name)
 
 
 class Registry(unittest.TestCase):
@@ -137,12 +174,25 @@ class LevelUpLinesAfterDecoding(unittest.TestCase):
             'Debilitating Salsa': ['Max HP damage: 3%', 'Total damage cap: 250'],
             'Carrot and Stick': ['DEF: -5%', 'Magic defense: -10% -> -15%', 'HP recovery: 35 -> 25'],
             'Generous Heart': ['Post-battle HP: 6%', 'Post-battle TP: 3%'],
-            'Phoenix': ['Speed decrease chance: 30% (+5%/Lv)'],
+            'Phoenix': ['Speed decrease chance: 30% -> 75%', 'Speed decrease: 10%'],
+            'Spiral Arrow': ['Damage: 3.3x -> 3.45x -> 3.6x -> 3.8x -> 4x', 'ATK: 88%'],
+            'Heal Mastery': ['HP recovery bonus: 8%', 'Heal Cap: +10%'],
         }
         for name, pieces in expected.items():
             for piece in pieces:
                 with self.subTest(skill=name, piece=piece):
                     self.assertIn(piece, self.rows[name]['QoL_LvUp'] or self.rows[name]['QoL_Desc'])
+
+    def test_values_that_never_change_are_in_the_box(self):
+        """The user's rule: a value the skill has is shown, also when every level has the same."""
+        expected = {
+            'Phoenix': 'Speed decrease: 10%', 'Justice': 'DEF: -10%', 'Cross Slash': 'Damage vs. unholy: +65%',
+            'Daedalus Attack': 'Heavy Lance bonus: +20%', 'Halving Slice': 'Power decrease: 10%',
+            'Moonlight Purgatory': 'Critical rate: 10%', 'Blood Absorb': 'HP Absorb: 100%', 'Dispel': 'Buff cancel rate: 100%',
+        }
+        for name, piece in expected.items():
+            with self.subTest(skill=name):
+                self.assertIn(piece, self.rows[name]['QoL_LvUp'])
 
     def test_no_effect_is_left_out_of_a_box(self):
         """Rule B: only speed, chant, turns or TP may give way."""

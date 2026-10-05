@@ -32,6 +32,32 @@ class ItemText(unittest.TestCase):
         self.assertEqual(self.table[DANISH]['desc'], "Restore an ally's HP (+250).")
         self.assertEqual(item_pairs(self.entries[DANISH])[0], (0, 250.0))
 
+    def test_original_sentence_plus_data(self):
+        """The user's rule for items: the game's sentence stays and what the item does is added."""
+        by_name = {ItemHelper.read_item(b)['name']: self.table[fn] for fn, b in self.entries.items()}
+        expected = {
+            'Rice Cracker': 'Old-fashioned rice cracker covered in soy sauce. (HP +75)',
+            'Egg Sandwich': 'Sandwich filled with soft, fluffy eggs. (HP/TP +10, cures 1 ailment)',
+            'Magical Skill Garnish': 'Eat, Skill, Love. (SP +3)',
+            'Mui Kuha Medicine': 'Revive a fallen ally. Considerably bitter aftertaste. (revives at 10% HP)',
+            'Super Rich Pudding': "Peggy's eggy milk pudding. It's said to be legendary. (TP +30, sleep 20%)",
+            # the sentence already says what it does: nothing to add
+            'Fumirul Nectar': 'Cure all status ailments for an ally. Sweet to the taste.',
+        }
+        for name, text in expected.items():
+            with self.subTest(item=name):
+                self.assertEqual(by_name[name]['desc'], text)
+                self.assertTrue(by_name[name]['desc'].startswith(by_name[name]['vanilla_desc']))
+
+    def test_item_data_is_checked_and_the_sentence_cannot_change(self):
+        egg = next(b for b in self.entries.values() if ItemHelper.read_item(b)['name'] == 'Egg Sandwich')
+        vanilla = 'Sandwich filled with soft, fluffy eggs.'
+        self.assertEqual(check_item_text(egg, vanilla + ' (HP/TP +10, cures 1 ailment)', vanilla), ([], 2))
+        self.assertEqual(check_item_text(egg, vanilla + ' (HP/TP +10)', vanilla), ([], 1))
+        self.assertNotEqual(check_item_text(egg, vanilla + ' (HP/TP +20, cures 1 ailment)', vanilla)[0], [])
+        self.assertNotEqual(check_item_text(egg, vanilla + ' (cures all ailments)', vanilla)[0], [])
+        self.assertNotEqual(check_item_text(egg, 'A sandwich. (HP/TP +10)', vanilla)[0], [])
+
     def test_no_text_states_a_size_word_and_an_amount(self):
         for fn, row in self.table.items():
             with self.subTest(entry=fn):

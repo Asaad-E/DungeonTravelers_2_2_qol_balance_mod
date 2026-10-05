@@ -22,8 +22,15 @@ Ailment chance (the user's rule)
     (25%)       the chance is the same at every level
     (30%+)      it starts at 30% and rises by 10 points or less over the levels
     (20-50%)    it rises by more: first level - last level
-    nothing     100% and above: it always happens
+    (100%)      it always happens (a stored chance above 100% is written as 100%)
     The tilde of "~30%+" cannot be used: the game font has no glyph for it.
+
+Everything else (the user's rule: line 1 must say the value)
+
+    A skill that deals no damage says how much it does in the same three forms, at the end of its
+    sentence: "Raise the party's ATK (8%+)."  "ATK bonus with sword equipped (3-15%)."
+    When the sentence does not name what the figure measures, the label goes with it:
+    "Revive a dead ally (HP on revival 40-88%)."  The exact value of each level is in the box below.
 
 A skill is given a damage word only when the known power table is the whole story: if it carries
 an effect that is not understood (a second multiplier, a formula based on the target's HP), its
@@ -123,15 +130,15 @@ def pct(value):
 
 
 def chance_text(slots, effect_ids):
-    """'25%', '30%+' or '20-50%' for the ailments named in a sentence. None when it cannot be said in one
-    figure: an ailment is missing, always happens, falls with the level, or the ailments differ."""
+    """'25%', '30%+', '20-50%' or '100%' for the ailments named in a sentence. None when it cannot be said
+    in one figure: an ailment is missing, falls with the level, or the ailments differ."""
     texts = set()
     for effect_id in effect_ids:
         tables = [v for i, _, v in slots if i == effect_id and v]
         if len(tables) != 1:
             return None
-        values = [round(100 * v, 1) for v in tables[0]]
-        if max(values) >= 100 or min(values) <= 0 or values != sorted(values):
+        values = [min(round(100 * v, 1), 100) for v in tables[0]]
+        if min(values) <= 0 or values != sorted(values):
             return None
         first, last = values[0], values[-1]
         if first == last:
@@ -248,14 +255,90 @@ def propose(desc, slots, max_len):
 
 
 # ---------------------------------------------------------------------------
+# Skills that deal no damage: how much they do
+# ---------------------------------------------------------------------------
+FIGURE = r'\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?[%x]?\+?'
+NOTE_RE = re.compile(r' \((?P<body>(?:[A-Za-z][A-Za-z /&-]*? )?' + FIGURE + r'(?:, (?:[A-Za-z][A-Za-z /&-]*? )?' + FIGURE + r')*)\)')
+PIECE_RE = re.compile(r'^(?:(?P<label>[A-Za-z][A-Za-z /&-]*?) )?(?P<lo>\d+(?:\.\d+)?)(?:-(?P<hi>\d+(?:\.\d+)?))?(?P<unit>[%x]?)(?P<plus>\+?)$')
+IGNORED_LABEL_WORDS = {'rate', 'increase', 'increases', 'decrease', 'bonus', 'amount', 'the', 'and', 'for'}
+
+
+def has_power_table(slots):
+    return any((i == POWER_PHYS and t == 2) or (i == POWER_MAGIC and v and max(v) > 1) for i, t, v in slots)
+
+
+def figure(values, unit):
+    """The three forms, for any table: '10%', '8%+', '8-18%'. values are the magnitudes as shown."""
+    shown = [abs(round(v, 2)) for v in values]
+    first, last = shown[0], shown[-1]
+    if all(v == first for v in shown):
+        return f'{first:g}{unit}'
+    if unit == '%' and 0 < last - first <= SMALL_RISE:
+        return f'{first:g}%+'
+    return f'{first:g}-{last:g}{unit}'
+
+
+def label_words(label):
+    return [w for w in re.findall(r'[A-Za-z]+', label.lower()) if w not in IGNORED_LABEL_WORDS]
+
+
+def label_is_said(label, sentence, fully=True):
+    """The sentence already names what the figure measures: all the words of the label, or at least one."""
+    said = [w[:5] in sentence.lower() for w in label_words(label)]
+    return all(said) if fully else any(said)
+
+
+def put_values(desc, effects, max_len):
+    """effects: (label, values as shown, unit) of the skill, in the order of its box.
+    Returns (text, notes)."""
+    if not effects:
+        return desc, []
+    stem, dot = (desc[:-1], '.') if desc.endswith('.') else (desc, '')
+    labelled = ', '.join(f'{label} {figure(values, unit)}' for label, values, unit in effects)
+    bare = figure(effects[0][1], effects[0][2])
+    if len(effects) == 1 and label_is_said(effects[0][0], desc):
+        candidates = [bare]
+    elif len(effects) == 1 and label_is_said(effects[0][0], desc, fully=False):
+        candidates = [labelled, bare]        # the label when it fits; the sentence names it well enough otherwise
+    else:
+        candidates = [labelled]
+    for body in candidates:
+        text = f'{stem} ({body}){dot}'
+        if len(text) <= max_len:
+            return text, []
+    return desc, [f'values left out: the sentence would be {len(stem) + len(candidates[-1]) + 3 + len(dot)} characters']
+
+
+def value_matches(piece, tables):
+    """A figure of line 1 must be one of the tables of the skill, in the form the rule gives it."""
+    m = PIECE_RE.match(piece)
+    if not m:
+        return False
+    lo, hi = float(m.group('lo')), float(m.group('hi')) if m.group('hi') else None
+    for values in tables:
+        for shown in ([abs(v) for v in values], [abs(100 * v) for v in values], [abs(100 * (1 + v)) for v in values]):
+            shown = [round(v, 2) for v in shown]
+            first, last = shown[0], shown[-1]
+            if hi is not None:
+                ok = first == lo and last == hi
+            elif m.group('plus'):
+                ok = first == lo and 0 < last - first <= SMALL_RISE
+            else:
+                ok = all(v == lo for v in shown)
+            if ok:
+                return True
+    return False
+
+
+# ---------------------------------------------------------------------------
 # Checking a sentence against the binary
 # ---------------------------------------------------------------------------
-def strip_chances(desc):
-    """Line 1 without its chance notes: what is left must carry no figure the game did not write."""
-    return CHANCE_NOTE_RE.sub('', desc)
+def strip_chances(desc, vanilla_desc=''):
+    """Line 1 without its figures in parentheses: what is left must carry no figure the game did not write."""
+    return NOTE_RE.sub(lambda m: m.group(0) if m.group(0) in vanilla_desc else '', desc)
 
 
-def check_line1(desc, vanilla_desc, slots):
+def check_line1(desc, vanilla_desc, slots, other_tables=()):
     """Every damage word and every chance of line 1 must be what the binary gives. Returns (problems, verified)."""
     problems, verified = [], 0
     stated = [w.lower() for w in DAMAGE_WORD_RE.findall(desc)]
@@ -275,6 +358,14 @@ def check_line1(desc, vanilla_desc, slots):
             verified += 1
         else:
             problems.append(f"'{desc}': says ({chance}), the binary gives {expected_chance or 'no single chance'}")
-    if len(CHANCE_NOTE_RE.findall(desc)) != sum(1 for _, chance, _ in claims if chance):
-        problems.append(f"'{desc}': a chance is written where the checker cannot tie it to an ailment")
+    chances = [chance for _, chance, _ in claims if chance]
+    tables = [v for _, _, v in slots if v] + [list(v) for v in other_tables if v]
+    for m in NOTE_RE.finditer(desc):
+        if m.group(0) in vanilla_desc or m.group('body') in chances:
+            continue
+        for piece in m.group('body').split(', '):
+            if value_matches(piece, tables):
+                verified += 1
+            else:
+                problems.append(f"'{desc}': ({piece}) is not a table of this skill in the form the rule gives it")
     return problems, verified

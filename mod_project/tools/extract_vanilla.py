@@ -135,7 +135,7 @@ EFFECT_NAMES = {
     70: ('Fixed critical hit rate', 'By game text', 'Value 0.35 / 0.5 / 0.75 / 1.0 <-> "fixed critical hit rate of 35% / 50% / 75% / 100%" (Divine Cannon)'),
     71: ('More damage to targets with buffs or debuffs', 'By game text', '"Deal more damage to targets with buffs or debuffs" (10 enemy attacks); Pursuit Stab'),
     72: ('Certain to hit', 'By vanilla text', 'Guided Shot only: "certain to hit"'),
-    73: ('Damage tied to base attack; formula not known', 'Partly', '"deal several times ATK in damage" (Beat the Odds 2.6), "Highly influenced by base attack" (Holy Gavel 2.4)'),
+    73: ('Damage multiplier', 'By game table', 'CommandData names it "Damage xn"; enemy text: "deal several times ATK in damage" (Beat the Odds 2.6). How it combines with the power table is not measured'),
     79: ('Chance of the speed decrease', 'By game text', 'Value 0.25-0.75 <-> "May reduce the targets\' turn speed" (Phoenix, Coin Toss)'),
     80: ('Pep change', 'By game text', '"bums everyone out", "Saps the enemy\'s pep as well" (value -5 to -15)'),
     87: ('Only works on living targets', 'By game text', '"they\'ll only cut living foes" (13 enemy attacks); Moonlight Purgatory, Soul Eater'),
@@ -503,17 +503,32 @@ def build_raw_rows(pck_name, header_size, name_reader):
     return ['Filename', 'Name'] + [f'w_{4 * k:#04x}' for k in range(width)], rows
 
 
+def read_game_effect_names():
+    """{effect id: name} from CommandData.pck, the game's own table of effects (one entry per effect id:
+    int id, then four name pointers and the battle messages). 317 entries carry a name."""
+    names = {}
+    for _, b in load('CommandData.pck'):
+        pointer = struct.unpack_from('<Q', b, 8)[0]
+        name = bytes(b[pointer:b.find(b'\x00', pointer)]).decode('latin-1') if 0 < pointer < len(b) else ''
+        if name:
+            names[i32(b, 0)] = name
+    return names
+
+
 def build_effect_rows(skills, enemy_uses):
     used_by = collections.defaultdict(list)
     for s in skills:
         for sl in s['slots']:
             used_by[sl['id']].append(s['name'])
+    game_names = read_game_effect_names()
     rows = []
     for eff_id in sorted(set(used_by) | set(enemy_uses) | set(EFFECT_NAMES)):
         name, status, evidence = EFFECT_NAMES.get(eff_id, ('', 'Unnamed', ''))
+        if status == 'Unnamed' and eff_id in game_names:
+            status = 'Named by the game only'
         skill_names = used_by.get(eff_id, [])
-        rows.append([eff_id, name, status, evidence, len(skill_names), enemy_uses.get(eff_id, 0),
-                     ', '.join(dict.fromkeys(skill_names))[:200]])
+        rows.append([eff_id, game_names.get(eff_id, ''), name, status, evidence, len(skill_names),
+                     enemy_uses.get(eff_id, 0), ', '.join(dict.fromkeys(skill_names))[:200]])
     return rows
 
 
@@ -566,7 +581,7 @@ def write_workbook(problems):
         'Value_Type'] + lv_cols, level_rows)
     add_sheet(wb, 'UniqueSkills', ['Filename', 'Skill_ID', 'Name', 'Kind_0x18'] + lv_cols[:9] + ['EX']
               + [f'w_{o:#04x}' for o in range(0x44, 0x60, 4)] + ['Vanilla_Desc'], build_unique_rows())
-    add_sheet(wb, 'Effects', ['Effect_ID', 'Name', 'Status', 'Evidence', 'Skill_Uses', 'EnemyAttack_Uses', 'Used_By'],
+    add_sheet(wb, 'Effects', ['Effect_ID', 'Game_Name', 'Name', 'Status', 'Evidence', 'Skill_Uses', 'EnemyAttack_Uses', 'Used_By'],
               build_effect_rows(skills, enemy_uses))
     add_sheet(wb, 'Items', ['Filename', 'Item_ID', 'Name', 'Flags_0x18', 'Buy_Price', 'Sell_Price',
                             'Eff1_Type', 'Eff1_Value', 'Eff2_Type', 'Eff2_Value', 'Eff3_Type', 'Eff3_Value',

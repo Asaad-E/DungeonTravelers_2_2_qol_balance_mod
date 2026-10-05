@@ -65,6 +65,12 @@ EFFECT_STEMS = {            # vanilla phrase -> (effect id, label), verified eff
     'Damage cap': (296, 'Damage cap'),
     'Total damage cap': (296, 'Total damage cap'),
     'Amount of HP on revival': (105, 'HP on revival'),
+    'HP recovery': (103, 'HP recovery'),
+    'HP recovery bonus': (245, 'HP recovery bonus'),
+    'Recoverable status ailments': (106, 'Recoverable status ailments'),
+}
+ALT_STEMS = {               # same phrase, another effect when the first one is absent
+    'Recovery cap': (317, 'Heal Cap', 'plus_pct'),      # the passive raises the cap by a fraction
 }
 MULTI_STEMS = {             # one vanilla phrase that speaks of two tables
     'Evasion increases': [(164, 'Physical evasion', 'plus_pct'), (165, 'Magic evasion', 'plus_pct')],
@@ -75,11 +81,25 @@ DAMAGE_EFFECTS = [          # what "Damage UP" means when the power table does n
     (138, 'Max HP damage', 'pct'),      # a fraction of the target's max HP (the scrolls)
     (199, 'Max HP damage', 'pct'),      # the same, every turn (Debilitating Salsa)
     (191, 'Damage', 'mult'),            # multiplier of the next attack (Power Charge)
+    (73, 'Damage', 'mult'),             # "Damage xn" in the game's own effect table (Spiral Arrow, Holy Gavel)
 ]
 SUMMON_TURNS = 147          # "Duration UP" of a summon skill
 POINT_STEMS = re.compile(r'resistance|critical rate', re.I)   # stored in points; one point is 1%
 NO_GUESS_EFFECTS = {228, 229, 230, 231, 233}   # parameters of a summoned doll: what they scale is not known
-EXTRA_EFFECTS = [(79, 'Speed decrease chance', 'pct')]   # known tables that no vanilla phrase mentions
+# Known effects that no vanilla phrase mentions. They are shown always, also when the value is the same
+# at every level (rule of the user: a value the skill has is in its box). Labels are the game's words.
+EXTRA_EFFECTS = [
+    (29, 'Accuracy', 'signed_pct'), (31, 'Critical rate', 'num_pct'),
+    (75, 'HP Absorb', 'pct'), (76, 'TP Absorb', 'pct'),
+    (54, 'Turn delay rate', 'pct'), (74, 'Buff cancel rate', 'pct'), (79, 'Speed decrease chance', 'pct'),
+    (88, 'Damage vs. unholy', 'plus_pct'), (111, 'Heavy Lance bonus', 'plus_pct'),
+    (136, 'Power decrease', 'abs_pct'), (137, 'Targets', 'num'),
+    (161, 'ATK', 'signed_pct'), (162, 'DEF', 'signed_pct'), (163, 'Magic defense', 'signed_pct'),
+    (164, 'Physical evasion', 'signed_pct'), (165, 'Magic evasion', 'signed_pct'),
+    (166, 'Physical accuracy', 'signed_pct'), (167, 'Magic accuracy', 'signed_pct'),
+    (168, None, 'abs_pct'),             # 'Speed increase' or 'Speed decrease', by the sign
+    (138, 'Max HP damage', 'pct'), (199, 'Max HP damage', 'pct'), (296, 'Damage cap', 'num'),
+]
 EXPLAINED_BY_TEXT = {106, 232, 311}     # "Can cure poison > paralysis > ...": the list itself is the data
 NO_GUESS_STEMS = ('Damage', 'Magic damage')   # their unit depends on the effect behind them
 ARRAY_STEMS = {             # vanilla phrase -> per-level array of the skill header
@@ -399,6 +419,12 @@ def build_segments(skill):
             if sl and varies(sl['values']):
                 resolved[idx] = [Segment(label, sl['values'], generic_style(stem, sl['values'], direction))]
                 used.add(sl['key'])
+            elif stem in ALT_STEMS:
+                eff_id, label, style = ALT_STEMS[stem]
+                sl = slot_by_id(eff_id)
+                if sl and varies(sl['values']):
+                    resolved[idx] = [Segment(label, sl['values'], style)]
+                    used.add(sl['key'])
         else:
             m = re.match(r'^([A-Za-z]+(?:/[A-Za-z]+)*) rate$', stem)
             if m and all(a in AILMENT_IDS for a in m.group(1).split('/')):
@@ -416,7 +442,7 @@ def build_segments(skill):
                 resolved[idx] = [Segment('Duration', sl['values'], 'num')]
                 used.add(sl['key'])
     for sl in slots:
-        if sl['id'] in EXPLAINED_BY_TEXT and any(p.startswith('Can cure') for p in phrases):
+        if sl['id'] in EXPLAINED_BY_TEXT and 'Can cure' in skill['lvup']:
             used.add(sl['key'])
 
     # 2. What is left: phrases without a table, and level-dependent tables without a phrase.
@@ -483,7 +509,9 @@ def build_segments(skill):
             used.add(sl['key'])
     for eff_id, label, style in EXTRA_EFFECTS:
         sl = slot_by_id(eff_id)
-        if sl and is_fraction(sl['values']):
+        if sl and any(sl['values']):
+            if label is None:
+                label = 'Speed increase' if all(v >= 0 for v in sl['values']) else 'Speed decrease'
             segments.append(Segment(label, sl['values'], style, extra=True))
             used.add(sl['key'])
     if magic and 'arr_0xFC' in arrays and 'arr_0xFC' not in used and varies(arrays['arr_0xFC']):
@@ -589,16 +617,24 @@ def generate_skill(skill):
         row['coverage'] = 'ERROR: does not fit'
         return row
     row['lvup'], row['shortened'], row['left_out'] = '\n'.join(lines), shortened, left_out
+    row['effects'] = [(s.label, s.shown(), STYLES[s.style][1]) for s in segments if s.is_data() and s.kind() == 'effect']
     row['coverage'] = 'Partial' if unresolved else 'Full'
     return row
 
 
 def generate_line1(skill, row):
     """Line 1 of a technique or spell with its magnitude words. Returns (text, notes)."""
-    if skill['category'] not in ('Technique', 'Magic') or row['coverage'] == 'Skipped (internal)':
+    if row['coverage'] == 'Skipped (internal)':
         return skill['desc'], []
     slots = [(s['id'], s['tail'], s['values']) for s in skill['slots']]
-    return magnitude_words.propose(skill['desc'], slots, MAX_LINE)
+    text, notes = (skill['desc'], [])
+    if skill['category'] in ('Technique', 'Magic'):
+        text, notes = magnitude_words.propose(skill['desc'], slots, MAX_LINE)
+    if text == skill['desc'] and not magnitude_words.has_power_table(slots) and '\n' not in text:
+        # No damage and no chance to state: say how much the skill does (the user's rule).
+        text, more = magnitude_words.put_values(skill['desc'], row.get('effects', []), MAX_LINE)
+        notes = notes + more
+    return text, notes
 
 
 def generate_unique(unique):
