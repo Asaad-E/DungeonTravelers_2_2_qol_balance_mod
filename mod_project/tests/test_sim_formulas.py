@@ -122,5 +122,21 @@ class Critical(unittest.TestCase):
         self.assertAlmostEqual(f.expected_critical_factor(5.9), 1.0125)       # the rate is cut to an integer
 
 
+
+class Healing(unittest.TestCase):
+    def test_half_of_res_times_the_coefficient(self):
+        self.assertEqual(f.heal(200, 3.0), 300)
+        self.assertEqual(f.heal(200, 3.0, mastery=0.5), 450)
+        self.assertEqual([f.heal(100, 1.0, random=r) for r in f.HEAL_RANDOM], [48, 49, 50, 51, 52])
+
+    def test_cap_and_its_bonus(self):
+        self.assertEqual(f.heal(999, 9.0, cap=500), 500)
+        self.assertEqual(f.heal(999, 9.0, cap=500, cap_bonus=0.2), 600)
+
+    def test_doll_pieces_stop_at_one(self):
+        self.assertAlmostEqual(f.doll_heal_bonus(up=1), 0.4)
+        self.assertAlmostEqual(f.doll_heal_bonus(up=5, mini_up=5), 1.0)
+
+
 if __name__ == '__main__':
     unittest.main()

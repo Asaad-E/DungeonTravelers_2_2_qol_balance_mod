@@ -185,10 +185,24 @@ the ailment lands if a random number below 100 is below the chance      (0x48201
 |---|---|
 | Escape | `0.3 + (own AGI - average enemy AGI) / 50 + skill`, then a correction by the number of attempts |
 | Steal | `0.5 * (own DEX + 50) / (target AGI + 50) * factor` |
-| Healing | `(own RES * factor * heal coefficient of the spell) * (1 + Heal Mastery)`, then changes |
+| Healing | Read from the code: section 6b |
 | Pep | Raised or lowered by listed events: giving or taking a critical hit, using a skill, the last blow, being defeated, traps, dodging, eating liked or disliked food, joint skills, ending a battle with an ailment |
 
 The messages also name every chance roll of a passive or unique skill as it is rolled (Auto-Guard, Double and Triple Attack, Counter, Parry, Cover, Warning Shot, Support Shot, First Grid, Arcane Shield, Shadow Heart, Tranquil Song, Overstock Clearance, Undaunted Spirit...), which locates the code of each.
+
+## 6b. Healing (`0x48d730`, called by the command of effect 103 at `0x481838`; cap `0x48c5c0`) **[code]**
+
+```
+amount = own RES * r * coefficient * (1 + Heal Mastery)        r = 0.48, 0.49, 0.50, 0.51 or 0.52   (0x48d873)
+amount = value of effect 9 of the skill, when it has one       a fixed amount                        (0x48d8ff)
+amount = min(amount, cap)                                      cap = effect 295 of the skill         (0x48c5c7)
+cap    = cap + cap * effect 317 of the caster                                                        (0x48c5e8)
+```
+
+* coefficient: the value of effect 103 of the skill. Heal Mastery: the value of effect 245 on the caster.
+* A heal cast by a doll adds to the coefficient `20 * effect 286 + 20 * min(0.05, 0.02 * pieces of 304 + 0.01 *
+  pieces of 305)` (`0x48d7a1 - 0x48d865`): a piece of "Doll skill efficacy UP" is +0.4 and the sum stops at +1.
+* Nothing of the target enters: not its max HP, not its RES. A heal is worth the same on a tank and on a mage.
 
 ---
 
@@ -208,7 +222,7 @@ The messages also name every chance roll of a passive or unique skill as it is r
 3. The "1 in 3" interruption of a chant by a critical hit; the minimum of a spell.
 4. Zone factor `0x44fbb0`, case by case.
 5. Turn delay (effect 54) and turn skipping: their rolls and what makes an enemy immune.
-6. Healing constants and caps; EXP division and the factor by level gap. Of targeting (section 9.1): the code that
+6. TP recovery, revival and the recovery after a battle; EXP division and the factor by level gap. Of targeting (section 9.1): the code that
    returns the formation row, and the name of every attack scope.
 7. Every enchantment magnitude (the calls through `[vtable+0xf0]`), into a generated table.
 

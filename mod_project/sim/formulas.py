@@ -215,3 +215,26 @@ def target_chances(weights):
     weights and takes the member it falls on (0x505ad0)."""
     total = float(sum(weights))
     return [w / total for w in weights]
+
+
+# --- healing (0x48d730; cap 0x48c5c0) ---------------------------------------------------------------
+HEAL_RANDOM = (0.48, 0.49, 0.50, 0.51, 0.52)      # 0x48d873: (a number below 5, plus 48) / 100
+DOLL_HEAL_SCALE = 20.0                            # 0x48d821, 0x48d859
+DOLL_HEAL_UP, DOLL_HEAL_MINI_UP, DOLL_HEAL_MAX = 0.02, 0.01, 0.05   # 0x48d7ff, 0x48d847, 0x48d813 (enchantments 304, 305)
+
+
+def doll_heal_bonus(effect_286=0.0, up=0, mini_up=0):
+    """What a heal cast by a doll adds to its coefficient."""
+    return DOLL_HEAL_SCALE * effect_286 + DOLL_HEAL_SCALE * min(DOLL_HEAL_MAX, DOLL_HEAL_UP * up + DOLL_HEAL_MINI_UP * mini_up)
+
+
+def heal(res, coefficient, mastery=0.0, cap=None, cap_bonus=0.0, random=0.50):
+    """HP restored by a heal. coefficient: effect 103 of the skill (plus doll_heal_bonus for a doll).
+    mastery: effect 245 on the caster. cap: effect 295 of the skill; cap_bonus: effect 317 of the caster.
+    random: the middle of the five values the code can draw, unless a draw is passed."""
+    amount = int(res * random * coefficient * (1 + mastery))
+    if cap is not None:
+        limit = int(cap)
+        limit += int(limit * cap_bonus)
+        amount = min(amount, limit)
+    return amount
