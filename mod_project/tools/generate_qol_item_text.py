@@ -12,7 +12,7 @@ Workbook: mod_project/data_tables/qol_item_text.xlsx
   * Where the vanilla text gives a vague size, the amount replaces the word and nothing is appended:
         "Restore an ally's HP (medium)."  ->  "Restore an ally's HP (+250)."      A text never carries both.
   * The data is what the item does when used on an ally (its first two effect pairs). Items with an
-    effect that is not decoded, and items whose text would pass 85 characters, stay as written and
+    effect that is not decoded, and items whose text would pass the 70 characters of the battle bar, stay as written and
     say why in the Note column. The same description is shown in battle, so it stays one line.
 """
 import os
@@ -32,7 +32,8 @@ TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 PREVIOUS_PATH = os.path.join(TABLES_DIR, 'items.xlsx')
 OUTPUT_PATH = os.path.join(TABLES_DIR, 'qol_item_text.xlsx')
 
-MAX_LINE = 85     # measured on screen
+import rules
+MAX_LINE = rules.setting('battle_line_width')     # an item line is also the battle bar: 70, measured on screen
 HEADERS = ['Filename', 'Item_Name', 'Vanilla_Desc', 'QoL_Desc', 'Edited', 'Effect_Pairs', 'Previous_Mod_Desc', 'Note']
 VAGUE_RE = re.compile(r"Restore (?P<what>an ally's HP|an ally's TP|all allies' HP) \((?:small|medium|large)\)")
 
@@ -91,7 +92,7 @@ def build_rows():
         item = ItemHelper.read_item(b)
         desc, note = (edited[fn], '') if fn in edited else propose(b, item['desc'], item['name'])
         problems, _ = check_item_text(b, desc, item['desc'], ITEM_SENTENCES.get(item['name']))
-        if problems or '\n' in desc or len(desc) > MAX_LINE:
+        if problems or '\n' in desc or (len(desc) > MAX_LINE and desc != item['desc']):
             raise SystemExit(f"{fn} ({item['name']}): '{desc}' {problems or 'breaks the one-line limit'}")
         desc.encode('latin-1')
         stats['edited by hand' if fn in edited else
@@ -121,7 +122,7 @@ def main():
         ws.column_dimensions[get_column_letter(i)].width = width
     how = wb.create_sheet('How to edit')
     for line in [
-        'QoL_Desc is the text the build writes into ItemData.pck. One line, 85 characters at most.',
+        'QoL_Desc is the text the build writes into ItemData.pck. One line, 70 characters at most (the battle bar).',
         'To word an item yourself: change QoL_Desc and put "yes" in Edited. The generator keeps that row.',
         'The original sentence must stay. Data goes in a final parenthesis: "(HP/TP +10, cures 1 ailment)". '
         'The build checks every piece of it against the binary and rejects a changed sentence.',

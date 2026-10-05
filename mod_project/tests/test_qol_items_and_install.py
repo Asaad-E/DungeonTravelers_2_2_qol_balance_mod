@@ -39,8 +39,6 @@ class ItemText(unittest.TestCase):
             'Rice Cracker': 'Old-fashioned rice cracker covered in soy sauce. (HP +75)',
             'Egg Sandwich': 'Sandwich filled with soft, fluffy eggs. (HP/TP +10, cures 1 ailment)',
             'Magical Skill Garnish': 'Eat, Skill, Love. (SP +3)',
-            'Mui Kuha Medicine': 'Revive a fallen ally. Considerably bitter aftertaste. (revives at 10% HP)',
-            'Super Rich Pudding': "Peggy's eggy milk pudding. It's said to be legendary. (TP +30, 20% sleep)",
             # the sentence already says what it does: nothing to add
             'Fumirul Nectar': 'Cure all status ailments for an ally. Sweet to the taste.',
         }
@@ -53,7 +51,7 @@ class ItemText(unittest.TestCase):
         from shortened_text import ITEM_SENTENCES
         by_name = {ItemHelper.read_item(b)['name']: self.table[fn] for fn, b in self.entries.items()}
         self.assertEqual(by_name['Killer Curry']['desc'],
-                         'Legendary food. Whoever eats it falls in love. (HP/TP +1000, cures all ailments)')
+                         'Legendary. Eat it and fall in love. (HP/TP +1000, cures all ailments)')
         self.assertEqual(by_name['Rosary of Darkness']['desc'].rsplit(' (', 1)[1], '25% stun)')    # decoded with the JP wiki
         for name, sentence in ITEM_SENTENCES.items():
             row = by_name[name]
@@ -62,7 +60,7 @@ class ItemText(unittest.TestCase):
                 self.assertLess(len(sentence), len(row['vanilla_desc']))
         for fn, row in self.table.items():
             with self.subTest(entry=fn):
-                self.assertLessEqual(len(row['desc']), max(bv.MAX_LINE, len(row['vanilla_desc'])))
+                self.assertLessEqual(len(row['desc']), bv.BATTLE_LINE if row['desc'] != row['vanilla_desc'] else 85)
                 self.assertEqual(len(row["desc"].splitlines()), 1)
 
     def test_item_data_is_checked_and_the_sentence_cannot_change(self):
@@ -380,3 +378,26 @@ class Sealbooks(unittest.TestCase):
                 self.assertTrue(set(seal['enchants']) <= enchant_ids)
                 if not seal['grand']:
                     self.assertIn(f"(Level {seal['level']})", seal['desc'])
+
+
+class PartySkillBox(unittest.TestCase):
+    """The box of the party skill list: a line of 53 characters ran over its frame on screen
+    ("Slash resistance increased. (Up to +25% at 50 awards)"), so the limit is that length minus 3."""
+    OVERFLOWED = 'Slash resistance increased. (Up to +25% at 50 awards)'
+
+    def test_limit_is_the_overflowing_line_minus_three(self):
+        from text_checks import PARTY_LINE
+        self.assertEqual(len(self.OVERFLOWED), 53)
+        self.assertEqual(PARTY_LINE, len(self.OVERFLOWED) - 3)
+
+    def test_every_line_fits_and_the_overflowing_one_is_rejected(self):
+        from pck_handler import PartySkillHelper
+        from text_checks import PARTY_LINE, check_party_skill_text
+        table = bv.load_party_skill_text(os.path.join(_paths.TABLES_DIR, 'qol_party_skill_text.xlsx'))
+        for fn, b in PckArchive(os.path.join(_paths.BACKUP_DIR, bv.PARTY_PCK)).files:
+            skill = PartySkillHelper.read_party_skill(b)
+            with self.subTest(skill=skill['name']):
+                self.assertLessEqual(len(table[fn]['effect']), PARTY_LINE, table[fn]['effect'])
+            if skill['name'] == 'Veteran Soldiers':
+                self.assertEqual(table[fn]['effect'], 'Slash resistance increased (up to +25%).')
+                self.assertNotEqual(check_party_skill_text(b, self.OVERFLOWED, skill['effect'])[0], [])

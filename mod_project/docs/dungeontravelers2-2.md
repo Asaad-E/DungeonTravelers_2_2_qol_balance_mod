@@ -362,6 +362,22 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 
 **Joint skills.** One sentence, one line. Where it speaks of an effect whose value the entry stores, the value is written in and replaces the vague word: `High chance of instakill.` -> `85% chance of instakill.`; `Inflicts slow.` -> `Inflicts slow (100%).`; `multiple bash attacks` -> `3-5 bash attacks` (effect 96, "3~5 Hits" in the game's table). The data wins over the text in one sentence: Psychowave says "lower DEF" and stores physical and magic defense, as its Japanese text says. The build re-renders each sentence from the entry and stops if the text differs.
 
+### 6.5 Limits measured on screen and line 1 without values (2026-10-04, sixth round)
+
+| Place | Limit | Measured on | Setting in `qol_rules.xlsx` |
+|---|---|---|---|
+| Battle bar: line 1 of techniques and spells, joint skill sentences, item lines | 70 | Self-Sacrifice, 70 characters: "the most that fits well" | `battle_line_width` |
+| Box of the party skill list | 50 | A line of 53 ran over the frame; the user set the limit at that minus 3 | `party_line_width` |
+| Lines 2-3 of the skill box, enemy attack lines, passive and unique boxes | 85 | Earlier screenshots | `line_width` |
+
+The build stops on a modified line longer than its limit. Texts of the original game that are longer and get nothing added stay as they are.
+
+**Line 1 does not repeat values.** `Distribute all of one's TP to the target (TP transfer bonus 100-140%).` sat right above `TP transfer bonus: 100% -> ... -> 140%`. Line 1 of a skill that deals no damage is now the game's sentence; setting `line1_values` (`no`). The damage word and the chance of an ailment stay: they are the user's own design for the battle bar, where the level is not shown.
+
+**A sentence that does not fit is rewritten by hand, in the workbook**: `ShortSkills` (44), `ShortItems` (201), `JointSkillSentences` (35). Each keeps the joke or the image and drops filler: `Katana skill. Moderate bash damage to an enemy. May paralyze (20-50%).`, `Legendary. Eat it and fall in love. (HP/TP +1000, cures all ailments)`.
+
+**A figure the game data does not hold** comes from a guide of this game and the text says so: Arcane Shield stores the reflected share only; its third line reads `Activation rate: about 15% (player guide; the game data holds no figure)` (DT2-2 wiki, pages/42.html). Sheet `UniqueSkillNotes`.
+
 
 ## 7. Tests (what each guards)
 

@@ -572,8 +572,8 @@ def verify_items(out_dir, table, variant, problems):
             continue
         counts['modified'] += 1
         # The same text is the one-line bar shown in battle.
-        if '\n' in now['desc'] or len(now['desc']) > MAX_LINE or '~' in now['desc']:
-            problems.append(f"{label}: text must be one line of at most {MAX_LINE} chars without tilde")
+        if '\n' in now['desc'] or len(now['desc']) > BATTLE_LINE or '~' in now['desc']:
+            problems.append(f"{label}: text must be one line of at most {BATTLE_LINE} chars without tilde")
         if re.search(r'\((?:small|medium|large)\)', now['desc']) and re.search(r'\(\+\d', now['desc']):
             problems.append(f"{label}: states both a vague size and an exact amount")
         found, verified = check_item_text(new, now['desc'], was['desc'], ITEM_SENTENCES.get(was['name']))
