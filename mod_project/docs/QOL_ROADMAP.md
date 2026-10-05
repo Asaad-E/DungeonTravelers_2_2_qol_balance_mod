@@ -16,7 +16,7 @@ QoL is finished when all eight hold. Each one is checked by a tool or by a look 
 | D2 | Every figure on screen is the value in the binary. Where the binary has none, it comes from a guide of this game and says so. | `build_variant.py` stops otherwise. | Checked on every build: 773 figures of skill boxes, 269 words, chances and values of line 1, 566 pieces of item data, 13 meal amounts, 1,837 figures of enemy attacks, 36 values of joint skills, 12 rank labels. From guides: 142 enchant figures and 28 bounds of party skills |
 | D3 | No game value differs from the original. | Numeric part of every built entry compared with the backup. | Holds for the 3,661 entries of the 11 built packs |
 | D4 | Jokes, prose and the game's own words are intact. Data is added next to them. Prose changes only where the data contradicts it, or where a sentence had to be shortened to fit one line. | Build check per pack. | 11 corrections of enemy attack prose; 65 item sentences, 23 skill sentences and 29 joint skill sentences worded by hand (sheets of `data_tables/qol_rules.xlsx`), nothing else |
-| D5 | Every kind of box has been seen on screen after the install, by the user. | Section 3. | 7 of 13 kinds of screen seen |
+| D5 | Every kind of box has been seen on screen after the install, by the user. | Section 3. | 9 of 13 kinds of screen seen |
 | D6 | Every pack the build writes has a writer that reproduces the original byte for byte. | Round-trip test. | 11 packs exact. No inexact writer is left (`SealScrollHelper` fixed too) |
 | D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s mod_project/tests -p "test_*.py"` | 109 tests pass |
 | D8 | Nothing that reaches the screen is written in the tools: every wording, label, scale and guide figure is in a workbook. | `data_tables/qol_rules.xlsx` and the `qol_*_text.xlsx` workbooks; a test holds it for the shortened sentences. | 15 rule sheets. Still in code: the regular expressions that recognise the game's phrases, and the layout offsets |
@@ -36,12 +36,12 @@ QoL is finished when all eight hold. Each one is checked by a tool or by a look 
 | `PassiveSkillData` | 71 | 123 | 43 | Skill menu box | **[done]** 62 boxes with data; line 1 of 60 says how much. Not seen |
 | `UniqueSkillData` | 18 | 21 | 4 | Skill menu box | **[done]** 18 with Lv1-9 and Crown EX. Not seen. The text gives the numbers but not what they measure |
 | `EnchantData` | 280 | 243 | 104 | Equipment box (two columns), blacksmith, sealbooks | **[seen]** in the equipment box. 142 names with figure (99 from this game's guide, 43 from the first game's), 37 already had one, 101 have none in any guide |
-| `ItemData` | 576 | 609 | 41 | Item box, battle bar, shops | **[done]** 391 items state what they do, in one line: 326 as original sentence + (data), 65 with the sentence shortened to fit. **[open]** 55 carry an effect that is not decoded (2.6). Not seen |
+| `ItemData` | 576 | 609 | 41 | Item box, battle bar, shops | **[seen]** in the item box. 391 items state what they do, in one line: 326 as original sentence + (data), 65 with the sentence shortened to fit. **[open]** 55 carry an effect that is not decoded (2.6) |
 | `EnemyAttackData` | 2,375 | 2,521 | 693 | "View the details of your teammates' abilities" (summons); enemy info | **[seen]** for a summon. 1,456 entries with exact data on the data line; 11 corrections of the prose. Open items below (2.4) |
 | `WeaponRankData` | 12 | names | 0 | Equipment title bar | **[seen]** `Speed E+ (2.45x)` |
 | `CommandData` | 364 | 317 names | 0 | Battle messages ("Critical rate increased!") | It is the game's own table of effects: one entry per effect id with its name (2.5). Nothing to rewrite; it is a source |
 | `EquipmentData` | 551 | 584 | 22 | Equipment box | Kept as written: the game already draws type, hands, range, speed, stat change and enchants. **[open]** read the 22 vague texts; stats at `0x24-0x58` not decoded |
-| `SealScrollData` | 374 | 374 | 0 | Sealbook list | Kept as written. The text is one generic sentence (`Sealbook created from monsters' spirits. (Level 11).`, already with its level); what a sealbook does is its 1-4 enchantments, which the entry holds as ids of `EnchantData`, so their names already carry the figures. Layout decoded, writer exact. **[open]** confirm on screen that the list draws the enchant names |
+| `SealScrollData` | 374 | 374 | 0 | Sealbook list | Kept as written. The text is one generic sentence (`Sealbook created from monsters' spirits. (Level 11).`, already with its level); what a sealbook does is its 1-4 enchantments, which the entry holds as ids of `EnchantData`. **[seen]** the list draws their names with the figures (`DEX +10%`, `Speed +5%`). Layout decoded, writer exact |
 | `JoinSkillData` | 52 | 56 | 10 | Joint skill menu, battle | **[done]** 29 sentences state the stored value of the effect they speak of (`85% chance of instakill.`), 23 had nothing vague. Layout decoded, writer exact. **[open]** the cost (share of max TP, Pep) and the power are decoded and not shown: see 2.7. Not seen |
 | `PartySkillData` | 20 | 24 | 0 | Party skill list | **[done]** 19 effect lines followed by the bound of each bonus (`Max HP increased. (Up to +100 at 50 awards)`); Celebrities has no figure in any guide. Writer exact. Not seen |
 | `FoodMenuData` | 16 | 16 | 8 | Ice cream and ramen shops | **[done]** 11 effect lines with the stored amount (`Heal 30% HP and 20% TP.`); flavour lines untouched; writer exact. **[open]** the level of the buff a meal gives ("gain Sun Veil") is not decoded. Not seen |
@@ -150,16 +150,16 @@ The install puts the build in the game after every run. One screenshot of each c
 
 | Screen | Seen | What it showed, or what to confirm |
 |---|---|---|
-| Skill menu box | Yes (Provoke) | Three lines render; nothing drawn over lines 2-3. The title bar shows `Lv 2 TP Cost 2` |
+| Skill menu box | Yes (Provoke; Ice Storm in the skill learning screen) | Three lines render; nothing drawn over lines 2-3. The title bar shows `Lv 2 TP Cost 2`. Ice Storm: `Deal moderate water damage to an enemy row.` / `Pwr: 90 -> ... -> 530 (L10)` / `Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x` (78 characters) all whole |
 | Equipment title bar | Yes | `Firewhorling Claymore of Ability+4 [Sword - 2 Hand - Short Range] Speed E+ (2.45x)` fits (83 characters) |
 | Equipment box with two enchants | Yes | `Fire magic +20%` and `Physical accuracy MiniUP` in two columns; the description stays on line 1 |
 | Status screen | Yes | The game writes resistance as a plain number and abbreviates: `Fi Res 0`, `Bs Res -20`. The enchant names say `Bash resistance -20%` (decision 2 of section 5) |
 | Summon ability box | Yes (Cupid, Poison Shot) | `Target: Single / Type: Stab / Range: Long / Poison: 30%`, prose below, intact |
-| Battle bar, skill highlighted | Yes (Freeze Shot, Circle Brave) | `Bow skill. Deal moderate stab damage to one enemy. May freeze (20-50%).` is drawn whole: 71 characters, a little wider than the purple band (about 68). The skill list beside it shows the TP cost of the current level |
+| Battle bar, skill highlighted | Yes (Freeze Shot, Circle Brave, Self-Sacrifice) | `Bow skill. Deal moderate stab damage to one enemy. May freeze (20-50%).` is drawn whole: 71 characters, a little wider than the purple band (about 68). `Distribute all of one's TP to the target (TP transfer bonus 100-140%).` (70) also whole. The skill list beside it shows the TP cost of the current level |
 | Battle bar, item highlighted | Yes, before the item data | One centred line. To confirm: `Old-fashioned rice cracker covered in soy sauce. (HP +75)` |
-| Item box in the menu and in a shop | No | That the one-line text is drawn whole |
+| Item box in the menu | Yes (Kuding Tea) | `Tea with condensed bitterness. I hear it's an acquired taste... (HP +30, TP +40)` drawn whole on one line (79 characters); lines 2-3 of the box stay empty |
 | Passive and unique skill boxes | No | `Lv1-9: ... \| Crown EX: ...`; line 1 with its value |
-| Sealbook and grand sealbook lists | No | Which enchant names appear and whether long ones are cut |
+| Sealbook creation list | Yes (Pirate) | The game draws the generic sentence and, below it, the enchant names in two columns: `DEX +10%`, `Speed +5%`. So the figures of `EnchantData` reach the sealbooks and `SealScrollData` needs no text. Grand sealbooks not seen |
 | Enemy info (with an item that shows enemy abilities) | No | Whether it uses the enemy attack text |
 | Party skill list and joint skill menu | No | `Max HP increased. (Up to +100 at 50 awards)`; whether the joint skill menu shows the TP and Pep cost |
 | A tutorial and a lesson | No | Baseline before any dialogue is touched |
@@ -170,7 +170,7 @@ The install puts the build in the game after every run. One screenshot of each c
 
 Each step ends with a build that passes, an install, and a look at the screen.
 
-1. **Close what is installed.** Screens of section 3. 7 of 13 seen.
+1. **Close what is installed.** Screens of section 3. 9 of 13 seen; missing: passive and unique skill boxes, enemy info, party skill list and joint skill menu, a tutorial and a lesson.
 2. **[done] Back up the 11 packs that had no backup.** They are in `backups/Script/`. All 47 archives rebuild byte for byte, the round-trip test covers them, and the install checks 47 files.
 3. **[done, with a remainder] Decode the effect ids.** 69 ids with evidence, and the game's own name for 317 (`CommandData`). Remainder: how effect 73 combines with the power table (one damage test), and the summon parameters 228-233.
 4. **[done] Enemy attacks, second pass.** Exact effects on the data line of 1,456 entries; 11 corrections of the prose. Remainder in 2.4.
