@@ -137,10 +137,12 @@ All proposed adjustments originated from documented friction in Japanese communi
 
 | Spell / Mechanic | Target File | Real Vanilla Baseline (`vanilla_source_of_truth.xlsx`) | Proposed Parameter | Technical Classification |
 |---|---|---|---|---|
-| **Master Spells Chant** | `MagicSkillData_0146..162.bin` | Stored as Multipliers (e.g. `1.25x`) | **-25% to -35% Multiplier** | Group 2 (Float edit feasible; stored as multipliers, not raw frames) |
+| Spell / Mechanic | Target File | Real Vanilla Baseline (`vanilla_source_of_truth.xlsx`) | Proposed Parameter | Technical Classification |
+|---|---|---|---|---|
+| **Master Spells Chant** | `MagicSkillData_0146..162.bin` | Stored as Multipliers: `0.75 -> 0.70x` (vs `1.25x` Circle Heal, `2.00x` Heal) | **-25% to -35% Multiplier** | Group 2 (Float edit feasible; stored as multipliers, not raw frames) |
 | **Master Spells Power** | `MagicSkillData_0146..162.bin` | Lv 5: `1,300` | **Lv 5: `1,650` (+27%)** | Group 2 (Float edit feasible) |
-| **Master Spells TP** | `MagicSkillData_0146..162.bin` | `40 -> 84 TP` | **`28 -> 52 TP`** | Group 2 (Int array edit feasible) |
-| **Tier 3 All Spells Power** | `MagicSkillData.pck` | **`300 -> 750 power`** | **`380 -> 850 power`** | Group 2 (Float edit feasible) |
+| **Master Spells TP** | `MagicSkillData_0146..162.bin` | `40, 50, 60, 72, 84 TP` (5 levels) | **`28 -> 52 TP`** | Group 2 (Int array edit feasible) |
+| **Tier 3 All Spells Power** | `MagicSkillData.pck` | **`300 -> 750 power`** (Inferno, etc.) | **`380 -> 850 power`** | Group 2 (Float edit feasible) |
 | **Circle Heal HP Cap** | `MagicSkillData.pck` | **`80 -> 600 HP`** | **`120 -> 900 HP`** | Group 2 (Float edit feasible) |
 | **Heal HP Cap** | `MagicSkillData.pck` | `100 -> 800 HP` | **`150 -> 1,200 HP`** | Group 2 (Float edit feasible) |
 | **Concentrate Passive** | `PassiveSkillData_0281.bin` | **-10% to -50% Interrupt Rate** (Effect 264: `0.1 -> 0.5`) | **-20% to -70% Interrupt Rate** | **Group 2: Feasible via PCK Structs** (Already an interrupt reduction stat!) |
@@ -155,17 +157,18 @@ All proposed adjustments originated from documented friction in Japanese communi
 ### System C: Active Skill TP Scaling & "Trap Skill Level" Fix [CRITICAL META REVIEW REQUIRED]
 * **Metagame Warning & Review Mandate:** **This system must be thoroughly reviewed and retuned as active skills are currently severely underperforming in the high-difficulty meta.** Because active techniques consume heavy TP and scale recovery delays while basic attacks and passive procs consume 0 TP, high-level players almost entirely abandon active skill rotations in favor of basic-attack/proc setups.
 * **Community Friction:** Active skills scale TP costs steeply while scaling damage output linearly. Leveling an active skill from Lv 1 to Lv 10 cuts damage-per-TP efficiency significantly (e.g. *Tinker Squash* damage/TP ratio drops by 47% from Lv 1 to Lv 10; *Halving Slice* ratio drops by 30%), causing veteran guides to advise leaving skills at Lv 1–3.
-* **Ground-Truth Baseline vs. Flawed Initial Proposals:**
+* **Ground-Truth Baseline vs. Flawed Initial Proposals:**  
+  *(Note on Damage Notation: All physical attack percentages below represent Total ATK Damage = Base 100% + Effect 26 "Weapon Attack" modifier).*
 
 | Skill | Class | Real Vanilla Baseline (`vanilla_source_of_truth.xlsx`) | Flawed Baseline in Earlier Drafts | Proposed Parameter (Recalculated) |
 |---|---|---|---|---|
-| **Halving Slice** | SA | **`80 -> 110% ATK, 10 -> 20% Death, TP 38 -> 74`** | `115 -> 175% ATK, 10-25% Death` | `100 -> 145% ATK, TP 28 -> 50` |
-| **Armor Penetration** | SA / DL | **`84 -> 120% ATK, DEF -16 -> -25%, TP 14 -> 32`** | `120 -> 180% ATK, DEF -15 -> -30%` | `100 -> 150% ATK, TP 12 -> 26` |
-| **Shield Bash** | PL / VL | **`85 -> 102% ATK, 30 -> 38% Stun, TP 6 -> 14`** | `110 -> 150% ATK, 20 -> 40% Stun` | `95 -> 130% ATK, TP 5 -> 10` |
+| **Halving Slice** | SA | **`80 -> 110% Total ATK (-20% -> +10%), 10 -> 20% Death, TP 38 -> 74`** | `115 -> 175% ATK, 10-25% Death` | `100 -> 145% Total ATK, TP 28 -> 50` |
+| **Armor Penetration** | SA / DL | **`84 -> 120% Total ATK (-16% -> +20%), DEF -16 -> -25%, TP 14 -> 32`** | `120 -> 180% ATK, DEF -15 -> -30%` | `100 -> 150% Total ATK, TP 12 -> 26` |
+| **Shield Bash** | PL / VL | **`85 -> 102% Total ATK (-15% -> +2%), 30 -> 38% Stun, TP 6 -> 14`** | `110 -> 150% ATK, 20 -> 40% Stun` | `95 -> 130% Total ATK, TP 5 -> 10` |
 | **Berserk** | BE | **`ATK +20 -> +50%, DEF -11 -> -25%, TP 8 -> 16`** | `ATK +25 -> +65%, DEF -15 -> -35%` | `ATK +25 -> +65%, TP 6 -> 14` |
 | **Tinker Squash** | PA | **`Delay pushback 25 -> 43%, TP 10 -> 32, ATK +50% -> +156%`** | `Delay pushback 10 -> 35%, TP 12 -> 40` (Mislabeled "Slash") | `Delay pushback 25 -> 43%, TP 8 -> 26` |
 | **Trump Card** | JO | **`DEF converted to ATK bonus 60 -> 150% (DEF = 0), TP 38 -> 50`** | `Colossal burst damage, self DEF -50%` | `DEF conversion 80 -> 180%, TP 28 -> 40` |
-| **Raging Smash** | FI / BE | `125 -> 200% ATK, TP 5 -> 28` | `125 -> 200% ATK, TP 5 -> 28` | `130 -> 225% ATK, TP 4 -> 18` |
+| **Raging Smash** | FI / BE | **`125 -> 200% Total ATK (+25% -> +100%), Crit +20 -> +38%, TP 5 -> 28`** | `125 -> 200% ATK, TP 5 -> 28` | `130 -> 225% Total ATK, TP 4 -> 18` |
 | **Fireball** | MU / WI | `70 -> 520 Power, TP 5 -> 32` | `70 -> 520 Power, TP 5 -> 32` | `80 -> 580 Power, TP 4 -> 18` |
 
 * **Note on Non-Existent Skills:** "Eagle Arrow" / "Falcon Arrow" does not exist in DT2-2. Bow skills in the engine are *Spiral Arrow* (Technique 43), *Freeze Shot* (45), *Paralysis Shot* (46), *Gravity Shot* (47), *Arrow Rain* (48), *Star Dust Arrow* (49), and *Divine Cannon* (50).
@@ -386,3 +389,35 @@ To maintain technical integrity and avoid misleading players, the project is str
   6. **Skill Struct Updates:** Modify the actual binary structs in `TechniqueSkillData.pck` and `MagicSkillData.pck` (not just UI strings). For Master Spells, scale base power floats directly as the viable proxy for elemental penetration.
   7. **Dialogue Patching Refactor:** Refactor `apply_mod.py` string matching to support quote-terminated strings (`"`), reflect accurate store buy prices, and preserve in-universe character voices.
   8. **Honest Omissions:** Do not advertise or display mechanics in Group 4 (Resistance Penetration, Defend Crit Immunity, 900-step meals, Doll Guts) where no underlying data parameters exist.
+
+---
+
+## 6. Unverified High-Value Balance Proposals from Japanese Meta Analysis
+
+The following suggestions originate directly from Japanese community discussions (2ch/5ch strategy threads, the DT2-2 Atwiki class evaluations, and veteran logs in `COMMUNITY_BALANCE_COMPLAINTS.md`). While **not yet verified in raw engine executable code** (categorized as Group 3 or Group 4), they represent compelling, logically coherent solutions to the game's most persistent balance pain points:
+
+### 6.1 Gun Viability for Snipers (Addressing the "Dead Gun" Dilemma / 死に武器種)
+* **Japanese Community Problem:** Equipping a Gun disables bow skills (*Spiral Arrow*, *Star Dust Arrow*, etc.), leaving Snipers with only basic attacks. Guns also suffer from crushing Rank F recovery delay ($2.90\times$), rendering the entire weapon category dead content.
+* **Data Grounding:** In `vanilla_source_of_truth.xlsx` and `TechniqueSkillData.pck`, physical techniques feature weapon compatibility flags. Furthermore, gun items in `EquipmentData.pck` possess unique stat profiles (high DEX/Hit, innate criticals).
+* **Unverified Proposal:** If executable reverse-engineering confirms the weapon compatibility bitmask for Sniper archery skills, enabling the Gun flag would unlock an entirely new ranged sniper archetype. Alternatively, within Group 2 parameters, boosting Gun innate critical rates and slot counts in `EquipmentData.pck` would provide compensation for basic-attack gun builds without requiring code hacks.
+
+### 6.2 Whip Tree Mechanical Identity for Mistress (Addressing Subpar Range & DPS)
+* **Japanese Community Problem:** The Mistress class (Maid tree) is widely regarded on 2ch/5ch as inferior to Diva and Etoile because Whips have awkward range and subpar skill multipliers compared to Daggers or Fans.
+* **Data Grounding:** Whips in `EquipmentData.pck` are flagged as Middle Range weapons. Mistress whip techniques in `TechniqueSkillData.pck` feature per-level status infliction rates.
+* **Unverified Proposal:** In `TechniqueSkillData.pck` (Group 2), increase the status ailment proc rates (Charm, Paralyze) and speed multipliers on Whip skills so the Mistress functions as a reliable frontline crowd-control specialist rather than a weak DPS hybrid.
+
+### 6.3 Progressive Delay Resistance on Bosses (Resolving the Infinite Tinker Squash Stunlock)
+* **Japanese Community Problem:** 2ch/5ch threads document the deep polarization over Papillon's *Tinker Squash* (empowered by Diva's *Swift March*): it can push back superboss turns indefinitely, turning the Creator God into a punching bag.
+* **Data Grounding:** Enemy AI scripts and status resistance routines reside in the game executable and enemy attack parameters.
+* **Unverified Proposal (Group 4):** Implement an engine-level diminishing returns counter on turn-delay pushback (`100% -> 50% -> 25% -> temporary immunity for 3 turns`). This preserves Tinker Squash as a clutch tactical tool to disrupt telegraphed boss enrage charges while eliminating degenerate infinite stunlocks.
+
+### 6.4 Defensive Compensation Traits for 2-Handed Weapons (両手武器絶望論)
+* **Japanese Community Problem:** Documented in Japanese wiki battle logs, wielding a 2H weapon (Rank E/F delay) forfeits the shield slot, DEF, and elemental resistances, leading to superbosses lapping and killing Berserkers before their next action.
+* **Data Grounding:** `EnchantData.pck` contains passive enchants for Physical Damage Reduction (Enchant 66) and Parry Rate.
+* **Unverified Proposal:** While universal hardcoded traits are Group 4, an elegant data-driven approach within **Group 1 / 2** is to inject innate defensive enchants (e.g., innate +10% Phys Damage Cut or +15% Parry) directly into 2H Greatswords, 2H Axes, and Polearms in `EquipmentData.pck`, compensating for the missing shield slot without touching executable code.
+
+### 6.5 Dynamic Level-Reset Catch-Up EXP Multiplier (Lv99リセットの苦行)
+* **Japanese Community Problem:** Resetting to Lv 1 to achieve Crown status requires enduring the full EXP curve again across 18 characters, described on Atwiki as an exhausting chore that discourages build experimentation.
+* **Data Grounding:** The engine currently supports static EXP bonuses via equipment (Enchant 275 Double EXP) and sealbooks (Enchant 270 +15% against higher-level enemies).
+* **Unverified Proposal (Group 4):** A proposed dynamic engine hook that grants `+100%` bonus EXP whenever $\text{Current Level} \le (\text{Peak Level} - 10)$. Until executable hooks can be developed, the verified solution remains the **Slave's Torc training gear (Enchant 275) + Dragon Papi synergy**, which safely achieves a $5.0\times$ catch-up rate in duo party compositions.
+
