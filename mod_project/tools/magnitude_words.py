@@ -38,14 +38,18 @@ sentence is left as the game wrote it.
 """
 import re
 import statistics
+import rules
 
 POWER_PHYS, POWER_MAGIC = 26, 1
 DAMAGE_XN = 73
-DAMAGE_WORDS = ('negligible', 'minor', 'moderate', 'major', 'severe')
-OUT_OF_SCALE = 'tremendous'
-PHYS_BOUNDS = (80, 125, 150, 175, 225)      # average ATK in %
-MAGIC_BOUNDS = (80, 250, 400, 500, 700)     # average Pwr
-SMALL_RISE = 10                             # points of chance; up to this the text says "30%+"
+# The scale, the word beyond it and the sentences below are sheets of data_tables/qol_rules.xlsx
+# (DamageScale, Settings, Line1Templates). Edit them there.
+_SCALE = rules.rows('DamageScale')
+DAMAGE_WORDS = tuple(r['Word'] for r in _SCALE[:-1])
+OUT_OF_SCALE = _SCALE[-1]['Word']
+PHYS_BOUNDS = tuple(r['Physical_Below'] for r in _SCALE[:-1])      # average ATK in %
+MAGIC_BOUNDS = tuple(r['Magic_Below'] for r in _SCALE[:-1])        # average Pwr
+SMALL_RISE = rules.setting('small_rise')                           # points of chance; up to this the text says "30%+"
 
 AILMENT_VERBS = {       # wording of the game -> effect id whose value is the chance
     'poison': 113, 'freeze': 114, 'paralyze': 115, 'cause sleep': 116, 'silence': 117,
@@ -83,15 +87,7 @@ SPELL_RE = re.compile(r'^(?P<verb>[A-Z][a-z]+) [^.()]*?(?: ' + CHANCE + r')?\.$'
 CHANCE_NOTE_RE = re.compile(r' ' + CHANCE)
 
 # Sentences that name no damage at all: where the word goes was decided by hand.
-TEMPLATES = {
-    'Pierces through to the back row.': 'Pierces through to the back row for {w} damage.',
-    '3-5 hits on random enemies.': '3-5 {w} hits on random enemies.',
-    "Decrease the enemy's DEF as you attack.": "Decrease the enemy's DEF as you deal {w} damage.",
-    'Shoot a barrage of arrows that rains upon all enemies.': 'Shoot a barrage of arrows that rains {w} damage upon all enemies.',
-    'Absorb HP from an enemy row.': 'Absorb HP from an enemy row with {w} damage.',
-    'with a raw magic attack': 'with a {w} raw magic attack',
-    'Fire a single shot certain to hit one enemy.': 'Fire a single shot certain to hit one enemy for {w} damage.',
-}
+TEMPLATES = rules.pairs('Line1Templates', 'Vanilla_Phrase', 'With_Damage_Word')
 
 
 # ---------------------------------------------------------------------------

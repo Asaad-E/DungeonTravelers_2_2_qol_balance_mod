@@ -410,60 +410,36 @@ class EnchantHelper:
 
 
 class PartySkillHelper:
-    """Helper for reading and writing PartySkillData .bin structures safely."""
-    
+    """PartySkillData: header up to the name, then three UTF-8 strings, each padded to 8 bytes.
+
+    0x00 id, 0x08/0x10/0x18 string pointers, 0x20 number of members, 0x24 member ids (9 slots),
+    0x48 members needed, 0x4C effect id (the entry of CommandData that names the bonus).
+    String 2 is "members\neffect"; string 3 is the same with a full-width space before the effect.
+    """
+    INDENT = '\u3000'
+
+    @staticmethod
+    def _strings(bin_data):
+        pointers = struct.unpack_from('<3Q', bin_data, 8)
+        return pointers, [bytes(bin_data[p:bin_data.find(b'\x00', p)]).decode('utf-8') for p in pointers]
+
     @staticmethod
     def read_party_skill(bin_data):
-        p0 = struct.unpack('<Q', bin_data[8:16])[0]
-        p1 = struct.unpack('<Q', bin_data[16:24])[0]
-        p2 = struct.unpack('<Q', bin_data[24:32])[0]
-        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
-        s1 = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
-        s2 = bin_data[p2:bin_data.find(b'\x00', p2)].decode('latin-1')
-        req = s1.split('\n')[0]
-        effect = s1.split('\n')[1] if '\n' in s1 else ""
-        return {'name': name, 'req': req, 'effect': effect, 's1': s1, 's2': s2}
+        _, (name, s1, s2) = PartySkillHelper._strings(bin_data)
+        req, _, effect = s1.partition('\n')
+        return {'name': name, 'req': req, 'effect': effect, 's1': s1, 's2': s2,
+                'effect_id': struct.unpack_from('<i', bin_data, 0x4C)[0],
+                'needed': struct.unpack_from('<i', bin_data, 0x48)[0]}
 
     @staticmethod
     def write_party_skill(bin_data, new_effect):
-        p0 = struct.unpack('<Q', bin_data[8:16])[0]
-        p1 = struct.unpack('<Q', bin_data[16:24])[0]
-        p2 = struct.unpack('<Q', bin_data[24:32])[0]
-        fixed_hdr = bytearray(bin_data[:p0])
-        name_str = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
-        s1 = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
-        req_str = s1.split('\n')[0]
-        
-        new_s1 = f"{req_str}\n{new_effect}"
-        new_s2 = f"{req_str}\n  {new_effect}"
-        
-        name_bytes = name_str.encode('latin-1') + b'\x00'
-        s1_bytes = new_s1.encode('latin-1') + b'\x00'
-        s2_bytes = new_s2.encode('latin-1') + b'\x00'
-        
-        new_p0 = p0
-        pad0 = (8 - (len(name_bytes) % 8)) % 8
-        name_bytes += b'\x00' * pad0
-        
-        new_p1 = new_p0 + len(name_bytes)
-        pad1 = (8 - (len(s1_bytes) % 8)) % 8
-        s1_bytes += b'\x00' * pad1
-        
-        new_p2 = new_p1 + len(s1_bytes)
-        pad2 = (8 - (len(s2_bytes) % 8)) % 8
-        s2_bytes += b'\x00' * pad2
-        
-        struct.pack_into('<Q', fixed_hdr, 8, new_p0)
-        struct.pack_into('<Q', fixed_hdr, 16, new_p1)
-        struct.pack_into('<Q', fixed_hdr, 24, new_p2)
-        
-        res = bytearray(fixed_hdr)
-        res.extend(name_bytes)
-        res.extend(s1_bytes)
-        res.extend(s2_bytes)
-        
-        pad_end = (16 - (len(res) % 16)) % 16
-        res.extend(b'\x00' * pad_end)
+        pointers, (name, s1, _) = PartySkillHelper._strings(bin_data)
+        req = s1.partition('\n')[0]
+        res = bytearray(bin_data[:pointers[0]])
+        for k, text in enumerate((name, f"{req}\n{new_effect}", f"{req}\n{PartySkillHelper.INDENT}{new_effect}")):
+            struct.pack_into('<Q', res, 8 + 8 * k, len(res))
+            raw = text.encode('utf-8') + b'\x00'
+            res.extend(raw + b'\x00' * ((8 - len(raw) % 8) % 8))
         return bytes(res)
 
 

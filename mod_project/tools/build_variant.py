@@ -40,9 +40,10 @@ import argparse
 import collections
 import openpyxl
 from pck_handler import (PckArchive, SkillHelper, EnchantHelper, WeaponRankHelper, ItemHelper, EnemyAttackHelper,
-                         FoodMenuHelper)
+                         FoodMenuHelper, PartySkillHelper)
 from extract_vanilla import SKILL_LAYOUTS
-from text_checks import check_skill_text, check_item_text, check_enemy_attack_text, check_food_text, skill_tables
+from text_checks import (check_skill_text, check_item_text, check_enemy_attack_text, check_food_text,
+                         check_party_skill_text, skill_tables)
 import magnitude_words
 import enchant_values
 import weapon_rank_labels
@@ -75,6 +76,7 @@ ITEM_PCK = 'ItemData.pck'
 ITEM_HEADER = 0x70
 ITEM_POINTERS = (8, 16, 0x60)
 FOOD_PCK = 'FoodMenuData.pck'
+PARTY_PCK = 'PartySkillData.pck'
 ENEMY_PCK = 'EnemyAttackData.pck'
 ENEMY_HEADER = 0xA0
 ENEMY_POINTERS = (8, 16, 24, 32)
@@ -82,7 +84,7 @@ ENEMY_POINTERS = (8, 16, 24, 32)
 VARIANTS = {
     'qol': {'skill_text': 'qol_skill_text.xlsx', 'enchant_text': 'qol_enchant_text.xlsx',
             'item_text': 'qol_item_text.xlsx', 'enemy_attack_text': 'qol_enemy_attack_text.xlsx',
-            'food_text': 'qol_food_text.xlsx',
+            'food_text': 'qol_food_text.xlsx', 'party_skill_text': 'qol_party_skill_text.xlsx',
             'numeric_changes_allowed': False},
 }
 
@@ -165,6 +167,8 @@ def self_test_writers(problems):
                          (RANK_PCK, lambda b: WeaponRankHelper.write_rank(b, WeaponRankHelper.read_rank(b)['name'])),
                          (ITEM_PCK, lambda b: ItemHelper.write_item(b, ItemHelper.read_item(b)['desc'])),
                          (FOOD_PCK, lambda b: FoodMenuHelper.write_food_menu(b, FoodMenuHelper.read_food_menu(b)['effect'])),
+                         (PARTY_PCK, lambda b: PartySkillHelper.write_party_skill(
+                             b, PartySkillHelper.read_party_skill(b)['effect'])),
                          (ENEMY_PCK, lambda b: EnemyAttackHelper.write_enemy_attack(
                              b, EnemyAttackHelper.read_enemy_attack(b)['desc']))):
         archive, raw = read_archive(pck)
@@ -321,6 +325,57 @@ def verify_food(out_dir, table, variant, problems):
         if now['effect'] == was['effect'] and bytes(new) != bytes(old):
             problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
         found, verified = check_food_text(new, now['effect'], was['effect'])
+        problems.extend(f"{label}: {p}" for p in found)
+        counts['numbers'] += verified
+    return counts
+
+
+def load_party_skill_text(path):
+    ws = openpyxl.load_workbook(path)['PartySkills']
+    header = [c.value for c in ws[1]]
+    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Effect', 'QoL_Effect')}
+    return {r[col['Filename']]: {'vanilla': r[col['Vanilla_Effect']] or '', 'effect': r[col['QoL_Effect']] or ''}
+            for r in ws.iter_rows(min_row=2, values_only=True)}
+
+
+def build_party_skills(out_dir, table, problems):
+    """Party skills: the list of members stays; the effect line gains the bound of each bonus."""
+    stats = collections.Counter()
+    archive = PckArchive(os.path.join(BACKUP_DIR, PARTY_PCK))
+    for i, (fn, b) in enumerate(archive.files):
+        skill, row = PartySkillHelper.read_party_skill(b), table.get(fn)
+        if row is None or row['vanilla'] != skill['effect']:
+            problems.append(f"{PARTY_PCK}/{fn}: no row in the party skill table, or the table is stale")
+            continue
+        if row['effect'] == skill['effect']:
+            stats['kept'] += 1
+            continue
+        archive.files[i] = (fn, PartySkillHelper.write_party_skill(b, row['effect']))
+        stats['rewritten'] += 1
+    archive.save(os.path.join(out_dir, PARTY_PCK))
+    return stats
+
+
+def verify_party_skills(out_dir, table, variant, problems):
+    counts = collections.Counter()
+    original = PckArchive(os.path.join(BACKUP_DIR, PARTY_PCK)).files
+    built = PckArchive(os.path.join(out_dir, PARTY_PCK)).files
+    for (fn, old), (_, new) in zip(original, built):
+        was, now = PartySkillHelper.read_party_skill(old), PartySkillHelper.read_party_skill(new)
+        label = f"{PARTY_PCK}/{fn} ({was['name']})"
+        counts['entries'] += 1
+        head = struct.unpack_from('<Q', old, 8)[0]
+        if not variant['numeric_changes_allowed'] and numeric_part(new, head, (8, 16, 24)) != numeric_part(old, head, (8, 16, 24)):
+            problems.append(f"{label}: numeric data differs from the original")
+        if (now['name'], now['req']) != (was['name'], was['req']):
+            problems.append(f"{label}: name or list of members changed")
+        if now['effect'] != table[fn]['effect'] or len(now['effect']) > MAX_LINE:
+            problems.append(f"{label}: built text differs from the party skill table, or is too long")
+        if now['s2'] != f"{now['req']}\n{PartySkillHelper.INDENT}{now['effect']}":
+            problems.append(f"{label}: the two copies of the text differ")
+        if now['effect'] == was['effect'] and bytes(new) != bytes(old):
+            problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
+        found, verified = check_party_skill_text(new, now['effect'], was['effect'])
         problems.extend(f"{label}: {p}" for p in found)
         counts['numbers'] += verified
     return counts
@@ -528,14 +583,16 @@ def main():
     enchant_path = os.path.join(TABLES_DIR, variant['enchant_text'])
     item_path = os.path.join(TABLES_DIR, variant['item_text'])
     enemy_path = os.path.join(TABLES_DIR, variant['enemy_attack_text'])
-    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, RANK_PCK]
+    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, PARTY_PCK, RANK_PCK]
     food_path = os.path.join(TABLES_DIR, variant['food_text'])
+    party_path = os.path.join(TABLES_DIR, variant['party_skill_text'])
 
     print(f"=== Building variant '{args.variant}' ===")
     for path, generator in ((table_path, 'generate_qol_skill_text.py'), (enchant_path, 'generate_qol_enchant_text.py'),
                             (item_path, 'generate_qol_item_text.py'),
                             (enemy_path, 'generate_qol_enemy_attack_text.py'),
-                            (os.path.join(TABLES_DIR, variant['food_text']), 'generate_qol_food_text.py')):
+                            (food_path, 'generate_qol_food_text.py'),
+                            (party_path, 'generate_qol_party_skill_text.py')):
         if not os.path.exists(path):
             print(f"Error: {path} not found. Run tools/{generator} first.")
             sys.exit(1)
@@ -561,6 +618,9 @@ def main():
         meals = load_food_text(food_path)
         stats = build_food(out_dir, meals, problems)
         print(f"    Built {FOOD_PCK}: {stats['rewritten']} effect lines with exact amounts, {stats['kept']} kept byte-identical")
+        party = load_party_skill_text(party_path)
+        stats = build_party_skills(out_dir, party, problems)
+        print(f"    Built {PARTY_PCK}: {stats['rewritten']} effect lines with their bounds, {stats['kept']} kept byte-identical")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:
@@ -587,6 +647,9 @@ def main():
             print(f"    {counts['numbers']} figures on the data line and in corrected prose checked against the built binary")
             counts = verify_food(out_dir, meals, variant, problems)
             print(f"    Verified {counts['entries']} meals: values, names and flavour lines identical; {counts['numbers']} amounts checked")
+            counts = verify_party_skills(out_dir, party, variant, problems)
+            print(f"    Verified {counts['entries']} party skills: values, names and members identical; "
+                  f"{counts['numbers']} bounds from a player guide (the binary holds none)")
             labels = verify_weapon_ranks(out_dir, variant, problems)
             print(f"    Verified {len(labels)} weapon ranks: multipliers identical to the original, "
                   f"each label shows its own multiplier")

@@ -31,6 +31,7 @@ from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 import magnitude_words
 from shortened_text import SKILL_SENTENCES, SKILL_TEMPLATES
+import rules
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
@@ -53,54 +54,29 @@ AILMENT_IDS = collections.OrderedDict([
     ('Poison', 113), ('Freeze', 114), ('Paralysis', 115), ('Sleep', 116), ('Silence', 117),
     ('Stun', 118), ('Instakill', 119), ('Petrify', 120), ('Slow', 122),
 ])
-EFFECT_STEMS = {            # vanilla phrase -> (effect id, label), verified effects only
-    'HP absorption rate': (75, 'HP Absorb'),
-    'TP absorption rate': (76, 'TP Absorb'),
-    'Number of enemies attacked': (137, 'Targets'),
-    'Recovery cap': (295, 'Heal Cap'),
-    # Decoded from the game's own text (EFFECT_NAMES in extract_vanilla.py). Labels are the game's words.
-    'Critical rate': (31, 'Critical rate'),
-    'Enemy critical rate': (32, 'Enemy critical rate'),
-    'Number of attacks': (93, 'Number of attacks'),
-    'Power decrease': (136, 'Power decrease'),
-    'Damage cap': (296, 'Damage cap'),
-    'Total damage cap': (296, 'Total damage cap'),
-    'Amount of HP on revival': (105, 'HP on revival'),
-    'HP recovery': (103, 'HP recovery'),
-    'HP recovery bonus': (245, 'HP recovery bonus'),
-    'Recoverable status ailments': (106, 'Recoverable status ailments'),
-}
-ALT_STEMS = {               # same phrase, another effect when the first one is absent
-    'Recovery cap': (317, 'Heal Cap', 'plus_pct'),      # the passive raises the cap by a fraction
-}
-MULTI_STEMS = {             # one vanilla phrase that speaks of two tables
-    'Evasion increases': [(164, 'Physical evasion', 'plus_pct'), (165, 'Magic evasion', 'plus_pct')],
-    'Defense decrease': [(162, 'DEF', 'minus_pct'), (163, 'Magic defense', 'minus_pct')],
-    'Post-battle HP & TP recovery': [(272, 'Post-battle HP', 'pct'), (273, 'Post-battle TP', 'pct')],
-}
-DAMAGE_EFFECTS = [          # what "Damage UP" means when the power table does not move
-    (138, 'Max HP damage', 'pct'),      # a fraction of the target's max HP (the scrolls)
-    (199, 'Max HP damage', 'pct'),      # the same, every turn (Debilitating Salsa)
-    (191, 'Damage', 'mult'),            # multiplier of the next attack (Power Charge)
-    (73, 'Damage', 'mult'),             # "Damage xn" in the game's own effect table (Spiral Arrow, Holy Gavel)
-]
+# Phrases, labels and number styles are the sheet SkillEffectLabels of data_tables/qol_rules.xlsx,
+# one row per label, grouped by its Table column:
+#   stem    vanilla phrase -> (effect id, label), verified effects only (EFFECT_NAMES in extract_vanilla.py)
+#   alt     same phrase, another effect when the first one is absent
+#   multi   one vanilla phrase that speaks of two tables
+#   damage  what "Damage UP" means when the power table does not move
+#   extra   see EXTRA_EFFECTS below
+_LABELS = collections.defaultdict(list)
+for _row in rules.rows('SkillEffectLabels'):
+    _LABELS[_row['Table']].append(_row)
+EFFECT_STEMS = {r['Vanilla_Phrase']: (int(r['Effect_ID']), r['Label']) for r in _LABELS['stem']}
+ALT_STEMS = {r['Vanilla_Phrase']: (int(r['Effect_ID']), r['Label'], r['Style']) for r in _LABELS['alt']}
+MULTI_STEMS = collections.OrderedDict()
+for _row in _LABELS['multi']:
+    MULTI_STEMS.setdefault(_row['Vanilla_Phrase'], []).append((int(_row['Effect_ID']), _row['Label'], _row['Style']))
+DAMAGE_EFFECTS = [(int(r['Effect_ID']), r['Label'], r['Style']) for r in _LABELS['damage']]
 SUMMON_TURNS = 147          # "Duration UP" of a summon skill
 POINT_STEMS = re.compile(r'resistance|critical rate', re.I)   # stored in points; one point is 1%
 NO_GUESS_EFFECTS = {228, 229, 230, 231, 233}   # parameters of a summoned doll: what they scale is not known
 # Known effects that no vanilla phrase mentions. They are shown always, also when the value is the same
 # at every level (rule of the user: a value the skill has is in its box). Labels are the game's words.
-EXTRA_EFFECTS = [
-    (29, 'Accuracy', 'signed_pct'), (31, 'Critical rate', 'num_pct'),
-    (75, 'HP Absorb', 'pct'), (76, 'TP Absorb', 'pct'),
-    (54, 'Turn delay rate', 'pct'), (74, 'Buff cancel rate', 'pct'), (79, 'Speed decrease chance', 'pct'),
-    (88, 'Damage vs. unholy', 'plus_pct'), (111, 'Heavy Lance bonus', 'plus_pct'),
-    (136, 'Power decrease', 'abs_pct'), (137, 'Targets', 'num'),
-    (161, 'ATK', 'signed_pct'), (162, 'DEF', 'signed_pct'), (163, 'Magic defense', 'signed_pct'),
-    (164, 'Physical evasion', 'signed_pct'), (165, 'Magic evasion', 'signed_pct'),
-    (166, 'Physical accuracy', 'signed_pct'), (167, 'Magic accuracy', 'signed_pct'),
-    (168, None, 'abs_pct'),             # 'Speed increase' or 'Speed decrease', by the sign
-    (138, 'Max HP damage', 'pct'), (199, 'Max HP damage', 'pct'), (296, 'Damage cap', 'num'),
-]
+# A row without a label (168) is 'Speed increase' or 'Speed decrease', by the sign.
+EXTRA_EFFECTS = [(int(r['Effect_ID']), r['Label'] or None, r['Style']) for r in _LABELS['extra']]
 EXPLAINED_BY_TEXT = {106, 232, 311}     # "Can cure poison > paralysis > ...": the list itself is the data
 NO_GUESS_STEMS = ('Damage', 'Magic damage')   # their unit depends on the effect behind them
 ARRAY_STEMS = {             # vanilla phrase -> per-level array of the skill header

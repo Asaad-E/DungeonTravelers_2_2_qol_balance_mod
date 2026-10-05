@@ -17,6 +17,7 @@ Rejected: averages, e.g. "(avg +3.33%/Lv)".
 """
 import re
 import struct
+import rules
 from extract_vanilla import SKILL_LAYOUTS, SLOT_SIZE, LEVELS, i32, read_array, leading_nonzero
 
 NUM = r'[+-]?\d+(?:\.\d+)?'
@@ -188,60 +189,26 @@ ITEM_RESTORE = {             # vanilla wording -> effect type of the pair that h
 }
 ITEM_AMOUNT_RE = re.compile(r"Restore (?P<what>an ally's HP|an ally's TP|all allies' HP) \(\+(?P<amount>\d+)\)")
 ITEM_DATA_RE = re.compile(r' \((?P<data>[^()]*)\)$')
-LIGHT_STEPS_PER_UNIT = 5     # Flashlight stores 10 and lights 50 steps; same ratio in the 4 light items (DT2-2 wiki)
-FULL_RESTORE = 9999
+LIGHT_STEPS_PER_UNIT = rules.setting('light_steps_per_unit')   # Flashlight stores 10 and lights 50 steps (DT2-2 wiki)
+FULL_RESTORE = rules.setting('full_restore')
 
-# effect type -> (data shown, wording of the game that already says it or None)
-ITEM_EFFECTS = {
-    0: (lambda v: 'full HP' if v >= FULL_RESTORE else f'HP +{v:g}', r'Fully restore'),
-    1: (lambda v: f'TP +{v:g}', None),
-    2: (lambda v: f'HP/TP +{v:g}', None),
-    3: (lambda v: f'party HP +{v:g}', None),
-    4: (lambda v: f'party TP +{v:g}', None),
-    6: (lambda v: 'cures 1 ailment', r'one status ailment'),
-    7: (lambda v: 'cures all ailments', r'all status ailments'),
-    8: (lambda v: f'revives at {v:g}% HP', None),
-    9: (lambda v: f'{v * LIGHT_STEPS_PER_UNIT:g} steps', None),
-    10: (lambda v: 'leaves the dungeon', r'escape|warp'),
-    16: (lambda v: f'{v:g}% sleep', None),
-    22: (lambda v: 'cancels Shadow Sew', r'Shadow Sew'),
-    23: (lambda v: 'restores stats', r'debuffed stats'),
-    24: (lambda v: f'SP +{v:g}', None),
-    # Decoded with the item list of the DT2-2 wiki (pages/36.html): every item that carries the type is
-    # described there with this effect. Ailment types hold the chance in %, buff types as a fraction.
-    5: (lambda v: f'party HP/TP +{v:g}', None),
-    11: (lambda v: f'{v:g}% stun', None),
-    12: (lambda v: f'{v:g}% poison', None),
-    13: (lambda v: f'{v:g}% paralysis', None),
-    14: (lambda v: f'{v:g}% silence', None),
-    15: (lambda v: f'{v:g}% freeze', None),
-    17: (lambda v: f'{v:g}% petrifying', None),
-    18: (lambda v: f'{v:g}% petrify', None),
-    19: (lambda v: f'{v:g}% instakill', None),
-    20: (lambda v: 'cures freeze', None),
-    21: (lambda v: 'cures sleep', None),
-    25: (lambda v: f'{100 * v:g}% ATK up', None),
-    26: (lambda v: f'{100 * v:g}% DEF up', None),
-    28: (lambda v: f'{100 * v:g}% slow', None),
-    30: (lambda v: f'{100 * v:g}% Berserk', None),
-    31: (lambda v: f'{100 * v:g}% Defender', None),
-    34: (lambda v: f'{100 * v:g}% party cure-all', None),
-    35: (lambda v: f'{100 * v:g}% party ATK up', None),
-    36: (lambda v: f'{100 * v:g}% party DEF up', None),
-    37: (lambda v: f'{100 * v:g}% accuracy up', None),
-    38: (lambda v: f'{100 * v:g}% evasion up', None),
-    39: (lambda v: f'{100 * v:g}% party magic DEF up', None),
-    40: (lambda v: f'{100 * v:g}% strips buffs', None),
-    41: (lambda v: f'{100 * v:g}% max HP up', None),
-    42: (lambda v: f'{100 * v:g}% 2 clones', None),
-    43: (lambda v: f'{100 * v:g}% Divine Shield', None),
-    44: (lambda v: f'{100 * v:g}% Insurance', None),
-    45: (lambda v: f'{100 * v:g}% 1 clone', None),
-    52: (lambda v: f'{v:g} fixed damage', None),
-    53: (lambda v: f'party {v:g} fixed damage', None),
-}
+
+
+def _item_wording(row):
+    def wording(value):
+        if row['Full_Text'] and value >= FULL_RESTORE:
+            return row['Full_Text']
+        return row['Text'].replace('{v}', f"{value * row['Scale']:g}")
+    return wording
+
+
+# effect type -> (data shown, wording of the game that already says it or None). Sheet ItemEffects of
+# data_tables/qol_rules.xlsx: {v} in Text is the stored value times Scale. The types were decoded with
+# the item list of the DT2-2 wiki (pages/36.html); ailment types hold the chance in %, buff types as a
+# fraction, light as units of 5 steps.
+ITEM_EFFECTS = {int(r['Type']): (_item_wording(r), r['Already_Said_By'] or None) for r in rules.rows('ItemEffects')}
 # Effects that hurt: an item made only of these is meant for an enemy, and its data is the enemy's side.
-ITEM_HARMFUL = {11, 12, 13, 14, 15, 17, 18, 19, 28, 40, 52, 53}
+ITEM_HARMFUL = {int(r['Type']) for r in rules.rows('ItemEffects') if rules.yes(r['Harmful'])}
 
 
 def item_pairs(b):
@@ -323,22 +290,12 @@ STATED_FIGURES = {
 # Words of the original prose that name another effect than the one stored. The data is what the game
 # does, so the word is corrected and the rest of the sentence stays: (wording, ids the entry must hold,
 # ids it must not hold, replacement).
-WORDING_FIXES = [
-    (r"(lowers the victims') defense", {161}, {162}, r'\1 physical attack'),   # Heavy Stomp, Mega Stomp: 161 is Physical Attack
-]
-# Effects written on the data line, after the ailments: id -> (label, how the value is written).
-# The labels are the ones the skill boxes use. Meaning and evidence of each id: EFFECT_NAMES.
-ENEMY_EFFECTS = [
-    (8, 'Fixed damage', 'num'), (138, 'Max HP damage', 'pct'), (199, 'Max HP damage', 'pct'), (296, 'Cap', 'num'),
-    (55, 'Accuracy', 'pct'), (70, 'Critical rate', 'pct'), (31, 'Critical rate', 'plus_num_pct'),
-    (75, 'HP Absorb', 'pct'), (76, 'TP Absorb', 'pct'),
-    (54, 'Turn delay rate', 'pct'), (74, 'Buff cancel rate', 'pct'), (79, 'Speed decrease chance', 'pct'),
-    (123, 'Shadow Sew', 'pct'),
-    (161, 'ATK', 'signed_pct'), (162, 'DEF', 'signed_pct'), (163, 'Magic defense', 'signed_pct'),
-    (164, 'Physical evasion', 'signed_pct'), (165, 'Magic evasion', 'signed_pct'),
-    (166, 'Physical accuracy', 'signed_pct'), (167, 'Magic accuracy', 'signed_pct'), (168, 'Speed', 'signed_pct'),
-    (80, 'Pep', 'signed_num'),
-]
+WORDING_FIXES = [(r['Pattern'], rules.id_set(r['Needs_Effects']), rules.id_set(r['Lacks_Effects']), r['Replacement'])
+                 for r in rules.rows('WordingFixes')]       # sheet WordingFixes of qol_rules.xlsx
+# Effects written on the data line, after the ailments: (id, label, how the value is written), in the
+# order written. Sheet EnemyEffects of qol_rules.xlsx; the labels are the ones the skill boxes use.
+# Meaning and evidence of each id: EFFECT_NAMES.
+ENEMY_EFFECTS = [(int(r['Effect_ID']), r['Label'], r['Style']) for r in rules.rows('EnemyEffects')]
 
 
 def enemy_attack_slots(b):
@@ -537,3 +494,38 @@ def check_food_text(b, text, vanilla_text):
     if text != food_text(b, vanilla_text):
         return [f"'{text}': not the original sentence with the stored amounts ({food_amounts(b)})"], 0
     return [], len(re.findall(r'\d+%', text))
+
+
+# ---------------------------------------------------------------------------
+# Party skills
+# ---------------------------------------------------------------------------
+# The entry holds who must be in the party and the id of its effect, and no amount. The DT2-2 wiki
+# (pages/72.html) lists the upper bound of each bonus and the rule: the bonus grows with the number of
+# awards and reaches the bound with all of them (half of it with half of them). The game says the rule
+# itself ("Party skills grow stronger the more Awards you obtain."). Bounds and wording: sheets
+# PartySkillBounds and Settings of qol_rules.xlsx.
+PARTY_EFFECT = 0x4C
+PARTY_BOUNDS = {int(r['Effect_ID']): [part.strip() for part in str(r['Bounds']).split(',') if part.strip()]
+                for r in rules.rows('PartySkillBounds')}
+
+
+def party_skill_bounds(b):
+    return PARTY_BOUNDS.get(struct.unpack_from('<i', b, PARTY_EFFECT)[0], [])
+
+
+def party_skill_text(b, effect_line):
+    """The effect line of the game followed by the bounds of its bonuses, in the order it names them."""
+    bounds = party_skill_bounds(b)
+    if not bounds:
+        return effect_line
+    note = rules.setting('party_skill_note').format(bounds=' and '.join(bounds), awards=rules.setting('award_count'))
+    return f'{effect_line} {note}'
+
+
+def check_party_skill_text(b, text, vanilla_text):
+    """The original line, or the original line plus the bounds of the table. Returns (problems, verified)."""
+    if text == vanilla_text:
+        return [], 0
+    if text != party_skill_text(b, vanilla_text):
+        return [f"'{text}': not the original sentence followed by the bounds of the table ({party_skill_bounds(b)})"], 0
+    return [], len(party_skill_bounds(b))

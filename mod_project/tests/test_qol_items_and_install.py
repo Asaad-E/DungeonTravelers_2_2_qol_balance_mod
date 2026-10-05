@@ -254,3 +254,62 @@ class Meals(unittest.TestCase):
                 bv.build_food(out, table, problems)
                 bv.verify_food(out, table, bv.VARIANTS['qol'], problems)
             self.assertEqual(problems == [], clean, problems)
+
+
+class PartySkills(unittest.TestCase):
+    """Party skills: the members stay, the effect line gains the bound of each bonus (from the rules workbook)."""
+
+    @classmethod
+    def setUpClass(cls):
+        from pck_handler import PartySkillHelper
+        cls.helper = PartySkillHelper
+        cls.entries = PckArchive(os.path.join(_paths.BACKUP_DIR, bv.PARTY_PCK)).files
+        cls.table = bv.load_party_skill_text(os.path.join(_paths.TABLES_DIR, 'qol_party_skill_text.xlsx'))
+
+    def test_writer_reproduces_the_originals(self):
+        for fn, b in self.entries:
+            with self.subTest(entry=fn):
+                self.assertEqual(self.helper.write_party_skill(b, self.helper.read_party_skill(b)['effect']), bytes(b))
+
+    def test_bounds_follow_the_sentence(self):
+        by_name = {self.helper.read_party_skill(b)['name']: self.table[fn] for fn, b in self.entries}
+        self.assertEqual(by_name['Full of Guts']['effect'], 'Max HP increased. (Up to +100 at 50 awards)')
+        self.assertEqual(by_name['Sales Experience']['effect'],
+                         'Wind resistance and AGI increased. (Up to +20% and +10 at 50 awards)')
+        self.assertEqual(by_name['Celebrities']['effect'], 'Lightning resistance increased.')    # no guide gives it
+
+    def test_every_bound_belongs_to_an_effect_of_the_pack(self):
+        from text_checks import PARTY_BOUNDS
+        ids = {self.helper.read_party_skill(b)['effect_id'] for _, b in self.entries}
+        self.assertEqual(set(PARTY_BOUNDS), ids)
+
+    def test_clean_build_and_a_wrong_bound(self):
+        for mutate, clean in ((False, True), (True, False)):
+            table, problems = copy.deepcopy(self.table), []
+            if mutate:
+                fn = next(f for f, r in table.items() if r['vanilla'] == 'ATK increased.')
+                table[fn]['effect'] = 'ATK increased. (Up to +40 at 50 awards)'
+            with tempfile.TemporaryDirectory() as out:
+                bv.build_party_skills(out, table, problems)
+                bv.verify_party_skills(out, table, bv.VARIANTS['qol'], problems)
+            self.assertEqual(problems == [], clean, problems)
+
+
+class Rules(unittest.TestCase):
+    """Nothing shown on screen is written in the tools: wording and guide figures come from qol_rules.xlsx."""
+
+    def test_sheets_listed_in_about_exist(self):
+        import rules
+        book = rules._book()
+        for row in rules.rows('About'):
+            if not row['Sheet'].startswith('('):
+                self.assertIn(row['Sheet'], book.sheetnames)
+        self.assertEqual({ws for ws in book.sheetnames} - {r['Sheet'] for r in rules.rows('About')}, {'About'})
+
+    def test_tools_hold_no_sentences(self):
+        import rules
+        import shortened_text
+        self.assertEqual(len(shortened_text.ITEM_SENTENCES), len(rules.rows('ShortItems')))
+        with open(os.path.join(_paths.TOOLS_DIR, 'shortened_text.py'), encoding='utf-8') as f:
+            source = f.read()
+        self.assertNotIn('Yakisoba', source)
