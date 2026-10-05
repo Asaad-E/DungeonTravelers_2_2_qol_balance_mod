@@ -82,6 +82,16 @@ def enemy_sections(enemies):
         rows.append([key.capitalize(), number(statistics.median(values)), min(values), max(values),
                      sum(v >= 100 for v in values), sum(v <= 0 for v in values)])
     lines += table(['Resistance', 'Median', 'Lowest', 'Highest', 'Enemies at 100 or more', 'Enemies at 0 or less'], rows)
+    lines += ['', '### Enemies that cannot receive an ailment, by level band', '',
+              'From the flag of each enemy (one bit per ailment, tested by the code of that ailment).', '']
+    ailments = list(enemy_data.IMMUNITY_BITS.values())
+    rows = []
+    for lo, hi in BANDS:
+        group = [e for e in enemies if lo <= e['level'] <= hi]
+        if group:
+            rows.append([f'{lo}-{hi}' if lo != hi else str(lo), len(group)]
+                        + [f"{100 * sum(a in e['immune'] for e in group) / len(group):.0f}%" for a in ailments])
+    lines += table(['Level', 'Enemies'] + [a.capitalize() for a in ailments], rows)
     all_100 = [e['name'] for e in late if all(e['res_' + k] >= 100 for k in ELEMENTS)]
     lines += ['', f"Enemies of level 85+ with 100 or more in all five elements: {len(all_100)} of {len(late)}"
               + (' (' + ', '.join(sorted(set(all_100))) + ').' if all_100 else '.')]

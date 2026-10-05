@@ -7,10 +7,13 @@ Enemy.pck holds one entry per enemy, itself an archive with:
     EnemyVoiceData.bin    only some enemies
 
 EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 2026-10-04):
-    0x00 id            0x08 name pointer        0x10 race
+    0x00 id            0x08 name pointer        0x10 race (RACES: the value each "attack vs." enchantment tests,
+                                                         helpers 0x557d40 - 0x557ec0; 1 and 3 have no such enchantment)
     0x14 level         0x18 max HP              0x1C ATK   0x20 DEF   0x24 INT
     0x28 RES           0x2C DEX                 0x30 AGI   0x34 EXP   0x38 gold
-    0x3C flags         0x40 swing: spread of its damage (docs/FORMULAS.md 2.2)
+    0x3C flags: one bit per ailment the enemy cannot receive (IMMUNITY_BITS; each ailment command tests its bit,
+                       for example poison at 0x5580c0); bit 14 allows snackification; bits 0, 1, 12, 13, 15 not decoded
+                       0x40 swing: spread of its damage (docs/FORMULAS.md 2.2)
                        0x44 weight: its term in the order of turns (docs/FORMULAS.md 5)
     0x48 eight resistances: slash, stab, bash, fire, water, wind, earth, lightning
          (Selene: 15, 30, 0, 10, 0, 0, 20, 20, the figures of her status screen)
@@ -30,6 +33,10 @@ STATS = (('level', 0x14), ('hp', 0x18), ('atk', 0x1C), ('def', 0x20), ('int', 0x
 RESISTANCES = ('slash', 'stab', 'bash', 'fire', 'water', 'wind', 'earth', 'lightning')
 RESIST_OFFSET = 0x48
 ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = 0xAC, 0xB0, 16
+RACES = {0: 'Fruit', 2: 'Beasts', 4: 'Humans', 5: 'Undead', 6: 'Magic Beings', 7: 'Apparitions', 8: 'Demons', 9: 'Dragons'}
+IMMUNITY_BITS = {2: 'stun', 3: 'sleep', 4: 'silence', 5: 'petrification', 6: 'instant death', 7: 'freeze', 8: 'poison',
+                 9: 'paralysis', 10: 'shadow sew', 11: 'slow'}
+SNACK_BIT = 14          # set when the enemy can be turned into a snack (0x481488: the other way round)
 
 
 def cstring(b, pointer):
@@ -43,6 +50,9 @@ def read_status(b):
              'habitat': cstring(b, struct.unpack_from('<Q', b, 0x108)[0]),
              'flags': struct.unpack_from('<I', b, 0x3C)[0],
              'swing': struct.unpack_from('<f', b, 0x40)[0], 'weight': struct.unpack_from('<f', b, 0x44)[0]}
+    enemy['race_name'] = RACES.get(enemy['race'], f"race {enemy['race']}")
+    enemy['immune'] = [name for bit, name in IMMUNITY_BITS.items() if enemy['flags'] >> bit & 1]
+    enemy['snack'] = bool(enemy['flags'] >> SNACK_BIT & 1)
     for key, off in STATS:
         enemy[key] = struct.unpack_from('<i', b, off)[0]
     for k, key in enumerate(RESISTANCES):

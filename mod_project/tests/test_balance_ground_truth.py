@@ -43,6 +43,17 @@ class Enemies(unittest.TestCase):
         self.assertEqual((selene['level'], selene['hp']), (13, 226))
         self.assertEqual([selene['res_' + k] for k in enemy_data.RESISTANCES], [15, 30, 0, 10, 0, 0, 20, 20])
 
+    def test_flags_and_races_are_named(self):
+        """Race values are the ones the "attack vs." enchantments test; the flag bits the ones each ailment tests."""
+        by_name = {e['name']: e for e in self.enemies}
+        self.assertEqual(by_name['Hola-Orange']['race_name'], 'Fruit')
+        self.assertEqual(by_name['Red Dragon']['race_name'], 'Dragons')
+        self.assertEqual(by_name['Skeleton']['race_name'], 'Undead')
+        weak = [e for e in self.enemies if e['level'] <= 14]
+        strong = [e for e in self.enemies if e['level'] >= 85]
+        share = lambda group: sum(len(e['immune']) for e in group) / len(group)
+        self.assertGreater(share(strong), share(weak))          # set bits are immunities: late enemies carry more
+
     def test_every_attack_exists(self):
         attack_ids = {struct.unpack_from('<i', b, 0)[0]
                       for _, b in PckArchive(os.path.join(_paths.BACKUP_DIR, 'EnemyAttackData.pck')).files}

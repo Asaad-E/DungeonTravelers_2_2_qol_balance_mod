@@ -337,6 +337,20 @@ Stats of each class and route before any bonus (`ClassLevelData`; the row is cho
 | Earth | 75 | -75 | 100 | 21 | 11 |
 | Lightning | 80 | -30 | 100 | 24 | 4 |
 
+### Enemies that cannot receive an ailment, by level band
+
+From the flag of each enemy (one bit per ailment, tested by the code of that ailment).
+
+| Level | Enemies | Stun | Sleep | Silence | Petrification | Instant death | Freeze | Poison | Paralysis | Shadow sew | Slow |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1-14 | 41 | 5% | 10% | 5% | 27% | 27% | 5% | 15% | 7% | 2% | 7% |
+| 15-29 | 65 | 9% | 14% | 5% | 51% | 51% | 25% | 28% | 23% | 3% | 6% |
+| 30-49 | 118 | 24% | 25% | 8% | 53% | 54% | 27% | 23% | 30% | 11% | 10% |
+| 50-69 | 131 | 36% | 34% | 13% | 60% | 64% | 29% | 29% | 29% | 18% | 11% |
+| 70-84 | 76 | 49% | 47% | 13% | 70% | 75% | 45% | 32% | 50% | 20% | 18% |
+| 85-98 | 75 | 84% | 61% | 35% | 97% | 99% | 81% | 27% | 77% | 67% | 40% |
+| 99 | 10 | 80% | 70% | 90% | 100% | 100% | 100% | 60% | 100% | 100% | 60% |
+
 Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wise, Myrddin, Samson).
 
 ## Random formations per floor
