@@ -8,6 +8,7 @@ import class_data
 import character_data
 import doll_data
 import random_move_data
+import skill_tree_data
 import enemy_ai
 import enemy_data
 import floor_data
@@ -268,6 +269,31 @@ class Characters(unittest.TestCase):
                 self.assertGreaterEqual(girl['pep'][0], 0)
         self.assertEqual(character_data.clamp_pep(500), 130)
         self.assertEqual(character_data.clamp_pep(0), 70)
+
+
+class SkillTree(unittest.TestCase):
+    def test_class_masks(self):
+        """The mask of a skill file (0x56dc10 tests it with 1 << class): Raging Smash is a Fighter skill, Gold Steal a Scout
+        skill, Fireball a Magic User skill; the hidden actions belong to no class."""
+        skills = {(s['category'], s['name']): s for s in skill_tree_data.skills()}
+        self.assertEqual(skills[('Technique', 'Raging Smash')]['classes'], [0])
+        self.assertEqual(skills[('Technique', 'Gold Steal')]['classes'], [6])
+        self.assertEqual(skills[('Magic', 'Fireball')]['classes'], [12])
+        self.assertEqual(skills[('Technique', "Spartan's Action")]['classes'], [])
+        tree = skill_tree_data.by_class()
+        self.assertEqual(sorted(tree), list(range(32)))                       # every class learns something
+        for class_id, learned in tree.items():
+            self.assertGreaterEqual(len(learned), 5, class_id)
+
+    def test_patterns_of_the_random_moves(self):
+        """Patterns 10, 11, 12 and 14 of _CreatePattern are the four skills whose tables random_move_data reads."""
+        by_pattern = {s['pattern']: s['name'] for s in skill_tree_data.skills() if s['pattern'] in (10, 11, 12, 14)}
+        self.assertEqual(by_pattern, {10: 'Roulette Circus', 11: 'Magic Box', 12: 'Showtime', 14: 'Heaven or Hell'})
+
+    def test_range_of_a_technique(self):
+        ranges = {s['name']: s['range'] for s in skill_tree_data.skills() if s['category'] == 'Technique'}
+        self.assertEqual((ranges['Raging Smash'], ranges['Chain Spike'], ranges['Hard Whipping'], ranges['Provoke']),
+                         ('short', 'long', 'mid', 'none'))
 
 
 class RandomMoves(unittest.TestCase):

@@ -404,6 +404,16 @@ and the two enchantments.
 swing of a weapon at 0x48 (section 2.2). The upgrade level is kept on the piece itself (offset 0x74 of the object).
 The columns of the `Equipment` sheet of `vanilla_source_of_truth.xlsx` carry these names.
 
+### 10.3 Which class learns a skill (`0x56dc10`; `tools/skill_tree_data.py`) **[code]**
+
+The seven ints after the effect slots of a skill file hold its animation, a **mask of classes** (bit N: the class with
+id N learns it; file offsets `0x1E0` of a technique, `0x228` of a spell, `0xC8` of a passive) and the pattern of its
+action. The program builds the skill list of a class by testing `1 << class` on that mask. A skill with an empty mask
+is hidden: the action of a doll, a result of a random move.
+
+The field after the attribute is a set of flags. In a technique bits 0 to 3 are the range (short, mid, long, none),
+bit 4 "usable in battle", bit 5 "usable on the map"; in a spell the two flags sit at bits 3 and 4.
+
 ## 11. Summons (`0x4ffc90`) **[code]**
 
 A summon has three forms (`SummonData`, one record each; `tools/summon_data.py`).

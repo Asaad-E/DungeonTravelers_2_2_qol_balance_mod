@@ -265,6 +265,45 @@ Stats of each class and route before any bonus (`ClassLevelData`; the row is cho
 | Papillon (from Trickster) | 1282 | 341 | 130 | 111 | 119 | 110 | 133 | 122 |
 | Joker | 1317 | 294 | 136 | 98 | 98 | 87 | 157 | 126 |
 
+## Skills of each class
+
+Each skill file names the classes that learn it in a mask of bits (`tools/skill_tree_data.py`). SP is the cost of every level of every skill of the class added up. The range is the one of a technique; a spell has none.
+
+| Class | Skills | SP to max them all | Skills (levels, range) |
+|---|---|---|---|
+| Fighter | 8 | 340 | Provoke (5), War Cry (5), Raging Smash (10, short), Sword Mastery (10), Axe Mastery (10), Lance Mastery (10), Avenger (5), Double Attack (5) |
+| Paladin | 8 | 290 | Defender (5), Shield Bash (5, short), Cover (5), Parry (5), Cross Slash (10, short), Heal (10), Mini Auto-Recovery (5), Auto-Guard (5) |
+| Berserker | 8 | 373 | Aura Eliminate (10, short), Berserk (5), Frost Slash (10, mid), Geo Break (10, short), Blood Rage (5), Adaptation (10), Preparation (5), Dark Aura (6) |
+| Valkyrie | 12 | 500 | Material Guard (10), Spell Guard (10), Gust Thrust (10, short), Daedalus Attack (10, short), Ether Strike (10, mid), Circle Heal (10), Protect (5), Moon Curtain (5), Auto-Refresh (5), Guts (5), Absolute Attack (1), Imperial Guard (5) |
+| Samurai | 10 | 460 | Backward Swing (10, short), Last Stand (5), Halving Slice (10, short), Armor Penetration (10, short), Onikagura (10, short), Moonlight Purgatory (10, short), Katana Mastery (10), Mind's Eye (5), Triple Attack (5), Flowing Water Stance (5) |
+| Dark Lord | 11 | 435 | Attract (5), Blood Drain (10, short), Soul Drain (10, short), Megaton Press (10, short), Shock Spiral (10, short), Power Charge (5), Life Bring (10), Brave (5), Grudge Accumulator (5), Dark Quest (5), First Grid (1) |
+| Scout | 8 | 310 | Gold Steal (5), Sharp Stab (10, short), Evade (5), Cleanse (5), Poison Shot (10, long), Dagger Mastery (10), Elusiveness (5), Lucky Me (5) |
+| Archer | 6 | 305 | Freeze Shot (10, long), Paralysis Shot (10, long), Gravity Shot (10, long), Arrow Rain (10, long), Bow Mastery (10), Caution (5) |
+| Assassin | 6 | 280 | Sleep Sting (10, short), Silence Sting (10, short), Stun Sting (10, short), Adaptation (10), Murder (5), Awareness (5) |
+| Sniper | 8 | 365 | Aim (10), Chain Spike (10, long), Guided Shot (5, long), Spiral Arrow (5, long), Star Dust Arrow (10, long), Divine Cannon (10, long), Warning Shot (5), Support Shot (5) |
+| Treasure Hunter | 15 | 595 | Item Steal (5), Pursuit Stab (5, short), Fleet Foot (10), Chain Spike (10, long), Identify (5), Trap Search (10), Treasure Search (1), Hard Whipping (10, mid), Light (10), Whistle (10), Triple Attack (5), Treasure Hunt (5), Recycle (5), Item Mastery (10), Negotiate (5) |
+| Kunoichi | 14 | 565 | Phoenix (10, long), Ninja Piledriver (10), Shadow Clone (5), Shadow Sew (5), Light Scroll (5), Fire Scroll (5), Water Scroll (5), Lightning Scroll (5), Wind Scroll (5), Earth Scroll (5), Katana Mastery (10), Projectile Mastery (10), Dual Wield (10), Barrage (10) |
+| Magic User | 7 | 355 | Fireball (10), Ice Edge (10), Thunderbolt (10), Air Cutter (10), Stone Hammer (10), Poison (5), Heal (10) |
+| Sorceress | 10 | 455 | Fire Blast (10), Ice Storm (10), Thunder Chain (10), Air Turbulence (10), Stone Shower (10), Blood Absorb (10), Magic Mastery (10), Auto-Refresh (5), Concentrate (5), Critical Magic (1) |
+| Enchantress | 19 | 567 | Holy Prayer (5), Stun (5), Freeze (5), Paralyze (5), Silence (5), Fire Enchant (5), Water Enchant (5), Lightning Enchant (5), Wind Enchant (5), Earth Enchant (5), Mini Circle Nurse (8), Divine Shield (5), Return (5), Circle Brave (5), Circle Protect (5), Heal Mastery (10), Mini Auto-Refresh (5), Adaptation (10), Fast Cast (5) |
+| Priestess | 16 | 640 | Fire Blast (10), Ice Storm (10), Thunder Chain (10), Air Turbulence (10), Stone Shower (10), Slow (5), Circle Heal (10), Nurse (8), Resurrect (5), Divine Shield (5), Light (10), Return (5), Heal Mastery (10), Mini Auto-Recovery (5), Mini Auto-Refresh (5), Fast Cast (5) |
+| Witch | 16 | 640 | Loose Spirit (5), Inferno (10), Crimson Flare (5), Diamond Dust (10), Cocytus (5), Lightning (10), Muon Plasma (5), Tornado (10), Tempest (5), Meteor (10), Gaia Crush (5), Soul Absorb (10), Slow (5), Fast Cast (5), Economy (5), Nirvana (5) |
+| Magical Princess | 11 | 458 | Cover (5), Magical Slash (10, short), Magic Barrier (10), Magical Change (5), Magical Spark (10, short), Accelerator (5), Illusion (3), Rainbow Flash (10), Sword Mastery (10), Double Attack (5), Guts (5) |
+| Sage | 16 | 541 | Identify (5), Bible Thump (10, short), Sleep (5), Petrify (5), Death (5), Terrorize (5), Dispel (5), Stab Guard (5), Slash Guard (5), Bash Guard (5), Sun Veil (5), Accelerator (5), Amplify (10), Prism Dawn (10), Esarhaddon (6), Economy (5) |
+| Bishop | 9 | 376 | Holy Gavel (10, short), Justice (10, short), Shine Curse (10), Full Heal (5), Circle Nurse (8), Moon Curtain (5), Insurance (5), Mace Mastery (10), Double Attack (5) |
+| Maid | 7 | 220 | First Aid (5), Cook (5), Self-Sacrifice (5), Clean (5), Lullaby (5), Generous Heart (5), Maid Mastery (10) |
+| Bard | 6 | 330 | Spiritual Fantasia (10), Sacred Hymn (10), Replenishing Carol (10), Blissful Chorale (10), Experience Paean (10), Song Mastery (10) |
+| Dancer | 6 | 305 | Warm-Up (5), Fascinating Waltz (10), Alluring Samba (10), Gloomy Tango (10), Gravitating Polka (10), Dance Mastery (10) |
+| Diva | 10 | 430 | Barrage Rondo (1), Concentration Prelude (10), Reading Requiem (10), Lightning March (10), Sorcerous Ballad (10), Panic Voice (10), Auto-Recovery (5), Concentrate (5), Self Session (5), Fast Talk (10) |
+| Mistress | 12 | 395 | Provoke (5), War Cry (5), Hard Whipping (10, mid), Enticing Love (5, mid), Absolute Obedience (5, short), Resurrect (5), Carrot and Stick (5), Whip Mastery (10), Auto-Refresh (5), Knock Down (5), Ecstasy (5), Counter Whip (1) |
+| Etoile | 9 | 434 | Debilitating Salsa (10), Dumbing Mazurka (10), Emaciating Hopak (10), Primevil (8), Auto-Recovery (5), Guts (5), Concentrate (5), On Stage (5), Magnificent Steps (5) |
+| Spieler | 6 | 225 | Fleet Foot (10), Danger Shoot (10, long), Coffee Break (5), Roulette Circus (1), Weapon Mastery (10), Present for Me (5) |
+| Doll Master | 5 | 210 | Spartan (10), Oracles (10), Catalina (5), Mini Auto-Refresh (5), Doll Mastery (10) |
+| Trickster | 7 | 230 | Checkmate (10, short), Surprise Fist (10, long), High Risk, High Return (5), Magic Box (1), Mini Auto-Recovery (5), Anti-Dark Aura (1), Pretend (5) |
+| Soul Summoner | 9 | 410 | Mercidarian (10), Perdurabo (8), Musiy (7), Divine Shield (5), Soul Eater (10), Adaptation (10), Double Puppet (5), Soul Seal (5), Destiny Line (1) |
+| Papillon | 11 | 359 | Materialize (5), Rose Queen (10, long), Tinker Squash (10, short), Graceful Rose (1, long), Illusion (3), Insurance (5), Limit Field (5), Fan Mastery (10), Double Attack (5), Esarhaddon (6), Elegant Dancing (1) |
+| Joker | 10 | 345 | Mad Zapper (10, mid), Life Bringer (5, short), Trump Card (5), Showtime (1), Beast Binder (10, mid), Heaven or Hell (5), Axe Mastery (10), Avenger (5), Murder (5), Triple Joker (1) |
+
 ## Characters
 
 Read from the package of each character (`tools/character_data.py`, `docs/FORMULAS.md` 13). The level is the one her starting EXP gives on the EXP curve. Pep stays between 70 and 130; the columns after it are what each event adds to it, for the events whose trigger was read in code.
