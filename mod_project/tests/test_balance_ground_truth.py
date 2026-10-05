@@ -12,6 +12,7 @@ import random_move_data
 import skill_tree_data
 import enemy_ai
 import enemy_data
+import exe_patch
 import floor_data
 import item_effect_data
 import npc_data
@@ -375,6 +376,27 @@ class ItemEffects(unittest.TestCase):
         self.assertEqual((names[performs[27][0]], names[performs[29][0]]), ('Fleet Foot', 'Accelerator'))
         self.assertEqual(names[performs[32][0]], 'War Cry')
         self.assertNotIn(0, performs)                                         # healing has code of its own
+
+
+class ExePatches(unittest.TestCase):
+    def test_every_row_matches_the_program(self):
+        """Each row of the sheet ExePatches names bytes that are in the unwrapped executable, replaces them by as many
+        bytes, and a repointed constant holds the float the row states."""
+        from exe_reader import Exe
+        rows = exe_patch.patches()
+        self.assertTrue(rows)
+        self.assertEqual(exe_patch.problems(Exe(), rows), [])
+        self.assertEqual(len({p['va'] for p in rows}), len(rows))
+
+    def test_the_patched_copy_differs_only_where_the_rows_say(self):
+        from exe_reader import Exe
+        exe = Exe()
+        rows = exe_patch.patches('test1')
+        after = exe_patch.patched(exe, rows)
+        changed = [k for k in range(len(after)) if after[k] != exe.data[k]]
+        allowed = {exe.offset(p['va']) + k for p in rows for k in range(len(p['new']))}
+        self.assertTrue(set(changed) <= allowed)
+        self.assertEqual(len(after), len(exe.data))
 
 
 class Dolls(unittest.TestCase):
