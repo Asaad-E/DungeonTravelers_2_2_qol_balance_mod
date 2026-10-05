@@ -16,18 +16,20 @@ LEVEL_GAP = ((10, None, 0.85, 0.85), (5, 9, 0.90, 0.90), (0, 4, 1.00, 1.00), (-4
 DOUBLE = 2.0                   # 0x4459ed (effect 157) and 0x445a1e (enchantment 275)
 
 
-def level_gap_factor(member_level, enemy_level, more_from_higher=False):
+def level_gap_factor(member_level, enemy_level, more_from_higher=False, gap_table=LEVEL_GAP):
+    """gap_table: another table of the same shape, to evaluate a change of the factors."""
     gap = member_level - enemy_level
-    for low, high, plain, with_enchant in LEVEL_GAP:
+    for low, high, plain, with_enchant in gap_table:
         if (low is None or gap >= low) and (high is None or gap <= high):
             return with_enchant if more_from_higher else plain
     raise ValueError(gap)
 
 
-def battle_exp(member_level, enemies, living, bonus=0.0, doubled=False, double_exp_piece=False, more_from_higher=False):
+def battle_exp(member_level, enemies, living, bonus=0.0, doubled=False, double_exp_piece=False, more_from_higher=False,
+               gap_table=LEVEL_GAP):
     """EXP one member receives from a battle. enemies: [(level, EXP)] of the enemies defeated.
     living: members alive at the end. bonus: the party-wide fraction the result code is handed."""
-    banked = sum(int(exp * level_gap_factor(member_level, level, more_from_higher)) for level, exp in enemies)
+    banked = sum(int(exp * level_gap_factor(member_level, level, more_from_higher, gap_table)) for level, exp in enemies)
     gained = banked / float(living)
     gained += gained * bonus
     if doubled:
