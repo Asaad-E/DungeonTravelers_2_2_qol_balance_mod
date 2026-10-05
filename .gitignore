@@ -26,3 +26,7 @@ __pycache__/
 .venv/
 venv/
 Data/
+
+# Copies kept before a patch of the program: the vanilla executable and the save files of the player
+mod_project/backups/exe/
+mod_project/backups/saves/
