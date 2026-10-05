@@ -158,19 +158,37 @@ def main():
               f'{FLOAT_EXACT:,} not every integer exists, so small gains would be rounded. Vanilla stays far below it.']
 
     best = max(zones, key=lambda z: (zone_exp(z), z['name']))
+    crowns = []
+    for r in rows_of('balance_criteria.xlsx', 'CrownOptions'):
+        if r['Steps']:
+            pairs = [part.split(':') for part in str(r['Steps']).split(',')]
+            crowns.append((r['Rule'], tuple(sorted(((int(a), int(b)) for a, b in pairs), reverse=True)), int(r['Cap']), r['Note'] or ''))
     lines += ['', '## The crown', '',
-              f'A crown is a reset bonus of {progression.RESET_MAX} (`docs/FORMULAS.md` 10). Battles to raise one member from level 1 in the zone '
-              f'that gives most EXP ({best["name"]}, enemies around level {mean_level(best):.0f}), carried by four members who stay alive, '
-              'times the resets of each recipe.', '']
-    recipes = (('10 resets from 99', [99] * 10), ('12 from 90 and 1 from 70', [90] * 12 + [70]), ('16 from 80 and 1 from 70', [80] * 16 + [70]),
-               ('25 from 70', [70] * 25))
+              f'A crown is the full bonus of the level resets (`docs/FORMULAS.md` 10). One member is raised from level 1 in the zone that gives '
+              f'most EXP ({best["name"]}, enemies around level {mean_level(best):.0f}), carried by four members who stay alive, and reset as '
+              'many times as the rule asks. For every rule and option the table gives the cheapest way: battles in all, and in brackets '
+              'the level to reset from and how many resets.', '',
+              '### The rules compared', '']
+    lines += table(['Rule', 'Points for the levels given up', 'Cap', 'What it is'],
+                   [[name, ', '.join(f'{levels}+: {points}' for levels, points in steps), cap, note] for name, steps, cap, note in crowns])
+    lines += ['', '### Battles for one crown', '']
     rows = []
     for o in options:
-        cost = {target: o.battles(1, target, best, vanilla_steps, by_id) for target in (70, 80, 90, 99)}
-        rows.append([o.name] + [f'{cost[t]:.0f}' for t in (70, 99)] + [f'{sum(cost[t] for t in levels):,.0f}' for _, levels in recipes])
-    lines += table(['Option', 'One climb to 70', 'One climb to 99'] + [name for name, _ in recipes], rows)
-    lines += ['', 'The points per reset, the levels each step asks for and the cap are in the program (lever L27); halving the resets '
-              'needed halves every figure of the four recipe columns, whatever the option.', '']
+        climb = {}
+        level, total = 1, 0.0
+        step_table, forms = o.steps(vanilla_steps), o.formations(best, by_id)
+        for target in range(2, 100):                      # one pass: cost of reaching every level from 1
+            total += progression.battles_to_reach(target - 1, target, step_table, forms, living=PARTY, **o.options)
+            climb[target] = total
+        row = [o.name]
+        for _, steps, cap, _ in crowns:
+            choices = [(progression.resets_to_crown(lv, steps, cap) * climb[lv], lv, progression.resets_to_crown(lv, steps, cap))
+                       for lv in range(2, 100) if progression.resets_to_crown(lv, steps, cap)]
+            cost, lv, resets = min(choices)
+            row.append(f'{cost:,.0f} ({resets} from {lv})')
+        rows.append(row)
+    lines += table(['Option'] + [name for name, _, _, _ in crowns], rows)
+    lines += ['', 'The rules of the crown are in the program (lever L27): every rule but the first is a patch of single bytes.', '']
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(lines))

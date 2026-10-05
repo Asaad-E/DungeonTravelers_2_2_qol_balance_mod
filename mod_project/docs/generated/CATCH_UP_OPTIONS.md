@@ -11,51 +11,51 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | Vanilla | vanilla | Nothing changed |
 | Kept curve | curve | Data only. EXP per level of the earlier proposal the user asked to keep, through the five steps he gave (level, share of vanilla) |
 | Steep 2.5% | steep | Data only. EXP per level and EXP of enemies both grow 2.5% more per level from level 20: about the steepest that stays exact in the float arithmetic of the game |
-| Steep 6% | steep | Data only, shown to see how far data alone would have to go. It does not fit in the arithmetic of the game |
 | Double EXP piece | piece | Data only. The member who is behind wears a piece with enchantment 275 |
-| Gap B | gap | Program. Factors by level gap: unchanged down to 4 levels below the enemy, then 2, 4 from 10 below, 8 from 20 below |
-| Gap D | gap | Program. 1.5 from 1 level below the enemy, 3 from 5 below, 5 from 10 below, 10 from 20 below |
-| Kept curve + Gap B | gap | Program and data: the kept curve with the factors of B |
-| Kept curve + Gap D | gap | Program and data: the kept curve with the factors of D |
+| Kept + B | gap | Kept curve; factors by gap unchanged down to 4 levels below the enemy, then 2, 4 from 10 below, 8 from 20 below |
+| Kept + B2 | gap | Kept curve; unchanged down to 4 below, then 3, 5 and 10 |
+| Kept + B3 | gap | Kept curve; as B, and 1.25 already from 1 level below the enemy |
+| Kept + B4 | gap | Kept curve; as B2, and 1.25 already from 1 level below the enemy |
+| Kept + D | gap | Kept curve; 1.5 from 1 level below the enemy, then 3, 5 and 10 |
 
 ## A member 10 levels behind: battles until it is within 4 levels of the party
 
-| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Steep 6% | Double EXP piece | Gap B | Gap D | Kept curve + Gap B | Kept curve + Gap D |
+| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | Kept + B4 | Kept + D |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 20 | St05_0010 zone 2 | 48 | 47 | 48 | 48 | 24 | 28 | 19 | 27 | 18 |
-| 30 | St08_0010 zone 3 | 70 | 60 | 58 | 44 | 35 | 31 | 23 | 27 | 20 |
-| 40 | St09_0015 zone 2 | 121 | 95 | 103 | 84 | 60 | 63 | 42 | 50 | 34 |
-| 50 | St13_0150 | 122 | 94 | 102 | 80 | 61 | 57 | 41 | 43 | 31 |
-| 60 | St15_1130 | 139 | 103 | 117 | 91 | 70 | 65 | 47 | 48 | 35 |
-| 70 | St22_1010 zone 1 | 144 | 103 | 119 | 92 | 72 | 63 | 46 | 45 | 33 |
-| 80 | St23_0050 | 99 | 68 | 82 | 64 | 49 | 45 | 33 | 31 | 22 |
-| 90 | St23_0130 | 79 | 51 | 63 | 46 | 39 | 32 | 24 | 21 | 16 |
+| 20 | St05_0010 zone 2 | 48 | 47 | 48 | 24 | 27 | 20 | 26 | 19 | 18 |
+| 30 | St08_0010 zone 3 | 70 | 60 | 58 | 35 | 27 | 20 | 27 | 20 | 20 |
+| 40 | St09_0015 zone 2 | 121 | 95 | 103 | 60 | 50 | 34 | 50 | 34 | 34 |
+| 50 | St13_0150 | 122 | 94 | 102 | 61 | 43 | 31 | 43 | 31 | 31 |
+| 60 | St15_1130 | 139 | 103 | 117 | 70 | 48 | 36 | 47 | 35 | 35 |
+| 70 | St22_1010 zone 1 | 144 | 103 | 119 | 72 | 45 | 33 | 45 | 33 | 33 |
+| 80 | St23_0050 | 99 | 68 | 82 | 49 | 31 | 23 | 31 | 23 | 22 |
+| 90 | St23_0130 | 79 | 51 | 63 | 39 | 21 | 16 | 21 | 16 | 16 |
 
 ## A member 20 levels behind: battles until it is within 4 levels of the party
 
-| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Steep 6% | Double EXP piece | Gap B | Gap D | Kept curve + Gap B | Kept curve + Gap D |
+| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | Kept + B4 | Kept + D |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 65 | 33 | 34 | 24 | 33 | 23 |
-| 30 | St08_0010 zone 3 | 116 | 104 | 93 | 67 | 58 | 44 | 33 | 39 | 29 |
-| 40 | St09_0015 zone 2 | 217 | 176 | 172 | 128 | 108 | 92 | 66 | 74 | 53 |
-| 50 | St13_0150 | 240 | 186 | 184 | 130 | 120 | 90 | 67 | 69 | 52 |
-| 60 | St15_1130 | 286 | 215 | 218 | 153 | 143 | 106 | 79 | 79 | 59 |
-| 70 | St22_1010 zone 1 | 311 | 226 | 233 | 159 | 156 | 108 | 81 | 78 | 59 |
-| 80 | St23_0050 | 216 | 151 | 163 | 112 | 108 | 78 | 58 | 54 | 41 |
-| 90 | St23_0130 | 175 | 117 | 127 | 82 | 87 | 55 | 43 | 37 | 28 |
+| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 33 | 33 | 24 | 32 | 23 | 23 |
+| 30 | St08_0010 zone 3 | 116 | 104 | 93 | 58 | 39 | 29 | 39 | 29 | 29 |
+| 40 | St09_0015 zone 2 | 217 | 176 | 172 | 108 | 74 | 53 | 74 | 53 | 53 |
+| 50 | St13_0150 | 240 | 186 | 184 | 120 | 69 | 52 | 69 | 52 | 52 |
+| 60 | St15_1130 | 286 | 215 | 218 | 143 | 79 | 60 | 78 | 60 | 59 |
+| 70 | St22_1010 zone 1 | 311 | 226 | 233 | 156 | 78 | 59 | 78 | 59 | 59 |
+| 80 | St23_0050 | 216 | 151 | 163 | 108 | 54 | 41 | 54 | 41 | 41 |
+| 90 | St23_0130 | 175 | 117 | 127 | 87 | 37 | 29 | 36 | 29 | 28 |
 
 ## A member at level 1: battles until it is within 4 levels of the party
 
-| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Steep 6% | Double EXP piece | Gap B | Gap D | Kept curve + Gap B | Kept curve + Gap D |
+| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | Kept + B4 | Kept + D |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 65 | 33 | 34 | 24 | 33 | 23 |
-| 30 | St08_0010 zone 3 | 124 | 112 | 99 | 72 | 62 | 46 | 34 | 40 | 30 |
-| 40 | St09_0015 zone 2 | 257 | 215 | 197 | 140 | 129 | 98 | 71 | 80 | 58 |
-| 50 | St13_0150 | 319 | 255 | 225 | 147 | 160 | 102 | 77 | 80 | 60 |
-| 60 | St15_1130 | 426 | 329 | 287 | 180 | 213 | 128 | 97 | 97 | 74 |
-| 70 | St22_1010 zone 1 | 519 | 390 | 327 | 194 | 259 | 140 | 107 | 104 | 79 |
-| 80 | St23_0050 | 401 | 292 | 244 | 141 | 200 | 107 | 82 | 76 | 59 |
-| 90 | St23_0130 | 355 | 251 | 200 | 106 | 178 | 84 | 66 | 58 | 45 |
+| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 33 | 33 | 24 | 32 | 23 | 23 |
+| 30 | St08_0010 zone 3 | 124 | 112 | 99 | 62 | 40 | 30 | 40 | 30 | 30 |
+| 40 | St09_0015 zone 2 | 257 | 215 | 197 | 129 | 80 | 58 | 80 | 58 | 58 |
+| 50 | St13_0150 | 319 | 255 | 225 | 160 | 80 | 61 | 80 | 61 | 60 |
+| 60 | St15_1130 | 426 | 329 | 287 | 213 | 97 | 75 | 96 | 74 | 74 |
+| 70 | St22_1010 zone 1 | 519 | 390 | 327 | 259 | 104 | 80 | 104 | 79 | 79 |
+| 80 | St23_0050 | 401 | 292 | 244 | 200 | 76 | 59 | 76 | 59 | 59 |
+| 90 | St23_0130 | 355 | 251 | 200 | 178 | 58 | 46 | 58 | 46 | 45 |
 
 ## What each option does to a party that is on level
 
@@ -66,29 +66,41 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | Vanilla | 25 | 33 | 35 | 18 | 1.00 | 1.00 | 3,042,158 | 600,000 | no |
 | Kept curve | 20 | 25 | 24 | 11 | 1.29 | 1.29 | 2,053,328 | 600,000 | no |
 | Steep 2.5% | 25 | 33 | 34 | 17 | 1.16 | 1.31 | 13,325,213 | 4,220,235 | no |
-| Steep 6% | 24 | 33 | 34 | 16 | 1.42 | 1.90 | 121,822,081 | 59,884,525 | **yes** |
 | Double EXP piece | 13 | 17 | 17 | 9 | 2.00 | 2.00 | 3,042,158 | 600,000 | no |
-| Gap B | 24 | 31 | 31 | 14 | 2.00 | 3.20 | 3,042,158 | 600,000 | no |
-| Gap D | 17 | 24 | 23 | 10 | 2.89 | 4.00 | 3,042,158 | 600,000 | no |
-| Kept curve + Gap B | 19 | 23 | 21 | 9 | 2.59 | 4.14 | 2,053,328 | 600,000 | no |
-| Kept curve + Gap D | 14 | 18 | 16 | 6 | 3.74 | 5.18 | 2,053,328 | 600,000 | no |
+| Kept + B | 19 | 23 | 21 | 9 | 2.59 | 4.14 | 2,053,328 | 600,000 | no |
+| Kept + B2 | 18 | 21 | 19 | 7 | 3.73 | 5.18 | 2,053,328 | 600,000 | no |
+| Kept + B3 | 16 | 21 | 19 | 8 | 2.60 | 4.14 | 2,053,328 | 600,000 | no |
+| Kept + B4 | 15 | 19 | 17 | 7 | 3.73 | 5.18 | 2,053,328 | 600,000 | no |
+| Kept + D | 14 | 18 | 16 | 6 | 3.74 | 5.18 | 2,053,328 | 600,000 | no |
 
 The last column matters because the result of a battle handles EXP as 32-bit floats (`0x445964 - 0x445a29`): above 16,777,216 not every integer exists, so small gains would be rounded. Vanilla stays far below it.
 
 ## The crown
 
-A crown is a reset bonus of 50 (`docs/FORMULAS.md` 10). Battles to raise one member from level 1 in the zone that gives most EXP (St15_1160, enemies around level 85), carried by four members who stay alive, times the resets of each recipe.
+A crown is the full bonus of the level resets (`docs/FORMULAS.md` 10). One member is raised from level 1 in the zone that gives most EXP (St15_1160, enemies around level 85), carried by four members who stay alive, and reset as many times as the rule asks. For every rule and option the table gives the cheapest way: battles in all, and in brackets the level to reset from and how many resets.
 
-| Option | One climb to 70 | One climb to 99 | 10 resets from 99 | 12 from 90 and 1 from 70 | 16 from 80 and 1 from 70 | 25 from 70 |
-|---|---|---|---|---|---|---|
-| Vanilla | 176 | 625 | 6,248 | 5,275 | 4,531 | 4,393 |
-| Kept curve | 131 | 417 | 4,174 | 3,670 | 3,272 | 3,268 |
-| Steep 2.5% | 82 | 551 | 5,506 | 3,734 | 2,565 | 2,042 |
-| Steep 6% | 32 | 553 | 5,533 | 2,758 | 1,358 | 803 |
-| Double EXP piece | 88 | 312 | 3,124 | 2,637 | 2,266 | 2,197 |
-| Gap B | 29 | 389 | 3,895 | 2,305 | 1,047 | 735 |
-| Gap D | 24 | 347 | 3,467 | 1,785 | 822 | 588 |
-| Kept curve + Gap B | 22 | 249 | 2,486 | 1,535 | 742 | 545 |
-| Kept curve + Gap D | 17 | 220 | 2,201 | 1,189 | 583 | 436 |
+### The rules compared
 
-The points per reset, the levels each step asks for and the cap are in the program (lever L27); halving the resets needed halves every figure of the four recipe columns, whatever the option.
+| Rule | Points for the levels given up | Cap | What it is |
+|---|---|---|---|
+| Vanilla | 98+: 5, 89+: 4, 79+: 3, 69+: 2, 59+: 1 | 50 | The rule of the program |
+| One more point | 98+: 6, 89+: 5, 79+: 4, 69+: 3, 59+: 2 | 50 | Every step gives one point more (five bytes) |
+| Ten levels sooner | 88+: 5, 79+: 4, 69+: 3, 59+: 2, 49+: 1 | 50 | Every step asks for ten levels fewer (five bytes) |
+| Both | 88+: 6, 79+: 5, 69+: 4, 59+: 3, 49+: 2 | 50 | One point more and ten levels sooner (ten bytes) |
+| Double points | 98+: 10, 89+: 8, 79+: 6, 69+: 4, 59+: 2 | 50 | Every step gives twice the points (five bytes) |
+
+### Battles for one crown
+
+| Option | Vanilla | One more point | Ten levels sooner | Both | Double points |
+|---|---|---|---|---|---|
+| Vanilla | 4,393 (25 from 70) | 2,684 (25 from 60) | 2,684 (25 from 60) | 1,489 (25 from 50) | 2,284 (13 from 70) |
+| Kept curve | 3,268 (25 from 70) | 2,054 (25 from 60) | 2,054 (25 from 60) | 1,175 (25 from 50) | 1,700 (13 from 70) |
+| Steep 2.5% | 2,042 (25 from 70) | 1,023 (25 from 60) | 931 (50 from 50) | 465 (25 from 50) | 1,023 (25 from 60) |
+| Double EXP piece | 2,197 (25 from 70) | 1,342 (25 from 60) | 1,342 (25 from 60) | 745 (25 from 50) | 1,142 (13 from 70) |
+| Kept + B | 545 (25 from 70) | 321 (25 from 60) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
+| Kept + B2 | 436 (25 from 70) | 257 (25 from 60) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
+| Kept + B3 | 545 (25 from 70) | 321 (25 from 60) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
+| Kept + B4 | 436 (25 from 70) | 257 (25 from 60) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
+| Kept + D | 436 (25 from 70) | 257 (25 from 60) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
+
+The rules of the crown are in the program (lever L27): every rule but the first is a patch of single bytes.

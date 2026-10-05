@@ -59,9 +59,15 @@ RESET_STEPS = ((98, 5), (89, 4), (79, 3), (69, 2), (59, 1))      # 0x4f94f7 - 0x
 RESET_MAX = 50                                                   # 0x4f9540
 
 
-def reset_bonus(level_before, level_after=1, bonus=0):
+def reset_bonus(level_before, level_after=1, bonus=0, steps=RESET_STEPS, cap=RESET_MAX):
     """Bonus of a character after a level reset: what it had plus the step for the levels it gave up.
-    The bonus is added to each of its eight stats (0x4f5dab)."""
+    The bonus is added to each of its eight stats (0x4f5dab). steps, cap: other rules, to evaluate a change."""
     dropped = level_before - level_after
-    gained = next((points for levels, points in RESET_STEPS if dropped >= levels), 0)
-    return min(RESET_MAX, bonus + gained)
+    gained = next((points for levels, points in steps if dropped >= levels), 0)
+    return min(cap, bonus + gained)
+
+
+def resets_to_crown(level, steps=RESET_STEPS, cap=RESET_MAX):
+    """Resets from this level, always down to level 1, that reach the cap; None when that level earns nothing."""
+    gained = reset_bonus(level, 1, 0, steps, cap)
+    return None if gained == 0 else -(-cap // gained)
