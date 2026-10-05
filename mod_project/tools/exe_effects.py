@@ -37,6 +37,7 @@ OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'EFFECT_COVERAGE.md')
 CREATE_COMMAND, FIND_EFFECT, STATUS_SLOT = 0x47b220, 0x47e340, 0x48
 CASE_TABLE, JUMP_TABLE, FIRST_ID, LAST_ID = 0x47e0a4, 0x47de14, 9, 9 + 0x1b8
 CONSTRUCTORS = (0x478000, 0x47b220)
+TICK_SLOT, BASE_TICKS = 3, {0x48bc50, 0x48d160}       # the method an effect runs every turn, and the two shared by most classes
 # functions that take an effect id in edx: find it among the effects of an action or of a unit (0x47e340 and its
 # siblings), ask whether an enemy attack carries it (0x557620), or build its command at once (0x47b220)
 FINDERS = {0x47e340, 0x47e290, 0x47e390, 0x47e400, 0x48cbf0, 0x48c680, 0x557620, 0x56ce70, 0x47b220}
@@ -173,6 +174,9 @@ def main():
         apply_method = exe.u32(vtable + 24) if vtable else None
         own_section = section_of(apply_method) if apply_method else None
         plain = bool(apply_method) and not own_section and is_plain(exe, md, apply_method)
+        tick = exe.u32(vtable + 4 * TICK_SLOT) if vtable else None
+        if tick and tick not in BASE_TICKS and not section_of(tick) and not is_plain(exe, md, tick):
+            apply_method, plain, own_section = tick, False, None      # its rule sits in the method run every turn
         class_read = bool(apply_method and (plain or own_section))
         if eid in notes:                                    # its rule is written in the sheet EffectRules
             sections = sorted(set(sections) | {notes[eid]})
