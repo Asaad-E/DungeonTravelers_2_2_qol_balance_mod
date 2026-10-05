@@ -299,7 +299,7 @@ phase 1 models it; each is read when the work named beside it starts.
 
 | Point | Needed by |
 |---|---|
-| HP of a summon (set after `0x4ffc90`); what each of the six dolls does with the values of its skill (`0x484150` builds them from the value of its effect, the value of effect 147 and the skill level) | The complaints about dolls and summons (phase 2 diagnosis of those rows) |
+| HP of a summon (set after `0x4ffc90`); for a doll, the class and level its stats are computed from and what removes it before its turns end (11.1) | The rows about summons and dolls (S08, U02, J18) |
 | In the magic function, what the roll at `0x44ed8c` decides; what happens to a spell whose damage comes out at 0 or less | The rows about Limit Field and about magic against high RES |
 | Turn skipping (stun, paralysis): how many turns are lost | The rows about locks |
 | Zones: which side slots 3 and 5 stand for against 4 and 6; the map cells that carry each zone | The row about damage zones (F91) |
@@ -421,9 +421,31 @@ weight = the delay of the weapon rank the form names                        (ord
 * A summon therefore scales with the best member of the party in each stat, not with its summoner.
 * **[open]** its HP (set after this function, `[vtable+0x108]`).
 
-**Dolls** are another thing. A doll is not a unit: it is an object attached to a unit (classes
-`CGamePlayerStatusETCDoll`, `CGamePlayerStatusOtherETCDoll`, `CGameEnemyStatusETCDoll`), created by its skill at
-`0x484150` from the value of the doll effect (228 to 233, cut to an integer), the value of effect 147 of the same
-skill and the skill level. So what a doll has is in the tables of its skill, which are data. A heal cast by a doll is
-read (6b). **[open]** what each of the six does with those values (see 8).
+### 11.1 Dolls (`0x484150` creates them; `tools/doll_data.py`) **[code]**
+
+A doll skill creates a unit of its own (classes `CGamePlayerStatusETCDoll`, `CGamePlayerStatusOtherETCDoll`,
+`CGameEnemyStatusETCDoll`).
+
+```
+HP, max HP = 9,999                                   set when it is created                      (0x4fd922)
+life       = effect 147 of the doll skill, in turns  plus effect 297 when the skill has it       (0x4843c9, 0x484502)
+action     = one of the hidden skills the code lists for that doll, picked at random each turn,
+             performed at the level of the doll skill                                            (0x4fd980)
+stats      = the function of a character                                                         (slot 0x104 = 0x4f5d60)
+```
+
+* The hidden actions are skills of their own ("...'s Action"): one for Spartan, Oracles, Mercidarian, Catalina and
+  Perdurabo, five spells for Musiy (one per element, picked at random). **The power, the ailment chance, the heal
+  power and the spell power of a doll are the figures of those hidden skills**, not the value the doll skill shows
+  under its own effect (228 to 233), which the attack and heal code never reads.
+* A physical hit by a doll adds to its modifiers the value of Doll Mastery (effect 286) and
+  `min(0.05, 0.02 * pieces of 304 + 0.01 * pieces of 305)` (`0x44b4fd - 0x44b5ad`), and takes its range from the
+  doll, not from a weapon: Spartan short, Oracles mid, Mercidarian long (`0x44bb1c`). A heal by a doll adds twenty
+  times the same two terms to its coefficient (6b).
+* A doll is not ended by ordinary damage: 9,999 HP at every level. What ends it is its count of turns, and the code
+  that removes the doll of an owner (`Battle::CBattleBase::DeletePuppetCommand`, `0x43caf0`).
+* With effect 314 on its owner a doll adds to each of its six stats that fraction of the stats of an enemy the code
+  picks (`0x4fdfdc - 0x4fe0fa`).
+* **[open]** which class and level the stat function is fed for a doll (it shares its owner's character number,
+  `0x4fd87c`, so the owner's own figures are the likely answer), and when `DeletePuppetCommand` is called.
 

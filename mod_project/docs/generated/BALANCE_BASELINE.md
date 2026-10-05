@@ -1023,6 +1023,23 @@ Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wis
 | Overdue | 76 | 10 | 2.16 | 1.42 | 0.82 | 1.36 | 0.94 | 0.88 | 10 | 6 | 245 | 365 | 131 | 281 | 88 | 68 |
 | Overdue | 87 | 7 | 2.61 | 1.63 | 1.11 | 1.52 | 1.02 | 0.94 | 10 | 6 | 245 | 365 | 131 | 281 | 88 | 68 |
 
+## Dolls
+
+Every doll has 9,999 HP and lasts a number of turns; on its turn it performs a hidden skill at the level of the doll skill (`tools/doll_data.py`, `docs/FORMULAS.md` 11.1). The figures below are those of the doll skill (turns, TP) and of the hidden action (everything else), per level.
+
+| Doll | Turns it lasts | TP cost | Action | Target | Attribute | Range | Speed of the action | Effects of the action |
+|---|---|---|---|---|---|---|---|---|
+| Spartan | 3 -> 3 -> 3 -> 4 -> 4 -> 4 -> 5 -> 5 -> 5 -> 6 | 20 -> 22 -> 24 -> 26 -> 28 -> 30 -> 33 -> 36 -> 39 -> 42 | Spartan's Action | Single enemy | Bash | short | 0.85 -> 0.86 -> 0.87 -> 0.88 -> 0.89 -> 0.9 -> 0.91 -> 0.92 -> 0.93 -> 0.94 | Plain hit that deals damage: 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1<br>Physical power modifier (damage = 100% + value): 0.44 -> 0.47 -> 0.5 -> 0.54 -> 0.58 -> 0.62 -> 0.66 -> 0.7 -> 0.75 -> 0.8 |
+| Oracles | 3 -> 3 -> 3 -> 3 -> 4 -> 4 -> 4 -> 4 -> 5 -> 5 | 24 -> 27 -> 30 -> 33 -> 36 -> 39 -> 42 -> 44 -> 46 -> 48 | Oracles' Action | Single enemy | Slash | mid | 0.9 | Plain hit that deals damage: 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1<br>Physical power modifier (damage = 100% + value): 0.26 -> 0.28 -> 0.31 -> 0.34 -> 0.37 -> 0.4 -> 0.44 -> 0.48 -> 0.52 -> 0.57<br>effect 49: 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1<br>Paralysis: 0.3 -> 0.35 -> 0.4 -> 0.44 -> 0.48 -> 0.52 -> 0.55 -> 0.58 -> 0.61 -> 0.64 |
+| Catalina | 3 -> 3 -> 4 -> 4 -> 5 | 30 -> 33 -> 37 -> 42 -> 48 | Catalina's Action | Single ally | Neutral |  | 0.85 | Heal power: 4 -> 6 -> 8 -> 10 -> 12 |
+| Mercidarian | 2 -> 2 -> 2 -> 2 -> 3 -> 3 -> 3 -> 4 -> 4 -> 4 | 42 -> 44 -> 46 -> 48 -> 50 -> 53 -> 56 -> 60 -> 64 -> 70 | Mercidarian's Action | Random enemies | Stab | long | 0.75 | Plain hit that deals damage: 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1<br>Physical power modifier (damage = 100% + value): 0 -> 0.04 -> 0.08 -> 0.12 -> 0.18 -> 0.23 -> 0.28 -> 0.33 -> 0.38 -> 0.43<br>effect 89: 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 -> 1 |
+| Perdurabo | 5 -> 5 -> 5 -> 5 -> 5 -> 5 -> 5 -> 5 | 22 -> 24 -> 26 -> 28 -> 30 -> 32 -> 34 -> 38 | Perdurabo's Action | None | Neutral |  | 0.95 | effect 235: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 |
+| Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Fireball) | Single enemy | Fire |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
+| Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Ice Edge) | Single enemy | Water |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
+| Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Thunderbolt) | Single enemy | Lightning |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
+| Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Air Cutter) | Single enemy | Wind |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
+| Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Stone Hammer) | Single enemy | Earth |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
+
 ## Catching up
 
 Random battles a member needs to reach the level of the party, fighting in the zone whose enemies are closest to that level, with 5 members alive and no EXP bonus (`sim/progression.py`, `docs/FORMULAS.md` 6c). "Own pace" is what one more level costs a member who is already on level, in the same zone. Bosses, quests and the EXP the party itself keeps gaining are left out.
@@ -1161,5 +1178,6 @@ The box of each skill as the QoL variant shows it: every figure is read from the
 | Cleanse | Technique | F82 | Cure status ailments for a single ally. | Cures: poison > paralysis > silence > freeze > sleep<br>TP Cost: 3 -> 4 -> 5 -> 6 -> 7 (L1-5 Max) |
 | Return | Magic | F83 | Escape from the dungeon. | TP Cost: 28 -> 21 -> 14 -> 7 -> 1 (L1-5 Max) |
 | Light | Magic | F84 | Illuminate the dungeon to find hidden pathways. | Turns: 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26 -> 28 -> 30 |
+| Moonlight Purgatory | Technique | S10 | Katana skill. Deal slash damage 3 times to one enemy. Living targets only. | ATK: 118% -> 120 -> 124 -> 128 -> 132 -> 136 -> 140 -> 146 -> 152 -> 158% (L10)<br>Critical rate: 10% / TP Cost: 36 (+2-3/Lv) -> 61 / Speed: 0.7x -> 0.8x |
 
 Named in the register but not found under that name among the skills: Magic Change, Top-level elemental spells, Weak Stab.

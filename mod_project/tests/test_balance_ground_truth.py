@@ -5,6 +5,7 @@ import unittest
 
 import _paths
 import class_data
+import doll_data
 import enemy_ai
 import enemy_data
 import floor_data
@@ -237,6 +238,30 @@ class Summons(unittest.TestCase):
         self.assertEqual(summon_data.form_for(family, levels[0] - 1, forms)['level'], levels[0])     # below the first: the first
         self.assertEqual(summon_data.form_for(family, levels[1], forms)['level'], levels[1])
         self.assertEqual(summon_data.form_for(family, 99, forms)['level'], levels[2])
+
+
+
+class Dolls(unittest.TestCase):
+    def test_every_doll_has_its_hidden_action(self):
+        """The code pairs each doll skill with action skills (0x484150); the game names them after the doll."""
+        dolls = doll_data.dolls()
+        self.assertEqual(len(dolls), 6)
+        for doll in dolls:
+            with self.subTest(doll=doll['name']):
+                self.assertTrue(doll['actions'])
+                for action in doll['actions']:
+                    self.assertTrue(action['name'].startswith(doll['name']), action['name'])
+                    self.assertIn('Action', action['name'])
+                self.assertTrue(all(2 <= turns <= 9 for turns in doll['turns']))
+        musiy = next(d for d in dolls if d['name'] == 'Musiy')
+        self.assertEqual(sorted(a['attribute'] for a in musiy['actions']), ['Earth', 'Fire', 'Lightning', 'Water', 'Wind'])
+
+    def test_the_action_holds_the_power_of_the_doll(self):
+        spartan = next(d for d in doll_data.dolls() if d['name'] == 'Spartan')
+        power = [values for effect, _, values in spartan['actions'][0]['effects'] if effect == 26]
+        self.assertEqual(len(power), 1)
+        self.assertEqual(len(power[0]), 10)
+        self.assertTrue(all(b >= a for a, b in zip(power[0], power[0][1:])))
 
 
 if __name__ == '__main__':

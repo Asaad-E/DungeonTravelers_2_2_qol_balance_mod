@@ -234,3 +234,8 @@ Still open:
 |---|---|---|
 | 2 | Resistances with or without `%` | **Answered: without**, as the status screen writes them |
 | 3 | `tremendous` or `ultimate` beyond the damage scale | **Answered by acceptance** ("todo perfecto"): `tremendous` stays |
+
+## Found after the QoL variant was closed (2026-10-05)
+
+* **Doll skills.** Their boxes keep the vague words of the game ("ATK UP") because the value of the doll effect could not be read as a figure. The Balance reading shows why: a doll performs a hidden action skill, and the real power, ailment chance, heal power and spell power are the figures of that skill (`tools/doll_data.py`, `docs/FORMULAS.md` 11.1). The boxes of Spartan, Oracles, Mercidarian, Catalina and Musiy can show them exactly. Not done: the variant is closed and accepted; it is a candidate for its next revision.
+
