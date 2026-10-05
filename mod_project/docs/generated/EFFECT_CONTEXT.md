@@ -345,50 +345,6 @@ mulss 100
 call 0x48c350
 ```
 
-## 266 TP Cost Reduction  (skills 1, enemy attacks 0)
-
-asked at `0x4fd331`:
-```
-status 266 (TP Cost Reduction)
-call 0x61c040
-```
-
-## 269 Escape Chance  (skills 1, enemy attacks 0)
-
-asked at `0x41adcd`:
-```
-status 269 (Escape Chance)
-stat AGI
-stat AGI
-divss 50
-addss 0.3
-```
-
-## 270 Item Drop Rate Modifier  (skills 1, enemy attacks 0)
-
-asked at `0x5581ff`:
-```
-call 0x4e4dd0
-mulss 100
-status 68 (?)
-pieces with enchantment 276 (Equipment drop rate UP)
-```
-
-## 271 Gold Drop Rate Modifier  (skills 1, enemy attacks 0)
-
-asked at `0x43aa33`:
-```
-call 0x4e4dd0
-call 0x558180
-```
-
-## 282 Discount  (skills 1, enemy attacks 0)
-
-asked at `0x4762d2`:
-```
-call 0x4e4dd0
-```
-
 ## 284 On Stage  (skills 1, enemy attacks 1)
 
 asked at `0x43c47e`:
@@ -503,13 +459,6 @@ asked at `0x43c920`:
 ```
 call 0x43caf0
 HP
-```
-
-## 315 Triple Joker  (skills 1, enemy attacks 0)
-
-asked at `0x42db82`:
-```
-weighted roll
 ```
 
 ## 319 Murder License  (skills 0, enemy attacks 1)
@@ -661,14 +610,4 @@ HP
 cmp 339
 call 0x47e500
 HP
-```
-
-## 433 Money Loss  (skills 1, enemy attacks 0)
-
-own command `0x48b490`:
-```
-status
-call 0x48b6c0
-call 0x604b07
-call 0x48b8e0
 ```

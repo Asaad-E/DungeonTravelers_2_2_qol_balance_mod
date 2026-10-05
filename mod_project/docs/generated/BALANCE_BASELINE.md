@@ -1040,6 +1040,48 @@ Every doll has 9,999 HP and lasts a number of turns; on its turn it performs a h
 | Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Air Cutter) | Single enemy | Wind |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
 | Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Stone Hammer) | Single enemy | Earth |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
 
+## Random moves
+
+A skill of this kind rolls on a table written in the executable and performs the hidden skill that comes out (`tools/random_move_data.py`, `docs/FORMULAS.md` 12.10). The second column of chances is the table used when the user has Triple Joker.
+
+| Skill | Hidden skill | Chance | Chance with Triple Joker | Target | Attribute | Effects |
+|---|---|---|---|---|---|---|
+| Roulette Circus | 108 | 10.0% | 12.0% | All enemies | Water | Poison |
+| Roulette Circus | 109 | 10.0% | 12.0% | All enemies | Water | Freeze |
+| Roulette Circus | 110 | 10.0% | 12.0% | All enemies | Lightning | Paralysis |
+| Roulette Circus | 111 | 10.0% | 12.0% | All enemies | Wind | Silence |
+| Roulette Circus | 112 | 10.0% | 12.0% | All enemies | Earth | Slow |
+| Roulette Circus | 113 | 20.0% | 20.0% | None | Neutral | HP Recovery, TP Recovery |
+| Roulette Circus | 114 | 10.0% | 5.0% | Random enemies | Neutral | HP Recovery |
+| Roulette Circus | 115 | 10.0% | 10.0% | None | Neutral | Fixed Damage Based on User's Level |
+| Roulette Circus | 116 | 10.0% | 5.0% | None | None | nothing |
+| Magic Box | 117 | 10.0% | 10.0% | Random enemies | Neutral | Fixed accuracy, User's HP-1 Damage |
+| Magic Box | 118 | 10.0% | 15.0% | All enemies | Stab | Physical power modifier (damage = 100% + value) |
+| Magic Box | 119 | 10.0% | 5.0% | Indiscriminate | None | Cancel Chant, Song, Dance, Doll |
+| Magic Box | 120 | 10.0% | 10.0% | All allies | None | Fixed TP Recovery |
+| Magic Box | 121 | 10.0% | 15.0% | None | None | Genjimaru |
+| Magic Box | 122 | 10.0% | 5.0% | Self | Bash | Physical power modifier (damage = 100% + value), Fixed accuracy |
+| Magic Box | 123 | 10.0% | 10.0% | All enemies | None | Quadruple Money |
+| Magic Box | 124 | 5.0% | 5.0% | None | Neutral | Fixed damage |
+| Magic Box | 125 | 5.0% | 5.0% | None | None | nothing |
+| Magic Box | 126 | 10.0% | 5.0% | Self | Neutral | Instant death |
+| Magic Box | 127 | 10.0% | 15.0% | All allies | None | Fixed Healing |
+| Showtime | 128 | 5.3% | 10.0% | All allies | Neutral | ATK modifier, DEF modifier |
+| Showtime | 129 | 10.5% | 10.0% | None | None | TP Recovery |
+| Showtime | 130 | 5.3% | 10.0% | All allies | Neutral | Stab Resistance, Slash Resistance, Bash Resistance |
+| Showtime | 131 | 10.5% | 3.0% | All allies | Fire | Stun |
+| Showtime | 132 | 10.5% | 10.0% | Indiscriminate | Wind | Special Sleep |
+| Showtime | 133 | 5.3% | 7.0% | All enemies | None | Silence, Freeze, Slow |
+| Showtime | 134 | 5.3% | 3.0% | All allies | Neutral | Halve HP, Fixed accuracy |
+| Showtime | 135 | 5.3% | 10.0% | All allies | Neutral | Physical accuracy modifier, Speed modifier |
+| Showtime | 136 | 10.5% | 5.0% | Indiscriminate | None | HP Recovery, TP Recovery |
+| Showtime | 137 | 10.5% | 12.0% | All enemies | None | Enemies Flee |
+| Showtime | 138 | 5.3% | 3.0% | None | None | Money Loss |
+| Showtime | 139 | 10.5% | 12.0% | Random enemies | Bash | Physical power modifier (damage = 100% + value), 7 Hits, Fixed accuracy |
+| Showtime | 140 | 5.3% | 5.0% | None | None | nothing |
+| Heaven or Hell | 141 | 50.0% | 70.0% | Single enemy | Neutral | Damage as a fraction of the target max HP, Damage cap |
+| Heaven or Hell | 142 | 50.0% | 30.0% | Single enemy | Neutral | Heal Percent HP, Heal cap |
+
 ## Catching up
 
 Random battles a member needs to reach the level of the party, fighting in the zone whose enemies are closest to that level, with 5 members alive and no EXP bonus (`sim/progression.py`, `docs/FORMULAS.md` 6c). "Own pace" is what one more level costs a member who is already on level, in the same zone. Bosses, quests and the EXP the party itself keeps gaining are left out.

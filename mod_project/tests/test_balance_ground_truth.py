@@ -6,6 +6,7 @@ import unittest
 import _paths
 import class_data
 import doll_data
+import random_move_data
 import enemy_ai
 import enemy_data
 import floor_data
@@ -239,6 +240,26 @@ class Summons(unittest.TestCase):
         self.assertEqual(summon_data.form_for(family, levels[1], forms)['level'], levels[1])
         self.assertEqual(summon_data.form_for(family, 99, forms)['level'], levels[2])
 
+
+
+class RandomMoves(unittest.TestCase):
+    def test_tables_point_at_the_hidden_skills_of_their_skill(self):
+        """The four tables of the executable (0x41e060) name hidden skills the game calls "<skill> Effect"."""
+        moves = random_move_data.random_moves()
+        self.assertEqual([m['name'] for m in moves], ['Roulette Circus', 'Magic Box', 'Showtime', 'Heaven or Hell'])
+        by_id = {r['Skill_ID']: r['Name'] for r in random_move_data._rows('Skills') if r['Category'] == 'Technique'}
+        for move in moves:
+            with self.subTest(move=move['name']):
+                for result in move['results']:
+                    self.assertEqual(by_id[result['skill']], move['name'] + ' Effect')
+                    self.assertGreater(result['weight'], 0)
+                self.assertAlmostEqual(sum(r['chance'] for r in move['results']), 1)
+                self.assertAlmostEqual(sum(r['joker_chance'] for r in move['results']), 1)
+
+    def test_triple_joker_tilts_heaven_or_hell(self):
+        heaven = random_move_data.random_moves()[-1]['results']
+        self.assertEqual([r['weight'] for r in heaven], [50, 50])
+        self.assertEqual([r['joker_weight'] for r in heaven], [70, 30])
 
 
 class Dolls(unittest.TestCase):

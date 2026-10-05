@@ -515,3 +515,42 @@ unit at `int(max HP * value)`; Stamina is checked against a share of max HP. The
 
 A song or a dance is applied with its value plus the bonus of its performer: the value of Song Bonus or Dance Bonus
 (effects 279, 280) plus `min(0.05, 0.02 * pieces + 0.01 * mini pieces)` of the matching enchantments.
+
+### 12.9 After a hit (`0x423560 - 0x4247e0`) **[read in part]**
+
+Once a hit has landed the same function runs the passives that answer it: Dark Aura punishes a short-range physical
+attacker with stat debuffs of -0.1 each unless it has Anti-Dark Aura; Slow Target rolls `value * 100` to slow the
+target (speed modifier -0.75); Survival, Reprisal and Devil's Whisper are rolled here too. Final physical damage has
+an "other" bonus (2.4) that Power Charge and Limit Field add to, and that Imperial Guard lowers for a party member in
+the back row (the lowest value among the allies who have it).
+
+### 12.10 Random moves (`0x41e060`, `0x42db00`; `tools/random_move_data.py`)
+
+Roulette Circus, Magic Box, Showtime and Heaven or Hell (effects 152 to 155) do nothing themselves. When the action is
+built, a weighted roll (`0x505ad0`: below the sum of the weights) on a table of twelve-byte entries in the executable
+picks a hidden skill, and that skill is performed. Each has a second table, used when the user has Triple Joker
+(effect 315). The tables, with the chance of each result, are generated into `docs/generated/BALANCE_BASELINE.md`.
+Magic Box has one exception in code: its Genjimaru result is swapped for its empty result when a Genjimaru is already
+in the battle.
+
+The odd results have small commands of their own: 425 ends the chant, song, dance and doll of each target; 426 gives
+`int(value)` TP; 427 creates Genjimaru with the constructor of a doll (9,999 HP, hidden skill 107); 432 marks each
+enemy as gone when the battle allows running away; 433 takes `int(gold * value)` from the party.
+
+The weights are data inside the executable (`.rdata`, `0x64f440 - 0x64fbec`), not code.
+
+### 12.11 Passives outside the damage formulas
+
+A passive of the party is read by `0x4e4dd0`, which returns **the highest value among the living members who have
+it**, not the sum: two members with the same passive do not stack.
+
+    TP cost (0x4fd250)   cost = int(cost * 0.8) with a piece of 246 (techniques) or 248 (spells)
+                         cost = int(cost * 0.6) with a piece of 247 (techniques) or 249 (spells); both can apply
+                         in battle, Economy (266) then takes away int(ceil(cost * value)); never below 1
+    Escape (0x41ad59)    chance = 0.3 + (AGI - average enemy AGI) / 50 + Elusiveness (269)
+                         kept between 0.2 (0.5 with a piece of 262) and 0.95; the value of the action is then
+                         added, up to 0.95; roll below 100 under chance * 100
+    Drops (0x5581ff)     every drop with a chance gains int(Treasure Hunt (270) * 100) points; the last one also
+                         gains 20 points per piece of 276 on the unit that felled the enemy
+    Gold (0x43aa33)      gold = int(gold * (1 + Lucky Me (271))); four times and at least 100 first with effect 428
+    Prices (0x4762c0)    price = int(price - price * Negotiate (282)), at least 1
