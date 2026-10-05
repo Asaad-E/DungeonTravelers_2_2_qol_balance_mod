@@ -8,7 +8,7 @@ Tags: **[done]** built, verified by the build and installed. **[seen]** also loo
 
 ## 1. Definition of finished
 
-QoL is finished when all nine hold. Each one is checked by a tool or by a look at the screen, never by opinion.
+QoL is finished when all ten hold. Each one is checked by a tool or by a look at the screen, never by opinion.
 
 | # | Condition | How it is proven | Today |
 |---|---|---|---|
@@ -21,6 +21,7 @@ QoL is finished when all nine hold. Each one is checked by a tool or by a look a
 | D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s mod_project/tests -p "test_*.py"` | 112 tests pass |
 | D8 | Nothing that reaches the screen is written in the tools: every wording, label, scale and guide figure is in a workbook. | `data_tables/qol_rules.xlsx` and the `qol_*_text.xlsx` workbooks; a test holds it for the shortened sentences. | 15 rule sheets. Still in code: the regular expressions that recognise the game's phrases, and the layout offsets |
 | D9 | Every line fits the place that draws it, measured on screen: battle bar 70 characters (line 1 of techniques and spells, joint skills, items), party skill box 50, skill and item boxes 85. | The build stops on a longer modified line; tests hold each limit. | Holds for every modified line. 20 item texts and 14 internal skill entries of the original game are longer than 70 and were not touched (no data to add; see 2.6) |
+| D10 | **Hard rule: nothing shown in the game speaks from outside it.** No source, caveat or note to the reader on screen ("player guide", "the game data holds no figure"). | `check_game_voice` in the build: sheet `OutOfGameWords` of `qol_rules.xlsx`; a test holds it. | Holds for the 2,324 modified texts |
 
 ---
 
@@ -35,7 +36,7 @@ QoL is finished when all nine hold. Each one is checked by a tool or by a look a
 | `TechniqueSkillData` | 143 | 272 | 80 | Skill menu box, battle bar | **[seen]** box and battle bar. Open items below (2.3) |
 | `MagicSkillData` | 98 | 188 | 89 | Skill menu box, battle bar | **[seen]** battle bar. Open items below (2.3) |
 | `PassiveSkillData` | 71 | 123 | 43 | Skill menu box | **[done]** 62 boxes with data; line 1 of 60 says how much. Not seen |
-| `UniqueSkillData` | 18 | 21 | 4 | Skill menu box | **[seen]** (Shadow Heart, Arcane Shield). 18 with Lv1-9 and Crown EX. Arcane Shield stores the reflected share and not how often it triggers: a third line gives the rate the DT2-2 wiki measured (`Activation rate: about 15% (player guide; ...)`). **[open]** the line does not say what its numbers measure (Shadow Heart `4% -> ... 12%`) |
+| `UniqueSkillData` | 18 | 21 | 4 | Skill menu box | **[seen]** (Shadow Heart, Arcane Shield). 18 with Lv1-9 and Crown EX. Arcane Shield stores the reflected share and not how often it triggers: a third line gives the rate the DT2-2 wiki measured, in the voice of the game (`Activation rate: about 15%`); the source is in the workbook. **[open]** the line does not say what its numbers measure (Shadow Heart `4% -> ... 12%`) |
 | `EnchantData` | 280 | 243 | 104 | Equipment box (two columns), blacksmith, sealbooks | **[seen]** in the equipment box. 142 names with figure (99 from this game's guide, 43 from the first game's), 37 already had one, 101 have none in any guide |
 | `ItemData` | 576 | 609 | 41 | Item box, battle bar, shops | **[seen]** in the item box. 391 items state what they do, in one line of at most 70 characters (the battle bar): 190 as original sentence + (data), 201 with the sentence shortened to fit. **[open]** 55 carry an effect that is not decoded (2.6) |
 | `EnemyAttackData` | 2,375 | 2,521 | 693 | "View the details of your teammates' abilities" (summons); enemy info | **[seen]** for a summon. 1,456 entries with exact data on the data line; 11 corrections of the prose. Open items below (2.4) |
@@ -201,7 +202,7 @@ Answered by the user on 2026-10-04 and applied:
 | Values in line 1 of a skill (`(TP transfer bonus 100-140%)`) | Removed: the box below has them, in line 1 they are bloat. This replaces the earlier answer on buffs, heals and passives |
 | Width of the battle bar | The Self-Sacrifice line (70 characters) is the most that fits well; anything longer is rewritten |
 | Party skill box | Limit is the line that overflowed minus 3 (50), held by a test |
-| Arcane Shield says "occasionally" and shows only the reflected share | The rate is not in the game data; the guide's figure is shown and marked as such |
+| Arcane Shield says "occasionally" and shows only the reflected share | The rate is not in the game data; the guide's figure is shown. It was first written with its source on screen: the user called that horrible. Never again: see D10 |
 
 Still open:
 

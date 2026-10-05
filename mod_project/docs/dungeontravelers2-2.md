@@ -376,7 +376,9 @@ The build stops on a modified line longer than its limit. Texts of the original 
 
 **A sentence that does not fit is rewritten by hand, in the workbook**: `ShortSkills` (44), `ShortItems` (201), `JointSkillSentences` (35). Each keeps the joke or the image and drops filler: `Katana skill. Moderate bash damage to an enemy. May paralyze (20-50%).`, `Legendary. Eat it and fall in love. (HP/TP +1000, cures all ailments)`.
 
-**A figure the game data does not hold** comes from a guide of this game and the text says so: Arcane Shield stores the reflected share only; its third line reads `Activation rate: about 15% (player guide; the game data holds no figure)` (DT2-2 wiki, pages/42.html). Sheet `UniqueSkillNotes`.
+**A figure the game data does not hold** comes from a guide of this game, and the screen does not say so. Arcane Shield stores the reflected share only; its third line reads `Activation rate: about 15%` (DT2-2 wiki, pages/42.html; the source is the `Source` column of the sheet `UniqueSkillNotes`).
+
+**Hard rule: the voice of the game is never broken.** The first version of that line read `Activation rate: about 15% (player guide; the game data holds no figure)`; the user: "horrible... nunca hacer esto NUNCA". No text of the mod may speak from outside the game: no source, no caveat, no note to the reader. Provenance and confidence live in the workbooks and in these docs. `check_game_voice` in `build_variant.py` stops the build when a modified text holds a word of the sheet `OutOfGameWords` (guide, wiki, data, binary, source, unknown...) that the game's own text did not have.
 
 
 ## 7. Tests (what each guards)

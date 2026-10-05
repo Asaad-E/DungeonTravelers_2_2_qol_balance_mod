@@ -401,3 +401,25 @@ class PartySkillBox(unittest.TestCase):
             if skill['name'] == 'Veteran Soldiers':
                 self.assertEqual(table[fn]['effect'], 'Slash resistance increased (up to +25%).')
                 self.assertNotEqual(check_party_skill_text(b, self.OVERFLOWED, skill['effect'])[0], [])
+
+
+class VoiceOfTheGame(unittest.TestCase):
+    """Hard rule of the user: nothing shown in the game speaks from outside it. A line such as
+    "Activation rate: about 15% (player guide; the game data holds no figure)" must stop the build."""
+
+    def test_out_of_game_words_are_caught_and_the_game_wording_is_left_alone(self):
+        from text_checks import out_of_game_words
+        self.assertEqual(out_of_game_words('Activation rate: about 15% (player guide; the game data holds no figure)'),
+                         ['guide', 'the game'])
+        self.assertEqual(out_of_game_words('Activation rate: about 15%'), [])
+        self.assertEqual(out_of_game_words('An unknown power. (HP +5)', 'An unknown power.'), [])     # the game's own word
+        problems = []
+        bv.check_game_voice([('skills', [('x', 'Reflects damage.', 'Reflects damage.\nRate: 15% (from the wiki)')])], problems)
+        self.assertEqual(len(problems), 1)
+
+    def test_unique_skill_notes_are_in_the_voice_of_the_game(self):
+        import rules
+        from text_checks import out_of_game_words
+        for row in rules.rows('UniqueSkillNotes'):
+            self.assertEqual(out_of_game_words(row['Line']), [], row['Line'])
+            self.assertTrue(row['Source'])        # where it comes from stays in the workbook

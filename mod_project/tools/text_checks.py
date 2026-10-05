@@ -592,3 +592,18 @@ def check_joint_skill_text(b, name, text, vanilla_text):
     if text != expected:
         problems.append(f"'{text}': not the sentence of the rules sheet with the stored values ('{expected}')")
     return problems, 0 if problems else len(JOINT_PLACE_RE.findall(JOINT_SENTENCES[name]))
+
+
+# ---------------------------------------------------------------------------
+# The voice of the game
+# ---------------------------------------------------------------------------
+# Hard rule of the user: nothing shown in the game may speak from outside it ("player guide", "the game
+# data holds no figure"). Where a figure comes from is recorded in the workbooks, never on screen.
+# Words: sheet OutOfGameWords of qol_rules.xlsx.
+OUT_OF_GAME_RE = re.compile(r'\b(' + '|'.join(re.escape(r['Word']) for r in rules.rows('OutOfGameWords')) + r')\b', re.I)
+
+
+def out_of_game_words(text, vanilla_text=''):
+    """Words of the forbidden list that the mod put into a text (the game's own wording is left alone)."""
+    kept = {w.lower() for w in OUT_OF_GAME_RE.findall(vanilla_text or '')}
+    return sorted({w.lower() for w in OUT_OF_GAME_RE.findall(text or '')} - kept)

@@ -43,7 +43,7 @@ from pck_handler import (PckArchive, SkillHelper, EnchantHelper, WeaponRankHelpe
                          FoodMenuHelper, PartySkillHelper, JoinSkillHelper)
 from extract_vanilla import SKILL_LAYOUTS
 from text_checks import (check_skill_text, check_item_text, check_enemy_attack_text, check_food_text,
-                         check_party_skill_text, check_joint_skill_text, skill_tables)
+                         check_party_skill_text, check_joint_skill_text, skill_tables, out_of_game_words)
 import magnitude_words
 import enchant_values
 import weapon_rank_labels
@@ -437,6 +437,20 @@ def verify_joint_skills(out_dir, table, variant, problems):
     return counts
 
 
+def check_game_voice(tables, problems):
+    """No text the mod writes may speak from outside the game. tables: (label, rows of (key, vanilla, new))."""
+    checked = 0
+    for label, rows in tables:
+        for key, vanilla, new in rows:
+            if new == vanilla:
+                continue
+            checked += 1
+            words = out_of_game_words(new, vanilla)
+            if words:
+                problems.append(f"{label}/{key}: the text speaks from outside the game ({', '.join(words)}): '{new}'")
+    return checked
+
+
 def build_weapon_ranks(out_dir):
     """Rank names are generated from the multiplier of each entry; the multipliers are not touched."""
     archive = PckArchive(os.path.join(BACKUP_DIR, RANK_PCK))
@@ -684,6 +698,16 @@ def main():
         joint = load_joint_skill_text(joint_path)
         stats = build_joint_skills(out_dir, joint, problems)
         print(f"    Built {JOINT_PCK}: {stats['rewritten']} sentences with their stored values, {stats['kept']} kept byte-identical")
+        voiced = check_game_voice([
+            ('skills', [(k, r['vanilla_desc'] + ' ' + r['vanilla_lvup'], r['desc'] + ' ' + r['lvup']) for k, r in table.items()]),
+            ('enchants', [(k, r['vanilla_name'], r['name']) for k, r in enchants.items()]),
+            ('items', [(k, r['vanilla_desc'], r['desc']) for k, r in items.items()]),
+            ('enemy attacks', [(k, r['vanilla_desc'], r['desc']) for k, r in enemy_attacks.items()]),
+            ('meals', [(k, r['vanilla'], r['effect']) for k, r in meals.items()]),
+            ('party skills', [(k, r['vanilla'], r['effect']) for k, r in party.items()]),
+            ('joint skills', [(k, r['vanilla'], r['desc']) for k, r in joint.items()]),
+        ], problems)
+        print(f"    Voice of the game: {voiced} modified texts hold no word that speaks from outside it")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:
