@@ -186,7 +186,7 @@ the ailment lands if a random number below 100 is below the chance      (0x48201
 | Escape | `0.3 + (own AGI - average enemy AGI) / 50 + skill`, then a correction by the number of attempts |
 | Steal | `0.5 * (own DEX + 50) / (target AGI + 50) * factor` |
 | Healing | Read from the code: section 6b |
-| EXP after a battle | **Not read in the code** (no message names it; an enemy keeps its EXP at offset 8 of its object, `0x4f0794`). Player guide, atwiki dt2-2 page 232: the total is divided evenly among the living members; a dead member is left out of the division, a petrified one is counted in it but receives nothing. A comment on that page gives a factor by level gap (within 4 levels none; 5 to 9: 10%; 10 or more: 20%; more for the lower side, less for the higher); no such constants were found in the code |
+| EXP after a battle | Read from the code: section 6c |
 | Pep | Raised or lowered by listed events: giving or taking a critical hit, using a skill, the last blow, being defeated, traps, dodging, eating liked or disliked food, joint skills, ending a battle with an ailment |
 
 The messages also name every chance roll of a passive or unique skill as it is rolled (Auto-Guard, Double and Triple Attack, Counter, Parry, Cover, Warning Shot, Support Shot, First Grid, Arcane Shield, Shadow Heart, Tranquil Song, Overstock Clearance, Undaunted Spirit...), which locates the code of each.
@@ -204,6 +204,35 @@ cap    = cap + cap * effect 317 of the caster                                   
 * A heal cast by a doll adds to the coefficient `20 * effect 286 + 20 * min(0.05, 0.02 * pieces of 304 + 0.01 *
   pieces of 305)` (`0x48d7a1 - 0x48d865`): a piece of "Doll skill efficacy UP" is +0.4 and the sum stops at +1.
 * Nothing of the target enters: not its max HP, not its RES. A heal is worth the same on a tank and on a mage.
+
+## 6c. EXP after a battle (`0x450710` when an enemy falls, `0x445830` at the result) **[code]**
+
+```
+banked  += int(EXP of the enemy * factor)        for every member, each time an enemy falls        (0x450815)
+received = banked / living members               the members alive when the battle ends           (0x4459bf)
+received = received + received * bonus           a fraction handed to the result by its caller    (0x4459c7)
+received = received * 2                          with effect 157 on the member                    (0x4459ed)
+received = received * 2                          with a piece of enchantment 275, Double EXP      (0x445a1e)
+```
+
+Factor by gap = level of the member - level of the enemy (`0x450734 - 0x45080d`):
+
+| Gap | Factor | With a piece of enchantment 270 |
+|---|---|---|
+| 10 or more | 0.85 | 0.85 |
+| 5 to 9 | 0.9 | 0.9 |
+| 0 to 4 | 1 | 1 |
+| -1 to -4 | 1 | 1.15 |
+| -5 to -9 | 1.1 | 1.3 |
+| -10 to -19 | 1.25 | 1.5 |
+| -20 or less | 1.25 | 1.75 |
+
+* The division is by the members alive at the end, as the player guide says (atwiki dt2-2 page 232: a dead member is
+  left out; a petrified one is counted and receives nothing). The comment on that page that gives 10% and 20% is close
+  but not exact.
+* The factor looks at the enemy, not at the rest of the party: a member far below the enemies of a floor gets 1.25
+  whoever it travels with. `sim/progression.py` holds these rules.
+* **[open]** where the bonus fraction and effect 157 come from (a party skill, a meal).
 
 ---
 

@@ -6,6 +6,7 @@ import unittest
 import _paths
 sys.path.insert(0, _paths.PROJECT_DIR)
 from sim import formulas as f
+from sim import progression
 
 
 class TurnOrder(unittest.TestCase):
@@ -136,6 +137,31 @@ class Healing(unittest.TestCase):
     def test_doll_pieces_stop_at_one(self):
         self.assertAlmostEqual(f.doll_heal_bonus(up=1), 0.4)
         self.assertAlmostEqual(f.doll_heal_bonus(up=5, mini_up=5), 1.0)
+
+
+
+class Experience(unittest.TestCase):
+    def test_factor_by_level_gap_is_the_table_of_the_code(self):
+        gaps = {12: 0.85, 10: 0.85, 9: 0.9, 5: 0.9, 4: 1.0, 0: 1.0, -1: 1.0, -4: 1.0, -5: 1.1, -9: 1.1, -10: 1.25, -19: 1.25, -20: 1.25, -60: 1.25}
+        for gap, factor in gaps.items():
+            with self.subTest(gap=gap):
+                self.assertEqual(progression.level_gap_factor(50 + gap, 50), factor)
+        self.assertEqual([progression.level_gap_factor(50 + gap, 50, more_from_higher=True) for gap in (-1, -5, -10, -20)],
+                         [1.15, 1.3, 1.5, 1.75])
+
+    def test_share_among_the_living_and_the_doublings(self):
+        enemies = [(30, 1000), (30, 500)]
+        self.assertAlmostEqual(progression.battle_exp(30, enemies, living=5), 300.0)
+        self.assertAlmostEqual(progression.battle_exp(30, enemies, living=3), 500.0)
+        self.assertAlmostEqual(progression.battle_exp(15, enemies, living=5), 375.0)           # 1.25 for the gap
+        self.assertAlmostEqual(progression.battle_exp(30, enemies, living=5, double_exp_piece=True, doubled=True), 1200.0)
+
+    def test_battles_to_reach_a_level(self):
+        steps = {level: 1000 for level in range(2, 100)}
+        formations = [(100, [(50, 500)])]
+        self.assertAlmostEqual(progression.battles_to_reach(50, 52, steps, formations, living=5), 20.0)
+        behind = progression.battles_to_reach(30, 32, steps, formations, living=5)
+        self.assertAlmostEqual(behind, 16.0)                                                     # 1.25 times faster
 
 
 if __name__ == '__main__':

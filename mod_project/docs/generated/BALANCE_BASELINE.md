@@ -451,6 +451,21 @@ Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wis
 
 342 of the 516 enemies appear in a random formation; the others are placed by events.
 
+## Catching up
+
+Random battles a member needs to reach the level of the party, fighting on the floor whose enemies are closest to that level, with 5 members alive and no EXP bonus (`sim/progression.py`, `docs/FORMULAS.md` 6c). "Own pace" is what one more level costs a member who is already on level, on the same floor. Bosses, quests and the EXP the party itself keeps gaining are left out.
+
+| Party level | Floor | Mean enemy level | Own pace (battles per level) | 10 levels behind | 10 behind, Double EXP piece | 20 levels behind | 20 behind, Double EXP piece | From level 1 |
+|---|---|---|---|---|---|---|---|---|
+| 20 | St06_0010 | 21 | 19 | 100 | 50 | 115 | 57 | 115 |
+| 30 | St08_0010 | 31 | 24 | 141 | 71 | 185 | 93 | 193 |
+| 40 | St11_0010 | 40 | 27 | 184 | 92 | 259 | 129 | 290 |
+| 50 | St13_0150 | 50 | 33 | 237 | 118 | 355 | 177 | 433 |
+| 60 | St15_1130 | 60 | 35 | 263 | 132 | 410 | 205 | 550 |
+| 70 | St22_1010 | 71 | 35 | 271 | 136 | 438 | 219 | 645 |
+| 80 | St23_0050 | 80 | 24 | 182 | 91 | 300 | 150 | 484 |
+| 90 | St23_0130 | 89 | 18 | 143 | 72 | 240 | 120 | 420 |
+
 ## Enemy behaviour
 
 516 scripts of `EnemyAIData.bin`, decoded by `tools/enemy_ai.py`.

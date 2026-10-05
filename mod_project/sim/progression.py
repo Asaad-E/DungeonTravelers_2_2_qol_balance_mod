@@ -1,0 +1,51 @@
+"""
+EXP after a battle and how fast a member who is behind catches up, as the executable computes it.
+
+Read from the code (docs/FORMULAS.md 6c):
+    when an enemy falls, every member banks  int(EXP of the enemy * factor by level gap)      0x450710
+    at the end of the battle a member receives  banked / living members * (1 + bonus)          0x445830
+    doubled by effect 157, and doubled again by a piece with enchantment 275 (Double EXP)
+
+Nothing here is fitted. The table of EXP per level is LvExpSkptData (a step per level).
+"""
+
+# (lowest gap, highest gap, factor, factor with enchantment 270). gap = level of the member - level of the enemy.
+# 0x450734 - 0x45080d
+LEVEL_GAP = ((10, None, 0.85, 0.85), (5, 9, 0.90, 0.90), (0, 4, 1.00, 1.00), (-4, -1, 1.00, 1.15),
+             (-9, -5, 1.10, 1.30), (-19, -10, 1.25, 1.50), (None, -20, 1.25, 1.75))
+DOUBLE = 2.0                   # 0x4459ed (effect 157) and 0x445a1e (enchantment 275)
+
+
+def level_gap_factor(member_level, enemy_level, more_from_higher=False):
+    gap = member_level - enemy_level
+    for low, high, plain, with_enchant in LEVEL_GAP:
+        if (low is None or gap >= low) and (high is None or gap <= high):
+            return with_enchant if more_from_higher else plain
+    raise ValueError(gap)
+
+
+def battle_exp(member_level, enemies, living, bonus=0.0, doubled=False, double_exp_piece=False, more_from_higher=False):
+    """EXP one member receives from a battle. enemies: [(level, EXP)] of the enemies defeated.
+    living: members alive at the end. bonus: the party-wide fraction the result code is handed."""
+    banked = sum(int(exp * level_gap_factor(member_level, level, more_from_higher)) for level, exp in enemies)
+    gained = banked / float(living)
+    gained += gained * bonus
+    if doubled:
+        gained *= DOUBLE
+    if double_exp_piece:
+        gained *= DOUBLE
+    return gained
+
+
+def battles_to_reach(start_level, target_level, steps, formations, living=5, **options):
+    """Battles a member needs to go from start_level to target_level on a floor.
+    steps: {level: EXP needed to reach it from the level below}. formations: [(chance in percent, [(level, EXP)])].
+    The expected EXP of a battle is recomputed at every level, since the factor by level gap changes."""
+    battles, level = 0.0, start_level
+    while level < target_level:
+        expected = sum(chance / 100.0 * battle_exp(level, enemies, living, **options) for chance, enemies in formations)
+        if expected <= 0:
+            return float('inf')
+        battles += steps[level + 1] / expected
+        level += 1
+    return battles
