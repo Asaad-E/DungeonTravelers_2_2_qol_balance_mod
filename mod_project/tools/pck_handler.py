@@ -267,52 +267,38 @@ class ItemHelper:
 
 
 class SealScrollHelper:
-    """Helper for reading and writing SealScrollData .bin structures safely."""
-    
+    """SealScrollData: header of 0x48 bytes, then three strings (name, description, name again), each
+    padded to 8 bytes.
+
+    0x08/0x10/0x38 string pointers, 0x18 kind (0 sealbook, 1 grand sealbook), 0x1C number of
+    enchantments, 0x20 four enchantment ids (EnchantData), 0x30 price, 0x34 level.
+    """
+    HEADER = 0x48
+    POINTERS = (8, 16, 0x38)
+
+    @staticmethod
+    def _strings(bin_data):
+        return [bytes(bin_data[p:bin_data.find(b'\x00', p)]).decode('utf-8')
+                for p in (struct.unpack_from('<Q', bin_data, off)[0] for off in SealScrollHelper.POINTERS)]
+
     @staticmethod
     def read_seal(bin_data):
-        p0 = struct.unpack('<I', bin_data[8:12])[0]
-        p1 = struct.unpack('<I', bin_data[16:20])[0]
-        p38 = struct.unpack('<I', bin_data[0x38:0x3c])[0]
-        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
-        desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
-        name2 = bin_data[p38:bin_data.find(b'\x00', p38)].decode('latin-1') if p38 < len(bin_data) else ""
-        return {'name': name, 'desc': desc, 'name2': name2}
+        name, desc, name2 = SealScrollHelper._strings(bin_data)
+        count = struct.unpack_from('<i', bin_data, 0x1C)[0]
+        return {'name': name, 'desc': desc, 'name2': name2,
+                'grand': struct.unpack_from('<i', bin_data, 0x18)[0] == 1,
+                'enchants': list(struct.unpack_from('<4i', bin_data, 0x20))[:count],
+                'price': struct.unpack_from('<i', bin_data, 0x30)[0],
+                'level': struct.unpack_from('<i', bin_data, 0x34)[0]}
 
     @staticmethod
     def write_seal(bin_data, new_desc):
-        fixed_hdr = bytearray(bin_data[:0x48])
-        p0 = struct.unpack('<I', bin_data[8:12])[0]
-        p38 = struct.unpack('<I', bin_data[0x38:0x3c])[0]
-        name_str = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
-        name2_str = bin_data[p38:bin_data.find(b'\x00', p38)].decode('latin-1') if p38 < len(bin_data) else name_str
-
-        name_bytes = name_str.encode('latin-1') + b'\x00'
-        desc_bytes = new_desc.encode('latin-1') + b'\x00'
-        name2_bytes = name2_str.encode('latin-1') + b'\x00'
-
-        new_p0 = 0x48
-        pad0 = (8 - (len(name_bytes) % 8)) % 8
-        name_bytes += b'\x00' * pad0
-
-        new_p1 = new_p0 + len(name_bytes)
-        pad1 = (8 - (len(desc_bytes) % 8)) % 8
-        desc_bytes += b'\x00' * pad1
-
-        new_p38 = new_p1 + len(desc_bytes)
-        pad38 = (8 - (len(name2_bytes) % 8)) % 8
-        name2_bytes += b'\x00' * pad38
-
-        struct.pack_into('<I', fixed_hdr, 8, new_p0)
-        struct.pack_into('<I', fixed_hdr, 16, new_p1)
-        struct.pack_into('<I', fixed_hdr, 0x38, new_p38)
-
-        res = bytearray(fixed_hdr)
-        res.extend(name_bytes)
-        res.extend(desc_bytes)
-        res.extend(name2_bytes)
-        pad_end = (16 - (len(res) % 16)) % 16
-        res.extend(b'\x00' * pad_end)
+        name, _, name2 = SealScrollHelper._strings(bin_data)
+        res = bytearray(bin_data[:SealScrollHelper.HEADER])
+        for off, text in zip(SealScrollHelper.POINTERS, (name, new_desc, name2)):
+            struct.pack_into('<Q', res, off, len(res))
+            raw = text.encode('utf-8') + b'\x00'
+            res.extend(raw + b'\x00' * ((8 - len(raw) % 8) % 8))
         return bytes(res)
 
 

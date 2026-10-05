@@ -21,6 +21,8 @@ DungeonTraveler2-2/
 │   │   ├── qol_enchant_text.xlsx          QoL enchant names, edited by hand
 │   │   ├── qol_item_text.xlsx             QoL item descriptions, edited by hand
 │   │   ├── qol_enemy_attack_text.xlsx     QoL enemy attack text, edited by hand
+│   │   ├── qol_food_text.xlsx, qol_party_skill_text.xlsx, qol_joint_skill_text.xlsx   meals, party and joint skills
+│   │   ├── qol_rules.xlsx                 every wording, scale and guide figure the tools use; edited by hand
 │   │   └── *.xlsx                         tables of the earlier mixed build
 │   ├── build/<variant>/         build output, not versioned
 │   ├── tools/
@@ -28,6 +30,7 @@ DungeonTraveler2-2/
 │   │   ├── extract_vanilla.py             backups -> vanilla_source_of_truth.xlsx
 │   │   ├── generate_qol_skill_text.py     proposes the QoL skill text
 │   │   ├── text_checks.py                 figures in text vs values in the binary
+│   │   ├── rules.py                       reads qol_rules.xlsx; no tool holds wording in code
 │   │   ├── enchant_values.py              enchant figures and the guide each comes from
 │   │   ├── generate_qol_enchant_text.py   proposes the QoL enchant names
 │   │   ├── generate_qol_item_text.py      proposes the QoL item descriptions
@@ -77,6 +80,13 @@ python -m unittest discover -s mod_project/tests -p "test_*.py"
 ```
 
 The build writes to `mod_project/build/qol/`, verifies it, and only then installs it into the game folder so it can be checked on screen (`--no-install` to skip). After an install the game holds the variant and nothing else; every file it replaces is saved in `mod_project/build/installed_backup/<time>/`. The build stops, and installs nothing, if a figure in a skill or item text is not the value in the binary, if an enchant name shows a figure without a known source, if a weapon rank label differs from its multiplier, if a box breaks the limits, or if any game value differs from the original.
+
+## Edit a rule (a word, a bound, a shortened sentence, a guide figure)
+
+1. Open `mod_project/data_tables/qol_rules.xlsx`; its `About` sheet says what each sheet holds.
+2. Change the cell and run the generator of the text it feeds (`python mod_project/tools/generate_qol_<pack>_text.py`), then the build.
+
+Nothing that reaches the screen is written in the tools.
 
 ## Edit the skill text
 

@@ -62,6 +62,9 @@ DungeonTraveler2-2/
 | `qol_enchant_text.xlsx` | Yes | QoL enchant names. Same `Edited` rule. `Figure_Source` names the guide of each figure; `Previous_Mod_Check` says how the earlier build's figure stands against the guides. |
 | `qol_enemy_attack_text.xlsx` | Yes | QoL enemy attack text (2,375 rows). Same `Edited` rule; only line 1 may change. |
 | `qol_item_text.xlsx` | Yes | QoL item descriptions. Same `Edited` rule. `Effect_Pairs` lists the raw effect pairs of each item. |
+| `qol_rules.xlsx` | Yes | **The rules of the QoL text.** Every wording, label, scale and guide figure that reaches the screen and is not read from the game: the damage scale, shortened sentences, labels of the skill box and of the enemy data line, enchant figures with their guide, the wording of item effects, the bounds of party skills, the sentences of joint skills. Its `About` sheet lists the sheets. Read through `tools/rules.py`; no tool holds such a table in code. |
+| `qol_food_text.xlsx`, `qol_party_skill_text.xlsx` | Yes | Meals and party skills. Same `Edited` rule; the build accepts the original line or the one the rules produce. |
+| `qol_joint_skill_text.xlsx` | No (generated) | Joint skill sentences filled with the stored values, and what each entry holds (participants, TP share, Pep, power, effects). The sentences are edited in `qol_rules.xlsx`, sheet `JointSkillSentences`. |
 | `skills.xlsx`, `items.xlsx`, `equipment.xlsx`, `enchants.xlsx`, `grand_seals.xlsx`, `joint_skills.xlsx`, `party_skills.xlsx`, `food_menu.xlsx`, `enemy_attacks.xlsx`, `classes.xlsx`, `ui_strings.xlsx`, `traps.xlsx`, `trophies.xlsx`, `exp_curve.xlsx`, `quest_ranks.xlsx` | Yes | Tables of the earlier mixed build (15), read by `apply_mod.py`. Their "vanilla" columns match the backups; many of their figures do not match the binaries (section 8). |
 
 ### 2.2 Tools
@@ -148,17 +151,17 @@ Effect ids are shared by skills, enemy attacks and traps. Named with evidence (6
 | `LvExpSkptData` | level, EXP required, SP granted (`3 x u32`). | [verified] |
 | `EnemyAttackData` (`0xA0`, four `u64` pointers) | `0x2C` target, `0x30` type, `0x44` float power, `0x48` effect count, five `(id, value, tail)` slots from `0x4C`. | counts [verified] in 2,375 entries; power [inferred] |
 | `FoodMenuData` | `0x18` price, `0x1C` effect count, `(id, float)` pairs from `0x20`. No duration field found. | [inferred] |
-| `JoinSkillData`, `PartySkillData`, `SealScrollData`, `ClassData` | Not decoded. Dumped word by word in the `Raw_*` sheets. | unknown |
+| `JoinSkillData` (`0x98`, `u64` pointers `0x08` name, `0x10` description, `0x20` battle message) | `0x18` participants, `0x28` Pep needed, `0x2C` Pep spent, `0x30` target, `0x34` attribute, `0x40` power, `0x44` turns, `0x48` delay (floats), `0x4C` TP divisor, `0x50` effect count, four `(int id, float value, int tail)` slots from `0x54`. | strings, slots and TP divisor [verified] (52 of 52 rewrite exactly; divisor equals the wiki's fraction); Pep and power [inferred] |
+| `PartySkillData` (header up to the name, `u64` pointers `0x08`, `0x10`, `0x18`) | `0x20` number of members, `0x24` member ids (9 slots), `0x48` members needed, `0x4C` effect id (entry of `CommandData`). String 2 is `members\neffect`; string 3 repeats it with a full-width space before the effect. No amount is stored. | [verified] (20 of 20) |
+| `SealScrollData` (`0x48`, `u64` pointers `0x08` name, `0x10` description, `0x38` name again) | `0x18` kind (`0` sealbook, `1` grand), `0x1C` number of enchantments, `0x20` four enchantment ids, `0x30` price, `0x34` level. | [verified] (374 of 374; every id exists in `EnchantData`; the level equals the one in the text) |
+| `ClassData` | Not decoded. Dumped word by word in the `Raw_Class` sheet. | unknown |
 | ADV scripts (`Teaching`, `Lesson`, `Shop*`) | Bytecode with NUL-terminated strings; jumps go by label name, so a string can change length. A spoken line includes its quotes: `"...behave."` + NUL. | [inferred]; no absolute offsets found |
 
 ### 3.4 Writers
 
 | Helper | Rewriting the original text reproduces the entry |
 |---|---|
-| Skills (all four), `ItemHelper`, `EquipmentHelper`, `EnchantHelper`, `EnemyAttackHelper`, `WeaponRankHelper`, `ClassDataHelper`, `StringDataHelper`, `TrapHelper`, `TrophyHelper` | Yes, every entry **[verified]** |
-| `JoinSkillHelper` | 51 of 52. Drops a string in one entry (`"Genocide Rain(St) pours down!"`). |
-| `PartySkillHelper` | 0 of 20. Replaces the full-width space of the second string with two normal spaces. |
-| `SealScrollHelper`, `FoodMenuHelper` | 339 of 374; 10 of 16. Same strings, different padding. |
+| Skills (all four), `ItemHelper`, `EquipmentHelper`, `EnchantHelper`, `EnemyAttackHelper`, `WeaponRankHelper`, `FoodMenuHelper`, `PartySkillHelper`, `JoinSkillHelper`, `SealScrollHelper`, `ClassDataHelper`, `StringDataHelper`, `TrapHelper`, `TrophyHelper` | Yes, every entry **[verified]** |
 
 Fix a writer (make its round trip exact, add it to the tests) before building its table for any variant.
 
@@ -339,6 +342,26 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 **Item effect types** (first two pairs act on an ally, last two on an enemy): `0` HP, `1` TP, `2` HP and TP, `3` party HP, `4` party TP, `6` cure one ailment, `7` cure all ailments, `8` revive (value = % HP), `9` light (value x 5 steps, from the DT2-2 wiki), `10` leave the dungeon, `16` sleep chance, `22` cancel Shadow Sew, `23` restore lowered stats, `24` skill points. **[inferred]** from the DT2-2 wiki item list, which gives the same amounts as the stored values. Other types are not decoded.
 
 ---
+### 6.4 Nothing hardcoded, party skills and joint skills (2026-10-04, fifth round)
+
+**Rule of the user: nothing hardcoded; everything in a workbook, for quick editing.** `data_tables/qol_rules.xlsx` holds every table that used to be a dict in a tool. `tools/rules.py` reads it (`rules.rows(sheet)`, `rules.setting(key)`); the modules keep their names (`ITEM_SENTENCES`, `PHYS_BOUNDS`, `VALUES`, `ITEM_EFFECTS`...) and fill them from the sheets. Moving the tables changed no generated text (every cell of the five text workbooks was compared before and after). A new wording or guide figure is a new row or sheet there, never code.
+
+| Sheet | Was | Holds |
+|---|---|---|
+| `Settings` | constants | `small_rise`, `full_restore`, `light_steps_per_unit`, `line_width`, `award_count`, `party_skill_note` |
+| `DamageScale`, `Line1Templates` | `magnitude_words.py` | Words and bounds of the damage scale; where the word goes in sentences that name no damage |
+| `ShortItems`, `ShortSkills`, `SkillTemplates` | `shortened_text.py` | Sentences shortened by hand |
+| `SkillEffectLabels` | `generate_qol_skill_text.py` | Phrase of the game -> effect id, label, number style |
+| `EnchantValues`, `EnchantSources` | `enchant_values.py` | Figure or name of each enchantment, its guide, and which guides are shown |
+| `ItemEffects` | `text_checks.py` | Wording of each item effect type (`HP +{v}`), scale, harmful or not |
+| `EnemyEffects`, `WordingFixes` | `text_checks.py` | Labels of the enemy data line; corrected words of the prose |
+| `PartySkillBounds` | new | Bound of each party skill bonus (DT2-2 wiki, pages/72.html) |
+| `JointEffects`, `JointSkillSentences` | new | How a joint skill effect is written; the sentences with `{eID}` places |
+
+**Party skills.** The effect line keeps the game's sentence and gains the bounds in the order it names them: `Wind resistance and AGI increased. (Up to +20% and +10 at 50 awards)`. The list of members is not touched. The check accepts the original line or exactly that one.
+
+**Joint skills.** One sentence, one line. Where it speaks of an effect whose value the entry stores, the value is written in and replaces the vague word: `High chance of instakill.` -> `85% chance of instakill.`; `Inflicts slow.` -> `Inflicts slow (100%).`; `multiple bash attacks` -> `3-5 bash attacks` (effect 96, "3~5 Hits" in the game's table). The data wins over the text in one sentence: Psychowave says "lower DEF" and stores physical and magic defense, as its Japanese text says. The build re-renders each sentence from the entry and stops if the text differs.
+
 
 ## 7. Tests (what each guards)
 
@@ -413,8 +436,8 @@ To undo an install, copy the matching `build/installed_backup/<time>/` folder ba
 * Items: only the 9 restoratives with a vague size were touched. About 150 other items have effect pairs of types that are not decoded (sealbook materials); Hipanera Tea and Kuding Tea heal HP and TP but carry a third pair that is not understood, so their text was left alone.
 * A scale of words for magnitudes whose exact value cannot be shown (the battle bar, where the level is unknown): proposed to the user on 2026-10-04, five words per kind (damage, modifier, chance) chosen from the average over the levels. Waiting for the user's word list and for the go-ahead to add it to line 1, which the display specification keeps vanilla.
 * Stacking limits reported by the DT2-2 wiki (speed UP counts up to 5, chant speed UP up to 3, damage reductions down to -25%, Max HP up to +50%, equal `All stats +N` do not add up) are in the `Note` column only; nothing in the game shows them yet.
-* Exact writers for joint skills, party skills, enemy attacks, sealbooks and meals.
-* Decoding `JoinSkillData`, `PartySkillData`, `SealScrollData`, `ClassData`, the equipment stats and the 236 unnamed effects.
+* The cost of a joint skill (share of max TP, Pep) is decoded and not shown; see `QOL_ROADMAP.md` 2.7.
+* Decoding `ClassData`, the equipment stats and the 188 effects named only by the game's table.
 * The Balance variant: its changes as data, and its own verification rule.
 * Packaging per variant (today `package_release.py` zips the game folder). Install is done: `install_variant.py`.
 * Dialogue replacement that fails loudly, and the corrected lines.

@@ -1,6 +1,6 @@
 # QoL roadmap: what must be true before QoL is called finished
 
-State on 2026-10-04, after steps 2, 3 and 4 of section 4 and, of step 5, the items and the meals. Every number here was read from the files in `mod_project/backups/` or from the output of `build_variant.py qol`; nothing is estimated. Balance is out of scope until this list is closed.
+State on 2026-10-04, after steps 2, 3, 4 and 5 of section 4. Every number here was read from the files in `mod_project/backups/` or from the output of `build_variant.py qol`; nothing is estimated. Balance is out of scope until this list is closed.
 
 Tags: **[done]** built, verified by the build and installed. **[seen]** also looked at on screen by the user. **[open]** not started or not finished. **[blocked]** needs something that is not known yet.
 
@@ -8,17 +8,18 @@ Tags: **[done]** built, verified by the build and installed. **[seen]** also loo
 
 ## 1. Definition of finished
 
-QoL is finished when all seven hold. Each one is checked by a tool or by a look at the screen, never by opinion.
+QoL is finished when all eight hold. Each one is checked by a tool or by a look at the screen, never by opinion.
 
 | # | Condition | How it is proven | Today |
 |---|---|---|---|
-| D1 | Every pack whose text reaches a screen has a decision: improved, or kept as written with the reason. | Table of section 2 has no row marked open. | 9 packs built. All 47 packs of `Parameter/` and `Script/` have a backup |
-| D2 | Every figure on screen is the value in the binary. Where the binary has none, it comes from a guide of this game and says so. | `build_variant.py` stops otherwise. | Checked on every build: 773 figures of skill boxes, 269 words, chances and values of line 1, 566 pieces of item data, 13 meal amounts, 1,837 figures of enemy attacks, 12 rank labels. 142 enchant figures come from guides |
-| D3 | No game value differs from the original. | Numeric part of every built entry compared with the backup. | Holds for the 3,589 entries of the 9 built packs |
-| D4 | Jokes, prose and the game's own words are intact. Data is added next to them. Prose changes only where the data contradicts it, or where a sentence had to be shortened to fit one line. | Build check per pack. | 11 corrections of enemy attack prose; 65 item sentences and 23 skill sentences shortened by hand (`tools/shortened_text.py`), nothing else |
-| D5 | Every kind of box has been seen on screen after the install, by the user. | Section 3. | 7 of 12 kinds of screen seen |
-| D6 | Every pack the build writes has a writer that reproduces the original byte for byte. | Round-trip test. | 9 packs exact; 3 writers still inexact |
-| D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s mod_project/tests -p "test_*.py"` | 98 tests pass |
+| D1 | Every pack whose text reaches a screen has a decision: improved, or kept as written with the reason. | Table of section 2 has no row marked open. | 11 packs built, 4 kept as written with a reason. All 47 packs of `Parameter/` and `Script/` have a backup |
+| D2 | Every figure on screen is the value in the binary. Where the binary has none, it comes from a guide of this game and says so. | `build_variant.py` stops otherwise. | Checked on every build: 773 figures of skill boxes, 269 words, chances and values of line 1, 566 pieces of item data, 13 meal amounts, 1,837 figures of enemy attacks, 36 values of joint skills, 12 rank labels. From guides: 142 enchant figures and 28 bounds of party skills |
+| D3 | No game value differs from the original. | Numeric part of every built entry compared with the backup. | Holds for the 3,661 entries of the 11 built packs |
+| D4 | Jokes, prose and the game's own words are intact. Data is added next to them. Prose changes only where the data contradicts it, or where a sentence had to be shortened to fit one line. | Build check per pack. | 11 corrections of enemy attack prose; 65 item sentences, 23 skill sentences and 29 joint skill sentences worded by hand (sheets of `data_tables/qol_rules.xlsx`), nothing else |
+| D5 | Every kind of box has been seen on screen after the install, by the user. | Section 3. | 7 of 13 kinds of screen seen |
+| D6 | Every pack the build writes has a writer that reproduces the original byte for byte. | Round-trip test. | 11 packs exact. No inexact writer is left (`SealScrollHelper` fixed too) |
+| D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s mod_project/tests -p "test_*.py"` | 109 tests pass |
+| D8 | Nothing that reaches the screen is written in the tools: every wording, label, scale and guide figure is in a workbook. | `data_tables/qol_rules.xlsx` and the `qol_*_text.xlsx` workbooks; a test holds it for the shortened sentences. | 15 rule sheets. Still in code: the regular expressions that recognise the game's phrases, and the layout offsets |
 
 ---
 
@@ -40,11 +41,11 @@ QoL is finished when all seven hold. Each one is checked by a tool or by a look 
 | `WeaponRankData` | 12 | names | 0 | Equipment title bar | **[seen]** `Speed E+ (2.45x)` |
 | `CommandData` | 364 | 317 names | 0 | Battle messages ("Critical rate increased!") | It is the game's own table of effects: one entry per effect id with its name (2.5). Nothing to rewrite; it is a source |
 | `EquipmentData` | 551 | 584 | 22 | Equipment box | Kept as written: the game already draws type, hands, range, speed, stat change and enchants. **[open]** read the 22 vague texts; stats at `0x24-0x58` not decoded |
-| `SealScrollData` | 374 | 374 | 0 | Sealbook list | **[open]** not decoded. Writer exact for 339 of 374 |
-| `JoinSkillData` | 52 | 56 | 10 | Joint skill menu, battle | **[open]** not decoded ("Inflict a powerful physical attack on one enemy. Inflicts slow."). Writer exact for 51 of 52 |
-| `PartySkillData` | 20 | 24 | 0 | Party skill list | **[open]** next. The entry points to an effect of `CommandData` (360-377, 400-415) and holds no amount; the DT2-2 wiki gives the upper bound of each bonus ("HP +100"). Writer exact for 0 of 20 |
+| `SealScrollData` | 374 | 374 | 0 | Sealbook list | Kept as written. The text is one generic sentence (`Sealbook created from monsters' spirits. (Level 11).`, already with its level); what a sealbook does is its 1-4 enchantments, which the entry holds as ids of `EnchantData`, so their names already carry the figures. Layout decoded, writer exact. **[open]** confirm on screen that the list draws the enchant names |
+| `JoinSkillData` | 52 | 56 | 10 | Joint skill menu, battle | **[done]** 29 sentences state the stored value of the effect they speak of (`85% chance of instakill.`), 23 had nothing vague. Layout decoded, writer exact. **[open]** the cost (share of max TP, Pep) and the power are decoded and not shown: see 2.7. Not seen |
+| `PartySkillData` | 20 | 24 | 0 | Party skill list | **[done]** 19 effect lines followed by the bound of each bonus (`Max HP increased. (Up to +100 at 50 awards)`); Celebrities has no figure in any guide. Writer exact. Not seen |
 | `FoodMenuData` | 16 | 16 | 8 | Ice cream and ramen shops | **[done]** 11 effect lines with the stored amount (`Heal 30% HP and 20% TP.`); flavour lines untouched; writer exact. **[open]** the level of the buff a meal gives ("gain Sun Veil") is not decoded. Not seen |
-| `ClassData` | 49 | 32 | 6 | Class change screen | **[open]** not decoded. Prose only; decide whether any data belongs here |
+| `ClassData` | 49 | 32 | 6 | Class change screen | Kept as written. Each text is three full lines of prose about the role of the class; it states no figure and has no room for one. The 6 vague hits are words of that prose ("may", "occasionally") |
 | `QuestData` | 471 | 49 | 0 | Quest desk | **[open]** 49 reward lines ("Ring +8 that raises all stats by 3"): check each against the item it gives |
 | `QuestRankData` | 20 | 15 | 0 | Quest rank messages | **[open]** 8 lines with figures to check against the reward fields |
 | `TrophyData` | 50 | 42 | 0 | Trophy list | **[open]** 5 lines with figures to check |
@@ -53,7 +54,7 @@ QoL is finished when all seven hold. Each one is checked by a tool or by a look 
 | `Lesson` (script) | 65 | 763 | 63 | Euthys' lessons | **[open]** 24 lines state figures or rules: each must match the binary |
 | `Teaching` (script) | 25 | 166 | 16 | Tutorials | **[open]** 16 lines with figures: each must match the binary |
 | `ShopStore`, `ShopQuest`, `ShopBlacksmith`, `ShopBar` (scripts) | 50, 61, 15, 31 | 357 | 37 | Shop dialogue | **[open]** 16 lines with figures (prices, rules) to check |
-| `TrapData` | 12 | names | 0 | "You triggered a %name trap!" | **[open]** each has an effect id and a rate at `0x14`; decide whether the name should carry it |
+| `TrapData` | 12 | names | 0 | "You triggered a %name trap!" | Kept as written. The name is shown inside that message, after the trap has gone off, when there is nothing left to decide. Decoded for the record: `0x10` ailment effect (113-122, or none), `0x14` rate (gas 0.33, petrification 0.5, slow 0.25) |
 
 ### 2.2 Packs without text, and the scripts backed up on 2026-10-04
 
@@ -122,11 +123,25 @@ An item holds four effect pairs: the first two act on an ally, the last two on a
 
 | Open item | Size | What closes it |
 |---|---|---|
-| Shortened sentences to review | 65 items | `tools/shortened_text.py`. Each keeps the joke and drops filler ("Legendary food. Whoever eats it falls in love."). Worth a read by the user |
+| Shortened sentences to review | 65 items | Sheet `ShortItems` of `data_tables/qol_rules.xlsx`. Each keeps the joke and drops filler ("Legendary food. Whoever eats it falls in love."). Worth a read by the user |
 | Effect not decoded | 55 items | Items that cast a spell (types 46-51, 90-106), act on a kind of enemy (59, 61) or do something rare (27 and 29, two speed effects the wiki does not tell apart; 54-56, 60, 69, 88, 89). The other types were decoded with the item list of the DT2-2 wiki |
 | Effect on an enemy | partly | An item made only of harmful effects shows its figures for an enemy (`25% stun`). A food that also works on enemies shows the ally's side only |
 | Light items | 4 items | Steps are written as stored value x 5 (Flashlight stores 10; the wiki measures 50 steps; the ratio holds for the 4 items). Inferred from the guide |
 
+
+### 2.7 Party and joint skills: what is left
+
+`PartySkillData` holds who must be in the party (`0x20` count, `0x24` ids, `0x48` how many are needed) and the id of its effect (`0x4C`), and no amount. The bounds come from the DT2-2 wiki (pages/72.html) with the rule the game states itself ("Party skills grow stronger the more Awards you obtain"): the bonus reaches its bound with all 50 awards and half of it with 25.
+
+`JoinSkillData` (header `0x98`): `0x18` participants, `0x28` Pep needed, `0x2C` Pep spent, `0x40` power, `0x44` turns of the effect, `0x48` delay, `0x4C` TP divisor, `0x50` effect count, four `(id, value, tail)` slots from `0x54`. The TP divisor agrees with the wiki for every skill it lists (Rush Zanber 1/7, Jackpot 1/1): each participant pays that share of her max TP.
+
+| Open item | Size | What closes it |
+|---|---|---|
+| Cost of a joint skill not shown | 52 | The share of max TP is exact and the sentences have no room for it (up to 84 characters). A screenshot of the joint skill menu tells whether the game draws the cost itself; if not, the sentences are shortened to make room |
+| Pep needed and spent | 52 | Read as such by comparison with the wiki's words ("high", "very high"; "small", "large"); not confirmed by a test, so not shown |
+| Power (`0x40`) | 38 attacks | Same field as the power of enemy attacks: inferred, not shown, no damage word |
+| Effects named by the game table only | 5 skills | Magical Treasure (68, drop rate 75: unit not known), Sleep with the Fishes (143), Todokanai Koi (121), Hell Raiser (141), Crazy Rush and Magical Assault (72 with 0.5 and 0.8): kept as written |
+| Celebrities | 1 | No guide gives the bound of its lightning resistance |
 ---
 
 ## 3. Screens to look at (D5)
@@ -142,10 +157,11 @@ The install puts the build in the game after every run. One screenshot of each c
 | Summon ability box | Yes (Cupid, Poison Shot) | `Target: Single / Type: Stab / Range: Long / Poison: 30%`, prose below, intact |
 | Battle bar, skill highlighted | Yes (Freeze Shot, Circle Brave) | `Bow skill. Deal moderate stab damage to one enemy. May freeze (20-50%).` is drawn whole: 71 characters, a little wider than the purple band (about 68). The skill list beside it shows the TP cost of the current level |
 | Battle bar, item highlighted | Yes, before the item data | One centred line. To confirm: `Old-fashioned rice cracker covered in soy sauce. (HP +75)` |
-| Item box in the menu and in a shop | No | Whether the box draws anything of its own on lines 2-3 (decides how the 25 long items can be done) |
+| Item box in the menu and in a shop | No | That the one-line text is drawn whole |
 | Passive and unique skill boxes | No | `Lv1-9: ... \| Crown EX: ...`; line 1 with its value |
 | Sealbook and grand sealbook lists | No | Which enchant names appear and whether long ones are cut |
 | Enemy info (with an item that shows enemy abilities) | No | Whether it uses the enemy attack text |
+| Party skill list and joint skill menu | No | `Max HP increased. (Up to +100 at 50 awards)`; whether the joint skill menu shows the TP and Pep cost |
 | A tutorial and a lesson | No | Baseline before any dialogue is touched |
 
 ---
@@ -154,11 +170,11 @@ The install puts the build in the game after every run. One screenshot of each c
 
 Each step ends with a build that passes, an install, and a look at the screen.
 
-1. **Close what is installed.** Screens of section 3. 7 of 12 seen.
+1. **Close what is installed.** Screens of section 3. 7 of 13 seen.
 2. **[done] Back up the 11 packs that had no backup.** They are in `backups/Script/`. All 47 archives rebuild byte for byte, the round-trip test covers them, and the install checks 47 files.
 3. **[done, with a remainder] Decode the effect ids.** 69 ids with evidence, and the game's own name for 317 (`CommandData`). Remainder: how effect 73 combines with the power table (one damage test), and the summon parameters 228-233.
 4. **[done] Enemy attacks, second pass.** Exact effects on the data line of 1,456 entries; 11 corrections of the prose. Remainder in 2.4.
-5. **One pack at a time, smallest first.** Items done (391; remainder in 2.6). `FoodMenuData` done (16). Next: `PartySkillData` (20), `JoinSkillData` (52), `TrapData` (12), `ClassData` (49), `SealScrollData` (374). For each: decode the layout, make the writer exact, add a sheet to the source of truth, write the generator and its workbook, add the build check and the tests, install, look.
+5. **[done, with a remainder] One pack at a time, smallest first.** Items (391), meals (16), party skills (20) and joint skills (52) built; traps, classes and sealbooks kept as written, each with its reason in 2.1. Remainder: 55 items (2.6), the cost of joint skills (2.7).
 6. **Texts that state rules**: `Lesson` (24 lines), `Teaching` (16), shops (16), `StringData` (21), `QuestData` (49), `QuestRankData` (8), `TrophyData` (5). Every figure they give is compared with the binary. A line is changed only if it is false or vague; its voice stays.
 7. **Enchant figures without a source**: 43 from the first game to confirm and 101 with none. They are computed in the executable: read that code, or measure in the game.
 8. **Release**: package per variant, player README (what changes, how to undo), full play-through of the first dungeon with the mod, removal of the earlier build's tools and tables from the repository.
@@ -179,6 +195,7 @@ Answered by the user on 2026-10-04 and applied:
 | Items | Original text + (data), always one line; where it does not fit, the original is made shorter |
 | Skills whose line 1 did not fit | The original is made shorter so that it fits |
 | Spiral Arrow and Holy Gavel | Look in the Japanese guides: the wiki lists the multiplier as ATK%, so both are graded by it |
+| Tables written in the tools (`shortened_text.py`) | Nothing hardcoded: everything in a workbook, for quick editing. Done as `data_tables/qol_rules.xlsx` |
 
 Still open:
 

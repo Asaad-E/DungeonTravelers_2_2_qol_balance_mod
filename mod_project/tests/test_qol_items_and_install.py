@@ -358,3 +358,22 @@ class JointSkills(unittest.TestCase):
                 bv.build_joint_skills(out, table, problems)
                 bv.verify_joint_skills(out, table, bv.VARIANTS['qol'], problems)
             self.assertEqual(problems == [], clean, problems)
+
+
+class Sealbooks(unittest.TestCase):
+    """SealScrollData is kept as written (the game lists the enchantments itself); its layout is decoded."""
+
+    def test_writer_reproduces_the_originals_and_enchants_exist(self):
+        from pck_handler import SealScrollHelper, EnchantHelper
+        enchant_ids = {struct.unpack_from('<i', b, 0)[0]
+                       for _, b in PckArchive(os.path.join(_paths.BACKUP_DIR, bv.ENCHANT_PCK)).files}
+        entries = PckArchive(os.path.join(_paths.BACKUP_DIR, 'SealScrollData.pck')).files
+        self.assertEqual(len(entries), 374)
+        for fn, b in entries:
+            seal = SealScrollHelper.read_seal(b)
+            with self.subTest(entry=fn):
+                self.assertEqual(SealScrollHelper.write_seal(b, seal['desc']), bytes(b))
+                self.assertEqual(seal['name'], seal['name2'])
+                self.assertTrue(set(seal['enchants']) <= enchant_ids)
+                if not seal['grand']:
+                    self.assertIn(f"(Level {seal['level']})", seal['desc'])
