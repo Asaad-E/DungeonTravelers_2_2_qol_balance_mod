@@ -114,11 +114,15 @@ def askers(exe, md, ids):
         eid = m.group(1)[0] if m.group(1) else struct.unpack('<I', m.group(2))[0]
         if eid not in ids or eid < 2:
             continue
+        slot_loaded = None
         for k, i in enumerate(md.disasm(code[m.start():m.start() + 60], text_va + m.start())):
             if k > 10:
                 break
+            loaded = re.fullmatch(r'(e..), dword ptr \[e.. \+ 0x(48|50)\]', i.op_str) if i.mnemonic == 'mov' else None
+            if loaded:
+                slot_loaded = loaded.group(1)                              # mov eax, [vtable + 0x48] ... call eax
             if i.mnemonic == 'call':                                       # the first call after it decides
-                if re.fullmatch(r'dword ptr \[e.. \+ 0x(48|50)\]', i.op_str):
+                if re.fullmatch(r'dword ptr \[e.. \+ 0x(48|50)\]', i.op_str) or (slot_loaded and i.op_str == slot_loaded):
                     found[eid].add(text_va + m.start())
                 break
     # a walk over the effects of an action: call [effect + 0x24] returns its id, compared with a constant

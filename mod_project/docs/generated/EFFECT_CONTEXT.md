@@ -32,6 +32,9 @@ stat
 stat
 call 0x56c010
 ```
+asked at `0x5b8b7a`:
+```
+```
 
 ## 22 Treasure Search  (skills 1, enemy attacks 0)
 
@@ -264,11 +267,23 @@ call 0x413460
 
 ## 171 Cover  (skills 1, enemy attacks 0)
 
+asked at `0x420c48`:
+```
+ROLL below
+status 171 (Cover)
+stat
+```
 asked at `0x420cac`:
 ```
 status 171 (Cover)
 stat
 call 0x572910
+```
+asked at `0x42497a`:
+```
+ROLL below 100
+mulss 100
+call 0x428590
 ```
 
 ## 181 Barrier System  (skills 0, enemy attacks 2)
@@ -281,6 +296,16 @@ max HP
 ucomiss 0
 HP
 HP
+```
+
+## 182 Nullify Short-Mid  (skills 0, enemy attacks 1)
+
+asked at `0x421c93`:
+```
+status 349 (?)
+ROLL below (ecx)
+mulss 100
+call 0x48c350
 ```
 
 ## 188 Resuscitate  (skills 1, enemy attacks 0)
@@ -304,6 +329,24 @@ cmp 339
 call 0x47e500
 ```
 
+## 203 Erotic Dance  (skills 0, enemy attacks 5)
+
+asked at `0x436eb6`:
+```
+ROLL below (ecx)
+mulss 100
+MESSAGE ≪踊≫エロティックダンス : %d / %d
+```
+
+## 218 Paean  (skills 1, enemy attacks 3)
+
+asked at `0x439380`:
+```
+call 0x443c30
+call 0x43fe50
+call 0x498a50
+```
+
 ## 257 TP Conversion  (skills 1, enemy attacks 0)
 
 asked at `0x47e64d`:
@@ -313,6 +356,27 @@ pieces with enchantment 72 (Convert received damage into TP)
 mulss 0.05
 pieces with enchantment 73 (Convert received damage into big TP)
 mulss 0.1
+```
+
+## 259 Warning Shot  (skills 1, enemy attacks 4)
+
+asked at `0x436d89`:
+```
+ROLL below (ecx)
+mulss 100
+MESSAGE ≪パ≫威嚇射撃 : %d / %d
+call 0x418be0
+call 0x418be0
+call 0x418be0
+```
+
+## 260 Support Shot  (skills 1, enemy attacks 7)
+
+asked at `0x42540a`:
+```
+ROLL below 100
+mulss 100
+call 0x48c350
 ```
 
 ## 261 Stamina  (skills 1, enemy attacks 6)
@@ -355,8 +419,62 @@ divss 50
 addss 0.3
 ```
 
+## 283 Mesmerized  (skills 1, enemy attacks 3)
+
+asked at `0x436e2d`:
+```
+ROLL below (ecx)
+mulss 100
+MESSAGE ≪パ≫見とれる : %d / %d
+call 0x418be0
+call 0x418be0
+```
+
+## 284 On Stage  (skills 1, enemy attacks 1)
+
+asked at `0x43c47e`:
+```
+dead?
+```
+asked at `0x43ccc8`:
+```
+dead?
+```
+
+## 287 Solo Duet  (skills 1, enemy attacks 1)
+
+asked at `0x43bfbd`:
+```
+dead?
+```
+
+## 288 Double Action  (skills 0, enemy attacks 1)
+
+asked at `0x439072`:
+```
+ROLL below (ecx)
+mulss 100
+ROLL below (ecx)
+mulss 100
+```
+
+## 289 Triple Action  (skills 0, enemy attacks 1)
+
+asked at `0x4390b9`:
+```
+ROLL below (ecx)
+mulss 100
+ROLL below (ecx)
+mulss 100
+```
+
 ## 291 Heretic Samsara  (skills 0, enemy attacks 1)
 
+asked at `0x438e53`:
+```
+comiss 1
+cmp 7
+```
 asked at `0x47f739`:
 ```
 status 291 (Heretic Samsara)
@@ -366,6 +484,54 @@ call 0x48c1d0
 stat
 stat
 call 0x56c010
+```
+
+## 304 Anti-Dark Aura  (skills 1, enemy attacks 0)
+
+asked at `0x423d7a`:
+```
+status 262 (Dark Aura)
+comiss 1
+status 45 (?)
+```
+
+## 307 Absolute Attack  (skills 1, enemy attacks 1)
+
+asked at `0x4203b4`:
+```
+status 303 (Counter Whip)
+call 0x425930
+```
+asked at `0x422582`:
+```
+status 250 (Counter)
+ROLL below (ecx)
+mulss 100
+MESSAGE ≪パ≫カウンター : %d / %d
+call 0x43b5f0
+```
+asked at `0x4246c2`:
+```
+status 249 (Reprisal)
+ROLL below 100
+mulss 100
+status 447 (?)
+```
+asked at `0x424739`:
+```
+status 447 (?)
+ROLL below 100
+cmp 15
+call 0x606f90
+call 0x606f90
+call 0x606f90
+```
+
+## 311 Esarhaddon  (skills 1, enemy attacks 0)
+
+asked at `0x436727`:
+```
+call 0x428590
 ```
 
 ## 312 Ecstasy  (skills 1, enemy attacks 2)
@@ -379,6 +545,162 @@ status
 call 0x47e260
 call 0x43ac80
 call 0x48c1d0
+```
+
+## 313 Double Puppet  (skills 1, enemy attacks 1)
+
+asked at `0x43c920`:
+```
+call 0x43caf0
+HP
+```
+
+## 315 Triple Joker  (skills 1, enemy attacks 0)
+
+asked at `0x42db82`:
+```
+weighted roll
+```
+
+## 319 Murder License  (skills 0, enemy attacks 1)
+
+asked at `0x43736a`:
+```
+call 0x418c30
+call 0x435a30
+call 0x418160
+call 0x4183d0
+```
+
+## 325 Weapon Element: Fire  (skills 1, enemy attacks 0)
+
+asked at `0x4161f5`:
+```
+pieces with enchantment 78 (Fire magic buff)
+call 0x56ba30
+cmp 2
+call 0x56ba30
+cmp 5
+```
+asked at `0x4164bf`:
+```
+pieces with enchantment 79 (Water magic buff)
+call 0x56ba30
+```
+asked at `0x4167cf`:
+```
+pieces with enchantment 80 (Wind magic buff)
+call 0x56ba30
+```
+asked at `0x416adf`:
+```
+pieces with enchantment 81 (Earth magic buff)
+call 0x56ba30
+```
+
+## 326 Weapon Element: Water  (skills 1, enemy attacks 0)
+
+asked at `0x4161af`:
+```
+pieces with enchantment 78 (Fire magic buff)
+call 0x56ba30
+```
+asked at `0x416505`:
+```
+pieces with enchantment 79 (Water magic buff)
+call 0x56ba30
+cmp 2
+call 0x56ba30
+cmp 5
+```
+asked at `0x4167df`:
+```
+pieces with enchantment 80 (Wind magic buff)
+call 0x56ba30
+```
+asked at `0x416aef`:
+```
+pieces with enchantment 81 (Earth magic buff)
+call 0x56ba30
+```
+
+## 327 Weapon Element: Lightning  (skills 1, enemy attacks 0)
+
+asked at `0x4161bf`:
+```
+pieces with enchantment 78 (Fire magic buff)
+call 0x56ba30
+```
+asked at `0x4164cf`:
+```
+pieces with enchantment 79 (Water magic buff)
+call 0x56ba30
+```
+asked at `0x4167f1`:
+```
+pieces with enchantment 80 (Wind magic buff)
+call 0x56ba30
+```
+asked at `0x416b01`:
+```
+pieces with enchantment 81 (Earth magic buff)
+call 0x56ba30
+```
+
+## 328 Weapon Element: Wind  (skills 1, enemy attacks 0)
+
+asked at `0x4161d1`:
+```
+pieces with enchantment 78 (Fire magic buff)
+call 0x56ba30
+```
+asked at `0x4164e1`:
+```
+pieces with enchantment 79 (Water magic buff)
+call 0x56ba30
+```
+asked at `0x416815`:
+```
+pieces with enchantment 80 (Wind magic buff)
+call 0x56ba30
+cmp 2
+call 0x56ba30
+cmp 5
+```
+asked at `0x416b13`:
+```
+pieces with enchantment 81 (Earth magic buff)
+call 0x56ba30
+cmp 2
+```
+
+## 329 Weapon Element: Earth  (skills 1, enemy attacks 0)
+
+asked at `0x4161e3`:
+```
+pieces with enchantment 78 (Fire magic buff)
+call 0x56ba30
+cmp 2
+```
+asked at `0x4164f3`:
+```
+pieces with enchantment 79 (Water magic buff)
+call 0x56ba30
+cmp 2
+```
+asked at `0x416803`:
+```
+pieces with enchantment 80 (Wind magic buff)
+call 0x56ba30
+cmp 2
+```
+asked at `0x416b25`:
+```
+pieces with enchantment 81 (Earth magic buff)
+call 0x56ba30
+cmp 2
+call 0x56ba30
+cmp 5
 ```
 
 ## 339 Debilitating Geas  (skills 0, enemy attacks 2)
