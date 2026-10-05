@@ -36,9 +36,12 @@ TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'EFFECT_COVERAGE.md')
 CREATE_COMMAND, FIND_EFFECT, STATUS_SLOT = 0x47b220, 0x47e340, 0x48
 CASE_TABLE, JUMP_TABLE, FIRST_ID, LAST_ID = 0x47e0a4, 0x47de14, 9, 9 + 0x1b8
+CONSTRUCTORS = (0x478000, 0x47b220)
 # functions that take an effect id in edx: find it among the effects of an action or of a unit (0x47e340 and its
 # siblings), ask whether an enemy attack carries it (0x557620), or build its command at once (0x47b220)
-FINDERS = {0x47e340, 0x47e290, 0x47e390, 0x48cbf0, 0x48c680, 0x557620, 0x56ce70, 0x47b220}
+FINDERS = {0x47e340, 0x47e290, 0x47e390, 0x47e400, 0x48cbf0, 0x48c680, 0x557620, 0x56ce70, 0x47b220}
+# functions that take an effect id pushed on the stack: a passive of the whole party (0x4e4dd0), of one unit (0x4fab50)
+PUSH_FINDERS = {0x4e4dd0, 0x4fab50}
 # functions (first address, last address, section of docs/FORMULAS.md) whose handling of an effect is read
 READ = ((0x44a850, 0x44d36f, '2 physical attack'), (0x44d370, 0x44f18f, '3 magic attack'), (0x44f190, 0x44f5c7, '4 critical hits'),
         (0x4499d0, 0x44a62f, '5 order of turns'), (0x44a630, 0x44a79f, '9.1 targets'), (0x481ea0, 0x483a5f, '5b ailments'),
@@ -73,6 +76,18 @@ def command_classes(exe, md):
                 break
         if vtable:
             table[eid] = vtable
+    # some cases call a small constructor instead (0x478000 - 0x47b220): it stores the id and then its vtable
+    last = None
+    for i in md.disasm(exe.read(CONSTRUCTORS[0], CONSTRUCTORS[1] - CONSTRUCTORS[0]), CONSTRUCTORS[0]):
+        if i.mnemonic == 'mov':
+            m = re.fullmatch(r'dword ptr \[ecx \+ 0xc\], (0x[0-9a-f]+|\d+)', i.op_str)
+            if m:
+                last = int(m.group(1), 0)
+            m = re.fullmatch(r'dword ptr \[ecx\], (0x6[0-9a-f]{5})', i.op_str)
+            if m and last is not None:
+                table.setdefault(last, int(m.group(1), 16))
+        elif i.mnemonic == 'ret':
+            last = None
     return table
 
 
@@ -122,7 +137,8 @@ def askers(exe, md, ids):
             if loaded:
                 slot_loaded = loaded.group(1)                              # mov eax, [vtable + 0x48] ... call eax
             if i.mnemonic == 'call':                                       # the first call after it decides
-                if re.fullmatch(r'dword ptr \[e.. \+ 0x(48|50)\]', i.op_str) or (slot_loaded and i.op_str == slot_loaded):
+                direct = re.fullmatch(r'0x[0-9a-f]+', i.op_str) and int(i.op_str, 16) in PUSH_FINDERS
+                if re.fullmatch(r'dword ptr \[e.. \+ 0x(48|50)\]', i.op_str) or (slot_loaded and i.op_str == slot_loaded) or direct:
                     found[eid].add(text_va + m.start())
                 break
     # a walk over the effects of an action: call [effect + 0x24] returns its id, compared with a constant

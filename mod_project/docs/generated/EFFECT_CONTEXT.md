@@ -308,16 +308,6 @@ mulss 100
 call 0x48c350
 ```
 
-## 188 Resuscitate  (skills 1, enemy attacks 0)
-
-asked at `0x47f936`:
-```
-status 188 (Resuscitate)
-max HP
-call 0x498a70
-HP
-```
-
 ## 199 Damage every turn as a fraction of the target max HP  (skills 1, enemy attacks 4)
 
 asked at `0x42f0fa`:
@@ -329,15 +319,6 @@ cmp 339
 call 0x47e500
 ```
 
-## 203 Erotic Dance  (skills 0, enemy attacks 5)
-
-asked at `0x436eb6`:
-```
-ROLL below (ecx)
-mulss 100
-MESSAGE ≪踊≫エロティックダンス : %d / %d
-```
-
 ## 218 Paean  (skills 1, enemy attacks 3)
 
 asked at `0x439380`:
@@ -347,27 +328,12 @@ call 0x43fe50
 call 0x498a50
 ```
 
-## 257 TP Conversion  (skills 1, enemy attacks 0)
+## 235 Perdurabo  (skills 1, enemy attacks 0)
 
-asked at `0x47e64d`:
+own command `0x48a430`:
 ```
-status 257 (TP Conversion)
-pieces with enchantment 72 (Convert received damage into TP)
-mulss 0.05
-pieces with enchantment 73 (Convert received damage into big TP)
-mulss 0.1
-```
-
-## 259 Warning Shot  (skills 1, enemy attacks 4)
-
-asked at `0x436d89`:
-```
-ROLL below (ecx)
-mulss 100
-MESSAGE ≪パ≫威嚇射撃 : %d / %d
-call 0x418be0
-call 0x418be0
-call 0x418be0
+cmp 8
+HP
 ```
 
 ## 260 Support Shot  (skills 1, enemy attacks 7)
@@ -377,18 +343,6 @@ asked at `0x42540a`:
 ROLL below 100
 mulss 100
 call 0x48c350
-```
-
-## 261 Stamina  (skills 1, enemy attacks 6)
-
-asked at `0x47f8aa`:
-```
-status 261 (Stamina)
-call 0x48c1d0
-call 0x418be0
-call 0x418bf0
-call 0x418bf0
-status 188 (Resuscitate)
 ```
 
 ## 262 Dark Aura  (skills 1, enemy attacks 3)
@@ -419,15 +373,29 @@ divss 50
 addss 0.3
 ```
 
-## 283 Mesmerized  (skills 1, enemy attacks 3)
+## 270 Item Drop Rate Modifier  (skills 1, enemy attacks 0)
 
-asked at `0x436e2d`:
+asked at `0x5581ff`:
 ```
-ROLL below (ecx)
+call 0x4e4dd0
 mulss 100
-MESSAGE ≪パ≫見とれる : %d / %d
-call 0x418be0
-call 0x418be0
+status 68 (?)
+pieces with enchantment 276 (Equipment drop rate UP)
+```
+
+## 271 Gold Drop Rate Modifier  (skills 1, enemy attacks 0)
+
+asked at `0x43aa33`:
+```
+call 0x4e4dd0
+call 0x558180
+```
+
+## 282 Discount  (skills 1, enemy attacks 0)
+
+asked at `0x4762d2`:
+```
+call 0x4e4dd0
 ```
 
 ## 284 On Stage  (skills 1, enemy attacks 1)
@@ -711,4 +679,14 @@ HP
 cmp 339
 call 0x47e500
 HP
+```
+
+## 433 Money Loss  (skills 1, enemy attacks 0)
+
+own command `0x48b490`:
+```
+status
+call 0x48b6c0
+call 0x604b07
+call 0x48b8e0
 ```
