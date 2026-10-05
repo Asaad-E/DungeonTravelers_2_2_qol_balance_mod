@@ -74,7 +74,7 @@ final    = damage C * (1 + other bonuses)
 * **Defending** halves the damage (`0x44c576`).
 * Changes of the final value, each with its message: Warning Shot, a guaranteed minimum, wide magic guard, Positive Trance (`(Pep - 100) / 100` of the damage when Pep is above 100, `0x44ccce`), sleep, a bonus against enemies with an ailment (0.15 per piece of an enchantment, `0x44cd83`), double damage against the Magic User line, fixed damage, damage only to the living.
 * **Range** (`0x44a7d0`, `_GetAttackRangeRevision`) **[code]**: the distance is 0 when attacker and target are both in the front row, 1 when one of them is in the back row, 2 when both are (`0x44a7a0`). A short-range attack does full damage at distance 0, 0.75 at 1 and 0.5 at 2; a mid-range attack does 0.75 at distance 2 and full damage otherwise; long range and no range always do full damage. The lesson of the game states exactly this.
-* **Zones** (`0x44fbb0`): a zone multiplies attack A, before defence is subtracted, by a factor kept per battle; this is why a zone that doubles attack more than doubles damage.
+* **Zones** (`0x44fbb0`): see 2.5. A zone multiplies attack A, before defence is subtracted; this is why a zone that doubles attack more than doubles damage.
 * **[open]** the critical multiplier, the size of the guaranteed minimum.
 
 ### 2.5 Chant interruption **[message + code]** (`0x44d001 - 0x44d259`)
@@ -90,6 +90,21 @@ rate   = rate A - enchantments                                           kept be
 * **[open]** where the "1 in 3 on a critical hit" of the lessons is applied; it is not in these lines.
 
 ---
+
+### 2.5 Damage zones of the map (`0x44fbb0`; factors loaded at `0x44993a`) **[code]**
+
+A cell of the map has two zone slots (offsets 0x8 and 0xC of its record) and names the zone of the floor it belongs
+to (offset 0x18). When a battle starts on it the five factors of that zone are copied from the floor file.
+
+```
+attack A = attack A * up factor of the side      when a slot of the cell is 3 (one side) or 4 (the other)
+         * down factor of the side                when a slot is 5 or 6
+         * element factor                         when a slot is 7, 8, 9, 10 or 11 and the attack has that element
+```
+
+The factors are data, five floats per zone of a floor (`tools/floor_data.py`, `zone_factors`): vanilla uses between
+2 and 2.35 for the up and element factors and between 0.5 and 0.75 for the down factors. Which side 3 and 5 stand
+for against 4 and 6 (the flag the function receives) is not followed to its callers.
 
 ## 3. Magic attack (in the same file, after `0x44d366`) **[message]**
 
@@ -265,7 +280,7 @@ Factor by gap = level of the member - level of the enemy (`0x450734 - 0x45080d`)
 1. In `_SetTime`: the branch for action kind 8 with the chant flag (`0x449e54`), not followed to its end.
 2. The magic function, instruction by instruction.
 3. The "1 in 3" interruption of a chant by a critical hit; the minimum of a spell.
-4. Zone factor `0x44fbb0`, case by case.
+4. Zones: which side slots 3 and 5 stand for; the map files that place them.
 5. Turn delay: how far the target is pushed back. Turn skipping (stun, paralysis): how many turns are lost.
 6. TP recovery, revival and the recovery after a battle; EXP division and the factor by level gap. Of targeting (section 9.1): the code that
    returns the formation row, and the name of every attack scope.

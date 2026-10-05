@@ -156,6 +156,14 @@ class Floors(unittest.TestCase):
                 self.assertEqual(sum(f['chance'] for f in floor['formations']), 100)
                 self.assertEqual([f['number'] for f in floor['formations']], list(range(1, len(floor['formations']) + 1)))
 
+    def test_zone_factors_raise_and_lower(self):
+        """The five floats a battle copies from its zone (0x44994d): two that raise, two that lower, one for elements."""
+        for floor in self.floors:
+            factors = floor['zone_factors']
+            with self.subTest(floor=floor['name']):
+                self.assertTrue(1.5 <= factors['up_a'] <= 3 and 1.5 <= factors['up_b'] <= 3 and 1.5 <= factors['element'] <= 3)
+                self.assertTrue(0.3 <= factors['down_a'] <= 1 and 0.3 <= factors['down_b'] <= 1)
+
     def test_every_formation_holds_known_enemies(self):
         for floor in self.floors:
             for formation in floor['formations']:

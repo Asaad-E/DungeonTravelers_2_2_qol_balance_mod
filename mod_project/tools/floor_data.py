@@ -17,7 +17,11 @@ Parameter file of a floor (little endian), as far as it is read:
               (a lone enemy always has 1; the party's side sets the same flag at 0x43db3c)
         0x40  chance of the formation in percent (they add up to 100 in every zone)
         0x44  five more ints, not decoded (-1, an offset, 0, 1, -1 on every formation)
-Not decoded: which part of the map each zone covers, the rest of a zone (floats and counts before 0x5C, the tables
+    zone+0xB8   five floats: the factors of the damage zones of the map (docs/FORMULAS.md 2.5), read at the
+                start of a battle (0x44994d): attack up for one side, for the other, attack down for one
+                side, for the other, and the factor of an element zone
+A cell of the map names its zone (offset 0x18 of its 0x230-byte record, 0x44993a); the map files are not read here.
+Not decoded: the rest of a zone (floats and counts before 0x5C, the tables
 of what its chests hold after 0x60) and the events of the floor.
 
     python mod_project/tools/floor_data.py [st02]      prints the formations of those dungeons
@@ -34,10 +38,16 @@ FLOOR_ZIP = os.path.join(BASE_DIR, 'backups', 'Dungeon', 'floor_parameters.zip')
 GAME_DUNGEON_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Dungeon')
 ZONE_COUNT, ZONE_POINTER, ZONE_SIZE, COUNT, FORMATIONS, RECORD = 0x98, 0xA0, 0xD0, 0x5C, 0x60, 88
 ENEMY_SLOTS = 12
+ZONE_FACTORS, FACTOR_NAMES = 0xB8, ('up_a', 'up_b', 'down_a', 'down_b', 'element')
 
 
 def read_floor(blob):
     """Zones of a floor, each a list of formations: [{'number', 'chance', 'enemies': [(enemy id, in front row)]}]."""
+    return [formations for formations, _ in read_zones(blob)]
+
+
+def read_zones(blob):
+    """[(formations, {factor name: value})] for every zone of a floor."""
     blob = bytes(blob)
     zones = []
     first = struct.unpack_from('<Q', blob, ZONE_POINTER)[0]
@@ -53,7 +63,8 @@ def read_floor(blob):
             front = blob[base + 0x34:base + 0x34 + ENEMY_SLOTS]
             found.append({'number': number, 'chance': struct.unpack_from('<i', blob, base + 0x40)[0],
                           'enemies': [(enemy, bool(front[slot])) for slot, enemy in enumerate(ids) if enemy != -1]})
-        zones.append(found)
+        factors = dict(zip(FACTOR_NAMES, struct.unpack_from('<5f', blob, block + ZONE_FACTORS)))
+        zones.append((found, factors))
     return zones
 
 
@@ -74,16 +85,18 @@ def collect(game_dir=GAME_DUNGEON_DIR, path=FLOOR_ZIP):
 
 def floors(path=FLOOR_ZIP):
     """Every zone with formations: [{'dungeon': 'st02', 'floor': 'St02_0010', 'zone': 0, 'name', 'formations': [...]}].
-    'name' is the floor, with the number of the zone when the floor has more than one."""
+    'name' is the floor, with the number of the zone when the floor has more than one; 'zone_factors' the five
+    factors of its damage zones."""
     found = []
     with zipfile.ZipFile(path) as archive:
         for entry in sorted(archive.namelist()):
             dungeon, name = entry.split('/')
-            zones = read_floor(archive.read(entry))
-            for zone, formations in enumerate(zones):
+            zones = read_zones(archive.read(entry))
+            for zone, (formations, factors) in enumerate(zones):
                 if formations:
                     label = name[:-4] if len(zones) == 1 else f'{name[:-4]} zone {zone + 1}'
-                    found.append({'dungeon': dungeon, 'floor': name[:-4], 'zone': zone, 'name': label, 'formations': formations})
+                    found.append({'dungeon': dungeon, 'floor': name[:-4], 'zone': zone, 'name': label,
+                                  'formations': formations, 'zone_factors': factors})
     return found
 
 
