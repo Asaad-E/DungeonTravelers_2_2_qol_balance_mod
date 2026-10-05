@@ -396,3 +396,24 @@ and the two enchantments.
 `EquipmentData` holds the six bases at 0x24 to 0x38 (ATK, DEF, INT, RES, DEX, AGI), the upgrade rate at 0x3C and the
 swing of a weapon at 0x48 (section 2.2). The upgrade level is kept on the piece itself (offset 0x74 of the object).
 The columns of the `Equipment` sheet of `vanilla_source_of_truth.xlsx` carry these names.
+
+## 11. Summons (`0x4ffc90`) **[code]**
+
+A summon has three forms (`SummonData`, one record each; `tools/summon_data.py`).
+
+```
+form   = the last form of the summon whose level is not above the average level of the party
+level  = the level of that form
+stat   = max(base, int(stat of a party member * factor of the form))        for ATK, DEF, INT, RES, DEX, AGI,
+                                                                            over every member of the party
+weight = the delay of the weapon rank the form names                        (order of turns, section 5)
+```
+
+* base: the six stats of the enemy the summon comes from (the record names it; its three forms share it).
+* Its attacks are records of `EnemyAttackData` and its behaviour a script in the format of the enemies (section 9).
+* A summon therefore scales with the best member of the party in each stat, not with its summoner.
+* **[open]** its HP (set after this function, `[vtable+0x108]`).
+
+**Dolls** are another thing: the six doll skills (effects 228 to 233) create an object each (`0x484150`), and a heal
+cast by one is read (6b). **[open]** what a doll's HP and stats are made of.
+

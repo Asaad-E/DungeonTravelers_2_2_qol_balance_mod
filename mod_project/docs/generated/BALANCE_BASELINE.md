@@ -537,7 +537,210 @@ Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wis
 | St23_0140 | 20 | 3.0 | 5 | 77-98 | 24,723 | 21,974 | 3,362 | 27% |
 | St23_0150 | 1 | 1.0 | 1 | 35-35 | 500 | 410 | 0 | 0% |
 
-352 of the 516 enemies appear in a random formation; the other 164 are placed by events (bosses, chests that bite, quest targets). Who fights beside whom in those battles is not decoded.
+352 of the 516 enemies appear in a random formation. The other 164 are placed by events; 157 of them stand in the fixed battles below and 7 in none (Evil Box, Mimic, Mischief Box, NEET Mimic, Pandora, Shapeshifter, Toybox).
+
+### Fixed battles (bosses, quest targets)
+
+196 battles the events of a floor start, read from the same floor files.
+
+| Floor | Battle | Enemies | HP in all | Highest level |
+|---|---|---|---|---|
+| St00_0010 | 41 | Slapyon L2 | 72 | 2 |
+| St00_0010 | 42 | Wanton Witch L5 | 345 | 5 |
+| St00_0010 | 43 | Aradia L60 | 15,000 | 60 |
+| St00_1010 | 41 | Slapyon L2 | 72 | 2 |
+| St00_1020 | 41 | Kuchinawa L75 | 35,000 | 75 |
+| St01_0010 | 41 | Mad Catter? L7 | 180 | 7 |
+| St01_0010 | 42 | Bigfoot L7 | 480 | 7 |
+| St01_0010 | 43 | Mad Catter L9 | 666 | 9 |
+| St01_1010 | 41 | Mad Catter? L7 (back), Mad Catter? L7, Mad Catter? L7 (back) | 540 | 7 |
+| St01_1010 | 42 | Slapyon L2, Deep Slapyon L28 (back), Slapyon L2 | 3,914 | 28 |
+| St02_0010 | 41 | Slapyon L2 | 72 | 2 |
+| St02_0020 | 41 | Slapyon L2 | 72 | 2 |
+| St02_0030 | 41 | Ghast L12 | 773 | 12 |
+| St02_0040 | 41 | Slapyon L2 | 72 | 2 |
+| St02_0050 | 41 | Slapyon L2 | 72 | 2 |
+| St02_0060 | 41 | Slapyon L2 | 72 | 2 |
+| St02_0070 | 41 | Sorrowful Songstress L13 | 1,274 | 13 |
+| St02_0070 | 42 | Persephone L66, Aradia L65 (back), Flauros L65 | 26,411 | 66 |
+| St03_0010 | 41 | Doll L13 | 825 | 13 |
+| St03_0010 | 42 | Cupid L15 | 1,587 | 15 |
+| St03_0010 | 43 | Countess of Vrachia L16 | 1,991 | 16 |
+| St03_0011 | 41 | Kaguya L60 | 16,200 | 60 |
+| St03_0011 | 42 | Euthys L64 | 28,000 | 64 |
+| St04_0010 | 41 | Swimma L13, Heqet L18 (back), Swimma L13 | 2,595 | 18 |
+| St04_0010 | 42 | Mermaid L14 (back), Okame L18, Clione L23 (back) | 831 | 23 |
+| St04_0011 | 41 | Beard Predator L18, Eros L20 (back), Cotton Mary L18 | 2,946 | 20 |
+| St04_0011 | 42 | Halibut L19, Snapper L19, Oh-So-Hime L20 (back), Oarfish L19 | 3,594 | 20 |
+| St04_0011 | 43 | Default L42 | 9,200 | 42 |
+| St04_0011 | 44 | Eel L16, Kraken L40 (back), Rusalka L17 | 2,865 | 40 |
+| St04_1010 | 41 | Bubble Slapyon L16 (back), Clione L23, Rusalka L17 (back) | 808 | 23 |
+| St04_1010 | 42 | Lady Bai L16, Lara L23 | 578 | 23 |
+| St04_1011 | 41 | Mist Dragon L60, Aradia L72 (back), Kukulkan L69 | 32,937 | 72 |
+| St05_0010 | 41 | Scorpion Lady L18, Matryoshka L19 (back), Paladin L17, Makuragaeshi L20 (back), Weretiger L19 | 1,338 | 20 |
+| St05_0010 | 42 | Kumagician L21, Molle L23 (back), Peggin Priest L21 | 4,150 | 23 |
+| St06_0010 | 41 | Serika L25 | 3,160 | 25 |
+| St06_0010 | 42 | Trapezist L21 (back), Dragon Baby L25, Fire Caster L24 (back), Miss Mino L25, Air Neko L20 (back) | 1,510 | 25 |
+| St06_0020 | 41 | Slapyon L2 | 72 | 2 |
+| St06_0030 | 41 | Gargoyle L26, Dragon Baby L25 (back), Skull Collector L26, Cursed Painting L27 (back), Tarantula L24 | 1,731 | 27 |
+| St06_0030 | 42 | Peggin Dancer L23 (back), Agent M L26, Shangtung Mary L23 (back) | 4,191 | 26 |
+| St06_0030 | 43 | True Queen Eltricia L28 | 3,500 | 28 |
+| St06_0030 | 44 | Vitoria L60, Siegdrad L60 (back), Airavata L58 | 35,000 | 60 |
+| St07_0010 | 41 | Appler Rider L31, Appler Rider L31, Beard Rider L31 (back), Appler Rider L31, Appler Rider L31 | 1,892 | 31 |
+| St07_0010 | 42 | Peggy Sergeant L31, Siesta L33 (back), Sheeting Mary L31 | 4,531 | 33 |
+| St07_0010 | 43 | Big Bad Beard L30 | 888 | 30 |
+| St07_0010 | 44 | Sicily L27 (back), Daphne L29, Apsaras L27 (back) | 1,134 | 29 |
+| St07_0010 | 45 | Fuzzy Merchandise L30, Trafficker Twinny L31 (back), Fluffy Merchandise L30 | 5,476 | 31 |
+| St07_0010 | 46 | Peggy Hawkeye L96, Zouchou Kuma L98 (back), Velour Mary L96 | 97,050 | 98 |
+| St07_0010 | 47 | Grizz-Witch L65 (back), Velvet Mary L65, Aradia L77 (back), Peggin Crusader L65, Peggin High Dancer L65 (back) | 39,103 | 77 |
+| St08_0010 | 41 | Sheeting Mary L31, Peggin Dancer L23 (back), Chiffon Mary L33, Kumagician L21 (back), Beard Rider L31 | 2,583 | 33 |
+| St08_0010 | 42 | Beard Rider L31 (back), Peggin Priest L21, Peggy Archer L33 (back), Peggy Sergeant L31, Shangtung Mary L23 (back) | 2,671 | 33 |
+| St08_0010 | 43 | Maerchen Little L33 | 4,405 | 33 |
+| St08_0010 | 44 | Clotho L85, Lachesis L85, Atropos L85 | 60,000 | 85 |
+| St08_0010 | 45 | Crybaby Peggin L31 (back), Spacey Peggin L31, Grouchy Peggin L31 (back), Doc Peggin L33, Shy Peggin L31 (back), Cheery Peggin L31, Moody Peggin L31 (back) | 4,115 | 33 |
+| St09_0010 | 41 | Slapyon L2 | 72 | 2 |
+| St09_0011 | 41 | Peggy Archer L33 (back), Afanc L36, Peggy Archer L33 (back) | 5,926 | 36 |
+| St09_0011 | 42 | Wild Whale L38 | 1,820 | 38 |
+| St09_0012 | 41 | Sahohime L48 | 10,000 | 48 |
+| St09_0013 | 41 | Slapyon L2 | 72 | 2 |
+| St09_0014 | 41 | Martial Artist L38 | 5,810 | 38 |
+| St09_0014 | 42 | Irene L36, Cossack L34 (back), Kijimuna L36, Buccaneer L34 (back), Wicca L36 | 2,597 | 36 |
+| St09_0015 | 41 | Melum L35, Melum L35 (back), Melum L35 | 1,500 | 35 |
+| St09_0015 | 42 | Michelle L36, Beatrice L36 | 9,650 | 36 |
+| St09_0015 | 43 | Freddie Orso L96, Jikoku Peggin L98 (back), Joker Mary L96 | 99,522 | 98 |
+| St09_0015 | 44 | Melum L35, Melum L35 (back), Melum L35 (back), Melum L35 | 2,000 | 35 |
+| St10_0010 | 41 | Forest Guardian L40, Forest Guardian L40 | 4,000 | 40 |
+| St10_0010 | 42 | Dragon Papi L42 | 9,400 | 42 |
+| St10_0010 | 43 | Heartless Avenger L41 | 8,500 | 41 |
+| St10_0010 | 44 | Heartless Avenger L41 | 6,800 | 41 |
+| St10_0010 | 45 | Appler L50 | 15,000 | 50 |
+| St10_0010 | 46 | Melolon L50 | 15,000 | 50 |
+| St10_0010 | 47 | Bananine L50 | 15,000 | 50 |
+| St10_0010 | 48 | Peggy Summoner L40, Wild Whale L38, Wild Beard L40 | 3,947 | 40 |
+| St10_0010 | 49 | Saturday-night Rider L74 | 7,575 | 74 |
+| St10_0010 | 50 | Beard Warlord L96, Koumoku Mary L98 (back), Peggin High Priest L96 | 101,000 | 98 |
+| St10_0010 | 51 | Overdue L68 | 25,000 | 68 |
+| St10_0010 | 52 | Azmaria L50 | 15,000 | 50 |
+| St11_0010 | 41 | Forest Guardian L40, Forest Guardian L40 | 4,000 | 40 |
+| St11_0010 | 42 | Spirit of Mag Mell L39 | 8,200 | 39 |
+| St11_0010 | 43 | Sweet Peach L40, Tres Durian L44 (back), Persibang L40, Mangos Queen L44 (back), Sweet Peach L40 | 18,254 | 44 |
+| St11_0010 | 44 | Divah L38, Divah L38, Calliope L42 (back), Divah L38, Divah L38 | 9,464 | 42 |
+| St11_0010 | 45 | Beard Knight L65, Murasaki Shikibu L82 (back), Beard Knight L65 | 31,232 | 82 |
+| St12_0010 | 41 | Moby Dick L44 | 13,280 | 44 |
+| St12_0010 | 42 | Death Cataphract L46 | 15,000 | 46 |
+| St12_0010 | 43 | Boze L43, Scream L43, Leonard L42, Agni L42 | 2,819 | 43 |
+| St12_0020 | 41 | Amatsu-Gumo L46, Momunofu L44 (back), Dancing Statue L45 | 4,563 | 46 |
+| St12_0020 | 42 | Miss Cyclo L47, Chernobog L46 (back), Chernobog L46 (back), Huggy L46 | 5,136 | 47 |
+| St12_0030 | 41 | Lovely Catch L45, Kraken L40 (back), Dragonkin L38 (back), Anubis L45 | 5,749 | 45 |
+| St12_0030 | 42 | Gargouille L47, Jahi L47 | 4,766 | 47 |
+| St12_0040 | 41 | Queen of Darkness L46 | 26,800 | 46 |
+| St12_0040 | 42 | Queen of Darkness L46 | 8,000 | 46 |
+| St12_0040 | 43 | Queen of Darkness L46 | 10,000 | 46 |
+| St12_0040 | 44 | Friday-night Rider L52 | 3,620 | 52 |
+| St12_0040 | 45 | Dragon Rider L50 | 4,428 | 50 |
+| St12_0040 | 46 | Demi Lich L69, Aradia L80 (back), Nebiros L73 | 38,949 | 80 |
+| St12_0040 | 47 | Panttalion L97 (back), Bishamon Peggy L99, Queen Maid Mary L97 (back) | 113,000 | 99 |
+| St13_0010 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0020 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0030 | 41 | Samael L88 | 45,000 | 88 |
+| St13_0030 | 42 | Peggin Templar L80, Ria the Farsighted L85 (back), Calico Mary L80 | 39,118 | 85 |
+| St13_0030 | 43 | Peggin Etoile L80 (back), Chika the Impenetrable L85, Peggy Sniper L80 (back) | 39,135 | 85 |
+| St13_0040 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0050 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0060 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0070 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0080 | 41 | Ifrita L50, Shadow L50, Toad Sage L49, Hanuman L50 | 4,211 | 50 |
+| St13_0090 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0100 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0110 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0120 | 41 | Slapyon L2 | 72 | 2 |
+| St13_0130 | 41 | Appler Knight L47, Gunslinger L52 (back), Ama Neko L46 | 4,766 | 52 |
+| St13_0140 | 41 | Scanner L52 | 14,000 | 52 |
+| St13_0150 | 41 | Demon God Fried L54 | 18,000 | 54 |
+| St13_0150 | 42 | Hanako L76, Aradia L84 (back), Zamedi L77 | 42,785 | 84 |
+| St14_1010 | 41 | Iron Maiden L55 | 16,800 | 55 |
+| St14_1020 | 41 | Slapyon L2 | 72 | 2 |
+| St14_1030 | 41 | Slapyon L2 | 72 | 2 |
+| St14_1040 | 41 | Mist Dragon L60 | 5,359 | 60 |
+| St14_1050 | 41 | Morrighan L90 | 20,456 | 90 |
+| St14_1050 | 42 | Roger Orso L84, Aradia L88 (back), Peggy Oversummoner L84 | 59,122 | 88 |
+| St14_1060 | 41 | Melek Taus L90 | 56,000 | 90 |
+| St14_1060 | 42 | Peggy Oversummoner L84 (back), Mil the Overlord L88, Stepgirl Mary L84 (back) | 46,843 | 88 |
+| St14_1060 | 43 | Roger Orso L84, Lina the Statuesque L88 (back), Flannel Mary L84 | 45,556 | 88 |
+| St15_0010 | 41 | Yab-Yum L57 (back), Dzelarhons L57, Centenary L62 (back), Leanan Sidhe L56, Lorelei L56 (back) | 7,688 | 62 |
+| St15_1010 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1020 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1030 | 41 | Vampire L57, Fafnir L59 | 7,486 | 59 |
+| St15_1040 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1050 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1060 | 41 | Samael L62 | 18,500 | 62 |
+| St15_1070 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1080 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1090 | 41 | Stheno L61, Space Whale L63 | 7,072 | 63 |
+| St15_1100 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1110 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1120 | 41 | Melek Taus L65 | 20,800 | 65 |
+| St15_1130 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1140 | 41 | Slapyon L2 | 72 | 2 |
+| St15_1150 | 41 | Demiurge L68 | 24,000 | 68 |
+| St15_1150 | 42 | Atialuco L70 | 21,800 | 70 |
+| St15_1160 | 41 | Aradia L99 | 52,000 | 99 |
+| St15_1160 | 42 | Bearerophon L94 | 28,800 | 94 |
+| St15_1160 | 43 | Magical Mary L95 | 23,000 | 95 |
+| St15_1160 | 44 | Beard Master L96 | 32,000 | 96 |
+| St15_1160 | 45 | Peggy Sentinel L96, Mul the Mechanical L98 (back), Brian Orso L96 | 64,730 | 98 |
+| St20_0010 | 41 | Slapyon L2 | 72 | 2 |
+| St20_1010 | 41 | Slapyon L2 | 72 | 2 |
+| St20_1020 | 41 | Space Whale L63, Dragon Knight L68 | 11,350 | 68 |
+| St20_1020 | 42 | Iktomi L66 | 21,000 | 66 |
+| St20_1030 | 41 | Dragonet L64, Shanina L67 | 7,557 | 67 |
+| St20_1040 | 41 | Crom Cruach L85 | 42,000 | 85 |
+| St20_1040 | 42 | Crom Cruach L99 | 62,000 | 99 |
+| St20_1040 | 43 | Sukuna-Hikona L68 | 23,800 | 68 |
+| St20_1040 | 44 | Red Dragon L72 | 8,124 | 72 |
+| St20_1040 | 45 | Citlalinicue L96 | 49,500 | 96 |
+| St21_0010 | 41 | Peggy War Chief L65, Peggin High Dancer L65, Jungfrau L71 (back), Peggy High Summoner L65, Peggy High Archer L65 | 14,591 | 71 |
+| St21_0020 | 41 | Qitian Dasheng L70 | 28,000 | 70 |
+| St21_0020 | 42 | Peggin Etoile L80 (back), Tama the Red L95, Peggy Sniper L80 (back) | 47,415 | 95 |
+| St21_0020 | 43 | Peggy Oversummoner L84, Riko the Reclusive L95 (back), Roger Orso L84 | 49,122 | 95 |
+| St21_0030 | 41 | Rai the Sweltering L96 | 50,000 | 96 |
+| St21_0040 | 41 | Flannel Mary L84 (back), Calico Mary L80, Mor the Drunken L96 (back), Peggin Templar L80, Peggin Etoile L80 (back) | 63,635 | 96 |
+| St21_0040 | 42 | Peggin Etoile L80 (back), Stepgirl Mary L84, Gam the Wise L96 (back), Calico Mary L80, Peggy Sniper L80 (back) | 66,188 | 96 |
+| St21_0050 | 41 | Slapyon L2 | 72 | 2 |
+| St21_0060 | 41 | Velvet Mary L65 (back), Azathoth L73, Nurse Maid Mary L65 (back) | 32,521 | 73 |
+| St21_0060 | 42 | Ma the Eccentric L97, Mandra Princess L99 (back), Gamble Beard L98, Mandra Prince L99 (back), Hana the Waterfall L97 | 139,500 | 99 |
+| St21_0060 | 43 | Tenerezza L90 | 45,000 | 90 |
+| St21_0060 | 44 | Tenerezza L99 | 60,000 | 99 |
+| St21_0060 | 45 | Tenerezza L90, Lolo L86 | 61,000 | 90 |
+| St21_0060 | 46 | Tenerezza L99, Lolo L98 | 88,000 | 99 |
+| St21_0060 | 47 | Peggy Devil Summoner L94, Ruu the Woodsy L97 (back), Lunatic Mary L94 | 90,180 | 97 |
+| St21_1010 | 41 | Marduk L97 | 52,800 | 97 |
+| St21_1010 | 42 | Therian Guardsman L68 | 9,999 | 68 |
+| St22_1010 | 41 | Genbu L76 | 30,000 | 76 |
+| St22_1020 | 41 | Speed Demon L73 | 8,124 | 73 |
+| St22_1020 | 42 | Arjuna L95 | 45,600 | 95 |
+| St22_1020 | 43 | Nuwa L79 | 33,000 | 79 |
+| St22_1020 | 44 | Earth Dragon L78 | 11,482 | 78 |
+| St22_1020 | 45 | Magna Meretrix L93 | 55,000 | 93 |
+| St22_1020 | 46 | Samson L90, Magna Meretrix L99 (back), Adon L90 | 105,000 | 99 |
+| St23_0010 | 41 | Slapyon L2 | 72 | 2 |
+| St23_0020 | 41 | Slapyon L2 | 72 | 2 |
+| St23_0030 | 41 | Slapyon L2 | 72 | 2 |
+| St23_0040 | 41 | Yoshitsune L98 | 48,200 | 98 |
+| St23_0050 | 41 | Slapyon L2 | 72 | 2 |
+| St23_0060 | 41 | Peggy Sniper L80 (back), Last Judgment L83, Peggin Templar L80 (back) | 52,180 | 83 |
+| St23_0070 | 41 | Slapyon L2 | 72 | 2 |
+| St23_0080 | 41 | Slapyon L2 | 72 | 2 |
+| St23_0090 | 41 | Scathach L82, Astaroth L87 (back), Thor L84 | 26,631 | 87 |
+| St23_0100 | 41 | Slapyon L2 | 72 | 2 |
+| St23_0110 | 41 | Hell's Angel L92 | 60,000 | 92 |
+| St23_0120 | 41 | Ganesha L89, Tiamat L93 | 30,114 | 93 |
+| St23_0130 | 41 | Medusa L91, Death 13 L93 | 27,830 | 93 |
+| St23_0140 | 41 | Fudo Myouou L95 | 26,445 | 95 |
+| St23_0150 | 41 | Panagia L99 | 45,000 | 99 |
+| St23_0150 | 42 | Panagia L99, Radiant Being L99 | 70,500 | 99 |
+| St99_0000 | 41 | Boozehound Samurai L18 | 2,685 | 18 |
+| St99_0000 | 42 | Dark Dolls A L20, Warden of the Wall L21 (back), Dark Dolls B L20 | 3,721 | 21 |
 
 ### Enemies placed by events
 
@@ -707,6 +910,118 @@ Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wis
 | Panagia | Plains of Light | Humans | 99 | 45,000 | 677 | 611 | 288 | 556 | 155 | 174 | 100,000 | 0.28 | 12 | sleep, silence, petrification, instant death, freeze, paralysis, shadow sew |
 | Panagia | Plains of Light | Humans | 99 | 22,500 | 665 | 602 | 288 | 532 | 153 | 171 | 100,000 | 0.30 | 12 | stun, sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, slow, turn delay |
 | Radiant Being | Plains of Light | race 1 | 99 | 48,000 | 642 | 578 | 295 | 431 | 166 | 163 | 500,000 | 0.36 | 13 | stun, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
+
+## Summons
+
+105 forms of 35 summons (`tools/summon_data.py`, `docs/FORMULAS.md` 11). The form used is the last whose level is not above the average level of the party; each stat is the best "stat of a party member * factor", and not below the figure of the enemy the summon comes from.
+
+| Summon | Level of the form | Weapon rank | ATK factor | DEF factor | INT factor | RES factor | DEX factor | AGI factor | Attacks | Sets of its script | Base ATK | Base DEF | Base INT | Base RES | Base DEX | Base AGI |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Bigfoot | 7 | 9 | 1.54 | 1.24 | 0.61 | 0.91 | 0.86 | 0.81 | 6 | 1 | 33 | 31 | 16 | 24 | 17 | 10 |
+| Bigfoot | 13 | 8 | 2.04 | 1.54 | 0.77 | 1.02 | 0.95 | 0.91 | 5 | 1 | 33 | 31 | 16 | 24 | 17 | 10 |
+| Bigfoot | 21 | 6 | 2.22 | 1.75 | 0.84 | 1.22 | 1.05 | 1.01 | 6 | 2 | 33 | 31 | 16 | 24 | 17 | 10 |
+| Ghast | 12 | 11 | 2.01 | 1.12 | 0.51 | 0.81 | 0.72 | 0.72 | 5 | 2 | 45 | 42 | 15 | 33 | 21 | 17 |
+| Ghast | 18 | 10 | 2.28 | 1.25 | 0.62 | 0.88 | 0.84 | 0.82 | 6 | 2 | 45 | 42 | 15 | 33 | 21 | 17 |
+| Ghast | 26 | 8 | 2.43 | 1.32 | 0.74 | 0.94 | 0.92 | 0.92 | 7 | 2 | 45 | 42 | 15 | 33 | 21 | 17 |
+| Cupid | 15 | 10 | 1.13 | 0.82 | 0.92 | 1.01 | 1.12 | 0.92 | 7 | 1 | 49 | 44 | 19 | 37 | 24 | 23 |
+| Cupid | 21 | 9 | 1.85 | 0.88 | 1.02 | 1.18 | 1.21 | 1.02 | 8 | 2 | 49 | 44 | 19 | 37 | 24 | 23 |
+| Cupid | 29 | 7 | 2.18 | 0.96 | 1.12 | 1.32 | 1.33 | 1.12 | 8 | 2 | 49 | 44 | 19 | 37 | 24 | 23 |
+| Heqet | 18 | 11 | 1.38 | 0.92 | 0.74 | 0.85 | 0.96 | 0.77 | 5 | 2 | 61 | 55 | 25 | 39 | 30 | 25 |
+| Heqet | 24 | 10 | 2.11 | 1.02 | 0.83 | 0.94 | 1.12 | 0.88 | 6 | 2 | 61 | 55 | 25 | 39 | 30 | 25 |
+| Heqet | 30 | 9 | 2.31 | 1.12 | 0.95 | 1.05 | 1.22 | 0.98 | 7 | 3 | 61 | 55 | 25 | 39 | 30 | 25 |
+| Eros | 20 | 10 | 1.22 | 0.72 | 1.02 | 0.74 | 0.82 | 0.98 | 6 | 2 | 57 | 55 | 28 | 45 | 48 | 27 |
+| Eros | 28 | 9 | 2.02 | 0.79 | 1.12 | 0.88 | 0.96 | 1.11 | 7 | 2 | 57 | 55 | 28 | 45 | 48 | 27 |
+| Eros | 36 | 7 | 2.15 | 0.84 | 1.23 | 0.96 | 1.08 | 1.18 | 8 | 2 | 57 | 55 | 28 | 45 | 48 | 27 |
+| Molle | 23 | 10 | 1.43 | 1.05 | 0.92 | 0.75 | 0.72 | 0.78 | 5 | 2 | 68 | 76 | 32 | 38 | 41 | 29 |
+| Molle | 31 | 9 | 2.02 | 1.17 | 1.01 | 0.86 | 0.83 | 0.88 | 6 | 3 | 68 | 76 | 32 | 38 | 41 | 29 |
+| Molle | 40 | 8 | 2.35 | 1.29 | 1.12 | 0.97 | 0.91 | 0.98 | 7 | 4 | 68 | 76 | 32 | 38 | 41 | 29 |
+| Serika | 25 | 10 | 0.66 | 0.54 | 1.12 | 0.83 | 0.72 | 0.87 | 11 | 4 | 36 | 69 | 47 | 68 | 47 | 34 |
+| Serika | 34 | 7 | 0.75 | 0.63 | 1.33 | 0.91 | 0.84 | 0.96 | 11 | 4 | 36 | 69 | 47 | 68 | 47 | 34 |
+| Serika | 44 | 6 | 0.95 | 0.71 | 1.65 | 1.09 | 0.96 | 1.02 | 11 | 4 | 36 | 69 | 47 | 68 | 47 | 34 |
+| Siesta | 33 | 10 | 1.32 | 0.82 | 0.91 | 0.72 | 0.82 | 0.81 | 6 | 5 | 123 | 85 | 38 | 72 | 49 | 45 |
+| Siesta | 42 | 9 | 1.84 | 0.94 | 1.08 | 0.84 | 0.93 | 0.93 | 7 | 4 | 123 | 85 | 38 | 72 | 49 | 45 |
+| Siesta | 51 | 7 | 2.06 | 1.08 | 1.18 | 0.95 | 1.08 | 1.06 | 9 | 4 | 123 | 85 | 38 | 72 | 49 | 45 |
+| Afanc | 36 | 8 | 1.66 | 0.85 | 0.62 | 0.74 | 0.81 | 0.84 | 6 | 1 | 152 | 120 | 49 | 77 | 56 | 43 |
+| Afanc | 45 | 6 | 2.09 | 0.99 | 0.71 | 0.83 | 0.92 | 0.92 | 7 | 4 | 152 | 120 | 49 | 77 | 56 | 43 |
+| Afanc | 54 | 4 | 2.38 | 1.15 | 0.88 | 0.97 | 1.04 | 0.99 | 9 | 5 | 152 | 120 | 49 | 77 | 56 | 43 |
+| Martial Artist | 38 | 11 | 2.02 | 1.02 | 0.48 | 0.81 | 1.12 | 0.72 | 7 | 3 | 160 | 136 | 48 | 50 | 57 | 40 |
+| Martial Artist | 49 | 9 | 2.31 | 1.13 | 0.57 | 0.92 | 1.26 | 0.82 | 8 | 4 | 160 | 136 | 48 | 50 | 57 | 40 |
+| Martial Artist | 62 | 7 | 2.59 | 1.24 | 0.64 | 1.02 | 1.38 | 1.02 | 9 | 3 | 160 | 136 | 48 | 50 | 57 | 40 |
+| Dragon Papi | 42 | 11 | 1.48 | 0.91 | 0.58 | 0.67 | 0.68 | 0.66 | 6 | 3 | 155 | 173 | 42 | 107 | 57 | 56 |
+| Dragon Papi | 52 | 10 | 2.11 | 1.08 | 0.65 | 0.75 | 0.74 | 0.75 | 8 | 5 | 155 | 173 | 42 | 107 | 57 | 56 |
+| Dragon Papi | 63 | 8 | 2.32 | 1.17 | 0.81 | 0.89 | 0.91 | 0.96 | 9 | 5 | 155 | 173 | 42 | 107 | 57 | 56 |
+| Calliope | 42 | 10 | 1.39 | 0.68 | 1.02 | 0.71 | 0.81 | 0.91 | 6 | 4 | 148 | 158 | 60 | 164 | 72 | 61 |
+| Calliope | 53 | 9 | 1.89 | 0.85 | 1.11 | 0.86 | 0.88 | 1.02 | 7 | 4 | 148 | 158 | 60 | 164 | 72 | 61 |
+| Calliope | 64 | 7 | 2.29 | 1.01 | 1.31 | 1.08 | 1.03 | 1.18 | 8 | 5 | 148 | 158 | 60 | 164 | 72 | 61 |
+| Mangos Queen | 44 | 11 | 0.75 | 0.54 | 0.58 | 0.61 | 0.59 | 0.67 | 6 | 4 | 149 | 108 | 50 | 100 | 62 | 42 |
+| Mangos Queen | 57 | 10 | 1.63 | 0.72 | 0.92 | 0.78 | 0.75 | 0.85 | 9 | 4 | 149 | 108 | 50 | 100 | 62 | 42 |
+| Mangos Queen | 70 | 9 | 1.97 | 0.83 | 1.15 | 0.91 | 0.88 | 0.94 | 9 | 4 | 149 | 108 | 50 | 100 | 62 | 42 |
+| Tres Durian | 44 | 11 | 0.82 | 0.49 | 0.51 | 0.64 | 0.52 | 0.82 | 6 | 4 | 134 | 108 | 62 | 100 | 50 | 35 |
+| Tres Durian | 57 | 7 | 1.77 | 0.68 | 0.83 | 0.73 | 0.68 | 0.94 | 9 | 5 | 134 | 108 | 62 | 100 | 50 | 35 |
+| Tres Durian | 70 | 6 | 2.06 | 0.77 | 0.97 | 0.84 | 0.77 | 1.06 | 8 | 4 | 134 | 108 | 62 | 100 | 50 | 35 |
+| Moby Dick | 44 | 10 | 1.45 | 0.72 | 0.73 | 0.81 | 1.11 | 0.73 | 7 | 4 | 167 | 173 | 80 | 165 | 66 | 55 |
+| Moby Dick | 56 | 9 | 2.32 | 0.85 | 0.83 | 0.91 | 1.23 | 0.82 | 8 | 4 | 167 | 173 | 80 | 165 | 66 | 55 |
+| Moby Dick | 68 | 7 | 2.58 | 0.94 | 0.91 | 1.02 | 1.31 | 0.93 | 9 | 4 | 167 | 173 | 80 | 165 | 66 | 55 |
+| Death Cataphract | 46 | 11 | 1.52 | 1.35 | 0.64 | 0.71 | 0.74 | 0.62 | 7 | 5 | 156 | 229 | 74 | 122 | 61 | 52 |
+| Death Cataphract | 59 | 10 | 2.16 | 1.43 | 0.77 | 0.85 | 0.88 | 0.74 | 9 | 5 | 156 | 229 | 74 | 122 | 61 | 52 |
+| Death Cataphract | 72 | 8 | 2.51 | 1.55 | 0.84 | 0.92 | 1.02 | 0.85 | 9 | 4 | 156 | 229 | 74 | 122 | 61 | 52 |
+| Scanner | 52 | 8 | 1.87 | 0.71 | 1.09 | 0.63 | 1.11 | 0.77 | 7 | 5 | 173 | 217 | 87 | 132 | 81 | 49 |
+| Scanner | 65 | 6 | 2.37 | 0.83 | 1.21 | 0.79 | 1.19 | 0.86 | 8 | 4 | 173 | 217 | 87 | 132 | 81 | 49 |
+| Scanner | 78 | 5 | 2.71 | 0.94 | 1.34 | 0.92 | 1.31 | 0.97 | 8 | 4 | 173 | 217 | 87 | 132 | 81 | 49 |
+| Iron Maiden | 55 | 11 | 1.86 | 1.21 | 0.91 | 0.91 | 0.73 | 0.65 | 7 | 5 | 187 | 264 | 83 | 155 | 67 | 58 |
+| Iron Maiden | 67 | 10 | 2.29 | 1.32 | 1.01 | 1.02 | 0.83 | 0.72 | 8 | 3 | 187 | 264 | 83 | 155 | 67 | 58 |
+| Iron Maiden | 80 | 7 | 2.65 | 1.51 | 1.12 | 1.18 | 0.94 | 0.82 | 9 | 4 | 187 | 264 | 83 | 155 | 67 | 58 |
+| Iktomi | 66 | 8 | 1.56 | 0.72 | 0.84 | 0.78 | 0.92 | 0.81 | 8 | 4 | 248 | 294 | 120 | 268 | 108 | 72 |
+| Iktomi | 75 | 7 | 2.36 | 0.86 | 1.16 | 0.94 | 1.15 | 0.96 | 9 | 5 | 248 | 294 | 120 | 268 | 108 | 72 |
+| Iktomi | 84 | 5 | 2.62 | 0.99 | 1.27 | 1.09 | 1.28 | 1.06 | 11 | 5 | 248 | 294 | 120 | 268 | 108 | 72 |
+| Sukuna-Hikona | 68 | 4 | 1.48 | 0.68 | 0.93 | 0.82 | 1.08 | 0.92 | 9 | 3 | 235 | 286 | 144 | 312 | 208 | 83 |
+| Sukuna-Hikona | 78 | 3 | 2.23 | 0.74 | 1.26 | 1.11 | 1.32 | 1.09 | 9 | 4 | 235 | 286 | 144 | 312 | 208 | 83 |
+| Sukuna-Hikona | 88 | 1 | 2.65 | 0.82 | 1.47 | 1.26 | 1.45 | 1.22 | 9 | 4 | 235 | 286 | 144 | 312 | 208 | 83 |
+| Qitian Dasheng | 70 | 7 | 1.97 | 0.58 | 0.74 | 0.67 | 1.09 | 0.88 | 8 | 3 | 284 | 315 | 122 | 302 | 163 | 92 |
+| Qitian Dasheng | 81 | 5 | 2.83 | 0.64 | 0.83 | 0.78 | 1.21 | 1.01 | 10 | 4 | 284 | 315 | 122 | 302 | 163 | 92 |
+| Qitian Dasheng | 92 | 3 | 3.22 | 0.71 | 0.92 | 0.84 | 1.38 | 1.17 | 11 | 5 | 284 | 315 | 122 | 302 | 163 | 92 |
+| Azathoth | 73 | 8 | 1.82 | 0.76 | 1.18 | 1.01 | 0.72 | 0.75 | 8 | 4 | 253 | 337 | 183 | 321 | 99 | 80 |
+| Azathoth | 83 | 7 | 2.43 | 0.83 | 1.39 | 1.24 | 0.91 | 0.87 | 9 | 5 | 253 | 337 | 183 | 321 | 99 | 80 |
+| Azathoth | 93 | 4 | 2.81 | 0.91 | 1.51 | 1.42 | 1.01 | 0.96 | 10 | 5 | 253 | 337 | 183 | 321 | 99 | 80 |
+| Genbu | 76 | 11 | 2.11 | 1.38 | 0.62 | 0.94 | 0.55 | 0.58 | 9 | 4 | 310 | 626 | 157 | 287 | 127 | 75 |
+| Genbu | 85 | 10 | 2.64 | 1.51 | 0.76 | 1.11 | 0.68 | 0.67 | 10 | 4 | 310 | 626 | 157 | 287 | 127 | 75 |
+| Genbu | 94 | 7 | 2.91 | 1.68 | 0.87 | 1.22 | 0.76 | 0.75 | 11 | 5 | 310 | 626 | 157 | 287 | 127 | 75 |
+| Nuwa | 79 | 7 | 2.26 | 0.92 | 0.84 | 1.02 | 0.92 | 0.85 | 9 | 4 | 336 | 392 | 173 | 276 | 157 | 105 |
+| Nuwa | 87 | 6 | 2.93 | 1.08 | 0.98 | 1.15 | 1.08 | 0.97 | 9 | 6 | 336 | 392 | 173 | 276 | 157 | 105 |
+| Nuwa | 95 | 5 | 3.14 | 1.17 | 1.09 | 1.24 | 1.17 | 1.08 | 10 | 4 | 336 | 392 | 173 | 276 | 157 | 105 |
+| Last Judgment | 83 | 6 | 2.24 | 0.73 | 1.02 | 1.16 | 0.81 | 0.84 | 10 | 7 | 324 | 432 | 206 | 336 | 146 | 116 |
+| Last Judgment | 91 | 5 | 2.46 | 0.84 | 1.69 | 1.32 | 0.93 | 0.96 | 11 | 5 | 324 | 432 | 206 | 336 | 146 | 116 |
+| Last Judgment | 91 | 5 | 2.46 | 0.84 | 1.69 | 1.32 | 0.93 | 0.96 | 11 | 5 | 324 | 432 | 206 | 336 | 146 | 116 |
+| Hell's Angel | 92 | 4 | 2.43 | 1.01 | 1.04 | 0.86 | 1.16 | 0.98 | 9 | 4 | 451 | 573 | 231 | 407 | 172 | 138 |
+| Hell's Angel | 98 | 2 | 3.19 | 1.12 | 1.16 | 0.94 | 1.27 | 1.09 | 11 | 4 | 451 | 573 | 231 | 407 | 172 | 138 |
+| Hell's Angel | 98 | 2 | 3.19 | 1.12 | 1.16 | 0.94 | 1.27 | 1.09 | 11 | 4 | 451 | 573 | 231 | 407 | 172 | 138 |
+| Default | 42 | 10 | 1.23 | 0.62 | 0.81 | 0.72 | 0.71 | 0.76 | 8 | 5 | 138 | 166 | 63 | 132 | 57 | 59 |
+| Default | 55 | 7 | 1.97 | 0.73 | 0.92 | 0.84 | 0.75 | 0.82 | 9 | 6 | 138 | 166 | 63 | 132 | 57 | 59 |
+| Default | 69 | 5 | 2.31 | 0.84 | 1.11 | 0.94 | 0.84 | 0.94 | 9 | 5 | 138 | 166 | 63 | 132 | 57 | 59 |
+| Sahohime | 48 | 10 | 1.68 | 1.21 | 0.71 | 0.84 | 0.91 | 0.74 | 9 | 6 | 170 | 245 | 72 | 138 | 64 | 44 |
+| Sahohime | 60 | 9 | 2.34 | 1.41 | 0.82 | 0.92 | 0.96 | 0.82 | 10 | 6 | 170 | 245 | 72 | 138 | 64 | 44 |
+| Sahohime | 77 | 7 | 2.66 | 1.62 | 1.05 | 1.12 | 1.21 | 0.93 | 10 | 5 | 170 | 245 | 72 | 138 | 64 | 44 |
+| Kaguya | 60 | 7 | 2.28 | 0.72 | 1.17 | 0.72 | 0.62 | 0.82 | 9 | 7 | 200 | 241 | 126 | 256 | 92 | 60 |
+| Kaguya | 73 | 6 | 2.68 | 0.84 | 1.28 | 0.84 | 0.75 | 0.91 | 10 | 5 | 200 | 241 | 126 | 256 | 92 | 60 |
+| Kaguya | 85 | 5 | 3.06 | 0.91 | 1.36 | 0.91 | 0.88 | 1.02 | 11 | 4 | 200 | 241 | 126 | 256 | 92 | 60 |
+| Murasaki Shikibu | 82 | 8 | 2.45 | 0.92 | 0.89 | 0.93 | 0.84 | 0.93 | 9 | 4 | 299 | 423 | 192 | 332 | 142 | 113 |
+| Murasaki Shikibu | 90 | 7 | 3.11 | 1.07 | 1.04 | 1.11 | 0.96 | 1.01 | 10 | 5 | 299 | 423 | 192 | 332 | 142 | 113 |
+| Murasaki Shikibu | 97 | 5 | 3.33 | 1.15 | 1.18 | 1.22 | 1.09 | 1.11 | 10 | 5 | 299 | 423 | 192 | 332 | 142 | 113 |
+| Kuchinawa | 75 | 11 | 2.49 | 1.12 | 0.74 | 0.82 | 0.78 | 0.69 | 8 | 3 | 324 | 435 | 142 | 308 | 122 | 84 |
+| Kuchinawa | 86 | 10 | 3.01 | 1.23 | 0.86 | 0.89 | 0.86 | 0.75 | 8 | 4 | 324 | 435 | 142 | 308 | 122 | 84 |
+| Kuchinawa | 96 | 7 | 3.28 | 1.31 | 1.12 | 0.96 | 0.96 | 0.82 | 9 | 4 | 324 | 435 | 142 | 308 | 122 | 84 |
+| Samael | 88 | 5 | 2.51 | 1.15 | 1.21 | 1.18 | 1.17 | 1.04 | 7 | 3 | 453 | 481 | 278 | 475 | 155 | 132 |
+| Samael | 94 | 4 | 3.22 | 1.24 | 1.37 | 1.24 | 1.29 | 1.12 | 10 | 4 | 453 | 481 | 278 | 475 | 155 | 132 |
+| Samael | 99 | 3 | 3.42 | 1.36 | 1.45 | 1.33 | 1.37 | 1.19 | 11 | 5 | 453 | 481 | 278 | 475 | 155 | 132 |
+| Melek Taus | 90 | 7 | 2.79 | 1.24 | 1.09 | 1.02 | 1.11 | 0.96 | 8 | 3 | 487 | 584 | 253 | 469 | 148 | 124 |
+| Melek Taus | 96 | 9 | 3.37 | 1.38 | 1.18 | 1.14 | 1.22 | 1.07 | 10 | 4 | 487 | 584 | 253 | 469 | 148 | 124 |
+| Melek Taus | 99 | 8 | 3.51 | 1.45 | 1.25 | 1.22 | 1.29 | 1.11 | 11 | 5 | 487 | 584 | 253 | 469 | 148 | 124 |
+| Deep Slapyon | 28 | 10 | 1.35 | 0.81 | 0.58 | 0.81 | 0.74 | 0.78 | 5 | 2 | 131 | 102 | 40 | 54 | 41 | 44 |
+| Deep Slapyon | 38 | 9 | 2.11 | 1.39 | 0.71 | 0.96 | 1.12 | 0.89 | 6 | 4 | 131 | 102 | 40 | 54 | 41 | 44 |
+| Deep Slapyon | 50 | 7 | 2.41 | 1.62 | 0.92 | 1.13 | 1.23 | 0.96 | 7 | 5 | 131 | 102 | 40 | 54 | 41 | 44 |
+| Overdue | 68 | 11 | 1.57 | 1.25 | 0.67 | 1.21 | 0.83 | 0.72 | 9 | 4 | 245 | 365 | 131 | 281 | 88 | 68 |
+| Overdue | 76 | 10 | 2.16 | 1.42 | 0.82 | 1.36 | 0.94 | 0.88 | 10 | 6 | 245 | 365 | 131 | 281 | 88 | 68 |
+| Overdue | 87 | 7 | 2.61 | 1.63 | 1.11 | 1.52 | 1.02 | 0.94 | 10 | 6 | 245 | 365 | 131 | 281 | 88 | 68 |
 
 ## Catching up
 

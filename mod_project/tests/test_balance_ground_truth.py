@@ -8,6 +8,7 @@ import class_data
 import enemy_ai
 import enemy_data
 import floor_data
+import summon_data
 from pck_handler import PckArchive
 
 
@@ -191,6 +192,44 @@ class LevelTable(unittest.TestCase):
         self.assertEqual([lv for lv, _ in table], list(range(table[0][0], table[0][0] + len(table))))
         for (_, a), (_, b) in zip(table, table[1:]):
             self.assertGreater(b, a)
+
+
+
+class FixedBattles(unittest.TestCase):
+    def test_every_enemy_is_placed_somewhere(self):
+        """Random formations and fixed battles together hold every enemy but the chests that bite."""
+        enemies = enemy_data.enemies()
+        placed = {e for f in floor_data.floors() for formation in f['formations'] for e, _ in formation['enemies']}
+        fixed = floor_data.fixed_battles()
+        self.assertGreater(len(fixed), 150)
+        placed |= {e for battle in fixed for e, _ in battle['enemies']}
+        missing = sorted(e['name'] for e in enemies if e['id'] not in placed)
+        self.assertLessEqual(len(missing), 10, missing)
+        self.assertTrue(all(battle['enemies'] for battle in fixed))
+
+
+class Summons(unittest.TestCase):
+    def test_three_forms_per_summon_and_each_comes_from_an_enemy(self):
+        forms = summon_data.summons()
+        enemies = {e['id']: e['name'] for e in enemy_data.enemies()}
+        families = {}
+        for form in forms:
+            families.setdefault(form['family'], []).append(form)
+        for family, own in families.items():
+            with self.subTest(family=family):
+                self.assertEqual(len(own), 3)
+                self.assertEqual(enemies[family], own[0]['name'])
+                self.assertEqual([f['level'] for f in own], sorted(f['level'] for f in own))
+                self.assertTrue(all(len(f['attacks']) > 0 and sum(f['script']['sets'][0]['weights']) > 0 for f in own))
+
+    def test_the_form_follows_the_level_of_the_party(self):
+        forms = summon_data.summons()
+        bigfoot = [f for f in forms if f['name'] == 'Bigfoot']
+        levels = [f['level'] for f in bigfoot]
+        family = bigfoot[0]['family']
+        self.assertEqual(summon_data.form_for(family, levels[0] - 1, forms)['level'], levels[0])     # below the first: the first
+        self.assertEqual(summon_data.form_for(family, levels[1], forms)['level'], levels[1])
+        self.assertEqual(summon_data.form_for(family, 99, forms)['level'], levels[2])
 
 
 if __name__ == '__main__':
