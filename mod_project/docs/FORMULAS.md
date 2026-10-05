@@ -350,8 +350,12 @@ and the two enchantments.
   before it, and the six classes that can be reached from two classes have one row per route (Samurai, Treasure
   Hunter, Magical Princess, Sage, Mistress, Papillon). The same class therefore grows differently by route.
   `tools/class_data.py` holds the table; the figures are in `generated/BALANCE_BASELINE.md`.
-* The bonus per stat sits at offsets 0xdc onwards of the character, the figure added to every stat at 0x120.
-  **[open]** what feeds each (equipment, passive skills, crowns).
+* The figure added to every stat (offset 0x120 of the character) is the bonus of the level resets (`0x4f94f0`):
+  each reset adds 5 when it gives up 98 levels or more, 4 from 89, 3 from 79, 2 from 69, 1 from 59, nothing below,
+  and the total stops at 50. It is added to HP and TP as to the other six. The three recipes of the player guide
+  (atwiki dt2-2 page 79) come out at exactly 50 with these steps. `sim/progression.py` holds the rule.
+* The bonus per stat sits at offsets 0xdc onwards of the character. **[open]** what feeds it. The pieces equipped
+  are added afterwards by `0x4f8270` (section 10.1).
 
 ### 10.1 Stats of a piece of equipment (six getters from `0x4e12a0`) **[code]**
 

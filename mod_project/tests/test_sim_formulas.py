@@ -164,5 +164,23 @@ class Experience(unittest.TestCase):
         self.assertAlmostEqual(behind, 16.0)                                                     # 1.25 times faster
 
 
+
+class LevelReset(unittest.TestCase):
+    def test_the_three_recipes_of_the_player_guide_reach_the_cap(self):
+        """atwiki dt2-2 page 79: 25 resets from level 70; 16 from 80 and one from 70; 12 from 90 and one from 70."""
+        def after(resets):
+            bonus = 0
+            for level in resets:
+                bonus = progression.reset_bonus(level, 1, bonus)
+            return bonus
+        self.assertEqual(after([70] * 25), progression.RESET_MAX)
+        self.assertEqual(after([70] * 24), 48)
+        self.assertEqual(after([80] * 16 + [70]), progression.RESET_MAX)
+        self.assertEqual(after([90] * 12 + [70]), progression.RESET_MAX)
+        self.assertEqual(after([99] * 10), progression.RESET_MAX)
+        self.assertEqual(after([59]), 0)                     # 58 levels given up: nothing
+        self.assertEqual(after([60]), 1)
+
+
 if __name__ == '__main__':
     unittest.main()

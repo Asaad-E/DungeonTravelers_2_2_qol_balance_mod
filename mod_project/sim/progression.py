@@ -49,3 +49,17 @@ def battles_to_reach(start_level, target_level, steps, formations, living=5, **o
         battles += steps[level + 1] / expected
         level += 1
     return battles
+
+
+# --- level reset (0x4f94f0) ---------------------------------------------------------------------------
+# (levels dropped by the reset, points added to every stat). The bonus of a character never passes RESET_MAX.
+RESET_STEPS = ((98, 5), (89, 4), (79, 3), (69, 2), (59, 1))      # 0x4f94f7 - 0x4f9534
+RESET_MAX = 50                                                   # 0x4f9540
+
+
+def reset_bonus(level_before, level_after=1, bonus=0):
+    """Bonus of a character after a level reset: what it had plus the step for the levels it gave up.
+    The bonus is added to each of its eight stats (0x4f5dab)."""
+    dropped = level_before - level_after
+    gained = next((points for levels, points in RESET_STEPS if dropped >= levels), 0)
+    return min(RESET_MAX, bonus + gained)
