@@ -380,6 +380,16 @@ The build stops on a modified line longer than its limit. Texts of the original 
 
 **Hard rule: the voice of the game is never broken.** The first version of that line read `Activation rate: about 15% (player guide; the game data holds no figure)`; the user: "horrible... nunca hacer esto NUNCA". No text of the mod may speak from outside the game: no source, no caveat, no note to the reader. Provenance and confidence live in the workbooks and in these docs. `check_game_voice` in `build_variant.py` stops the build when a modified text holds a word of the sheet `OutOfGameWords` (guide, wiki, data, binary, source, unknown...) that the game's own text did not have.
 
+### 6.6 Scripts, unique skill labels, packaging (2026-10-04, last round)
+
+**Scripts are patched in place, never resized.** An ADV script (`Lesson`, `Teaching`, `Shop*`) is bytecode with NUL-terminated strings inline; no offset or length of a string was found in it, and none is relied on. A correction is a sentence of exactly the same number of bytes (a trailing space pads it), listed in the sheet `ScriptFixes`; `build_script_fixes` replaces it, checks that it occurs once and that no other entry and no size changed, and writes the pack to `build/<variant>/Data/ENG/Script/`, from where `install_variant.py` installs it into the game's `Script/` folder.
+
+**Unique skills.** `UniqueSkillData` stores one array per skill (9 levels and the Crown) and the sentence does not always say what it measures. The sheet `UniqueSkillLabels` names it (`Activation rate` where the sentence says "may" or "occasionally", `Reflected`, `Weapon modifier`...) in place of `Lv1-9`. `UniqueSkillNotes` adds a line for a figure the entry does not store.
+
+**Item effect types decoded with the wiki's item list** (2026-10-04): `27` chance of speed up; `46` Fire Blast, `47` Ice Storm, `48` Thunder Chain, `49` Air Turbulence, `51` Soul Absorb, `93` Ice Edge, `98` Muon Plasma, `101` Tempest, `102` Stone Hammer, `103` Meteor, `104` Gaia Crush, `106` Rainbow Flash (the value is the spell level; the enemy-side pair is the one shown); `69` party cures freeze; `88` enemies flee.
+
+**Package.** `tools/package_variant.py qol` -> `dist/DT22_qol_<date>.zip`: the files that differ from the original, their originals under `Original/`, and the player README kept in `release/README_QoL.txt`.
+
 
 ## 7. Tests (what each guards)
 

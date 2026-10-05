@@ -39,6 +39,7 @@ DungeonTraveler2-2/
 │   │   ├── weapon_rank_labels.py          rank names generated from their delay multiplier
 │   │   ├── install_variant.py             puts a built variant into the game, saving what it replaces
 │   │   ├── build_variant.py               builds and verifies a variant
+│   │   ├── package_variant.py             zips a built variant for players, with originals to uninstall
 │   │   └── apply_mod.py, audit_tool.py, package_release.py   earlier mixed build
 │   ├── tests/                   unittest suite
 │   └── docs/

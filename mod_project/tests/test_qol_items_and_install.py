@@ -470,3 +470,25 @@ class RuleTexts(unittest.TestCase):
             self.assertEqual((problems, fixed, packs), ([], len(rules.rows('ScriptFixes')), ['Teaching.pck']))
             built = dict(PckArchive(os.path.join(root, 'Script', 'Teaching.pck')).files)
             self.assertIn(b'if the gap is 59 or greater between', bytes(built['CheatsTeaching_25.adv.bin']))
+
+
+class Package(unittest.TestCase):
+    """The player package: only files that differ, each with its original to uninstall, and a README."""
+
+    def test_package_holds_changed_files_their_originals_and_the_readme(self):
+        import zipfile
+        import package_variant
+        if not os.path.isdir(os.path.join(package_variant.BUILD_DIR, 'qol')):
+            self.skipTest('variant not built')
+        with tempfile.TemporaryDirectory() as out:
+            path, files, problems = package_variant.package('qol', out_dir=out, stamp='test')
+            self.assertEqual(problems, [])
+            with zipfile.ZipFile(path) as z:
+                names = set(z.namelist())
+                self.assertIn('README.txt', names)
+                for sub, name, built, original in files:
+                    self.assertEqual(z.read(f'Data/ENG/{sub}/{name}'), built)
+                    self.assertEqual(z.read(f'Original/Data/ENG/{sub}/{name}'), original)
+                    self.assertNotEqual(built, original)
+                self.assertEqual(len(names), 1 + 2 * len(files))
+                self.assertIn('Data/ENG/Script/Teaching.pck', names)

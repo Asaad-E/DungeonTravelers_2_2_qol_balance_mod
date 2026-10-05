@@ -119,7 +119,7 @@ EFFECT_NAMES = {
     137: ('Number of targets', 'Verified', 'GameFAQs: Megaton Press 2-5 targets'),
     162: ('DEF modifier', 'Verified', 'GameFAQs: Armor Penetration 16-25% PDEF down; Protect'),
     169: ('All-element resistance', 'By usage', 'Moon Curtain'),
-    170: ('Aggro', 'By usage', 'Provoke, Attract'),
+    170: ('Enmity drawn', 'By usage', 'Provoke 250, Attract 150 at every level; "Taunt" in the game table. Unit not known'),
     295: ('Heal cap', 'Verified', 'GameFAQs: Heal 100-800 healing cap'),
     # Decoded from the game's own text: an enemy attack description states the effect, and where it
     # gives a figure the figure is the stored value.
