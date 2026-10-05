@@ -230,6 +230,10 @@ FIELD_DOCS = [
     ('EnemyAttacks', 'Chant_Speed, Speed', 'EnemyAttackData 0x34, 0x44', 'float',
      'Speed of the chant (0x34) and of the attack itself (0x44) in the order of turns (docs/FORMULAS.md 5). Neither is a power', 'Verified',
      '_SetTime 0x4499d0 multiplies the speed of the enemy by both'),
+    ('EnemyAttacks', 'Accuracy, Power, Turns', 'EnemyAttackData 0x38, 0x3C, 0x40', 'float',
+     'Accuracy term of the attack in the hit formulas (0x38); what a physical attack adds to the modifiers of its attack value, '
+     'as effect 26 does for a skill (0x3C); turns its statuses last, a float the code turns into an int (0x40)', 'Verified',
+     '0x44aa49 and 0x44d5c0 read 0x38 at the start of the hit chance; 0x44b497 adds 0x3C to the modifiers; 0x557560 returns int(0x40)'),
     ('EnemyAttacks', 'EffN_ID / Value / Tail', 'EnemyAttackData 0x4C (+12 per slot)', 'int + number + int',
      'Effect slots (same effect ids as skills)', 'Verified', 'Effect count equals used slots in all 2375 entries'),
     ('FoodMenu', 'EffN_ID / Value', 'FoodMenuData 0x20 (+8 per pair)', 'int + float', 'Meal effects', 'Inferred', ''),
@@ -476,7 +480,7 @@ def build_enemy_attack_rows(problems):
             problems.append(f"{fn} ({e['name']}): effect count {count} does not match slots")
         row = [fn, i32(b, 0), e['name'], e['desc'].split('\n')[0], i32(b, 0x28),
                i32(b, 0x2C), TARGET_NAMES.get(i32(b, 0x2C), ''), i32(b, 0x30), ATTR_NAMES.get(i32(b, 0x30), ''),
-               f32(b, 0x34), f32(b, 0x38), word(b, 0x3C), word(b, 0x40), f32(b, 0x44), count]
+               f32(b, 0x34), f32(b, 0x38), f32(b, 0x3C), int(f32(b, 0x40)), f32(b, 0x44), count]
         for k, (eff_id, value, tail) in enumerate(slots):
             if k < count:
                 uses[eff_id] += 1
@@ -611,7 +615,7 @@ def write_workbook(problems):
                                  'w_0x20', 'Value', 'Message'], build_quest_rank_rows())
     add_sheet(wb, 'ExpCurve', ['Filename', 'Level', 'Req_EXP', 'SP'], build_exp_rows())
     enemy_headers = ['Filename', 'Skill_ID', 'Name', 'Header_Line', 'Anim_0x28', 'Target_Code', 'Target',
-                     'Attr_Code', 'Attr', 'Chant_Speed', 'f_0x38', 'w_0x3c', 'w_0x40', 'Speed', 'Effect_Count']
+                     'Attr_Code', 'Attr', 'Chant_Speed', 'Accuracy', 'Power', 'Turns', 'Speed', 'Effect_Count']
     for k in range(1, 6):
         enemy_headers += [f'Eff{k}_ID', f'Eff{k}_Name', f'Eff{k}_Value', f'Eff{k}_Tail']
     add_sheet(wb, 'EnemyAttacks', enemy_headers + ['Trailer', 'Vanilla_Desc'], enemy_rows)

@@ -16,6 +16,7 @@ SummonData (little endian), read by 0x4ffc90 (docs/FORMULAS.md 11):
     0x24 six floats, ATK DEF INT RES DEX AGI: each stat is the best "stat of a party member * float", and not
          below the base figure of the form
     0x3C number of attacks, 0x40 their ids (EnemyAttackData), eight bytes each
+    0x98 a kind and 0x9C the id of a passive skill (EnemyAttackData) or -1, as in a guest ally (tools/npc_data.py)
     the name is the last string of the record
 
     python mod_project/tools/summon_data.py        prints every form
@@ -42,6 +43,7 @@ def read_summon(blob):
             'rank': struct.unpack_from('<i', b, 0x20)[0],
             'factors': dict(zip(STATS, struct.unpack_from('<6f', b, 0x24))),
             'attacks': [struct.unpack_from('<i', b, 0x40 + 8 * k)[0] for k in range(max(count, 0))],
+            'passive': struct.unpack_from('<i', b, 0x9C)[0] if struct.unpack_from('<i', b, 0x9C)[0] != -1 else None,
             'name': printable[-1] if printable else ''}
 
 

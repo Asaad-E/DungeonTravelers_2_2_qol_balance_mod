@@ -380,6 +380,23 @@ The code that returns the row number (`[party vtable + 0x17c]`) is not read.
 Nothing else enters the weight: not damage dealt, not healing, not HP. Enmity in this game is the position, Provoke
 and the two enchantments.
 
+### 9.2 The record of an enemy attack (`EnemyAttackData`) **[code]**
+
+    0x2C target code      0x30 attribute        0x34 speed of its chant        0x44 speed of the attack
+    0x38 accuracy term    read first by both hit formulas (0x44aa49, 0x44d5c0)
+    0x3C power            a physical attack adds it to the modifiers of its attack value (0x44b497), where a skill
+                          of the player has effect 26
+    0x40 turns            how long its statuses last; a float the code turns into an int (0x557560)
+    0x4C five effect slots of (id, value, kind)
+
+The **kind** of an effect slot, in a skill file as in an enemy attack, says how the effect is used. By what carries
+each value in the data: 0 a passive, 2 a property of the action (power, accuracy, number of hits, fixed damage),
+3 an effect on the map, 4 something done to the target when the action lands (damage, an ailment, a drain), 5 a
+status that lasts turns.
+
+A unit record holds current HP at `0x14` and max HP at `0x18`; a party passive of an enemy or of a guest ally is one
+more `EnemyAttackData` entry (`tools/enemy_data.py`, `tools/npc_data.py`).
+
 ## 10. Stats of a character (`0x4f5d60`; row chosen by `0x5545b0`) **[code]**
 
     stat = growth row[level] + bonus of the character for that stat + one figure added to every stat
@@ -728,3 +745,20 @@ After that roll the same step rolls five special chances of the zone (`zone[0x20
 while its game flag (601 to 605) is on and it has not fired yet, and only once the dungeon counters allow it
 (`0x556380`: a counter of at least 5 and at least 50 steps, 25 with a piece of enchantment 259); the same four
 enchantments shift them. What each of the five starts was not followed.
+
+## 15. Items (`0x50c596`; `tools/item_effect_data.py`) **[code]**
+
+An item has up to four (type, value) pairs. The program turns each into an object of a class picked by a switch of
+107 cases, and the method at slot 3 of that class does the work.
+
+* **39 types perform a skill**: the method only calls `0x50b030` with a skill id. Type 90 casts Fireball, 46 Fire
+  Blast, 25 Brave, 27 Fleet Foot, 29 Accelerator, 32 War Cry, and so on (the generated map is in
+  `docs/generated/BALANCE_BASELINE.md`). The figures of such an item are those of the skill file.
+* Type 0 heals HP by its value, plus `int(value * Item Mastery)` (`0x50e789`). Recycle may keep the item (12.11).
+* Types 53 and 54 deal `int(max HP of the target * value)`, never more than 100 (`0x511b78`).
+* Type 89 takes a twentieth of the party's gold, at least 1 (`0x51438a`); the value the item stores is not used.
+* Types 56, 57, 60 and 61 act only on some enemies (a list of 23 ids, or a race) and then create an ailment for 5
+  turns; they were not followed further.
+
+A **joint skill** is computed by the magic formula: when the action is a joint skill, its Power field
+(`JoinSkillData 0x40`) is added to the modifiers of attack B (`0x44df1f`), beside effects 195 and 335.

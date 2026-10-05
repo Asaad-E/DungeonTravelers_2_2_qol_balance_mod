@@ -13,6 +13,7 @@ import skill_tree_data
 import enemy_ai
 import enemy_data
 import floor_data
+import item_effect_data
 import npc_data
 import summon_data
 from pck_handler import PckArchive
@@ -361,6 +362,19 @@ class EnemyPassives(unittest.TestCase):
         self.assertGreater(len(carried), 50)
         self.assertTrue(all('Passive' in text[a] for a in carried))
         self.assertTrue(all(len(e['passives']) == e['raw_f0'][0] for e in enemies))
+
+
+class ItemEffects(unittest.TestCase):
+    def test_types_that_perform_a_skill(self):
+        """The class of an item effect type (switch at 0x50c596) calls 0x50b030 with a skill id: type 90 is Fireball,
+        27 and 29 are the two speed skills the player guides could not tell apart."""
+        performs = item_effect_data.skill_items()
+        names = item_effect_data.skill_names()
+        self.assertEqual(len(performs), 39)
+        self.assertEqual(names[performs[90][0]], 'Fireball')
+        self.assertEqual((names[performs[27][0]], names[performs[29][0]]), ('Fleet Foot', 'Accelerator'))
+        self.assertEqual(names[performs[32][0]], 'War Cry')
+        self.assertNotIn(0, performs)                                         # healing has code of its own
 
 
 class Dolls(unittest.TestCase):

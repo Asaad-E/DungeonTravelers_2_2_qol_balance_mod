@@ -1412,6 +1412,52 @@ Every doll has 9,999 HP and lasts a number of turns; on its turn it performs a h
 | Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Air Cutter) | Single enemy | Wind |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
 | Musiy | 4 -> 4 -> 4 -> 4 -> 4 -> 4 -> 4 | 38 -> 42 -> 46 -> 51 -> 56 -> 62 -> 68 | Musiy's Action (Stone Hammer) | Single enemy | Earth |  | 1.5 | Magic power: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 |
 
+## Items that perform a skill
+
+39 of the item effect types make the item perform a skill of the game (`tools/item_effect_data.py`, `docs/FORMULAS.md` 15). The value column is what the items store next to the type.
+
+| Type | Skill performed | Item entries | Values stored | Items (first four) |
+|---|---|---|---|---|
+| 25 | Brave | 29 | 0.2, 0.3, 0.35, 0.4, 0.5, 0.7, 0.75, 0.8, 0.9 | Alienation Sauce, Cleaver Sharpener, Deep-Fried Mystery, Hamburg Steak |
+| 26 | Protect | 15 | 0.25, 0.3, 0.5, 0.6, 0.7, 0.75, 0.8 | Arabushi, Dried Mandra, Eclaire, Goopy Cracker |
+| 27 | Fleet Foot | 16 | 0.25, 0.3, 0.4, 0.5, 0.6, 0.8, 0.85 | Accelerator, Book of the Fist, Cider, Highway Pass |
+| 28 | Slow | 10 | 0.05, 0.1, 0.2, 0.3, 0.4, 0.6 | Ogre Pin, Slime Bar, Slime Gum, Slime Jelly |
+| 29 | Accelerator | 14 | 0.25, 0.4, 0.5, 0.75, 0.8 | Ephemerol, Habanero Cider, Hoki Naiden, Horse Jerkey |
+| 30 | Berserk | 13 | 0.2, 0.4, 0.5, 0.75, 0.8, 0.85 | Alienation Sauce, Ancient Awamori, Book of the Fist, Deep-Fried Mystery |
+| 31 | Defender | 5 | 0.25, 0.5, 0.7, 0.8 | Dried Mandra, Goopy Cracker, Peppifier Anpan, Saucy Cracker |
+| 32 | War Cry | 2 | 0.2, 0.3 | Order Medal |
+| 33 | Circle Heal | 0 |  |  |
+| 34 | Circle Nurse | 18 | 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 0.95 | Advanced Cookie, Devil Drop, Eel Liver Soup, Evergreen Wellwater |
+| 37 | Aim | 22 | 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.95 | Cat's Eye, Cat's Warning, Colorful Macarons, Festive Monaka |
+| 38 | Evade | 22 | 0.15, 0.2, 0.25, 0.3, 0.4, 0.6, 0.8, 0.9, 1 | Accelerator, Bubble Lotion, Crimson Jewel, Dragon Egg |
+| 40 | Dispel | 8 | 0.75, 0.9, 0.95 | Bavarian Cream, Dragon Sphere, Leaf, World Peace Button |
+| 41 | Amplify | 11 | 0.4, 0.5, 0.75, 0.8, 0.95, 0.99 | Muscle Protein, Oasis Water, Personality Switch Goggles, Sea Turtle Soup |
+| 43 | Divine Shield | 12 | 0.2, 0.25, 0.35, 0.4, 0.5, 0.75, 0.8 | Drop of Mirage, Mattake, Rune Amulet, Sun Cake |
+| 44 | Insurance | 12 | 0.2, 0.3, 0.6, 0.65, 0.8, 0.9 | Bean Paste Cake, Crimson Jewel, Heaven Cake, Insta-Filter |
+| 46 | Fire Blast | 6 | 1, 10, 2, 4 | Deathly Black Torch, Flame Cage, Pipe Bomb |
+| 47 | Ice Storm | 6 | 1, 2, 3, 4 | Everlasting Ice, Rain Incense, Rainfall Radar |
+| 48 | Thunder Chain | 2 | 2 | Void Thunder |
+| 49 | Air Turbulence | 2 | 1, 3 | Specially Made Fan |
+| 50 | Stone Shower | 0 |  |  |
+| 51 | Soul Absorb | 12 | 1, 2, 3, 4, 5, 6 | Bloody Menorah, Demon Almanac, Lolita Stick, Melange |
+| 90 | Fireball | 4 | 3, 6, 7 | Chi, Methane Hydrate |
+| 91 | Inferno | 0 |  |  |
+| 92 | Crimson Flare | 0 |  |  |
+| 93 | Ice Edge | 4 | 1, 2, 4 | Glacier Fragment, Plunger Stick |
+| 94 | Diamond Dust | 0 |  |  |
+| 95 | Cocytus | 0 |  |  |
+| 96 | Thunderbolt | 0 |  |  |
+| 97 | Lightning | 0 |  |  |
+| 98 | Muon Plasma | 2 | 1, 3 | Crystal Skull |
+| 99 | Air Cutter | 0 |  |  |
+| 100 | Tornado | 0 |  |  |
+| 101 | Tempest | 2 | 2, 4 | Tempest Orb |
+| 102 | Stone Hammer | 2 | 1, 2 | Drill Mecha Toy |
+| 103 | Meteor | 4 | 1, 3 | Habaki Figurine, Moon Titanium |
+| 104 | Gaia Crush | 4 | 2, 4, 5 | Lost Continent Soil, Magic Globe |
+| 105 | Shine Curse | 0 |  |  |
+| 106 | Rainbow Flash | 4 | 1, 2, 3, 5 | Rainbow Fluid, Rainbow Gem |
+
 ## Random moves
 
 A skill of this kind rolls on a table written in the executable and performs the hidden skill that comes out (`tools/random_move_data.py`, `docs/FORMULAS.md` 12.10). The second column of chances is the table used when the user has Triple Joker.
