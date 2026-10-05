@@ -451,6 +451,52 @@ def check_game_voice(tables, problems):
     return checked
 
 
+def backup_path(pck):
+    """Parameter packs sit in backups/, the scripts that share a name with one in backups/Script/."""
+    path = os.path.join(BACKUP_DIR, pck)
+    return path if os.path.exists(path) else os.path.join(BACKUP_DIR, 'Script', pck)
+
+
+def build_script_fixes(out_dir, problems):
+    """Sentences of lessons, tutorials and shops that state a rule wrongly (sheet ScriptFixes).
+    A script is bytecode: the replacement has the same number of bytes and nothing else moves."""
+    script_dir = os.path.join(os.path.dirname(out_dir), 'Script')
+    if os.path.isdir(script_dir):
+        for stale in os.listdir(script_dir):
+            os.remove(os.path.join(script_dir, stale))
+    by_pack = collections.defaultdict(list)
+    for row in rules.rows('ScriptFixes'):
+        by_pack[row['Pack']].append(row)
+    fixed = 0
+    for pck, rows in by_pack.items():
+        archive = PckArchive(backup_path(pck))
+        names = [fn for fn, _ in archive.files]
+        for row in rows:
+            label = f"{pck}/{row['Entry']}"
+            old, new = row['Original'].encode('utf-8'), row['Replacement'].encode('utf-8')
+            if row['Entry'] not in names:
+                problems.append(f"{label}: no such entry")
+                continue
+            i = names.index(row['Entry'])
+            data = bytes(archive.files[i][1])
+            if len(old) != len(new):
+                problems.append(f"{label}: the replacement has {len(new)} bytes, the original {len(old)}")
+            elif data.count(old + bytes(1)) != 1:
+                problems.append(f"{label}: the original sentence is not in the entry exactly once")
+            elif out_of_game_words(row['Replacement'], row['Original']):
+                problems.append(f"{label}: the replacement speaks from outside the game")
+            else:
+                archive.files[i] = (row['Entry'], data.replace(old + bytes(1), new + bytes(1)))
+                fixed += 1
+        os.makedirs(script_dir, exist_ok=True)
+        archive.save(os.path.join(script_dir, pck))
+        original, built = PckArchive(backup_path(pck)).files, PckArchive(os.path.join(script_dir, pck)).files
+        changed = [fn for (fn, a), (_, b) in zip(original, built) if bytes(a) != bytes(b)]
+        if sorted(changed) != sorted(r['Entry'] for r in rows) or any(len(a) != len(b) for (_, a), (_, b) in zip(original, built)):
+            problems.append(f"{pck}: entries other than the corrected ones changed, or a size changed")
+    return fixed, sorted(by_pack)
+
+
 def build_weapon_ranks(out_dir):
     """Rank names are generated from the multiplier of each entry; the multipliers are not touched."""
     archive = PckArchive(os.path.join(BACKUP_DIR, RANK_PCK))
@@ -708,6 +754,8 @@ def main():
             ('joint skills', [(k, r['vanilla'], r['desc']) for k, r in joint.items()]),
         ], problems)
         print(f"    Voice of the game: {voiced} modified texts hold no word that speaks from outside it")
+        fixed, script_pcks = build_script_fixes(out_dir, problems)
+        print(f"    Built {', '.join(script_pcks) or 'no script'}: {fixed} sentence(s) corrected, same length, nothing else touched")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:

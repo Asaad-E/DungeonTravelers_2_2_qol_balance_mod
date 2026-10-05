@@ -423,3 +423,50 @@ class VoiceOfTheGame(unittest.TestCase):
         for row in rules.rows('UniqueSkillNotes'):
             self.assertEqual(out_of_game_words(row['Line']), [], row['Line'])
             self.assertTrue(row['Source'])        # where it comes from stays in the workbook
+
+
+class RuleTexts(unittest.TestCase):
+    """Step 6 of the roadmap: figures that lessons, tutorials, shops and quests state, against the data."""
+
+    def test_quest_reward_lines_name_the_level_the_quest_stores(self):
+        checked = 0
+        for fn, b in PckArchive(os.path.join(_paths.BACKUP_DIR, 'QuestData.pck')).files:
+            b = bytes(b)
+            if len(b) < 0x58:
+                continue
+            p = struct.unpack_from('<Q', b, 0x50)[0]
+            if not 0 < p < len(b):
+                continue
+            text = b[p:b.find(bytes(1), p)].decode('utf-8', 'replace')
+            if ' +' not in text:
+                continue
+            stated = int(text.split(' +')[1].split(' ')[0])
+            with self.subTest(quest=fn):
+                self.assertEqual(stated, struct.unpack_from('<i', b, 0x44)[0], text)
+            checked += 1
+        self.assertEqual(checked, 40)
+
+    def test_shop_talk_quotes_the_prices_and_amounts_of_the_items(self):
+        items = {}
+        for _, b in PckArchive(os.path.join(_paths.BACKUP_DIR, bv.ITEM_PCK)).files:
+            items[ItemHelper.read_item(b)['name']] = (struct.unpack_from('<i', b, 0x1C)[0], item_pairs(b)[0])
+        self.assertEqual(items['Danish'][0], 450)                          # "Usually 450 gold each"
+        self.assertEqual(items['Fairy Apple'], (900, (1, 50.0)))           # "recover 50 TP for the low price of 900 gold"
+        self.assertEqual(items['Gateau Au Chocolat'], (600, (3, 100.0)))   # "heals 100 HP for your whole party ... Only 600 gold"
+        self.assertEqual(items['Rice Cracker'][1], (0, 75.0))              # "They recover 75 HP"
+
+    def test_script_fixes_keep_the_length_and_touch_one_sentence(self):
+        import rules
+        for row in rules.rows('ScriptFixes'):
+            old, new = row['Original'].encode('utf-8'), row['Replacement'].encode('utf-8')
+            self.assertEqual(len(old), len(new), row['Entry'])
+            entries = dict(PckArchive(bv.backup_path(row['Pack'])).files)
+            self.assertEqual(bytes(entries[row['Entry']]).count(old + bytes(1)), 1)
+        problems = []
+        with tempfile.TemporaryDirectory() as root:
+            out = os.path.join(root, 'Parameter')
+            os.makedirs(out)
+            fixed, packs = bv.build_script_fixes(out, problems)
+            self.assertEqual((problems, fixed, packs), ([], len(rules.rows('ScriptFixes')), ['Teaching.pck']))
+            built = dict(PckArchive(os.path.join(root, 'Script', 'Teaching.pck')).files)
+            self.assertIn(b'if the gap is 59 or greater between', bytes(built['CheatsTeaching_25.adv.bin']))

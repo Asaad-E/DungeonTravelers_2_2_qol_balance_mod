@@ -60,8 +60,9 @@ def expected_files(variant, backup_dir=BACKUP_DIR, build_dir=BUILD_DIR, game_dir
     for key, path, sub in backup_files(backup_dir):
         name = os.path.basename(path)
         sub = sub or game_location(name, game_dir)
-        built = os.path.join(built_dir, name)
-        if sub == 'Parameter' and os.path.exists(built):
+        # built script packs sit beside the Parameter ones: build/<variant>/Data/ENG/Script/
+        built = os.path.join(os.path.dirname(built_dir), sub, name) if sub else ''
+        if sub and os.path.exists(built):
             expected[f'{sub}/{name}'] = (read(built), f'{variant} build')
         else:
             expected[f'{sub}/{name}' if sub else key] = (read(path), 'original')
