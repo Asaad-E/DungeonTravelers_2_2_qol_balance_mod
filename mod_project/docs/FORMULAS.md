@@ -104,7 +104,8 @@ final     = damage C * (1 + other bonuses) * critical
 ```
 
 * A spell adds its **power** to `INT * 2` before the multipliers; defence is `RES * 1.5`, also subtracted.
-* **[open]** the instructions of this function (its constants and caps), the zones ("攻撃値Ａ倍率変更": a zone multiplies attack A, before defence, as the guide says).
+* Read in the code (`0x44d370`): the hit chance is kept between 25 and 95 (`0x44da2b`, `0x44da37`); magic accuracy enchantments count 3 per piece, capped at 50 (`0x44d67b`, `0x44d699`); attack A is `INT * (2 + swing)` (`0x44dc97`); the power of the spell is effect 1; the enchantments that boost the magic of one element add 0.20 per piece (`0x44e070` and the five blocks after it, effects 325 to 329).
+* **[open]** the rest of this function (defence side, the caps of the other enchantments), the zones ("攻撃値Ａ倍率変更": a zone multiplies attack A, before defence, as the guide says).
 
 ## 4. Critical hits **[message]**
 
