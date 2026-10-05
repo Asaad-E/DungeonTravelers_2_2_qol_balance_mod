@@ -148,17 +148,18 @@ class Floors(unittest.TestCase):
         cls.floors = floor_data.floors()
         cls.enemy_ids = {e['id'] for e in enemy_data.enemies()}
 
-    def test_every_floor_shares_out_one_hundred_among_its_formations(self):
-        self.assertGreater(len(self.floors), 100)
+    def test_every_zone_shares_out_one_hundred_among_its_formations(self):
+        self.assertGreater(len(self.floors), 170)
+        self.assertGreater(len({f['floor'] for f in self.floors}), 100)
         for floor in self.floors:
-            with self.subTest(floor=floor['floor']):
+            with self.subTest(floor=floor['name']):
                 self.assertEqual(sum(f['chance'] for f in floor['formations']), 100)
                 self.assertEqual([f['number'] for f in floor['formations']], list(range(1, len(floor['formations']) + 1)))
 
     def test_every_formation_holds_known_enemies(self):
         for floor in self.floors:
             for formation in floor['formations']:
-                with self.subTest(floor=floor['floor'], formation=formation['number']):
+                with self.subTest(floor=floor['name'], formation=formation['number']):
                     self.assertTrue(formation['enemies'])
                     self.assertTrue({e for e, _ in formation['enemies']} <= self.enemy_ids)
 
@@ -166,7 +167,7 @@ class Floors(unittest.TestCase):
         for floor in self.floors:
             for formation in floor['formations']:
                 if len(formation['enemies']) == 1:
-                    self.assertTrue(formation['enemies'][0][1], floor['floor'])
+                    self.assertTrue(formation['enemies'][0][1], floor['name'])
 
 
 

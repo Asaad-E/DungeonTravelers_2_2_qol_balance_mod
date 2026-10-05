@@ -166,20 +166,21 @@ def class_sections():
 def floor_sections(enemies):
     by_id = {e['id']: e for e in enemies}
     floors = floor_data.floors()
-    lines = ['## Random formations per floor', '',
-             f"{sum(len(f['formations']) for f in floors)} formations on {len(floors)} floors. Every figure of a floor is "
-             'weighted by the chance of each formation (the chances of a floor add up to 100).', '']
+    lines = ['## Random formations per zone', '',
+             f"{sum(len(f['formations']) for f in floors)} formations in {len(floors)} zones of {len({f['floor'] for f in floors})} floors "
+             '(a floor has one to seven zones, each with its own table). Every figure of a zone is weighted by the chance '
+             'of each formation (the chances of a zone add up to 100).', '']
     rows = []
     for floor in floors:
         forms = floor['formations']
         mean = lambda value: sum(f['chance'] * value(f) for f in forms) / 100.0
         levels = [by_id[e]['level'] for f in forms for e, _ in f['enemies']]
         total = lambda key: (lambda f: sum(by_id[e][key] for e, _ in f['enemies']))
-        rows.append([floor['floor'], len(forms), f"{mean(lambda f: len(f['enemies'])):.1f}",
+        rows.append([floor['name'], len(forms), f"{mean(lambda f: len(f['enemies'])):.1f}",
                      max(len(f['enemies']) for f in forms), f'{min(levels)}-{max(levels)}',
                      number(mean(total('hp'))), number(mean(total('exp'))), number(mean(total('gold'))),
                      f"{100 * mean(lambda f: sum(not front for _, front in f['enemies']) / len(f['enemies'])):.0f}%"])
-    lines += table(['Floor', 'Formations', 'Enemies per battle', 'Most enemies', 'Enemy levels', 'HP per battle',
+    lines += table(['Zone', 'Formations', 'Enemies per battle', 'Most enemies', 'Enemy levels', 'HP per battle',
                     'EXP per battle', 'Gold per battle', 'Enemies in the back row'], rows)
     seen = {e for floor in floors for f in floor['formations'] for e, _ in f['enemies']}
     lines += ['', f'{len(seen)} of the {len(enemies)} enemies appear in a random formation; the others are placed by events.']
@@ -198,22 +199,22 @@ def catch_up_sections(enemies):
     mean_level = lambda floor: sum(f['chance'] * statistics.mean(by_id[e]['level'] for e, _ in f['enemies'])
                                    for f in floor['formations']) / 100.0
     lines = ['## Catching up', '',
-             'Random battles a member needs to reach the level of the party, fighting on the floor whose enemies are closest '
+             'Random battles a member needs to reach the level of the party, fighting in the zone whose enemies are closest '
              f'to that level, with {PARTY} members alive and no EXP bonus (`sim/progression.py`, `docs/FORMULAS.md` 6c). '
-             '"Own pace" is what one more level costs a member who is already on level, on the same floor. Bosses, quests and '
+             '"Own pace" is what one more level costs a member who is already on level, in the same zone. Bosses, quests and '
              'the EXP the party itself keeps gaining are left out.', '']
     rows = []
     for level in CHECKPOINTS:
-        floor = min(floors, key=lambda f: (abs(mean_level(f) - level), f['floor']))
+        floor = min(floors, key=lambda f: (abs(mean_level(f) - level), f['name']))
         forms = [(f['chance'], [(by_id[e]['level'], by_id[e]['exp']) for e, _ in f['enemies']]) for f in floor['formations']]
         cost = lambda start, **options: progression.battles_to_reach(start, level, steps, forms, living=PARTY, **options)
-        row = [level, floor['floor'], f'{mean_level(floor):.0f}', f'{progression.battles_to_reach(level, level + 1, steps, forms, living=PARTY):.0f}']
+        row = [level, floor['name'], f'{mean_level(floor):.0f}', f'{progression.battles_to_reach(level, level + 1, steps, forms, living=PARTY):.0f}']
         for behind in BEHIND:
             start = max(1, level - behind)
             row += [f'{cost(start):.0f}', f'{cost(start, double_exp_piece=True):.0f}']
         row.append(f'{cost(1):.0f}')
         rows.append(row)
-    headers = ['Party level', 'Floor', 'Mean enemy level', 'Own pace (battles per level)']
+    headers = ['Party level', 'Zone', 'Mean enemy level', 'Own pace (battles per level)']
     for behind in BEHIND:
         headers += [f'{behind} levels behind', f'{behind} behind, Double EXP piece']
     lines += table(headers + ['From level 1'], rows)
