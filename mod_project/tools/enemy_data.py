@@ -17,7 +17,12 @@ EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 
                        0x44 weight: its term in the order of turns (docs/FORMULAS.md 5)
     0x48 eight resistances: slash, stab, bash, fire, water, wind, earth, lightning
          (Selene: 15, 30, 0, 10, 0, 0, 20, 20, the figures of her status screen)
-    0x68..0xA8 drops and materialize (not decoded field by field yet)
+    0x68 number of items it can drop (0 to 2), then (item id, chance in percent) at 0x6C and 0x74
+         (the result of a battle walks them, 0x445db1)
+    0x7C, 0x80 two ints read when it falls (0x558180, 0x52da31); not identified
+    0x84 what can be stolen from it: a flag, an id at 0x88, a chance in percent at 0x8C (the steal code reads 0x84)
+    0x90..0xA4 two more groups of flag, id, chance; not identified
+    0xA8 the item it becomes when turned into a snack (0x48151f)
     0xAC number of attacks, 0xB0 attack ids (EnemyAttackData), -1 where unused
     0x108 habitat pointer; six ints from 0x110 (not decoded)
 """
@@ -60,6 +65,10 @@ def read_status(b):
     count = struct.unpack_from('<i', b, ATTACK_COUNT)[0]
     enemy['attacks'] = [a for a in struct.unpack_from(f'<{ATTACK_SLOTS}i', b, ATTACK_IDS) if a != -1][:max(count, 0)]
     enemy['raw_68'] = list(struct.unpack_from('<17i', b, 0x68))
+    raw = enemy['raw_68']
+    enemy['drops'] = [(raw[1 + 2 * k], raw[2 + 2 * k]) for k in range(max(0, min(raw[0], 2))) if raw[1 + 2 * k] != -1]
+    enemy['steal'] = (raw[8], raw[9]) if raw[9] not in (-1, 0) else None
+    enemy['snack_item'] = raw[16] if raw[16] != -1 else None
     enemy['raw_f0'] = list(struct.unpack_from('<6i', b, 0xF0))
     enemy['raw_110'] = list(struct.unpack_from('<6i', b, 0x110))
     return enemy

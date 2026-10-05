@@ -55,6 +55,13 @@ class Enemies(unittest.TestCase):
         share = lambda group: sum(len(e['immune']) for e in group) / len(group)
         self.assertGreater(share(strong), share(weak))          # set bits are immunities: late enemies carry more
 
+    def test_drops_are_items_with_a_chance(self):
+        self.assertEqual({e['name']: e['drops'] for e in self.enemies if e['name'] == 'Medic'}['Medic'], [(588, 14), (24, 15)])
+        for enemy in self.enemies:
+            for item, chance in enemy['drops']:
+                with self.subTest(enemy=enemy['name']):
+                    self.assertTrue(item >= 0 and 0 < chance <= 100)
+
     def test_every_attack_exists(self):
         attack_ids = {struct.unpack_from('<i', b, 0)[0]
                       for _, b in PckArchive(os.path.join(_paths.BACKUP_DIR, 'EnemyAttackData.pck')).files}
