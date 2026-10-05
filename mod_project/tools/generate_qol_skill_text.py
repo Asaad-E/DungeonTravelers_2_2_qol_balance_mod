@@ -632,6 +632,7 @@ def generate_line1(skill, row):
 
 
 UNIQUE_NOTES = rules.pairs('UniqueSkillNotes', 'Skill', 'Line')
+UNIQUE_LABELS = rules.pairs('UniqueSkillLabels', 'Skill', 'Label')    # what the numbers measure
 
 
 def generate_unique(unique):
@@ -639,7 +640,7 @@ def generate_unique(unique):
     style = 'pct' if is_fraction(values) else 'num'
     if style == 'pct' and any(v < 0 for v in values):
         style = 'signed_pct'
-    levels = Segment('Lv1-9', values[:9], style)
+    levels = Segment(UNIQUE_LABELS.get(unique['name'], 'Lv1-9'), values[:9], style)
     crown = Segment('Crown EX', values[9:], style)
     line = levels.render('const' if levels.is_constant() else 'list') + SEP + crown.render('const')
     note = UNIQUE_NOTES.get(unique['name'])     # a figure only a guide gives; the line says so

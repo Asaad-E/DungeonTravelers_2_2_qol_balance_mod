@@ -34,6 +34,8 @@ AILMENT_LABELS = {
 }
 EFFECT_LABELS = {'HP Absorb': 75, 'TP Absorb': 76, 'Targets': 137, 'Heal Cap': 295}
 UNIQUE_VALUES = 0x1C
+UNIQUE_NOTE_LINES = set(rules.pairs('UniqueSkillNotes', 'Skill', 'Line').values())
+UNIQUE_LABELS = set(rules.pairs('UniqueSkillLabels', 'Skill', 'Label').values())   # in place of 'Lv1-9'
 TOLERANCE = 0.006
 
 
@@ -110,7 +112,7 @@ def expected_tables(label, category, tables):
         return [v for i, _, v in slots if i == AILMENT_LABELS[label]]
     if label in EFFECT_LABELS:
         return [v for i, _, v in slots if i == EFFECT_LABELS[label]]
-    if label == 'Lv1-9':
+    if label == 'Lv1-9' or (label in UNIQUE_LABELS and tables.get('unique')):
         return [tables.get('unique')]
     if label == 'Crown EX':
         return [tables.get('ex')]
@@ -119,6 +121,8 @@ def expected_tables(label, category, tables):
 
 def check_skill_text(category, b, text):
     """Returns (problems, verified claims, numbers that could not be tied to any table)."""
+    if category == 'Unique':     # a line of the sheet UniqueSkillNotes holds a figure the entry does not store
+        text = chr(10).join(line for line in text.split(chr(10)) if line not in UNIQUE_NOTE_LINES)
     tables = skill_tables(category, b)
     everything = [v for k, v in tables.items() if k not in ('levels', 'slots') and v] + [v for _, _, v in tables['slots']]
     problems, verified, loose = [], 0, []
