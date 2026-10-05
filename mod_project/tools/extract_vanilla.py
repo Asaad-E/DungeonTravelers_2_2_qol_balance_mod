@@ -227,8 +227,8 @@ FIELD_DOCS = [
     ('QuestRanks', 'Reward_Type / Value', 'QuestRankData 0x10 / 0x24', 'int', 'Reward kind and amount', 'Verified',
      'Reward messages'),
     ('ExpCurve', 'Req_EXP / SP', 'LvExpSkptData 0x04 / 0x08', 'int', 'EXP needed for the level and SP granted', 'Verified', ''),
-    ('EnemyAttacks', 'Speed_0x34, Speed_0x44', 'EnemyAttackData 0x34, 0x44', 'float',
-     'The two factors of the attack in the order of turns (docs/FORMULAS.md 5). Neither is a power', 'Verified',
+    ('EnemyAttacks', 'Chant_Speed, Speed', 'EnemyAttackData 0x34, 0x44', 'float',
+     'Speed of the chant (0x34) and of the attack itself (0x44) in the order of turns (docs/FORMULAS.md 5). Neither is a power', 'Verified',
      '_SetTime 0x4499d0 multiplies the speed of the enemy by both'),
     ('EnemyAttacks', 'EffN_ID / Value / Tail', 'EnemyAttackData 0x4C (+12 per slot)', 'int + number + int',
      'Effect slots (same effect ids as skills)', 'Verified', 'Effect count equals used slots in all 2375 entries'),
@@ -611,7 +611,7 @@ def write_workbook(problems):
                                  'w_0x20', 'Value', 'Message'], build_quest_rank_rows())
     add_sheet(wb, 'ExpCurve', ['Filename', 'Level', 'Req_EXP', 'SP'], build_exp_rows())
     enemy_headers = ['Filename', 'Skill_ID', 'Name', 'Header_Line', 'Anim_0x28', 'Target_Code', 'Target',
-                     'Attr_Code', 'Attr', 'Speed_0x34', 'f_0x38', 'w_0x3c', 'w_0x40', 'Speed_0x44', 'Effect_Count']
+                     'Attr_Code', 'Attr', 'Chant_Speed', 'f_0x38', 'w_0x3c', 'w_0x40', 'Speed', 'Effect_Count']
     for k in range(1, 6):
         enemy_headers += [f'Eff{k}_ID', f'Eff{k}_Name', f'Eff{k}_Value', f'Eff{k}_Tail']
     add_sheet(wb, 'EnemyAttacks', enemy_headers + ['Trailer', 'Vanilla_Desc'], enemy_rows)

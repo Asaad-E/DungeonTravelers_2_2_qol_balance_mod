@@ -145,7 +145,7 @@ wait until the next turn = 1 - value
 
 * **weight** is a virtual call of the unit (slot `0xf4`). For a player it is the delay multiplier of the rank of the equipped weapon (the float of `WeaponRankData`: 1.00 for A+ up to 2.90 for F). **For an enemy it is the float at `0x44` of `EnemyStatusData`** (`0x4f2150`, slot `0xf4` of the enemy class) **[code]**. Summons and mercenaries take a rank index from their own record and return the delay of that weapon rank (`0x4feeb0`, `0x5001d0`). Ordinary enemies carry weights in the range of the weapon ranks; bosses carry a fraction of the lightest weapon, which is why they act several times per turn of the party: it is one number per enemy, in data.
 * **The weapon term is subtracted from the base and grows with the level of the unit.** A slow weapon does not multiply the wait: it takes a bite of `weight / 12 * (1 + level / 100)` out of a base that depends on AGI. The slower the class, the larger the share it loses, and the bite doubles between level 1 and level 99. This is the mechanism behind the complaint about two-handed weapons, and it means that changing the twelve multipliers does not act as a percentage.
-* **`F1`, `F2`**: factors of the action, read from the skill for a player (`[vtable+0x154]`, `[vtable+0x158]`); 1 for a plain action such as defending. One of them is the speed shown in the skill box: higher is sooner **[open: which is which]**. For an enemy they are two floats of the attack record: file offsets `0x44` and `0x34` of `EnemyAttackData` (`0x449d53`, `0x449e20`). The float at `0x44`, taken until now for the power of the attack, is its speed factor.
+* **`F1`, `F2`**: factors of the action; 1 for a plain action such as defending. `F1` is the speed of the action itself, the one the skill box shows (higher is sooner): `[vtable+0x154]` of the skill for a player (`0x449cb0`), the float at file offset 0x44 of the attack for an enemy (`0x449d53`), left at 1 for an enemy attack that is chanted. `F2` is the speed of the chant, used while the unit is chanting: `[vtable+0x158]` for a player spell (`0x449d9a`), the float at file offset 0x34 for a chanted enemy attack (`0x449e20`). Neither is a power.
 * **slow**: 0.5 while the unit has status 122, else 1 (`0x449e65`).
 * **buffs**, added together. Acting: effects 168 (speed buff), 217, 221, and 261 while HP is at or below 40% of max; plus 201, 340, 276, 277 and, in one case, 316. Chanting: effects 214, 265, 281.
 * **enchantments**: acting, +0.10 per piece of enchantment 51 (speed UP), +0.05 per piece of 52, -0.10 per piece of 53; chanting, +0.20 per piece of 54 (chant speed UP), +0.10 per piece of 55, -0.20 per piece of 56. Each sum is kept between -0.5 and +0.5 (`0x44a1b3 - 0x44a1d4`): five speed UP or three chant speed UP reach the cap.
@@ -218,7 +218,7 @@ cap    = cap + cap * effect 317 of the caster                                   
 
 ## 8. Still to read
 
-1. In `_SetTime`: which of `F1`, `F2` is the skill speed.
+1. In `_SetTime`: the branch for action kind 8 with the chant flag (`0x449e54`), not followed to its end.
 2. The magic function, instruction by instruction.
 3. The "1 in 3" interruption of a chant by a critical hit; the minimum of a spell.
 4. Zone factor `0x44fbb0`, case by case.
