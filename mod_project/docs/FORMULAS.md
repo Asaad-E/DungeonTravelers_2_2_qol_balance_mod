@@ -203,3 +203,45 @@ The messages also name every chance roll of a passive or unique skill as it is r
 5. Turn delay (effect 54) and turn skipping: their rolls and what makes an enemy immune.
 6. Healing constants and caps; EXP division and the factor by level gap; enmity and targeting (`cbattleai2.cpp`).
 7. Every enchantment magnitude (the calls through `[vtable+0xf0]`), into a generated table.
+
+## 9. Enemy AI script (`EnemyAIData.bin`, `cbattleai2.cpp`)
+
+Read from the parser `0x431690`, its value reader `0x4319d0`, the check `0x431aa0`, the result `0x432fd0` and the
+runner `0x430f10`. The layout below parses all 516 scripts to their terminator.
+
+**Layout.** Enemy id (u16, big endian), commands, `0xFF`. A command is one id byte, its arguments, a result word
+(u16, big endian) and, at top level only, two tail bytes. Command 0 and 1 have no result and no tail.
+
+| Id | Arguments | Passes when |
+|---|---|---|
+| 0 | set number, 16 weights (one per attack slot) | defines a set of attack weights |
+| 1 | skill word, target kind | changes the target of that skill (`0x433350`) |
+| 2 | word N | turns taken + 1 <= N |
+| 3 | source, N | value of the source <= N |
+| 4, 11 | source | the source exists (ailment check, buff check) |
+| 5 | skill word | the last skill this unit used is that skill |
+| 6 | skill word | that skill is active on itself, on an opponent, or its summon is out |
+| 7 | skill word, N | that skill was used N times or more (and is the one chosen, if one is chosen) |
+| 9 | none | an ally is dead |
+| 10, 12, 13, 14 | source, N | value of the source > N, >= N, < N, == N |
+| 15 | skill word | that skill reached its use limit |
+| 8 | | not a command (the parser stops with an error) |
+
+**Result word.** `0x2000 + n`: switch to set n. `0x4000 + n`: use attack slot n. `0x8000 + id`: use that attack id.
+`0x1000 + c`: a further command c follows (no tail) and must pass too.
+**Tail.** First byte not 0: the command fires only once. Second byte not 0: stop reading commands after a set switch.
+
+**Sources** (function `0x432690`, in the order of its code; the numbering is read from that order, not yet from the
+switch itself): own HP ratio, lowest HP ratio among allies, among opponents, lowest TP ratio among allies, among
+opponents, an ally with an ailment, an opponent with an ailment, a chanting opponent, an opponent in the back row,
+in the front row, an opponent with a buff, an ally with a debuff.
+
+**Choice of attack** (`0x430f10`): the set is 0; the commands before the first set run in order until one decides.
+With no attack decided, a number below the sum of the 16 weights of the current set is rolled and the slot it falls
+in is taken; then the commands of that set run. A set switch marks the set as done and rolls again in the new one.
+Silence, freeze and shadow bind replace the choice with attack slot 0.
+
+**Target** (`0x43b0d0` -> `0x43f450`): the scope comes from the attack record (file 0x2C). For a single target the
+code either rolls evenly among the candidates (`0x490790`) or, at `0x43f7e9`, builds a list of the value at offset
+0x70 of each candidate and hands it to `0x505ad0`. That call is not read yet: a pick weighted by that value (Enmity)
+is the likely reading and must be confirmed, together with what writes offset 0x70.
