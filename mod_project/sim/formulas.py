@@ -19,6 +19,7 @@ DEFENDING = 0.5                # 0x44c576
 DAMAGE_CUT_FLOOR = 0.75        # 0x44bc5f
 INTERRUPT_HP_FACTOR = 1.5      # 0x44d03a
 INTERRUPT_MAX = 0.95           # 0x44d056
+INTERRUPT_CRITICAL = 33        # 0x44d238   second roll of a critical hit, in a hundred
 SPEED_STAT_BASE, SPEED_STAT_DIV = 100.0, 200.0    # 0x449b4c, 0x449b58
 WEIGHT_DIV = 12.0              # 0x449bab
 SPEED_HALF = 0.5               # 0x449e72
@@ -133,11 +134,15 @@ def magic_damage(intel, power, target_res, mastery=0.0, modifiers=0.0, enchant=0
 
 
 # --- chant interruption and critical hits -----------------------------------------------------------
-def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0):
-    """Chance that a hit of this damage breaks the chant of a unit with this max HP (0 to 0.95).
-    modifier: effect 264 (Concentrate); enchant: the sum the code subtracts."""
+def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0, critical=False):
+    """Chance that a hit of this damage breaks the chant of a unit with this max HP.
+    modifier: effect 264 (Concentrate); enchant: the sum the code subtracts. The rate is 0 to 0.95 and is rolled
+    as an integer percent; a critical hit rolls again at INTERRUPT_CRITICAL in a hundred, whatever the damage."""
     a = clamp(damage / (max_hp * INTERRUPT_HP_FACTOR * (1 + modifier)), 0.0, INTERRUPT_MAX)
-    return clamp(a - enchant, 0.0, INTERRUPT_MAX)
+    rate = int(clamp(a - enchant, 0.0, INTERRUPT_MAX) * 100) / 100.0
+    if critical:
+        rate = 1 - (1 - rate) * (1 - INTERRUPT_CRITICAL / 100.0)
+    return rate
 
 
 def critical_enchant(up=0, mini_up=0):

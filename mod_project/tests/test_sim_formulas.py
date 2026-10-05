@@ -64,6 +64,8 @@ class Interruption(unittest.TestCase):
         self.assertAlmostEqual(f.interruption_chance(750, 1000), 0.5)
         self.assertEqual(f.interruption_chance(5000, 1000), f.INTERRUPT_MAX)
         self.assertLess(f.interruption_chance(300, 1000, modifier=0.5), f.interruption_chance(300, 1000))
+        self.assertAlmostEqual(f.interruption_chance(0, 1000, critical=True), 0.33)       # the 1 in 3 of the lessons
+        self.assertAlmostEqual(f.interruption_chance(750, 1000, critical=True), 1 - 0.5 * 0.67)
 
 
 

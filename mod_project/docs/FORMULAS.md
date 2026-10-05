@@ -87,7 +87,7 @@ rate   = rate A - enchantments                                           kept be
 * The chance to break a chant grows with the damage of the hit against the caster's max HP: a hit for 30% of max HP interrupts 20% of the time, a hit for 75% half of the time.
 * The interruption modifier is effect 264 (Concentrate).
 * Enchantments subtract 0.10, 0.06 or 0.03 per piece according to their kind; one adds.
-* **[open]** where the "1 in 3 on a critical hit" of the lessons is applied; it is not in these lines.
+* The roll is a number below 100 against the rate cut to an integer percent (`0x44d1f3`). **A critical hit rolls a second time**: a number below 100 under 33 also breaks the chant, whatever the damage (`0x44d228 - 0x44d246`). This is the "1 in 3" of the lessons.
 
 ---
 
@@ -279,7 +279,7 @@ Factor by gap = level of the member - level of the enemy (`0x450734 - 0x45080d`)
 
 1. In `_SetTime`: the branch for action kind 8 with the chant flag (`0x449e54`), not followed to its end.
 2. The magic function, instruction by instruction.
-3. The "1 in 3" interruption of a chant by a critical hit; the minimum of a spell.
+3. The minimum damage of a spell.
 4. Zones: which side slots 3 and 5 stand for; the map files that place them.
 5. Turn delay: how far the target is pushed back. Turn skipping (stun, paralysis): how many turns are lost.
 6. TP recovery, revival and the recovery after a battle; EXP division and the factor by level gap. Of targeting (section 9.1): the code that
