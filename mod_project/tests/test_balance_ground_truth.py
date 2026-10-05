@@ -93,10 +93,14 @@ class EnemyBehaviour(unittest.TestCase):
         for enemy in self.enemies:
             self.assertEqual(self.scripts[enemy['id']]['id'], enemy['id'])
 
-    def test_every_enemy_has_a_set_0_with_weights(self):
+    def test_every_set_can_pick_an_attack(self):
+        """Lever L05: a set whose weights add up to 0 picks nothing and the choice of attack loops (0x430f10)."""
         for enemy in self.enemies:
+            script = self.scripts[enemy['id']]
             with self.subTest(enemy=enemy['name']):
-                self.assertGreater(sum(self.scripts[enemy['id']]['sets'][0]['weights']), 0)
+                self.assertIn(0, script['sets'])
+                for entry in script['sets'].values():
+                    self.assertGreater(sum(entry['weights']), 0)
 
     def test_weights_only_point_at_attacks_the_enemy_has(self):
         for enemy in self.enemies:
@@ -152,6 +156,21 @@ class Floors(unittest.TestCase):
             for formation in floor['formations']:
                 if len(formation['enemies']) == 1:
                     self.assertTrue(formation['enemies'][0][1], floor['floor'])
+
+
+
+class LevelTable(unittest.TestCase):
+    def test_exp_needed_grows_with_every_level(self):
+        """Lever L11: the level-up code walks LvExpSkptData level by level (0x448560)."""
+        import openpyxl
+        ws = openpyxl.load_workbook(os.path.join(_paths.PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx'),
+                                    read_only=True)['ExpCurve']
+        rows = list(ws.iter_rows(values_only=True))
+        level, needed = rows[0].index('Level'), rows[0].index('Req_EXP')
+        table = sorted((r[level], r[needed]) for r in rows[1:])
+        self.assertEqual([lv for lv, _ in table], list(range(table[0][0], table[0][0] + len(table))))
+        for (_, a), (_, b) in zip(table, table[1:]):
+            self.assertGreater(b, a)
 
 
 if __name__ == '__main__':
