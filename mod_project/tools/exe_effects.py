@@ -103,6 +103,11 @@ def askers(exe, md, ids):
                 if re.fullmatch(r'dword ptr \[e.. \+ 0x(48|50)\]', i.op_str):
                     found[eid].add(text_va + m.start())
                 break
+    # a walk over the effects of an action: call [effect + 0x24] returns its id, compared with a constant
+    for m in re.finditer(rb'\xff[\x50-\x57]\x24(?:\x83\xf8(.)|\x3d(....))', code, re.S):
+        eid = m.group(1)[0] if m.group(1) else struct.unpack('<I', m.group(2))[0]
+        if eid in ids and eid >= 2:
+            found[eid].add(text_va + m.start())
     return found
 
 
