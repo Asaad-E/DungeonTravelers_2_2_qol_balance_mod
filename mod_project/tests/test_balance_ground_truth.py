@@ -13,6 +13,7 @@ import skill_tree_data
 import enemy_ai
 import enemy_data
 import floor_data
+import npc_data
 import summon_data
 from pck_handler import PckArchive
 
@@ -335,6 +336,31 @@ class RandomMoves(unittest.TestCase):
         heaven = random_move_data.random_moves()[-1]['results']
         self.assertEqual([r['weight'] for r in heaven], [50, 50])
         self.assertEqual([r['joker_weight'] for r in heaven], [70, 30])
+
+
+class GuestAllies(unittest.TestCase):
+    def test_records(self):
+        """NPC.pck (table 0x738a04): Euthys grows through her stages, and every ally has attacks and a script."""
+        allies = npc_data.npcs()
+        self.assertEqual(len(allies), 107)
+        euthys = [a for a in allies if a['name'] == 'Euthys']
+        self.assertEqual([a['level'] for a in euthys], sorted(a['level'] for a in euthys))
+        self.assertEqual([a['atk'] for a in euthys], sorted(a['atk'] for a in euthys))
+        self.assertEqual(euthys[-1]['level'], 99)
+        for ally in allies:
+            self.assertTrue(1 <= len(ally['attacks']) <= 11, ally['name'])
+            self.assertTrue(ally['script']['sets'], ally['name'])
+
+
+class EnemyPassives(unittest.TestCase):
+    def test_passives_are_passive_entries(self):
+        """The ids at 0xF4 of an enemy record name EnemyAttackData entries whose text says they are passive skills."""
+        text = {r['Skill_ID']: str(r['Vanilla_Desc']) for r in doll_data._rows('EnemyAttacks')}
+        enemies = enemy_data.enemies()
+        carried = {a for e in enemies for a in e['passives']}
+        self.assertGreater(len(carried), 50)
+        self.assertTrue(all('Passive' in text[a] for a in carried))
+        self.assertTrue(all(len(e['passives']) == e['raw_f0'][0] for e in enemies))
 
 
 class Dolls(unittest.TestCase):

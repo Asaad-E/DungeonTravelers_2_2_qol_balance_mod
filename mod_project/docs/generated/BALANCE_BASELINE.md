@@ -1086,6 +1086,203 @@ Each step in a zone rolls the chance of the zone for a random battle; for the fi
 | st23 | 5 | 8 | 20.5 | 24.7 | 18.0 |
 | st23 | 2 | 9 | 19.1 | 22.3 | 17.1 |
 
+## Passive skills of enemies
+
+403 of 516 enemies carry passive skills, up to five each (`tools/enemy_data.py`: the ids at `0xF4` of the status record). Each is an entry of `EnemyAttackData`; its effects are counted in `docs/generated/EFFECT_COVERAGE.md`.
+
+| Passive | Id | Effects | Enemies | Their levels |
+|---|---|---|---|---|
+| Absolute Attack | 1550 | effect 307 1 | 20 | 44-99 |
+| Absolute Preemptive Attack | 1567 | effect 321 1 | 12 | 50-99 |
+| Auto-Guard | 1534 | effect 255 0.15 | 40 | 5-99 |
+| Auto-Guard | 1535 | effect 255 0.3 | 37 | 29-99 |
+| Auto-Guard | 1536 | effect 255 0.75 | 14 | 48-97 |
+| Auto-Recovery | 1506 | effect 246 0.12 | 5 | 24-90 |
+| Auto-Recovery | 1507 | effect 246 0.15 | 5 | 35-84 |
+| Avenger | 1514 | effect 249 0.13 | 31 | 9-70 |
+| Avenger | 1515 | effect 249 0.25 | 51 | 18-99 |
+| Avenger | 1516 | effect 249 0.5 | 36 | 28-99 |
+| Avenger | 1517 | effect 249 0.75 | 8 | 79-99 |
+| Cage of Super Gravity | 1578 | effect 293 0.5 | 6 | 52-93 |
+| Cage of Super Gravity | 1579 | effect 293 1 | 4 | 90-99 |
+| Concentrate | 1555 | effect 264 0.5 | 11 | 36-98 |
+| Concentrate | 1556 | effect 264 1 | 2 | 97-99 |
+| Covering Attack | 2691 | effect 260 0.25 | 2 | 96-98 |
+| Covering Attack | 2692 | effect 260 0.5 | 2 | 97-99 |
+| Critical Magic | 2648 | effect 301 1 | 11 | 69-99 |
+| Dark Aura | 1542 | effect 262 2 | 6 | 38-63 |
+| Dark Aura | 1543 | effect 262 4 | 20 | 21-87 |
+| Dark Aura | 1544 | effect 262 6 | 39 | 36-99 |
+| Dark Quest | 1546 | effect 263 0.1 | 5 | 19-65 |
+| Dark Quest | 1547 | effect 263 0.25 | 13 | 35-85 |
+| Dark Quest | 1548 | effect 263 0.4 | 16 | 64-98 |
+| Deathless Flesh | 1508 | effect 246 0.03 | 1 | 96-96 |
+| Devil's Whisper | 1575 | effect 320 0.5 | 9 | 46-97 |
+| Devil's Whisper | 1576 | effect 320 0.9 | 2 | 90-99 |
+| Double Action | 1569 | effect 288 1 | 5 | 28-96 |
+| Double Attack | 1522 | effect 251 0.15 | 24 | 5-88 |
+| Double Attack | 1523 | effect 251 0.3 | 33 | 15-93 |
+| Double Attack | 1524 | effect 251 0.6 | 26 | 23-99 |
+| Double Attack | 1525 | effect 251 0.8 | 24 | 54-99 |
+| Double Puppet | 1561 | effect 316 0.15, effect 313 1 | 8 | 16-94 |
+| Ecstasy | 1552 | effect 312 0.25 | 12 | 20-91 |
+| Ecstasy | 1553 | effect 312 0.5 | 22 | 39-99 |
+| First Shoots | 2073 | effect 246 0.15 | 1 | 48-48 |
+| First Shoots | 2074 | effect 246 0.12 | 1 | 61-61 |
+| First Shoots | 2076 | effect 246 0.02 | 1 | 96-96 |
+| Heretic Samsara | 1573 | effect 291 0 | 3 | 68-97 |
+| Knock Down | 1530 | effect 305 0.15 | 22 | 9-98 |
+| Knock Down | 1531 | effect 305 0.25 | 30 | 33-99 |
+| Knock Down | 1532 | effect 305 0.4 | 18 | 26-98 |
+| Knock Down | 1533 | effect 305 0.8 | 5 | 85-97 |
+| Magnificent Steps | 1563 | effect 283 0.04 | 20 | 21-97 |
+| Magnificent Steps | 1564 | effect 283 0.08 | 2 | 42-44 |
+| Mind's Eye | 1518 | effect 250 0.1 | 20 | 20-99 |
+| Mind's Eye | 1519 | effect 250 0.15 | 26 | 33-99 |
+| Mind's Eye | 1520 | effect 250 0.2 | 1 | 82-82 |
+| Mini Auto-Recovery | 1510 | effect 246 0.03 | 10 | 19-80 |
+| Mini Auto-Recovery | 1511 | effect 246 0.06 | 6 | 30-84 |
+| Mini Auto-Recovery | 1512 | effect 246 0.09 | 3 | 40-78 |
+| Murder License | 1580 | effect 319 1 | 3 | 80-98 |
+| On Stage | 1559 | effect 277 0.15, effect 284 1 | 10 | 58-99 |
+| Preparation | 2636 | effect 261 0.15 | 4 | 58-99 |
+| Preparation | 2637 | effect 261 0.2 | 13 | 41-99 |
+| Preparation | 2638 | effect 261 0.3 | 9 | 54-95 |
+| Preparation | 2639 | effect 261 0.1 | 10 | 60-99 |
+| Preparation | 2640 | effect 261 0.08 | 1 | 99-99 |
+| Pretend | 2642 | effect 310 0.06 | 8 | 55-99 |
+| Pretend | 2643 | effect 310 0.09 | 16 | 42-98 |
+| Pretend | 2644 | effect 310 0.12 | 2 | 50-95 |
+| Pretend | 2645 | effect 310 0.15 | 1 | 95-95 |
+| Solo Duet | 1557 | effect 276 0.15, effect 287 1 | 3 | 56-99 |
+| Super Regeneration | 1681 | effect 246 0.03 | 1 | 65-65 |
+| Super Regeneration | 1682 | effect 246 0.1 | 1 | 77-77 |
+| Support Shot | 2680 | effect 260 0.1 | 1 | 74-74 |
+| Support Shot | 2681 | effect 260 0.2 | 1 | 96-96 |
+| Support Shot | 2683 | effect 260 0.75 | 3 | 80-98 |
+| Triple Action | 1571 | effect 289 1 | 1 | 95-95 |
+| Triple Attack | 1526 | effect 252 0.1 | 9 | 14-82 |
+| Triple Attack | 1527 | effect 252 0.17 | 25 | 40-98 |
+| Triple Attack | 1528 | effect 252 0.25 | 15 | 46-99 |
+| Warning Shot | 1538 | effect 259 0.03 | 11 | 37-97 |
+| Warning Shot | 1539 | effect 259 0.06 | 6 | 52-93 |
+| Warning Shot | 1540 | effect 259 0.12 | 2 | 95-96 |
+| Warning Strike | 1541 | effect 259 0.04 | 2 | 95-99 |
+
+## Guest allies
+
+107 records of 31 guest allies, one per stage of their growth (`tools/npc_data.py`). Their stats are fixed figures of the record; they act by a script of the enemy kind.
+
+| Ally | Level | HP | ATK | DEF | INT | RES | DEX | AGI | Attacks | Passive | Sets of its script |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 101 | 32 | 400 | 102 | 88 | 6 | 12 | 32 | 29 | 4 | Double Attack | 1 |
+| 102 | 30 | 500 | 46 | 57 | 54 | 41 | 25 | 27 | 6 |  | 3 |
+| 103 | 28 | 100 | 87 | 65 | 35 | 32 | 36 | 33 | 3 |  | 2 |
+| Michelle | 30 | 0 | 85 | 83 | 34 | 55 | 42 | 37 | 5 |  | 3 |
+| Peggy & Beard | 35 | 1000 | 114 | 96 | 500 | 41 | 52 | 39 | 7 |  | 3 |
+| Three Fates | 85 | 9000 | 412 | 362 | 258 | 261 | 111 | 78 | 11 | Triple Attack | 1 |
+| Three Fates | 93 | 9999 | 443 | 405 | 333 | 352 | 139 | 87 | 11 | Triple Attack | 1 |
+| Yoshitsune | 98 | 9999 | 605 | 412 | 247 | 371 | 182 | 130 | 10 | Triple Attack | 4 |
+| Yoshitsune | 99 | 9999 | 675 | 512 | 272 | 421 | 192 | 150 | 11 | Triple Attack | 6 |
+| Marduk | 97 | 9999 | 565 | 2150 | 261 | 408 | 147 | 98 | 10 | Warning Shot | 4 |
+| Marduk | 99 | 9999 | 615 | 2250 | 286 | 458 | 157 | 118 | 11 | Warning Shot | 6 |
+| Citlalinicue | 96 | 9999 | 633 | 441 | 272 | 302 | 153 | 109 | 9 | Double Attack | 4 |
+| Citlalinicue | 99 | 9999 | 703 | 541 | 297 | 352 | 163 | 129 | 11 | Double Attack | 5 |
+| Arjuna | 95 | 9999 | 578 | 421 | 294 | 345 | 168 | 126 | 7 | Support Shot | 3 |
+| Arjuna | 99 | 9999 | 648 | 521 | 319 | 395 | 188 | 146 | 11 | Support Shot | 6 |
+| Euphemia | 26 | 400 | 91 | 58 | 18 | 21 | 44 | 35 | 4 | Double Attack | 1 |
+| Euphemia | 38 | 700 | 138 | 118 | 27 | 38 | 52 | 43 | 5 | Double Attack | 1 |
+| Euphemia | 46 | 1400 | 163 | 132 | 36 | 51 | 61 | 53 | 6 | Double Attack | 3 |
+| Euphemia | 55 | 2200 | 186 | 154 | 44 | 60 | 72 | 62 | 7 | Double Attack | 3 |
+| Euphemia | 67 | 3000 | 249 | 173 | 57 | 82 | 88 | 71 | 8 | Double Attack | 3 |
+| Tatiana | 36 | 1000 | 152 | 116 | 28 | 37 | 48 | 33 | 4 |  | 3 |
+| Tatiana | 43 | 1400 | 178 | 132 | 35 | 46 | 55 | 39 | 5 |  | 3 |
+| Tatiana | 52 | 2400 | 212 | 162 | 49 | 55 | 64 | 44 | 6 |  | 3 |
+| Tatiana | 63 | 3300 | 258 | 191 | 63 | 64 | 71 | 53 | 7 |  | 3 |
+| Tatiana | 72 | 4400 | 302 | 235 | 72 | 75 | 82 | 61 | 8 |  | 3 |
+| Luzie | 45 | 1700 | 171 | 166 | 35 | 41 | 50 | 35 | 4 |  | 3 |
+| Luzie | 54 | 3000 | 218 | 192 | 44 | 53 | 63 | 44 | 5 |  | 2 |
+| Luzie | 65 | 3800 | 264 | 224 | 61 | 72 | 79 | 59 | 6 |  | 2 |
+| Luzie | 78 | 4800 | 327 | 294 | 70 | 81 | 92 | 67 | 7 |  | 2 |
+| Luzie | 87 | 5600 | 377 | 338 | 82 | 94 | 113 | 82 | 8 |  | 2 |
+| Natalia | 28 | 700 | 91 | 42 | 38 | 41 | 24 | 24 | 5 |  | 2 |
+| Natalia | 40 | 1400 | 120 | 86 | 55 | 82 | 41 | 37 | 6 |  | 3 |
+| Natalia | 49 | 3000 | 162 | 130 | 67 | 101 | 54 | 46 | 6 |  | 2 |
+| Natalia | 57 | 3800 | 189 | 142 | 89 | 123 | 67 | 55 | 7 |  | 3 |
+| Natalia | 68 | 4600 | 234 | 171 | 103 | 148 | 79 | 63 | 8 |  | 4 |
+| Carol | 37 | 1200 | 22 | 64 | 81 | 47 | 44 | 38 | 5 |  | 4 |
+| Carol | 44 | 1900 | 31 | 73 | 119 | 56 | 53 | 43 | 6 |  | 4 |
+| Carol | 53 | 3200 | 42 | 87 | 146 | 64 | 59 | 47 | 7 |  | 5 |
+| Carol | 64 | 4200 | 57 | 101 | 201 | 82 | 65 | 54 | 7 |  | 3 |
+| Carol | 91 | 7200 | 68 | 138 | 276 | 91 | 78 | 70 | 9 |  | 3 |
+| Sasha | 47 | 2300 | 13 | 84 | 94 | 128 | 61 | 43 | 6 |  | 5 |
+| Sasha | 55 | 3500 | 27 | 106 | 113 | 153 | 66 | 51 | 7 |  | 6 |
+| Sasha | 66 | 4400 | 53 | 124 | 140 | 181 | 74 | 63 | 7 |  | 4 |
+| Sasha | 79 | 5300 | 72 | 155 | 177 | 233 | 85 | 72 | 8 |  | 4 |
+| Sasha | 88 | 6200 | 87 | 183 | 213 | 286 | 97 | 88 | 8 |  | 5 |
+| Priscilla | 39 | 1400 | 94 | 73 | 51 | 59 | 49 | 41 | 5 |  | 3 |
+| Priscilla | 51 | 2500 | 138 | 94 | 72 | 75 | 57 | 48 | 6 |  | 3 |
+| Priscilla | 60 | 3100 | 159 | 122 | 88 | 92 | 68 | 57 | 6 |  | 3 |
+| Priscilla | 69 | 4200 | 193 | 147 | 107 | 109 | 76 | 66 | 7 |  | 2 |
+| Priscilla | 78 | 5000 | 232 | 173 | 139 | 143 | 84 | 75 | 8 |  | 3 |
+| Neya | 50 | 3000 | 164 | 134 | 40 | 43 | 77 | 67 | 5 | Triple Attack | 3 |
+| Neya | 57 | 3800 | 201 | 148 | 53 | 60 | 84 | 76 | 7 | Triple Attack | 5 |
+| Neya | 69 | 4900 | 241 | 167 | 66 | 76 | 116 | 89 | 8 | Triple Attack | 4 |
+| Neya | 80 | 5500 | 298 | 202 | 75 | 84 | 138 | 106 | 9 | Triple Attack | 4 |
+| Neya | 89 | 7000 | 351 | 231 | 87 | 106 | 153 | 121 | 10 | Triple Attack | 4 |
+| Estelle | 30 | 500 | 68 | 54 | 28 | 31 | 35 | 26 | 5 |  | 3 |
+| Estelle | 41 | 1100 | 89 | 85 | 53 | 49 | 48 | 37 | 7 |  | 3 |
+| Estelle | 50 | 2400 | 106 | 112 | 61 | 67 | 63 | 50 | 8 |  | 4 |
+| Estelle | 58 | 3500 | 133 | 134 | 76 | 83 | 75 | 56 | 10 |  | 8 |
+| Estelle | 70 | 4700 | 168 | 155 | 88 | 94 | 82 | 64 | 10 |  | 3 |
+| Rebecca | 43 | 2100 | 140 | 102 | 31 | 36 | 72 | 56 | 5 |  | 1 |
+| Rebecca | 53 | 2800 | 170 | 130 | 53 | 55 | 89 | 69 | 6 |  | 2 |
+| Rebecca | 62 | 3800 | 191 | 164 | 62 | 67 | 112 | 80 | 6 |  | 2 |
+| Rebecca | 71 | 4700 | 244 | 188 | 74 | 86 | 131 | 94 | 8 |  | 5 |
+| Rebecca | 82 | 5600 | 308 | 212 | 86 | 95 | 153 | 107 | 9 |  | 5 |
+| Chloe | 30 | 500 | 112 | 64 | 22 | 27 | 47 | 33 | 4 |  | 2 |
+| Chloe | 42 | 900 | 157 | 91 | 33 | 34 | 64 | 48 | 5 |  | 3 |
+| Chloe | 52 | 2600 | 199 | 108 | 45 | 47 | 73 | 60 | 6 | Support Shot | 3 |
+| Chloe | 59 | 3700 | 236 | 131 | 52 | 55 | 92 | 71 | 7 | Support Shot | 2 |
+| Chloe | 68 | 4500 | 283 | 155 | 61 | 70 | 123 | 79 | 8 | Support Shot | 2 |
+| Marion | 48 | 2280 | 143 | 120 | 61 | 72 | 55 | 38 | 5 |  | 3 |
+| Marion | 56 | 3480 | 168 | 142 | 72 | 86 | 69 | 45 | 7 |  | 3 |
+| Marion | 67 | 4280 | 201 | 171 | 98 | 116 | 83 | 60 | 7 |  | 2 |
+| Marion | 73 | 5680 | 242 | 194 | 128 | 131 | 91 | 72 | 8 |  | 4 |
+| Marion | 86 | 6780 | 294 | 229 | 167 | 174 | 115 | 85 | 9 | Double Attack | 7 |
+| Riesco | 49 | 1900 | 174 | 143 | 73 | 104 | 49 | 51 | 4 |  | 4 |
+| Riesco | 55 | 2700 | 193 | 162 | 84 | 121 | 57 | 57 | 6 |  | 5 |
+| Riesco | 65 | 4000 | 221 | 178 | 127 | 143 | 73 | 69 | 7 |  | 4 |
+| Paracas | 42 | 2300 | 129 | 105 | 84 | 62 | 55 | 54 | 4 |  | 3 |
+| Paracas | 53 | 3400 | 161 | 124 | 117 | 75 | 61 | 62 | 7 | Double Puppet | 6 |
+| Paracas | 62 | 4200 | 192 | 153 | 130 | 82 | 67 | 67 | 8 | Double Puppet | 6 |
+| Medved | 33 | 800 | 137 | 102 | 3 | 21 | 39 | 22 | 4 |  | 2 |
+| Medved | 48 | 1600 | 177 | 131 | 9 | 36 | 55 | 43 | 6 |  | 2 |
+| Medved | 59 | 2600 | 231 | 144 | 10 | 42 | 61 | 51 | 7 |  | 3 |
+| Mekelle | 46 | 2000 | 151 | 95 | 46 | 57 | 68 | 57 | 6 |  | 5 |
+| Mekelle | 54 | 3200 | 183 | 135 | 61 | 73 | 91 | 69 | 6 | Double Attack | 5 |
+| Mekelle | 63 | 4200 | 217 | 157 | 77 | 85 | 108 | 83 | 7 | Double Attack | 5 |
+| Momona | 32 | 600 | 26 | 54 | 31 | 53 | 41 | 30 | 4 |  | 2 |
+| Momona | 46 | 1200 | 66 | 87 | 54 | 82 | 57 | 39 | 6 |  | 3 |
+| Momona | 58 | 2700 | 80 | 94 | 67 | 104 | 72 | 45 | 7 |  | 3 |
+| Azmaria | 50 | 4000 | 201 | 142 | 1 | 87 | 63 | 55 | 6 | Double Attack | 3 |
+| Azmaria | 62 | 5000 | 262 | 178 | 1 | 96 | 81 | 66 | 7 | Double Attack | 4 |
+| Azmaria | 72 | 6000 | 324 | 197 | 1 | 125 | 97 | 78 | 8 | Double Attack | 3 |
+| Azmaria | 84 | 7000 | 397 | 212 | 1 | 143 | 112 | 85 | 9 | Double Attack | 3 |
+| Azmaria | 93 | 8000 | 478 | 251 | 1 | 166 | 138 | 96 | 10 | Double Attack | 5 |
+| Miranda | 53 | 3700 | 204 | 117 | 40 | 61 | 68 | 49 | 5 | Warning Shot | 4 |
+| Miranda | 64 | 4300 | 243 | 146 | 61 | 77 | 92 | 57 | 6 | Warning Shot | 4 |
+| Miranda | 70 | 5200 | 278 | 165 | 72 | 92 | 113 | 76 | 6 | Warning Shot | 3 |
+| Miranda | 80 | 6300 | 351 | 189 | 91 | 104 | 124 | 82 | 7 | Warning Shot | 4 |
+| Miranda | 90 | 7400 | 422 | 212 | 103 | 129 | 148 | 93 | 7 | Warning Shot | 4 |
+| Euthys | 74 | 4000 | 359 | 318 | 238 | 226 | 116 | 87 | 6 | Triple Attack | 3 |
+| Euthys | 82 | 4500 | 427 | 341 | 267 | 248 | 138 | 96 | 8 | Triple Attack | 3 |
+| Euthys | 88 | 5000 | 495 | 402 | 314 | 302 | 155 | 112 | 9 | Triple Attack | 5 |
+| Euthys | 95 | 6000 | 576 | 449 | 362 | 358 | 179 | 125 | 10 | Triple Attack | 5 |
+| Euthys | 99 | 9000 | 631 | 483 | 401 | 402 | 197 | 138 | 11 | Triple Attack | 5 |
+| Lolo | 86 | 7777 | 345 | 113 | 172 | 192 | 155 | 122 | 7 |  | 4 |
+| Lolo | 93 | 7777 | 432 | 138 | 236 | 221 | 176 | 138 | 9 |  | 5 |
+
 ## Summons
 
 105 forms of 35 summons (`tools/summon_data.py`, `docs/FORMULAS.md` 11). The form used is the last whose level is not above the average level of the party; each stat is the best "stat of a party member * factor", and not below the figure of the enemy the summon comes from.

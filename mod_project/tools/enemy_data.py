@@ -26,6 +26,8 @@ EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 
     0x90..0xA4 two more groups of flag, id, chance; not identified
     0xA8 the item it becomes when turned into a snack (0x48151f)
     0xAC number of attacks, 0xB0 attack ids (EnemyAttackData), -1 where unused
+    0xF0 number of passive skills (0 to 5), 0xF4 their ids: entries of EnemyAttackData whose text says
+         "Passive Skill" (Auto-Recovery, Avenger, Mind's Eye, Heretic Samsara and the like)
     0x108 habitat pointer; six ints from 0x110 (not decoded)
 """
 import os
@@ -73,6 +75,7 @@ def read_status(b):
     enemy['steal'] = (raw[8], raw[9]) if raw[9] not in (-1, 0) else None
     enemy['snack_item'] = raw[16] if raw[16] != -1 else None
     enemy['raw_f0'] = list(struct.unpack_from('<6i', b, 0xF0))
+    enemy['passives'] = [a for a in enemy['raw_f0'][1:1 + max(0, min(enemy['raw_f0'][0], 5))] if a != -1]
     enemy['raw_110'] = list(struct.unpack_from('<6i', b, 0x110))
     return enemy
 
