@@ -117,7 +117,7 @@ class Registry(unittest.TestCase):
                 self.assertTrue(EFFECT_NAMES[effect_id][2])
 
     def test_effects_that_change_the_damage_are_not_treated_as_harmless(self):
-        for effect_id in (73, 138, 199, 8, 146, 147):
+        for effect_id in (138, 199, 8, 146, 147):
             self.assertNotIn(effect_id, mw.SAFE_EFFECTS)
 
 
@@ -153,9 +153,14 @@ class Line1AfterDecoding(unittest.TestCase):
         self.assertIn('May delay enemy turn (25-43%).', self.propose('Tinker Squash'))
 
     def test_damage_that_the_power_table_does_not_measure_stays_as_written(self):
-        for name in ('Spiral Arrow', 'Holy Gavel', 'Star Dust Arrow', 'Fire Scroll', 'Debilitating Salsa'):
+        for name in ('Star Dust Arrow', 'Fire Scroll', 'Debilitating Salsa'):
             with self.subTest(skill=name):
                 self.assertEqual(self.propose(name), self.skills[name][0])
+
+    def test_damage_xn_is_the_measure_of_the_hit(self):
+        """Effect 73, "Damage xn": the DT2-2 wiki lists Spiral Arrow as ATK 330% -> 400%."""
+        self.assertEqual(self.propose('Spiral Arrow'), 'Bow skill. Shoot a tremendous single shot at one enemy for stab damage.')
+        self.assertEqual(self.propose('Holy Gavel'), 'Mace skill. Deal tremendous bash damage with an inexorable thud.')
 
 
 class LevelUpLinesAfterDecoding(unittest.TestCase):

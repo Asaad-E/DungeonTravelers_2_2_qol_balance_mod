@@ -342,7 +342,7 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 
 ## 7. Tests (what each guards)
 
-`python -m unittest discover -s mod_project/tests -p "test_*.py"` (93 tests).
+`python -m unittest discover -s mod_project/tests -p "test_*.py"` (98 tests).
 
 | File | Guards |
 |---|---|

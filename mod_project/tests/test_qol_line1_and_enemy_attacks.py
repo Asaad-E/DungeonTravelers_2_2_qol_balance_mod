@@ -83,8 +83,7 @@ class Line1(unittest.TestCase):
         self.assertEqual(mw.check_line1(desc, desc, skill_tables(category, b)['slots']), ([], 1))
 
     def test_skill_with_an_effect_that_is_not_understood_is_left_as_written(self):
-        # Spiral Arrow: ATK 88% but also effect 73 (3.3 -> 4.0). Its real strength is not known.
-        for name in ('Spiral Arrow', 'Holy Gavel', 'Fire Scroll'):
+        for name in ('Star Dust Arrow', 'Fire Scroll'):
             with self.subTest(skill=name):
                 self.assertEqual(self.propose(name), self.skills[name][3])
         # Soul Eater: effect 87 is "living targets only", so its "enormous" is graded like any other spell.
@@ -101,7 +100,7 @@ class Line1(unittest.TestCase):
         self.assertEqual(mw.check_line1(desc.replace('May stun.', 'May stun (30%+).'), desc, slots), ([], 1))
         for wrong in ('(30%)', '(34%)', '(30-38%)', '(40%+)'):
             self.assertNotEqual(mw.check_line1(desc.replace('May stun.', f'May stun {wrong}.'), desc, slots)[0], [], wrong)
-        category, _, b, desc = self.skills['Spiral Arrow']        # no grade exists for it
+        category, _, b, desc = self.skills['Spiral Arrow']        # graded by its "Damage xn": tremendous
         self.assertNotEqual(mw.check_line1(desc.replace('powerful', 'minor'), desc, skill_tables(category, b)['slots'])[0], [])
 
     def test_table_line1_has_no_new_figures_and_fits(self):

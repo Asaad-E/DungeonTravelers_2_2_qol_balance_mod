@@ -509,7 +509,7 @@ class FoodMenuHelper:
         res.extend(name_bytes)
         res.extend(desc_bytes)
         
-        pad_end = (16 - (len(res) % 16)) % 16
+        pad_end = 0   # each string is already padded to 8 bytes
         res.extend(b'\x00' * pad_end)
         return bytes(res)
 

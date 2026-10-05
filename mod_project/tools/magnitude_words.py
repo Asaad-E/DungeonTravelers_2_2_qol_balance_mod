@@ -40,6 +40,7 @@ import re
 import statistics
 
 POWER_PHYS, POWER_MAGIC = 26, 1
+DAMAGE_XN = 73
 DAMAGE_WORDS = ('negligible', 'minor', 'moderate', 'major', 'severe')
 OUT_OF_SCALE = 'tremendous'
 PHYS_BOUNDS = (80, 125, 150, 175, 225)      # average ATK in %
@@ -110,9 +111,14 @@ def damage_basis(slots):
     magic = [v for i, t, v in slots if i == POWER_MAGIC and v and max(v) > 1]
     if len(phys) + len(magic) != 1:
         return None, 'no single power table'
-    unknown = sorted({i for i, _, _ in slots if i not in SAFE_EFFECTS})
+    unknown = sorted({i for i, _, _ in slots if i not in SAFE_EFFECTS and i != DAMAGE_XN})
     if unknown:
         return None, 'carries effects that are not understood: ' + ', '.join(map(str, unknown))
+    multiplier = [v for i, _, v in slots if i == DAMAGE_XN and v]
+    if phys and multiplier:
+        # "Damage xn" in the game's table. The DT2-2 wiki lists it as the ATK multiplier of the skill
+        # (Spiral Arrow 330% -> 400%), so it is the measure of the hit.
+        return 'physical', statistics.mean(100 * v for v in multiplier[0])
     if phys:
         return 'physical', statistics.mean(100 * (1 + v) for v in phys[0])
     return 'magic', statistics.mean(magic[0])
@@ -200,11 +206,15 @@ def put_damage_word(desc, word):
         while True:
             before = desc[:start].rstrip()
             last = before.split(' ')[-1]
-            if last not in DAMAGE_KINDS:
+            if last.lower() not in [k.lower() for k in DAMAGE_KINDS]:
                 break
             start = len(before) - len(last)
         at_sentence_start = start == 0 or desc[:start].rstrip().endswith('.')
-        return desc[:start] + (word.capitalize() if at_sentence_start else word) + ' ' + desc[start:]
+        if at_sentence_start:       # "Lightning damage" -> "Minor lightning damage"
+            rest = desc[start:]
+            keep = rest.split(' ')[0] in ('RES-based',)
+            return desc[:start] + word.capitalize() + ' ' + (rest if keep else rest[0].lower() + rest[1:])
+        return desc[:start] + word + ' ' + desc[start:]
     m = re.search(r'\bAttack (?=(one enemy|an enemy)\b)', desc)
     if m:                                                   # "Attack one enemy" -> "Deal minor damage to one enemy"
         return desc[:m.start()] + f'Deal {word} damage to ' + desc[m.end():]

@@ -40,7 +40,7 @@ class ItemText(unittest.TestCase):
             'Egg Sandwich': 'Sandwich filled with soft, fluffy eggs. (HP/TP +10, cures 1 ailment)',
             'Magical Skill Garnish': 'Eat, Skill, Love. (SP +3)',
             'Mui Kuha Medicine': 'Revive a fallen ally. Considerably bitter aftertaste. (revives at 10% HP)',
-            'Super Rich Pudding': "Peggy's eggy milk pudding. It's said to be legendary. (TP +30, sleep 20%)",
+            'Super Rich Pudding': "Peggy's eggy milk pudding. It's said to be legendary. (TP +30, 20% sleep)",
             # the sentence already says what it does: nothing to add
             'Fumirul Nectar': 'Cure all status ailments for an ally. Sweet to the taste.',
         }
@@ -48,6 +48,22 @@ class ItemText(unittest.TestCase):
             with self.subTest(item=name):
                 self.assertEqual(by_name[name]['desc'], text)
                 self.assertTrue(by_name[name]['desc'].startswith(by_name[name]['vanilla_desc']))
+
+    def test_one_line_always_and_shortened_originals_only_where_needed(self):
+        from shortened_text import ITEM_SENTENCES
+        by_name = {ItemHelper.read_item(b)['name']: self.table[fn] for fn, b in self.entries.items()}
+        self.assertEqual(by_name['Killer Curry']['desc'],
+                         'Legendary food. Whoever eats it falls in love. (HP/TP +1000, cures all ailments)')
+        self.assertEqual(by_name['Rosary of Darkness']['desc'].rsplit(' (', 1)[1], '25% stun)')    # decoded with the JP wiki
+        for name, sentence in ITEM_SENTENCES.items():
+            row = by_name[name]
+            with self.subTest(item=name):
+                self.assertTrue(row['desc'].startswith(sentence + ' ('))
+                self.assertLess(len(sentence), len(row['vanilla_desc']))
+        for fn, row in self.table.items():
+            with self.subTest(entry=fn):
+                self.assertLessEqual(len(row['desc']), max(bv.MAX_LINE, len(row['vanilla_desc'])))
+                self.assertEqual(len(row["desc"].splitlines()), 1)
 
     def test_item_data_is_checked_and_the_sentence_cannot_change(self):
         egg = next(b for b in self.entries.values() if ItemHelper.read_item(b)['name'] == 'Egg Sandwich')
@@ -198,3 +214,43 @@ class Install(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Meals(unittest.TestCase):
+    """Ice cream and ramen: the flavour line stays, the vague amount becomes the stored one."""
+
+    @classmethod
+    def setUpClass(cls):
+        from pck_handler import FoodMenuHelper
+        cls.helper = FoodMenuHelper
+        cls.entries = PckArchive(os.path.join(_paths.BACKUP_DIR, bv.FOOD_PCK)).files
+        cls.table = bv.load_food_text(os.path.join(_paths.TABLES_DIR, 'qol_food_text.xlsx'))
+
+    def test_writer_reproduces_the_originals(self):
+        for fn, b in self.entries:
+            with self.subTest(entry=fn):
+                self.assertEqual(self.helper.write_food_menu(b, self.helper.read_food_menu(b)['effect']), bytes(b))
+
+    def test_exact_amounts(self):
+        from text_checks import food_amounts, check_food_text
+        by_name = {self.helper.read_food_menu(b)['name']: (b, self.table[fn]) for fn, b in self.entries}
+        b, row = by_name['Banango Ice Cream']
+        self.assertEqual(food_amounts(b), (30, 20))
+        self.assertEqual(row['effect'], 'Heal 30% HP and 20% TP.')
+        self.assertEqual(by_name['Raspberry Supreme'][1]['effect'], 'Heal status ailments + 80% HP and TP + gain Aim.')
+        self.assertEqual(by_name['Miracle Shake'][1]['effect'], 'Heal all TP + gain Divine Shield.')      # already exact
+        self.assertNotEqual(check_food_text(b, 'Heal 40% HP and 20% TP.', row['vanilla'])[0], [])
+        self.assertNotEqual(check_food_text(b, 'Restores 30% HP and 20% TP.', row['vanilla'])[0], [])
+
+    def test_clean_build_and_a_wrong_amount(self):
+        import copy
+        import tempfile
+        for mutate, clean in ((False, True), (True, False)):
+            table, problems = copy.deepcopy(self.table), []
+            if mutate:
+                fn = next(f for f, r in table.items() if r['effect'] == 'Heal 20% HP.')
+                table[fn]['effect'] = 'Heal 25% HP.'
+            with tempfile.TemporaryDirectory() as out:
+                bv.build_food(out, table, problems)
+                bv.verify_food(out, table, bv.VARIANTS['qol'], problems)
+            self.assertEqual(problems == [], clean, problems)

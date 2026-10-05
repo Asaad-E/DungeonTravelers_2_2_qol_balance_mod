@@ -30,6 +30,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 import magnitude_words
+from shortened_text import SKILL_SENTENCES, SKILL_TEMPLATES
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
@@ -627,9 +628,21 @@ def generate_line1(skill, row):
     if row['coverage'] == 'Skipped (internal)':
         return skill['desc'], []
     slots = [(s['id'], s['tail'], s['values']) for s in skill['slots']]
+    if skill['name'] in SKILL_TEMPLATES:        # several figures placed inside the sentence by hand
+        template, labels = SKILL_TEMPLATES[skill['name']]
+        effects = {label: (values, unit) for label, values, unit in row.get('effects', [])}
+        if all(label in effects for label in labels):
+            text = template.format(*[magnitude_words.figure(*effects[label]) for label in labels],
+                                   dmg=magnitude_words.damage_word(slots) or '')
+            if len(text) <= MAX_LINE:
+                return text, []
+            return skill['desc'], [f'template of {len(text)} characters does not fit']
+    base = SKILL_SENTENCES.get(skill['name'], skill['desc'])
     text, notes = (skill['desc'], [])
     if skill['category'] in ('Technique', 'Magic'):
-        text, notes = magnitude_words.propose(skill['desc'], slots, MAX_LINE)
+        text, notes = magnitude_words.propose(base, slots, MAX_LINE)
+        if text == base and base != skill['desc']:
+            text = skill['desc']
     if text == skill['desc'] and not magnitude_words.has_power_table(slots) and '\n' not in text:
         # No damage and no chance to state: say how much the skill does (the user's rule).
         text, more = magnitude_words.put_values(skill['desc'], row.get('effects', []), MAX_LINE)

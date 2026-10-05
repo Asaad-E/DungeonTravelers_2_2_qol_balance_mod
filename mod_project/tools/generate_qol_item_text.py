@@ -24,6 +24,7 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 from pck_handler import PckArchive, ItemHelper
 from text_checks import ITEM_RESTORE, ITEM_ALLY_PAIRS, item_pairs, item_data, check_item_text
+from shortened_text import ITEM_SENTENCES
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_PATH = os.path.join(BASE_DIR, 'backups', 'ItemData.pck')
@@ -36,7 +37,7 @@ HEADERS = ['Filename', 'Item_Name', 'Vanilla_Desc', 'QoL_Desc', 'Edited', 'Effec
 VAGUE_RE = re.compile(r"Restore (?P<what>an ally's HP|an ally's TP|all allies' HP) \((?:small|medium|large)\)")
 
 
-def propose(b, desc):
+def propose(b, desc, name=''):
     """Returns (text, note)."""
     effect_type, value = item_pairs(b)[0]
     m = VAGUE_RE.search(desc)
@@ -50,9 +51,13 @@ def propose(b, desc):
     if not missing:
         return desc, ''
     text = f"{desc} ({', '.join(missing)})"
-    if len(text) > MAX_LINE:
-        return desc, f"no room for ({', '.join(missing)}): {len(text)} characters"
-    return text, ''
+    if len(text) <= MAX_LINE:
+        return text, ''
+    if name in ITEM_SENTENCES:      # one line: the original is made shorter (shortened_text.py)
+        text = f"{ITEM_SENTENCES[name]} ({', '.join(missing)})"
+        if len(text) <= MAX_LINE:
+            return text, 'original sentence shortened to fit'
+    return desc, f"no room for ({', '.join(missing)}): {len(text)} characters"
 
 
 def load_column(path, sheet, key, value, only_edited=False):
@@ -84,13 +89,14 @@ def build_rows():
     rows, stats = [], collections.Counter()
     for fn, b in PckArchive(BACKUP_PATH).files:
         item = ItemHelper.read_item(b)
-        desc, note = (edited[fn], '') if fn in edited else propose(b, item['desc'])
-        problems, _ = check_item_text(b, desc, item['desc'])
+        desc, note = (edited[fn], '') if fn in edited else propose(b, item['desc'], item['name'])
+        problems, _ = check_item_text(b, desc, item['desc'], ITEM_SENTENCES.get(item['name']))
         if problems or '\n' in desc or len(desc) > MAX_LINE:
             raise SystemExit(f"{fn} ({item['name']}): '{desc}' {problems or 'breaks the one-line limit'}")
         desc.encode('latin-1')
         stats['edited by hand' if fn in edited else
               'amount in place of the vague size' if VAGUE_RE.search(item['desc']) and desc != item['desc'] else
+              'shortened original + (data)' if note.startswith('original sentence shortened') else
               'original + (data)' if desc != item['desc'] else
               'kept: ' + note.split(':')[0].split(' for (')[0] if note else 'kept: nothing to add'] += 1
         pairs = ' | '.join(', '.join(f'{t}:{v:g}' for t, v in side if t != -1)

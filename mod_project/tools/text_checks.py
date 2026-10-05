@@ -203,11 +203,45 @@ ITEM_EFFECTS = {
     8: (lambda v: f'revives at {v:g}% HP', None),
     9: (lambda v: f'{v * LIGHT_STEPS_PER_UNIT:g} steps', None),
     10: (lambda v: 'leaves the dungeon', r'escape|warp'),
-    16: (lambda v: f'sleep {v:g}%', None),
+    16: (lambda v: f'{v:g}% sleep', None),
     22: (lambda v: 'cancels Shadow Sew', r'Shadow Sew'),
     23: (lambda v: 'restores stats', r'debuffed stats'),
     24: (lambda v: f'SP +{v:g}', None),
+    # Decoded with the item list of the DT2-2 wiki (pages/36.html): every item that carries the type is
+    # described there with this effect. Ailment types hold the chance in %, buff types as a fraction.
+    5: (lambda v: f'party HP/TP +{v:g}', None),
+    11: (lambda v: f'{v:g}% stun', None),
+    12: (lambda v: f'{v:g}% poison', None),
+    13: (lambda v: f'{v:g}% paralysis', None),
+    14: (lambda v: f'{v:g}% silence', None),
+    15: (lambda v: f'{v:g}% freeze', None),
+    17: (lambda v: f'{v:g}% petrifying', None),
+    18: (lambda v: f'{v:g}% petrify', None),
+    19: (lambda v: f'{v:g}% instakill', None),
+    20: (lambda v: 'cures freeze', None),
+    21: (lambda v: 'cures sleep', None),
+    25: (lambda v: f'{100 * v:g}% ATK up', None),
+    26: (lambda v: f'{100 * v:g}% DEF up', None),
+    28: (lambda v: f'{100 * v:g}% slow', None),
+    30: (lambda v: f'{100 * v:g}% Berserk', None),
+    31: (lambda v: f'{100 * v:g}% Defender', None),
+    34: (lambda v: f'{100 * v:g}% party cure-all', None),
+    35: (lambda v: f'{100 * v:g}% party ATK up', None),
+    36: (lambda v: f'{100 * v:g}% party DEF up', None),
+    37: (lambda v: f'{100 * v:g}% accuracy up', None),
+    38: (lambda v: f'{100 * v:g}% evasion up', None),
+    39: (lambda v: f'{100 * v:g}% party magic DEF up', None),
+    40: (lambda v: f'{100 * v:g}% strips buffs', None),
+    41: (lambda v: f'{100 * v:g}% max HP up', None),
+    42: (lambda v: f'{100 * v:g}% 2 clones', None),
+    43: (lambda v: f'{100 * v:g}% Divine Shield', None),
+    44: (lambda v: f'{100 * v:g}% Insurance', None),
+    45: (lambda v: f'{100 * v:g}% 1 clone', None),
+    52: (lambda v: f'{v:g} fixed damage', None),
+    53: (lambda v: f'party {v:g} fixed damage', None),
 }
+# Effects that hurt: an item made only of these is meant for an enemy, and its data is the enemy's side.
+ITEM_HARMFUL = {11, 12, 13, 14, 15, 17, 18, 19, 28, 40, 52, 53}
 
 
 def item_pairs(b):
@@ -219,7 +253,12 @@ def item_data(b, vanilla_text=''):
     """(everything the item does for an ally, what its text does not say yet), or (None, None) when one of
     its effects is not decoded. Each is a list of short phrases: ['HP/TP +10', 'cures 1 ailment']."""
     every, missing = [], []
-    for effect_type, value in item_pairs(b)[:ITEM_ALLY_PAIRS]:
+    pairs = item_pairs(b)
+    side = pairs[:ITEM_ALLY_PAIRS]
+    used = [t for t, _ in side if t != -1]
+    if used and all(t in ITEM_HARMFUL for t in used) and any(t != -1 for t, _ in pairs[ITEM_ALLY_PAIRS:]):
+        side = pairs[ITEM_ALLY_PAIRS:]
+    for effect_type, value in side:
         if effect_type == -1:
             continue
         if effect_type not in ITEM_EFFECTS:
@@ -231,10 +270,11 @@ def item_data(b, vanilla_text=''):
     return every, missing
 
 
-def check_item_text(b, text, vanilla_text=None):
+def check_item_text(b, text, vanilla_text=None, shortened=None):
     """An item text is the original, plus an amount in place of a vague size, plus data in a final
     parenthesis. Every piece of data must be what the item's own effect pairs hold.
-    Returns (problems, verified claims)."""
+    shortened: the approved shorter form of the original sentence, for items whose sentence plus data
+    would not fit in one line. Returns (problems, verified claims)."""
     problems, verified = [], 0
     effect_type, value = item_pairs(b)[0]
     body = text
@@ -258,7 +298,7 @@ def check_item_text(b, text, vanilla_text=None):
     if vanilla_text is not None:
         plain = ITEM_AMOUNT_RE.sub(lambda c: f"Restore {c.group('what')} (size)", body)
         vanilla_plain = re.sub(r'\((?:small|medium|large)\)', '(size)', vanilla_text)
-        if plain != vanilla_plain:
+        if plain != vanilla_plain and plain != shortened:
             problems.append(f"'{text}': the original wording changed")
     return problems, verified
 
@@ -449,3 +489,51 @@ def check_enemy_attack_text(b, text, vanilla_text):
             return [f"'{token}' does not match the binary (ailments {ailments}, effects {facts})"], 0
         verified += len(labels)
     return [], verified
+
+
+# ---------------------------------------------------------------------------
+# Meals (ice cream and ramen shops)
+# ---------------------------------------------------------------------------
+FOOD_COUNT = 0x1C            # int, then (int effect id, float value) pairs from 0x20
+FOOD_PAIRS = 0x20
+FOOD_HP, FOOD_TP, FOOD_BOTH = 62, 63, 64      # tenths of the maximum (DT2-2 wiki: stored 2 = "HP 2/10")
+FOOD_VAGUE_RE = re.compile(r'(?:a tiny bit of|a little|some|a lot of) (HP and TP|HP|TP)')
+FOOD_EXACT_RE = re.compile(r'(\d+)% (HP and TP|HP and (\d+)% TP|HP|TP)')
+
+
+def food_effects(b):
+    count = struct.unpack_from('<i', b, FOOD_COUNT)[0]
+    return [struct.unpack_from('<if', b, FOOD_PAIRS + 8 * k) for k in range(count)]
+
+
+def food_amounts(b):
+    """(HP %, TP %) a meal restores, None where it restores none."""
+    effects = dict(food_effects(b))
+    both = effects.get(FOOD_BOTH)
+    hp, tp = effects.get(FOOD_HP, both), effects.get(FOOD_TP, both)
+    return (None if hp is None else round(hp * 10), None if tp is None else round(tp * 10))
+
+
+def food_text(b, effect_line):
+    """The effect line with the stored amount in place of the vague one."""
+    hp, tp = food_amounts(b)
+
+    def exact(m):
+        what = m.group(1)
+        if what == 'HP and TP' and hp is not None and tp is not None:
+            return f'{hp}% HP and TP' if hp == tp else f'{hp}% HP and {tp}% TP'
+        if what == 'HP' and hp is not None:
+            return f'{hp}% HP'
+        if what == 'TP' and tp is not None:
+            return f'{tp}% TP'
+        return m.group(0)
+    return FOOD_VAGUE_RE.sub(exact, effect_line)
+
+
+def check_food_text(b, text, vanilla_text):
+    """Only the amount may change, and it must be the stored one. Returns (problems, verified)."""
+    if text == vanilla_text:
+        return [], 0
+    if text != food_text(b, vanilla_text):
+        return [f"'{text}': not the original sentence with the stored amounts ({food_amounts(b)})"], 0
+    return [], len(re.findall(r'\d+%', text))
