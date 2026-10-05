@@ -105,22 +105,23 @@ All proposed adjustments originated from documented friction in Japanese communi
 
 ### System A: Action Economy & Weapon Speed Recovery (`WeaponRankData.pck`)
 * **Community Friction:** Heavy weapons (2H Greatswords, 2H Axes, Firearms) have high recovery delay multipliers ($2.30\times \sim 2.90\times$, Ranks D to F) and forfeit the off-hand shield slot. Endgame bosses with high AGI lap heavy weapon users multiple times, creating high mortality before a second action.
+* **Proposal & Flat Speed Boost:** In addition to compressing the delay spread on heavy weapons, a **flat +4% baseline speed / recovery improvement** is applied across all delay ranks to raise the overall combat action tempo for all weapon types.
 * **Exact Multipliers:**
 
-| Delay Rank | In-Game Weapon Examples (`Equipment`) | Vanilla Multiplier | Proposed Balanced Multiplier | Relative Turn Recovery Gain |
+| Delay Rank | In-Game Weapon Examples (`Equipment`) | Vanilla Multiplier | Proposed Balanced Multiplier (Includes +4% Flat Boost) | Relative Turn Recovery Gain |
 |:---:|:---|:---:|:---:|:---:|
-| **Rank A+** | Daggers (`Edge of Tartarus`) | `1.00x` | **`1.00x`** | Baseline benchmark |
-| **Rank A** | Daggers, Knives (`Pluto Knife`, `Assassin's Dagger`, `Shamrock`) | `1.20x` | **`1.15x`** | +4.2% faster |
-| **Rank B+** | 1H Swords, Batons (`Phantom Menace`, `Spiritstaff Tulsa`) | `1.40x` | **`1.30x`** | +7.1% faster |
-| **Rank B** | Spears, Flutes, Stilettos (`Heaven's Voice`, `Stunning Stiletto`) | `1.60x` | **`1.45x`** | +9.4% faster |
-| **Rank C+** | Katanas, Spikes (`Bamboo Spike`, `Bashousen`) | `1.80x` | **`1.60x`** | +11.1% faster |
-| **Rank C** | Staves, Whips, Hammers (`Tentacle Whip`, `Westward Staff`) | `2.00x` | **`1.75x`** | +12.5% faster |
-| **Rank D+** | Heavy Spears, Drills, Forks (`Battle Fork`, `Dreadspear Pisear`, `Miracle Drill`) | `2.15x` | **`1.85x`** | +14.0% faster |
-| **Rank D** | Heavy Katanas, Swords (`Samidare`, `Hacchozashi`, `Walawichani`) | `2.30x` | **`1.95x`** | **+15.2% faster** |
-| **Rank E+** | Lances, Arbalests (`Heavy Lance`, `Kanesada`, `Arbalest`) | `2.45x` | **`2.05x`** | **+16.3% faster** |
-| **Rank E** | Hammers, Harkens (`Kotetsu`, `Titan Hammer`, `Double Harken`) | `2.60x` | **`2.15x`** | **+17.3% faster** |
-| **Rank F+** | Great Tachis, War Axes (`Taro Tachi`, `Valhalla Axe`, `Ayamur Magna`) | `2.75x` | **`2.25x`** | **+18.2% faster** |
-| **Rank F** | Colossal Axes, Cleavers (`Heavy Axe`, `Asterios`, `Kuchinawa's Cleaver`) | `2.90x` | **`2.35x`** | **+19.0% faster** |
+| **Rank A+** | Daggers (`Edge of Tartarus`) | `1.00x` | **`0.96x`** | **+4.0% faster** |
+| **Rank A** | Daggers, Knives (`Pluto Knife`, `Assassin's Dagger`, `Shamrock`) | `1.20x` | **`1.11x`** | **+7.5% faster** |
+| **Rank B+** | 1H Swords, Batons (`Phantom Menace`, `Spiritstaff Tulsa`) | `1.40x` | **`1.25x`** | **+10.7% faster** |
+| **Rank B** | Spears, Flutes, Stilettos (`Heaven's Voice`, `Stunning Stiletto`) | `1.60x` | **`1.39x`** | **+13.1% faster** |
+| **Rank C+** | Katanas, Spikes (`Bamboo Spike`, `Bashousen`) | `1.80x` | **`1.54x`** | **+14.4% faster** |
+| **Rank C** | Staves, Whips, Hammers (`Tentacle Whip`, `Westward Staff`) | `2.00x` | **`1.68x`** | **+16.0% faster** |
+| **Rank D+** | Heavy Spears, Drills, Forks (`Battle Fork`, `Dreadspear Pisear`, `Miracle Drill`) | `2.15x` | **`1.78x`** | **+17.2% faster** |
+| **Rank D** | Heavy Katanas, Swords (`Samidare`, `Hacchozashi`, `Walawichani`) | `2.30x` | **`1.87x`** | **+18.7% faster** |
+| **Rank E+** | Lances, Arbalests (`Heavy Lance`, `Kanesada`, `Arbalest`) | `2.45x` | **`1.97x`** | **+19.6% faster** |
+| **Rank E** | Hammers, Harkens (`Kotetsu`, `Titan Hammer`, `Double Harken`) | `2.60x` | **`2.06x`** | **+20.8% faster** |
+| **Rank F+** | Great Tachis, War Axes (`Taro Tachi`, `Valhalla Axe`, `Ayamur Magna`) | `2.75x` | **`2.16x`** | **+21.5% faster** |
+| **Rank F** | Colossal Axes, Cleavers (`Heavy Axe`, `Asterios`, `Kuchinawa's Cleaver`) | `2.90x` | **`2.26x`** | **+22.1% faster** |
 
 * **Status:** **Group 1 (Verified in Data).** The 12 IEEE 754 floats at offset `0x10` of `WeaponRankData.pck` are verified and functional. Theoretical passive damage reduction traits for 2H weapons fall into **Group 4 (No Data Parameter Found)**.
 
@@ -128,25 +129,31 @@ All proposed adjustments originated from documented friction in Japanese communi
 
 ### System B: Magic Scaling, Chant Delays & Spell Tuning (`MagicSkillData.pck`, `PassiveSkillData.pck`)
 * **Community Friction:** Endgame bosses feature $\ge 100$ all-element resistances, cutting magic damage by $\ge 50\%$. Multi-hit attacks frequently trigger chant interrupts. Physical burst classes (*Dark Lord*, *Samurai*, *Sniper*) deal immediate burst damage, relegating pure casters (*Witch*, *Sage*) to utility roles.
+* **Proposed Balance Modifications (Subject to Combat Evaluation):**
+  1. **Chant Time Reduction for All Spells:** Propose reducing spell chant multipliers across Tier 2, Tier 3, and Master Spells (shortening chant time by 25%–35%) so that spells execute earlier in the turn timeline, drastically narrowing the vulnerable window where casters can be interrupted by boss sweeps.
+  2. **Reduction of Boss Elemental Resistances:** Propose lowering endgame superboss elemental resistances (scaling down the $\ge 100$ resistance wall down to ~50–70) so that exploiting elemental affinities yields authentic burst damage instead of being nullified.
+  3. **Evaluation Mandate:** *All of these magic adjustments must be rigorously evaluated in playtesting to measure the exact shift in boss lethality and caster DPS, ensuring bosses retain tactical tension without forcing casters into irrelevance.*
 * **Exact Parameters & Baselines:**
 
 | Spell / Mechanic | Target File | Real Vanilla Baseline (`vanilla_source_of_truth.xlsx`) | Proposed Parameter | Technical Classification |
 |---|---|---|---|---|
-| **Master Spells Chant** | `MagicSkillData_0146..162.bin` | Stored as Multipliers (e.g. `1.25x`) | **-25% to -33% Multiplier** | Group 2 (Float edit feasible; stored as multipliers, not raw frames) |
+| **Master Spells Chant** | `MagicSkillData_0146..162.bin` | Stored as Multipliers (e.g. `1.25x`) | **-25% to -35% Multiplier** | Group 2 (Float edit feasible; stored as multipliers, not raw frames) |
 | **Master Spells Power** | `MagicSkillData_0146..162.bin` | Lv 5: `1,300` | **Lv 5: `1,650` (+27%)** | Group 2 (Float edit feasible) |
 | **Master Spells TP** | `MagicSkillData_0146..162.bin` | `40 -> 84 TP` | **`28 -> 52 TP`** | Group 2 (Int array edit feasible) |
 | **Tier 3 All Spells Power** | `MagicSkillData.pck` | **`300 -> 750 power`** | **`380 -> 850 power`** | Group 2 (Float edit feasible) |
 | **Circle Heal HP Cap** | `MagicSkillData.pck` | **`80 -> 600 HP`** | **`120 -> 900 HP`** | Group 2 (Float edit feasible) |
 | **Heal HP Cap** | `MagicSkillData.pck` | `100 -> 800 HP` | **`150 -> 1,200 HP`** | Group 2 (Float edit feasible) |
 | **Concentrate Passive** | `PassiveSkillData_0281.bin` | **-10% to -50% Interrupt Rate** (Effect 264: `0.1 -> 0.5`) | **-20% to -70% Interrupt Rate** | **Group 2: Feasible via PCK Structs** (Already an interrupt reduction stat!) |
+| **Boss Elemental Resistances**| Enemy Parameter Data | 100+ All Elements (Superbosses) | **Reduced to 50–70 (Subject to Evaluation)** | **Group 3 / 4 (Requires locating enemy stat tables)** |
 | **Elemental Resistance Pierce** | Master Spell Flag | `0 Res Pierce` | **`50 Res Pierce`** | **Group 4 (No data parameter found in PCK structs)** |
 | **Global Chant Crit Interrupt** | Combat Engine Global | Flat interrupt check (community estimates 33.3%) | **`10.0%` base** | **Group 4 (No data parameter found in PCK structs)** |
 
-* **Note on Elemental Resistance Penetration:** No field, offset, or bitmask exists for magic penetration in `MagicSkillData.pck`. Directly tuning base spell power floats (e.g., from 1,300 to ~1,800–2,000) provides the effective operational proxy for higher endgame magic damage.
+* **Note on Elemental Resistance Penetration:** No field, offset, or bitmask exists for magic penetration in `MagicSkillData.pck`. Directly tuning base spell power floats (e.g., from 1,300 to ~1,800–2,000) alongside chant speed reductions provides the confirmed, operational path to make casters viable.
 
 ---
 
-### System C: Active Skill TP Scaling & "Trap Skill Level" Fix
+### System C: Active Skill TP Scaling & "Trap Skill Level" Fix [CRITICAL META REVIEW REQUIRED]
+* **Metagame Warning & Review Mandate:** **This system must be thoroughly reviewed and retuned as active skills are currently severely underperforming in the high-difficulty meta.** Because active techniques consume heavy TP and scale recovery delays while basic attacks and passive procs consume 0 TP, high-level players almost entirely abandon active skill rotations in favor of basic-attack/proc setups.
 * **Community Friction:** Active skills scale TP costs steeply while scaling damage output linearly. Leveling an active skill from Lv 1 to Lv 10 cuts damage-per-TP efficiency significantly (e.g. *Tinker Squash* damage/TP ratio drops by 47% from Lv 1 to Lv 10; *Halving Slice* ratio drops by 30%), causing veteran guides to advise leaving skills at Lv 1–3.
 * **Ground-Truth Baseline vs. Flawed Initial Proposals:**
 
@@ -186,7 +193,8 @@ All proposed adjustments originated from documented friction in Japanese communi
 
 ---
 
-### System F: Progression Pacing, EXP Curve, SP Economy & Quest Ranks
+### System F: Progression Pacing, EXP Curve, SP Economy & Quest Ranks [HIGH PRIORITY / PRIORITARIO]
+* **High-Priority Architectural Status:** **System F represents the single most impactful, verified, and rewarding pillar in the entire mod.** It directly eliminates the game's two most severe progression bottlenecks—the post-Crown 37.6 million EXP grind and early inventory exhaustion—using 100% verified Group 1 binary records.
 * **Community Friction:** Resetting from Lv 99 to Lv 1 requires 37.6 million cumulative EXP. Bag storage begins at 30 slots, creating frequent inventory bottlenecks.
 * **Exact Parameters:**
   * **EXP Curve (`LvExpSkptData.pck`):**
@@ -235,16 +243,40 @@ All proposed adjustments originated from documented friction in Japanese communi
 
 ---
 
-### System G: In-Game Script Modifications & Technical Dialogue Requirements
-*(Note: The active workspace currently runs 100% original vanilla scripts. The items below represent technical requirements that must be resolved before building a rebalanced dialogue variant).*
+### System G: In-Game Tutorials, Classroom Lectures & NPC Dialogue Expansion
+*(Note: The active workspace currently runs 100% original vanilla scripts. The detailed expansions below represent the pedagogical roadmap designed to teach players complex hidden systems in-game while rigorously preserving character personas and humor).*
 
-* **The String Patching Quotation Bug:** The string replacement logic in `apply_mod.py` failed when attempting to patch spoken dialogue lines ending in quotation marks `"` followed by `\x00` (causing 11 replacements to be skipped in earlier tests). The string patcher must be refactored to support quote-terminated strings before modifying script archives.
-* **Rin-Rin Mart Prices (`ShopStore.pck`):** Dialogue must cite store buy prices (Magical Fruit 300 G, Fairy Apple 900 G) rather than their sell prices (100 G / 300 G).
-* **Persona & In-Universe Integrity:**
-  * Preserve Fried and Euthys's save joke in lecture `BattleTeacher_Sp01` (*"Abandon hope and make peace with your fate"*).
-  * State Crown requirements accurately in `BattleTeacher_Sp03` (clarifying that a gap of 59 grants +1 stats, while a Crown requires resetting from Lv 99 to Lv 1).
-  * Maintain Blacksmith's formal tone and Mary Conductor's dialogue constraints (max 3 lines / ~62 characters per box).
-  * Eliminate developer patch jargon ("capped at", "telemetry", "DPS") in favor of in-universe phrasing.
+#### 1. Library In-Game Encyclopedia (`Teaching.pck` — 22 Expanded Tutorials)
+The Royal Library tutorials in `Teaching.pck` serve as the game's comprehensive in-universe reference manual:
+* **Weapon Delay Multipliers (`Teaching_01` & `Teaching_09`):** Teaches the exact delay recovery multipliers across all weapon ranks (Rank A+ 1.00x up to Rank F 2.90x vanilla / 2.26x modded), explaining turn lag and recovery ticks in accessible in-universe terms.
+* **Dungeon Hazards & Trap Formulas (`Teaching_13` & `Teaching_20`):** Explains all 12 trap mechanisms, correctly stating 50% damage floor / mine damage, 50% killer floor instant death checks, and exact elemental affinities (Poison = Water, Sleep = Wind, Freeze = Water, Paralysis = Lightning, Silence = Wind, Petrification = Earth, Slow = Earth).
+* **Combat Rules & Dual-Scaling (`Teaching_15`):** Teaches the dual nature of elemental resistance: 100 elemental resistance grants 100% immunity to associated status ailments and a 50% flat reduction to incoming elemental spell damage.
+* **Chant Vulnerability & Interrupts (`Teaching_17`):** Explains that spells and hymns are subject to disruption when struck during casting, teaching tactical positioning and defensive coverage.
+* **EXP Division & Power-Leveling (`Teaching_19`):** Explicitly teaches the engine rule that battle EXP is divided among surviving allies, explaining the mechanics of solo/duo power-leveling.
+* **Mercenary Contract Duration (`Teaching_21`):** Teaches contract rules, hire costs, and party synergies so players understand mercenary departure timings.
+* **Mutant Enrage States (`Teaching_24`):** Warns adventurers of mutant enrage triggers at low HP thresholds.
+
+#### 2. Euthys's Classroom Lectures (`Lesson.pck` — Special Lectures & Curricula)
+Classroom lectures delivered by Euthys at the Academy combine advanced tactical guidance with authentic character dynamics:
+* **Superboss Wipe Survival (`BattleTeacher_Sp01`):** Teaches strategies for handling colossal attacks that exceed max HP (Cover, Defend, party buffs). **Crucial Voice & Humor Rule:** Must preserve Fried's iconic save joke intact:
+  * *Fried:* "What should we do against attacks that deal more damage than our max HP?!"
+  * *Euthys:* "Abandon hope and make peace with your fate."
+  * *Fried:* "Seriously?!"
+  * *Euthys:* "Well... it's for times like these that you should be saving frequently, Fried."
+* **Crown Reset Milestones (`BattleTeacher_Sp03`):** Clarifies level reset bonuses with mathematical precision: explains that a reset gap of $\ge 59$ grants $+1$ permanent stats, while achieving a Crown requires a Level 99 reset back to Lv 1 (gap 98).
+* **Core Advanced Topics:** Classroom lectures cover 2H weapon tradeoffs, weapon ranges (Short/Mid/Long), 100 resistance walls, bag storage milestones (Rank 2 and 8), Party Skill activation thresholds (+1% stat per 5 awards, +10% max at 50 trophies), and buffet meal mechanics.
+
+#### 3. Facility Attendant Wisdom & In-Town Advice Dialogues
+Town attendants offer mechanical guidance tailored to their distinct personalities:
+* **Mary Conductor (`ShopQuest.pck`):** Speaks out loud only in dots (`"....................."`), with all true thoughts in parentheses `(...)`. Informs Fried of bag capacity expansions (+10 at Rank 2 = 40 slots; +10 at Rank 8 = 50 slots) and *The Matrix* postgame unlock at Rank 16 (620 Trust Points), strictly formatted within 3-line dialogue boxes.
+* **Wandering Blacksmith (`ShopBlacksmith.pck`):** Maintains his formal, polite craftsman demeanor (*"I advise you plan well..."*). Explains forging limits (+9 cap) versus preserving open enchantment slots.
+* **Tavern Patron (`ShopBar.pck`):** Seasoned veteran adventurer offering pragmatic combat advice over a drink regarding mercenary contract duration and frontline tank archetypes.
+* **Rin-Rin Mart (`ShopStore.pck`):** Android shopkeeper speaking with characteristic syllable breaks (`wel-come`, `Flash-lights`). Dialogue accurately cites store buy prices (Magical Fruit for 300 G, Fairy Apple for 900 G) rather than misleading sell prices.
+
+#### 4. Technical Script Implementation Requirements
+* **Trailing Quotation Bug Fix:** Refactor `apply_mod.py` regex/byte search logic to match quote-terminated lines (`orig_bytes + b'"\x00'`) so that the 11 dialogue replacements that previously failed apply cleanly.
+* **Strict Layout Budget:** Ensure every injected line strictly adheres to engine UI constraints: maximum 3 lines per dialogue box and maximum 62 characters per line.
+* **Elimination of Patch Jargon:** Completely purge modern developer patch jargon ("capped at", "telemetry", "DPS") in favor of immersive in-universe terminology.
 
 ---
 
