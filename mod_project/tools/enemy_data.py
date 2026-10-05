@@ -12,7 +12,7 @@ EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 
     0x14 level         0x18 max HP              0x1C ATK   0x20 DEF   0x24 INT
     0x28 RES           0x2C DEX                 0x30 AGI   0x34 EXP   0x38 gold
     0x3C flags: one bit per ailment the enemy cannot receive (IMMUNITY_BITS; each ailment command tests its bit,
-                       for example poison at 0x5580c0); bit 14 allows snackification; bits 0, 1, 12, 13, 15 not decoded
+                       for example poison at 0x5580c0); bit 14 allows snackification; bits 0, 1, 13, 15 not decoded
                        0x40 swing: spread of its damage (docs/FORMULAS.md 2.2)
                        0x44 weight: its term in the order of turns (docs/FORMULAS.md 5)
     0x48 eight resistances: slash, stab, bash, fire, water, wind, earth, lightning
@@ -35,7 +35,7 @@ RESIST_OFFSET = 0x48
 ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = 0xAC, 0xB0, 16
 RACES = {0: 'Fruit', 2: 'Beasts', 4: 'Humans', 5: 'Undead', 6: 'Magic Beings', 7: 'Apparitions', 8: 'Demons', 9: 'Dragons'}
 IMMUNITY_BITS = {2: 'stun', 3: 'sleep', 4: 'silence', 5: 'petrification', 6: 'instant death', 7: 'freeze', 8: 'poison',
-                 9: 'paralysis', 10: 'shadow sew', 11: 'slow'}
+                 9: 'paralysis', 10: 'shadow sew', 11: 'slow', 12: 'turn delay'}
 SNACK_BIT = 14          # set when the enemy can be turned into a snack (0x481488: the other way round)
 
 
