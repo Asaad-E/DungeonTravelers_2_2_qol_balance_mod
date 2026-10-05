@@ -116,19 +116,35 @@ rate    = (value A + value B + skill value) * (1 + own enchantments * 0.02) * (1
 
 Further messages: +5 from the second hit of a multi-hit attack; a direct value; critical against beasts. **[open]** the function and the multiplier.
 
-## 5. Order of turns (`0x4499d0`, `Battle::CBattle::_SetTime`, "行動時間の計算") **[message + code]**
+## 5. Order of turns (`0x4499d0`, `Battle::CBattle::_SetTime`, "行動時間の計算") **[message + code, checked]**
 
 ```
-base A = (stat + 100) / 200                 stat: AGI; INT or RES while chanting, by a flag of the skill   (0x449b4c)
-speed  = ( base A * (1 + r)  -  (weight / 12) * (1 + level / 100) ) * F1 * F2 * F3 * 0.5
-         r: random, 0 to 0.05                                                                              (0x449bd4)
+base A = (stat + 100) / 200          stat: AGI; INT or RES while chanting, by a flag of the skill          (0x449b4c)
+speed  = ( base A * (1 + r)  -  (weight / 12) * (1 + level / 100) ) * F1 * F2 * slow * 0.5
+         r: random, one of 0, 0.01 ... 0.05                                                                 (0x449bd4)
+value  = speed * (1 + buffs + enchantments)      * 1.15 when defending, * 1.20 when escaping    (0x44a316 - 0x44a335)
+value is capped at 0.92                                                                            (0x44a341)
+wait until the next turn = 1 - value
 ```
 
-* **The weapon term is subtracted from the base, and it grows with the level of the unit.** `weight` comes from the equipped weapon (`call [vtable+0xf4]`); the twelve weapon ranks are the natural reading of the division by 12, to be confirmed by reading that call. A slow weapon does not multiply the wait: it takes a fixed bite out of a base that depends on AGI, so the slower the class, the larger the share it loses, and the bite grows as the character levels. This is the mechanism behind the complaint about two-handed weapons.
-* `F1`, `F2`: two factors read from the skill or from the weapon for a player (`[vtable+0x154]`, `[vtable+0x158]`), from the attack record for an enemy. One of them is the speed of the skill shown in its box.
-* `F3`: 0.5 while the unit has status 122 (Slow), else 1 (`0x449e65`). Slow halves speed.
-* After this the code applies sums of speed buffs and enchantments (pieces count 0.2, 0.1 and 0.2 for one family, 0.1, 0.05 and 0.1 for another, the second kept between -0.5 and +0.5), then defending `* 1.15` and escaping `* 1.20`, and caps at 0.92 (`0x44a326 - 0x44a390`).
-* **[open]** the exact reading of `F1` and `F2`, the buff sums, how speed turns into the wait until the next turn, and where the enemy float at `0x44` enters.
+* **weight** is the delay multiplier of the weapon rank (the float of `WeaponRankData`: 1.00 for A+ up to 2.90 for F). For an enemy the same call returns a value of its own record; the float at `0x44` of `EnemyStatusData` is the candidate (ordinary enemies sit in the range of the weapon ranks, bosses far below) **[open: read the call]**.
+* **The weapon term is subtracted from the base and grows with the level of the unit.** A slow weapon does not multiply the wait: it takes a bite of `weight / 12 * (1 + level / 100)` out of a base that depends on AGI. The slower the class, the larger the share it loses, and the bite doubles between level 1 and level 99. This is the mechanism behind the complaint about two-handed weapons, and it means that changing the twelve multipliers does not act as a percentage.
+* **`F1`, `F2`**: factors of the action, read from the skill for a player (`[vtable+0x154]`, `[vtable+0x158]`) and from the attack record for an enemy; 1 for a plain action such as defending. One of them is the speed shown in the skill box: higher is sooner **[open: which is which]**.
+* **slow**: 0.5 while the unit has status 122, else 1 (`0x449e65`).
+* **buffs**, added together. Acting: effects 168 (speed buff), 217, 221, and 261 while HP is at or below 40% of max; plus 201, 340, 276, 277 and, in one case, 316. Chanting: effects 214, 265, 281.
+* **enchantments**: acting, +0.10 per piece of enchantment 51 (speed UP), +0.05 per piece of 52, -0.10 per piece of 53; chanting, +0.20 per piece of 54 (chant speed UP), +0.10 per piece of 55, -0.20 per piece of 56. Each sum is kept between -0.5 and +0.5 (`0x44a1b3 - 0x44a1d4`): five speed UP or three chant speed UP reach the cap.
+* **The cap of 0.92 is the "soft cap" of the guides**: no unit waits less than 0.08. Past it, AGI and speed gear do nothing.
+* Enchantment 298: with it, a chant gets +0.25 on the value (still capped at 0.92) (`0x44a359 - 0x44a390`).
+* At the start of a battle the gauge of each player unit is random (`0x449194`); in one battle of five the order of everyone is random.
+
+**Check against a player test** (Japanese wiki, pages/105.html, "行動速度アップ・詠唱速度アップの上限について"). Unit A: rank A weapon, AGI 261, five speed UP. Unit B: rank B weapon, AGI 47, from 0 to 6 speed UP. Both only defend; the test counts the turns of A during 10 turns of B.
+
+| Speed UP on B | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|---|
+| Measured by the players | 80 | 76 | 71 | 67 | 63 | 58 | 58 |
+| This formula | 80.5 | 76.1 | 71.6 | 67.2 | 62.7 | 58.3 | 58.3 |
+
+Computed with A at the cap (wait 0.08) and B at level 1 (AGI 47 at level 1 is a crowned character, which is how these tests are run): base `(47 + 100) / 200 * 1.025`, weapon term `1.60 / 12 * 1.01`, `F1 = F2 = 1`, defending. The same test with chant speed UP stops improving at three pieces, as the cap of 0.5 on a sum of 0.2 per piece predicts. No constant was fitted.
 
 ## 6. Other formulas stated by the messages **[message]**
 
@@ -150,10 +166,11 @@ The messages also name every chance roll of a passive or unique skill as it is r
 * **Chant interruption is proportional to the damage taken against max HP.** A caster with more HP, or hit by many small hits rather than one large one, is interrupted less. The lever is data (Concentrate, effect 264; HP; the size of enemy hits).
 * **Resistance is half a percent per point for every damage type, physical ones included.**
 * **Slow halves speed.**
+* **The wait until the next turn is `1 - value`, with the value capped at 0.92.** The formula reproduces a player test of the Japanese wiki to the decimal (section 5). Speed is not a ratio: near the cap a small gain in value is a large cut of the wait, which is why speed dominates.
 
 ## 8. Still to read
 
-1. `F1`, `F2`, the buff sums and the conversion to waiting time in `_SetTime`; the enemy float `0x44`.
+1. In `_SetTime`: which of `F1`, `F2` is the skill speed, and the call that returns the weight of an enemy.
 2. The magic function, instruction by instruction.
 3. Critical: function, multiplier, the "1 in 3" interruption.
 4. Range factor `0x44fbb0`; the guaranteed minimum.
