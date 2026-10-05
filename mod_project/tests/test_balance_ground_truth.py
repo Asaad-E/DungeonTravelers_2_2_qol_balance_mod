@@ -5,6 +5,7 @@ import unittest
 
 import _paths
 import class_data
+import character_data
 import doll_data
 import random_move_data
 import enemy_ai
@@ -240,6 +241,27 @@ class Summons(unittest.TestCase):
         self.assertEqual(summon_data.form_for(family, levels[1], forms)['level'], levels[1])
         self.assertEqual(summon_data.form_for(family, 99, forms)['level'], levels[2])
 
+
+
+class Characters(unittest.TestCase):
+    def test_each_character_has_a_base_class_and_her_unique_skill(self):
+        """PlayerStatusData.bin (program table 0x738a08): Alisia is a Fighter with Positive Trance, as the game shows."""
+        girls = character_data.characters()
+        self.assertEqual(len(girls), 18)
+        alisia = girls[0]
+        self.assertEqual((alisia['name'], alisia['base_class'], alisia['unique_skill']), ('Alisia', 0, 364))
+        self.assertEqual({g['base_class'] for g in girls}, {0, 6, 12, 20, 26})           # the five base classes
+        self.assertEqual(len({g['unique_skill'] for g in girls}), 18)
+
+    def test_pep_amounts(self):
+        """Falling in battle always costs Pep and felling an enemy never does; Pep is kept between 70 and 130 (0x4f69e0)."""
+        for girl in character_data.characters():
+            with self.subTest(girl=girl['name']):
+                self.assertEqual(len(girl['pep']), 21)
+                self.assertLess(girl['pep'][1], 0)
+                self.assertGreaterEqual(girl['pep'][0], 0)
+        self.assertEqual(character_data.clamp_pep(500), 130)
+        self.assertEqual(character_data.clamp_pep(0), 70)
 
 
 class RandomMoves(unittest.TestCase):

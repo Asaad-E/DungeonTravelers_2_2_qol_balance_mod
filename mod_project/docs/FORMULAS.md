@@ -586,3 +586,26 @@ A counter is built by `_SetupCounter` (`0x425930`).
   buff and a DEX buff of its value.
 * Paean (`0x439380`): its value is the `bonus` of the EXP share (6c).
 * Solo Duet, On Stage, Double Puppet: two songs, dances or dolls at once instead of one; one more ends the oldest.
+
+## 13. Pep and the data of a character (`tools/character_data.py`) **[code]**
+
+Pep is a float of the character (`0xd8`). `0x4f69e0` keeps it **between 70 and 130** every time it changes, and then
+applies what fixes it: a piece of enchantment 201 holds it at 70, a piece of 200 keeps it at 100 or more, a piece of
+195 holds it at 130, and a status of effect 81 sets it to the value of the status.
+
+What reads it:
+
+* **Joint skills** (`0x56e676`): a joint skill can be used only when every participant has at least its "Pep needed"
+  (`JoinSkillData 0x28`); using it takes its "Pep spent" (`0x2C`) from each (`0x5097f6`), halved by a piece of
+  enchantment 266. This confirms by code the two fields the QoL work had named by comparison with the wiki.
+* **Positive Trance** (2.4): damage gains `(Pep - 100) / value / 100` of itself when Pep is above 100.
+* The mood shown on screen (thresholds 85, 90, 110, 115 at `0x4bea80`).
+
+What changes it: each character has **21 amounts** in her `PlayerStatusData.bin` (`0x3C`), one per event, and the
+code adds the one of the event (`History::CHistory`, the log of what happened in a battle). Read so far: felling an
+enemy (0), falling (1), landing a critical hit (2), taking one (3), ending a battle with an ailment (7), treasure
+boxes (13, 14), the start of a battle (15, 16), meals (17, 18), and a counter reaching 100 and 300 (19, 20). Some are
+added to every living member at once (`0x4e4b70`). The skills that move Pep are effects 66, 80 and 204.
+
+The same file gives the base class and the unique skill of each character; `InitialData.bin` gives her starting
+class and EXP. These amounts are data: a lever of the kind the plan calls benign.

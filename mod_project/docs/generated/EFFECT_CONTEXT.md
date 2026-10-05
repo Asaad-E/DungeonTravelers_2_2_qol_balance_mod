@@ -8,44 +8,6 @@ asked at `0x5b8b7a`:
 ```
 ```
 
-## 66 Pep UP  (skills 1, enemy attacks 1)
-
-own command `0x480e20`:
-```
-call 0x4f69e0
-movss 100
-call 0x4f69e0
-cmp 80
-cmp 337
-call 0x572910
-call 0x428960
-cmp 16
-cmp 31
-call 0x606f90
-```
-
-## 77 Sacrifice  (skills 1, enemy attacks 0)
-
-own command `0x481060`:
-```
-max HP
-call 0x4f69e0
-comiss 0
-```
-
-## 80 Pep change  (skills 0, enemy attacks 31)
-
-own command `0x481160`:
-```
-call 0x4f69e0
-comiss 0
-call 0x572910
-call 0x428960
-cmp 16
-cmp 31
-call 0x606f90
-```
-
 ## 84 Snackification  (skills 1, enemy attacks 0)
 
 own command `0x4813a0`:
@@ -206,42 +168,6 @@ call 0x4f2270
 call 0x413460
 ```
 
-## 199 Damage every turn as a fraction of the target max HP  (skills 1, enemy attacks 4)
-
-asked at `0x42efd5`:
-```
-HP
-cmp 199
-HP
-cmp 339
-max HP
-```
-asked at `0x42f0fa`:
-```
-HP
-cmp 199
-HP
-cmp 339
-call 0x47e500
-```
-
-## 200 Subtle Dance  (skills 0, enemy attacks 4)
-
-asked at `0x42b585`:
-```
-HP
-cmp 200
-effect index 296 (Damage cap)
-```
-
-## 204 Weird Dance  (skills 0, enemy attacks 2)
-
-asked at `0x42bbc7`:
-```
-HP
-cmp 204
-```
-
 ## 235 Perdurabo  (skills 1, enemy attacks 0)
 
 own command `0x48a430`:
@@ -396,21 +322,4 @@ call 0x56ba30
 cmp 2
 call 0x56ba30
 cmp 5
-```
-
-## 339 Debilitating Geas  (skills 0, enemy attacks 2)
-
-asked at `0x42f015`:
-```
-HP
-cmp 339
-max HP
-effect index 296 (Damage cap)
-```
-asked at `0x42f10a`:
-```
-HP
-cmp 339
-call 0x47e500
-HP
 ```

@@ -265,6 +265,31 @@ Stats of each class and route before any bonus (`ClassLevelData`; the row is cho
 | Papillon (from Trickster) | 1282 | 341 | 130 | 111 | 119 | 110 | 133 | 122 |
 | Joker | 1317 | 294 | 136 | 98 | 98 | 87 | 157 | 126 |
 
+## Characters
+
+Read from the package of each character (`tools/character_data.py`, `docs/FORMULAS.md` 13). The level is the one her starting EXP gives on the EXP curve. Pep stays between 70 and 130; the columns after it are what each event adds to it, for the events whose trigger was read in code.
+
+| Character | Base class | Unique skill | Starting EXP | Starting level | Fells an enemy | Falls in battle | Lands a critical hit | Takes a critical hit | Ends a battle with an ailment | Treasure box, results 1 and 2 | Treasure box, result 3 | Start of a battle, first case | Start of a battle, second case | A meal, first case | A meal, second case | A counter reaches 100 | A counter reaches 300 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Alisia | Fighter | Positive Trance | 179196 | 41 | 0.5 | -6 | 1.5 | 0 | -2 | 0 | 0 | 0.5 | 0 | 1 | -2 | 0 | -3 |
+| Melvy | Magic User | Yearning | 257716 | 46 | 0 | -5 | 1 | -1 | -2 | 0 | 0 | 0 | -1 | 1 | -3 | -3 | -6 |
+| Lilian | Spieler | Third Eye Wide | 118916 | 36 | 0.5 | -8 | 1 | -1 | -4 | 0 | -2 | 0 | -0.5 | 1 | -4 | -10 | -15 |
+| Conette | Maid | Sugar Coma | 19509 | 20 | 0 | -6 | 1 | -1 | -4 | 0 | 0 | 0 | 0 | 3 | -6 | -15 | -20 |
+| Monica | Scout | Elbow Grease | 42650 | 26 | 0.5 | -5 | 0 | -1 | -2 | 4 | -5 | 1 | -2 | 1 | -2 | -3 | -6 |
+| Grishna | Fighter | Furious Strike | 90466 | 33 | 0.5 | -5 | 1.5 | 0 | -1 | 0 | 0 | 0.5 | 0 | 1 | -2 | 0 | -1 |
+| Fiora | Magic User | Alter Fate | 118916 | 36 | 0 | -3 | 1 | -1 | -2 | 0 | 0 | 0 | -1 | 1 | -1 | -3 | -6 |
+| Lizerietta | Spieler | Usurper of Souls | 10253 | 16 | 0.5 | -8 | 1 | -1 | -3 | 0 | -1 | 0 | 0 | 1 | -3 | -4 | -8 |
+| Souffle | Scout | Overstock Clearance | 73712 | 31 | 0.5 | -3 | 0 | -1 | -2 | 2 | -3 | 1 | 0 | 1 | -2 | 0 | -2 |
+| Eltricia | Magic User | Wreathed in Glory | 53390 | 28 | 0 | -9 | 1 | -1 | -2 | 0 | 0 | 1 | -1 | 1 | -5 | -5 | -10 |
+| Ist | Maid | Maximum Maid | 152894 | 39 | 0 | -5 | 1 | -1 | -1 | 0 | 0 | 0 | 0 | 1 | -1 | -2 | -4 |
+| Yae | Fighter | Did You Call for Me? | 14355 | 18 | 0.5 | -7 | 1 | 0 | -1.5 | 0 | 0 | 0.5 | 0 | 1 | -2 | 0 | -2 |
+| Tsurara | Scout | Undaunted Spirit | 2269 | 9 | 0.5 | -5 | 0 | -1 | -2 | 1 | -2 | 1 | -4 | 1 | -1 | 0 | -1 |
+| Mefmera | Spieler | Demon Wall | 22523 | 21 | 0.5 | -8 | 1 | -1 | -2 | 0 | -1 | 0 | -0.5 | 2 | -2 | -2 | -4 |
+| Yuni | Maid | Tranquil Song | 5779 | 13 | 0 | -3 | 1 | -1 | -2 | 1 | 0 | 0 | 0 | 1 | -2 | -4 | -8 |
+| Irena | Magic User | Forerunner | 10253 | 16 | 0 | -5 | 1 | -1 | -2 | 0 | 0 | 0 | -1 | 2 | -2 | -2 | -5 |
+| Siena | Magic User | Arcane Shield | 0 | 1 | 0 | -3 | 0 | -1 | -3 | 0 | 0 | 0 | -0.5 | 1 | -3 | -2 | -6 |
+| Luco | Fighter | Shadow Heart | 0 | 1 | 0.5 | -6 | 1 | 0 | -2 | 1 | 0 | 1 | -0.5 | 2 | -2 | 0 | -4 |
+
 ## Enemies
 
 516 entries of `Enemy.pck`. Medians per level band.
