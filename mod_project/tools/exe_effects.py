@@ -119,9 +119,9 @@ def askers(exe, md, ids):
         eid = struct.unpack('<I', m.group(1))[0]
         if eid not in ids:
             continue
-        for k, i in enumerate(md.disasm(code[m.start():m.start() + 80], text_va + m.start())):
-            if k > 14 or (k > 0 and i.mnemonic == 'mov' and i.op_str.startswith('edx,')):
-                break
+        for k, i in enumerate(md.disasm(code[m.start():m.start() + 200], text_va + m.start())):
+            if k > 30 or (k > 0 and i.op_str.startswith('edx') and i.mnemonic not in ('cmp', 'test', 'push')):
+                break                                                      # edx is written again: another value
             if i.mnemonic == 'call':                                       # the first call after it decides
                 if re.fullmatch(r'0x[0-9a-f]+', i.op_str) and int(i.op_str, 16) in FINDERS:
                     found[eid].add(text_va + m.start())
@@ -130,23 +130,32 @@ def askers(exe, md, ids):
         eid = m.group(1)[0] if m.group(1) else struct.unpack('<I', m.group(2))[0]
         if eid not in ids or eid < 2:
             continue
-        slot_loaded = None
+        slot_loaded, pushes = None, 0
         for k, i in enumerate(md.disasm(code[m.start():m.start() + 60], text_va + m.start())):
             if k > 10:
                 break
+            pushes += k > 0 and i.mnemonic == 'push'
             loaded = re.fullmatch(r'(e..), dword ptr \[e.. \+ 0x(48|50)\]', i.op_str) if i.mnemonic == 'mov' else None
             if loaded:
                 slot_loaded = loaded.group(1)                              # mov eax, [vtable + 0x48] ... call eax
             if i.mnemonic == 'call':                                       # the first call after it decides
                 direct = re.fullmatch(r'0x[0-9a-f]+', i.op_str) and int(i.op_str, 16) in PUSH_FINDERS
-                if re.fullmatch(r'dword ptr \[e.. \+ 0x(48|50)\]', i.op_str) or (slot_loaded and i.op_str == slot_loaded) or direct:
-                    found[eid].add(text_va + m.start())
+                by_slot = re.fullmatch(r'dword ptr \[e.. \+ 0x(48|50)\]', i.op_str) or (slot_loaded and i.op_str == slot_loaded)
+                if direct or (by_slot and (pushes or eid > 9)):            # the lookup takes a second argument; a lone small
+                    found[eid].add(text_va + m.start())                    # push before slot 0x48 is another call (turns of a status)
                 break
     # a walk over the effects of an action: call [effect + 0x24] returns its id, compared with a constant
-    for m in re.finditer(rb'\xff[\x50-\x57]\x24(?:\x83\xf8(.)|\x3d(....))', code, re.S):
-        eid = m.group(1)[0] if m.group(1) else struct.unpack('<I', m.group(2))[0]
-        if eid in ids and eid >= 2:
-            found[eid].add(text_va + m.start())
+    for m in re.finditer(rb'\xff[\x50-\x57]\x24', code, re.S):
+        for k, i in enumerate(md.disasm(code[m.start():m.start() + 40], text_va + m.start())):
+            if k == 0:
+                continue
+            compared = re.fullmatch(r'eax, (0x[0-9a-f]+|\d+)', i.op_str) if i.mnemonic == 'cmp' else None
+            if compared:
+                eid = int(compared.group(1), 0)
+                if eid in ids and eid >= 2:
+                    found[eid].add(text_va + m.start())
+            if k > 4 or compared or i.mnemonic in ('call', 'jmp', 'ret') or (i.op_str.startswith('eax') and i.mnemonic != 'cmp'):
+                break                                                      # a few moves may sit between the call and the cmp
     return found
 
 

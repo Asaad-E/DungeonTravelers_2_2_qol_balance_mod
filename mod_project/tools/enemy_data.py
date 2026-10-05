@@ -19,7 +19,9 @@ EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 
          (Selene: 15, 30, 0, 10, 0, 0, 20, 20, the figures of her status screen)
     0x68 number of items it can drop (0 to 2), then (item id, chance in percent) at 0x6C and 0x74
          (the result of a battle walks them, 0x445db1)
-    0x7C, 0x80 two ints read when it falls (0x558180, 0x52da31); not identified
+    0x7C chance in percent of its third drop, the one enchantment 276 (Equipment drop rate UP) adds 20 to per piece,
+         and 0x80 the number that drop is drawn with (0x558517). One weighted roll (0x558180) picks among the
+         two items, this drop and nothing; Treasure Hunt adds to every chance above 0 (docs/FORMULAS.md 12.11)
     0x84 what can be stolen from it: a flag, an id at 0x88, a chance in percent at 0x8C (the steal code reads 0x84)
     0x90..0xA4 two more groups of flag, id, chance; not identified
     0xA8 the item it becomes when turned into a snack (0x48151f)
@@ -67,6 +69,7 @@ def read_status(b):
     enemy['raw_68'] = list(struct.unpack_from('<17i', b, 0x68))
     raw = enemy['raw_68']
     enemy['drops'] = [(raw[1 + 2 * k], raw[2 + 2 * k]) for k in range(max(0, min(raw[0], 2))) if raw[1 + 2 * k] != -1]
+    enemy['equipment_drop'] = (raw[5], raw[6])        # chance in percent, what it is drawn with
     enemy['steal'] = (raw[8], raw[9]) if raw[9] not in (-1, 0) else None
     enemy['snack_item'] = raw[16] if raw[16] != -1 else None
     enemy['raw_f0'] = list(struct.unpack_from('<6i', b, 0xF0))

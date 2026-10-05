@@ -554,3 +554,35 @@ it**, not the sum: two members with the same passive do not stack.
                          gains 20 points per piece of 276 on the unit that felled the enemy
     Gold (0x43aa33)      gold = int(gold * (1 + Lucky Me (271))); four times and at least 100 first with effect 428
     Prices (0x4762c0)    price = int(price - price * Negotiate (282)), at least 1
+
+### 12.12 Who takes the hit (`0x4200e0`, the function that applies an action)
+
+Before the damage of a hit is kept, the target can turn it away, in this order:
+
+* **Cover** (`0x420b60`): for an action aimed at one unit or at random units, one of the other units of the target's
+  side that has Cover, picked with equal chances, becomes the target. There is no roll and no test of the kind of
+  damage. After the action each covered hit rolls `value * 100` to **end** that Cover: the value of the skill is the
+  chance to lose it (0.70 at level 1, 0.40 at level 5).
+* **No effect**: a unit with All Resistances 100, or with Nullify Short-Mid against a short or mid range hit.
+* **Elegant Dancing**: the first damaging hit deals 0 and the status is spent.
+* **Counter** (`0x422553`): roll `value * 100`; the hit does nothing and the target counters.
+* **Clone, Illusion, Barrier System** (`0x41f920`): each is a count of hits; a damaging hit (not one that halves or
+  quarters HP) or an ailment that would land does nothing and takes one from the count.
+
+### 12.13 Counters and follow-ups
+
+    Counter Whip (0x4203b1)   at the start of an action the first target that has it strikes first; no roll
+    Counter (0x422553)        short or mid range; roll value * 100; the hit is void and the target counters
+    Reprisal (0x424689)       short or mid range, after the hit landed; roll value * 100; counter when the action ends
+    Support Shot (0x424c42)   after a plain attack of an ally; each bearer rolls value * 100; the first success fires
+    Absolute Attack           an attacker that has it is never answered by the three counters above
+
+A counter is built by `_SetupCounter` (`0x425930`).
+
+### 12.14 After an action and after a battle (`Battle::CBattleBase::Update`, `0x438cef`)
+
+* Double Action and Triple Action (enemies): roll `value * 100` for two actions; failing that, roll for three.
+* Ecstasy (`0x47f59b`): once per battle, when damage takes its bearer from half max HP or more to below half, an ATK
+  buff and a DEX buff of its value.
+* Paean (`0x439380`): its value is the `bonus` of the EXP share (6c).
+* Solo Duet, On Stage, Double Puppet: two songs, dances or dolls at once instead of one; one more ends the oldest.
