@@ -48,6 +48,7 @@ import magnitude_words
 import enchant_values
 import weapon_rank_labels
 import install_variant
+import rules
 from shortened_text import ITEM_SENTENCES
 from generate_qol_enchant_text import MAX_NAME, MAX_NAME_ON_EQUIPMENT
 
@@ -58,6 +59,7 @@ BUILD_DIR = os.path.join(BASE_DIR, 'build')
 PARAM_SUBDIR = os.path.join('Data', 'ENG', 'Parameter')
 
 MAX_LINE = 85
+BATTLE_LINE = rules.setting('battle_line_width')   # the battle bar: line 1 of techniques, spells, joint skills
 MAX_BOX_LINES = 3
 
 # category -> (pck, header size, offsets of the 8-byte string pointers)
@@ -424,8 +426,9 @@ def verify_joint_skills(out_dir, table, variant, problems):
             problems.append(f"{label}: numeric data differs from the original")
         if (now['name'], now['msg']) != (was['name'], was['msg']):
             problems.append(f"{label}: name or battle message changed")
-        if now['desc'] != table[fn]['desc'] or len(now['desc']) > MAX_LINE or '\n' in now['desc']:
-            problems.append(f"{label}: built text differs from the joint skill table, or is not one line of {MAX_LINE}")
+        visible = was['name'] != "Genocide Rain's Action"       # internal entry, never drawn
+        if now['desc'] != table[fn]['desc'] or '\n' in now['desc'] or (visible and len(now['desc']) > BATTLE_LINE):
+            problems.append(f"{label}: built text differs from the joint skill table, or is not one line of {BATTLE_LINE}")
         if now['desc'] == was['desc'] and bytes(new) != bytes(old):
             problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
         found, verified = check_joint_skill_text(new, was['name'], now['desc'], was['desc'])
@@ -474,6 +477,8 @@ def verify_skills(out_dir, table, variant, problems):
             # magnitude words the binary gives.
             if category in ('Technique', 'Magic', 'Passive'):
                 if desc != row['vanilla_desc']:
+                    if category in ('Technique', 'Magic') and len(desc) > BATTLE_LINE:
+                        problems.append(f"{label}: line 1 has {len(desc)} characters, the battle bar holds {BATTLE_LINE}")
                     if len(desc) > MAX_LINE or desc.count('\n') != row['vanilla_desc'].count('\n'):
                         problems.append(f"{label}: line 1 must keep its line count and stay within {MAX_LINE} chars")
                     if sorted(re.findall(r'\d+', magnitude_words.strip_chances(desc, row['vanilla_desc']))) != sorted(re.findall(r'\d+', row['vanilla_desc'])):

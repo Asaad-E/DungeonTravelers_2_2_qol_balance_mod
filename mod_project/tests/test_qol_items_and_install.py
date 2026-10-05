@@ -273,9 +273,9 @@ class PartySkills(unittest.TestCase):
 
     def test_bounds_follow_the_sentence(self):
         by_name = {self.helper.read_party_skill(b)['name']: self.table[fn] for fn, b in self.entries}
-        self.assertEqual(by_name['Full of Guts']['effect'], 'Max HP increased. (Up to +100 at 50 awards)')
+        self.assertEqual(by_name['Full of Guts']['effect'], 'Max HP increased (up to +100).')
         self.assertEqual(by_name['Sales Experience']['effect'],
-                         'Wind resistance and AGI increased. (Up to +20% and +10 at 50 awards)')
+                         'Up to wind resistance +20% and AGI +10.')
         self.assertEqual(by_name['Celebrities']['effect'], 'Lightning resistance increased.')    # no guide gives it
 
     def test_every_bound_belongs_to_an_effect_of_the_pack(self):
@@ -288,7 +288,7 @@ class PartySkills(unittest.TestCase):
             table, problems = copy.deepcopy(self.table), []
             if mutate:
                 fn = next(f for f, r in table.items() if r['vanilla'] == 'ATK increased.')
-                table[fn]['effect'] = 'ATK increased. (Up to +40 at 50 awards)'
+                table[fn]['effect'] = 'ATK increased (up to +40).'
             with tempfile.TemporaryDirectory() as out:
                 bv.build_party_skills(out, table, problems)
                 bv.verify_party_skills(out, table, bv.VARIANTS['qol'], problems)
@@ -345,7 +345,10 @@ class JointSkills(unittest.TestCase):
         self.assertEqual(self.by_name['Divine Punishment!'][1]['desc'],
                          'Deal physical damage to an enemy row. 85% chance of instakill.')
         self.assertEqual(self.by_name['Bunker Buster'][1]['desc'],
-                         'Deal damage and reduce physical attack/defense (-25%). Pierces to the back row.')
+                         'Deal damage through to the back row. Physical attack/defense -25%.')
+        for name, (_, row) in self.by_name.items():       # the battle bar holds 70 characters
+            if name != "Genocide Rain's Action":
+                self.assertLessEqual(len(row['desc']), 70, row['desc'])
         self.assertEqual(self.by_name['Rush Zanber'][1]['desc'], self.by_name['Rush Zanber'][1]['vanilla'])
 
     def test_clean_build_and_a_wrong_value(self):

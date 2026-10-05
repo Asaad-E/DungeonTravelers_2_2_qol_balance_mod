@@ -505,8 +505,10 @@ def check_food_text(b, text, vanilla_text):
 # itself ("Party skills grow stronger the more Awards you obtain."). Bounds and wording: sheets
 # PartySkillBounds and Settings of qol_rules.xlsx.
 PARTY_EFFECT = 0x4C
-PARTY_BOUNDS = {int(r['Effect_ID']): [part.strip() for part in str(r['Bounds']).split(',') if part.strip()]
-                for r in rules.rows('PartySkillBounds')}
+PARTY_LINE = rules.setting('party_line_width')
+PARTY_SENTENCES = {int(r['Effect_ID']): (r['Sentence'], [part.strip() for part in str(r['Bounds']).split(',') if part.strip()])
+                   for r in rules.rows('PartySkillBounds')}
+PARTY_BOUNDS = {effect_id: bounds for effect_id, (_, bounds) in PARTY_SENTENCES.items()}
 
 
 def party_skill_bounds(b):
@@ -514,21 +516,25 @@ def party_skill_bounds(b):
 
 
 def party_skill_text(b, effect_line):
-    """The effect line of the game followed by the bounds of its bonuses, in the order it names them."""
-    bounds = party_skill_bounds(b)
-    if not bounds:
-        return effect_line
-    note = rules.setting('party_skill_note').format(bounds=' and '.join(bounds), awards=rules.setting('award_count'))
-    return f'{effect_line} {note}'
+    """The sentence of the rules sheet for the effect of this entry, or the game's line when it has none."""
+    sentence, _ = PARTY_SENTENCES.get(struct.unpack_from('<i', b, PARTY_EFFECT)[0], ('', []))
+    return sentence or effect_line
 
 
 def check_party_skill_text(b, text, vanilla_text):
-    """The original line, or the original line plus the bounds of the table. Returns (problems, verified)."""
+    """The original line, or the sentence of the rules sheet carrying every bound it lists.
+    Returns (problems, verified)."""
     if text == vanilla_text:
         return [], 0
+    problems, bounds = [], party_skill_bounds(b)
     if text != party_skill_text(b, vanilla_text):
-        return [f"'{text}': not the original sentence followed by the bounds of the table ({party_skill_bounds(b)})"], 0
-    return [], len(party_skill_bounds(b))
+        problems.append(f"'{text}': not the sentence of the sheet PartySkillBounds")
+    figures = re.findall(r'[+-]\d+%?', text)
+    if sorted(figures) != sorted(bounds) and not (len(set(bounds)) == 1 and figures == bounds[:1] and 'each' in text):
+        problems.append(f"'{text}': its figures {figures} are not the bounds of the table {bounds}")
+    if len(text) > PARTY_LINE:
+        problems.append(f"'{text}': {len(text)} characters, the box of the party skill list holds {PARTY_LINE}")
+    return problems, 0 if problems else len(bounds)
 
 
 # ---------------------------------------------------------------------------

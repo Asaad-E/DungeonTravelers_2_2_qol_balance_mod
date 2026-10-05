@@ -118,26 +118,33 @@ class Line1(unittest.TestCase):
                                  sorted(c for c in row['vanilla_desc'] if c.isdigit()))
         self.assertGreater(changed, 50)
 
-    def test_skills_without_damage_say_how_much_they_do(self):
-        """The user's rule: line 1 gives the value; the level-by-level list is in the box below."""
+    def test_line1_does_not_repeat_the_values_of_the_box(self):
+        """The user's rule (2026-10-04): the box below has every value; repeating them in line 1 is bloat.
+        Line 1 of a skill that deals no damage is the game's sentence, shortened only for the battle bar."""
         table = bv.load_skill_text(SKILL_TABLE)
-        by_name = {}
+        rows = {}
         for category, pck in (('Technique', 'TechniqueSkillData.pck'), ('Magic', 'MagicSkillData.pck'),
                               ('Passive', 'PassiveSkillData.pck')):
             for fn, b in PckArchive(os.path.join(_paths.BACKUP_DIR, pck)).files:
-                by_name.setdefault(SkillHelper.read_skill(b, category)['name'], table[(category, fn)]['desc'])
-        expected = {
-            'War Cry': "Raise the party's ATK (8%+).",                                 # +8% -> +18%
-            'Brave': "Raise an ally's ATK (10-22%).",
-            'Berserk': 'Increase own ATK at the price of lowering own DEF (ATK 20-50%, DEF 11-25%).',
-            'Sword Mastery': 'ATK bonus with sword equipped (3-15%).',
-            'Resurrect': 'Revive a dead ally (HP on revival 40-88%).',
-            'Power Charge': 'Deal increased physical damage next turn (1.05-1.3x).',
-            'Moon Curtain': "Raise the party's resistance to fire, water, lightning, wind, and earth (5-25%).",
-        }
-        for name, text in expected.items():
+                rows.setdefault(SkillHelper.read_skill(b, category)['name'], table[(category, fn)])
+        for name in ('War Cry', 'Brave', 'Berserk', 'Sword Mastery', 'Resurrect', 'Power Charge', 'Self-Sacrifice'):
             with self.subTest(skill=name):
-                self.assertEqual(by_name[name], text)
+                self.assertEqual(rows[name]['desc'], rows[name]['vanilla_desc'])
+                self.assertIn('->', rows[name]['lvup'])
+        self.assertEqual(rows['Moon Curtain']['desc'], 'Raise party resistance to fire, water, lightning, wind, and earth.')
+
+    def test_line1_fits_the_battle_bar(self):
+        """The battle bar draws 70 characters well (measured by the user); a longer sentence is rewritten."""
+        table = bv.load_skill_text(SKILL_TABLE)
+        self.assertEqual(bv.BATTLE_LINE, 70)
+        for category, pck in (('Technique', 'TechniqueSkillData.pck'), ('Magic', 'MagicSkillData.pck')):
+            for fn, b in PckArchive(os.path.join(_paths.BACKUP_DIR, pck)).files:
+                row = table[(category, fn)]
+                if row['desc'] != row['vanilla_desc'] or row['lvup'] != row['vanilla_lvup']:      # internal entries are not drawn
+                    with self.subTest(entry=fn):
+                        self.assertLessEqual(len(row['desc']), 70, row['desc'])
+        by_text = {row['desc'] for row in table.values()}
+        self.assertIn('Bow skill. Moderate stab damage to an enemy. May freeze (20-50%).', by_text)
 
     def test_checker_rejects_a_value_the_skill_does_not_have(self):
         category, _, b, desc = self.skills['War Cry']

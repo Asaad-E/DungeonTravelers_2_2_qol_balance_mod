@@ -30,7 +30,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 import magnitude_words
-from shortened_text import SKILL_SENTENCES, SKILL_TEMPLATES
+from shortened_text import SKILL_SENTENCES, SKILL_TEMPLATES, LINE1_VALUES
 import rules
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,6 +40,7 @@ PREVIOUS_PATH = os.path.join(TABLES_DIR, 'skills.xlsx')
 OUTPUT_PATH = os.path.join(TABLES_DIR, 'qol_skill_text.xlsx')
 
 MAX_LINE = 85        # measured on screen
+BATTLE_LINE = rules.setting('battle_line_width')    # the battle bar draws line 1 of techniques and spells
 MAX_BOX_LINES = 3    # description + level-up lines
 SEP = ' | '
 HEADERS = ['Category', 'Filename', 'Skill_Name', 'Levels', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp',
@@ -608,22 +609,29 @@ def generate_line1(skill, row):
         template, labels = SKILL_TEMPLATES[skill['name']]
         effects = {label: (values, unit) for label, values, unit in row.get('effects', [])}
         if all(label in effects for label in labels):
+            word = magnitude_words.damage_word(slots) or ''
             text = template.format(*[magnitude_words.figure(*effects[label]) for label in labels],
-                                   dmg=magnitude_words.damage_word(slots) or '')
-            if len(text) <= MAX_LINE:
+                                   dmg=word, Dmg=word.capitalize())
+            if len(text) <= BATTLE_LINE:
                 return text, []
             return skill['desc'], [f'template of {len(text)} characters does not fit']
     base = SKILL_SENTENCES.get(skill['name'], skill['desc'])
     text, notes = (skill['desc'], [])
     if skill['category'] in ('Technique', 'Magic'):
-        text, notes = magnitude_words.propose(base, slots, MAX_LINE)
-        if text == base and base != skill['desc']:
-            text = skill['desc']
-    if text == skill['desc'] and not magnitude_words.has_power_table(slots) and '\n' not in text:
-        # No damage and no chance to state: say how much the skill does (the user's rule).
+        text, notes = magnitude_words.propose(base, slots, BATTLE_LINE)
+        if text == base and base != skill['desc'] and len(skill['desc']) <= BATTLE_LINE:
+            text = skill['desc']        # nothing to add and the original fits: keep it
+        if len(text) > BATTLE_LINE:
+            notes = notes + [f'{len(text)} characters: the battle bar holds {BATTLE_LINE}; shorten it in ShortSkills']
+    if LINE1_VALUES and text == skill['desc'] and not magnitude_words.has_power_table(slots) and '\n' not in text:
+        # Off by the user's choice (qol_rules.xlsx, Settings/line1_values): the box below has every value,
+        # so repeating them in line 1 is bloat.
         text, more = magnitude_words.put_values(skill['desc'], row.get('effects', []), MAX_LINE)
         notes = notes + more
     return text, notes
+
+
+UNIQUE_NOTES = rules.pairs('UniqueSkillNotes', 'Skill', 'Line')
 
 
 def generate_unique(unique):
@@ -634,7 +642,8 @@ def generate_unique(unique):
     levels = Segment('Lv1-9', values[:9], style)
     crown = Segment('Crown EX', values[9:], style)
     line = levels.render('const' if levels.is_constant() else 'list') + SEP + crown.render('const')
-    return unique['desc'] + '\n' + line
+    note = UNIQUE_NOTES.get(unique['name'])     # a figure only a guide gives; the line says so
+    return unique['desc'] + '\n' + line + ('\n' + note if note else '')
 
 
 # ---------------------------------------------------------------------------

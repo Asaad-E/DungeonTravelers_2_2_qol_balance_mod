@@ -6,12 +6,15 @@ QoL text of the party skills: proposes it and keeps it in a workbook edited by h
 Workbook: mod_project/data_tables/qol_party_skill_text.xlsx
   * A party skill has two lines: who must be in the party (never touched) and what it gives.
   * The second line keeps the game's sentence and gains the upper bound of each bonus:
-        "Max HP increased."  ->  "Max HP increased. (Up to +100 at 50 awards)"
+        "Max HP increased."  ->  "Max HP increased (up to +100)."
+    The box of the list holds about 50 characters, so a line that names two bonuses is reworded:
+        "Wind resistance and AGI increased."  ->  "Up to wind resistance +20% and AGI +10."
+    The screen itself shows the award count.
   * PartySkillData.pck holds no amount (an entry is its members and the id of its effect). The bounds
     come from the DT2-2 wiki, pages/72.html, which also gives the rule the game itself states: the
     bonus grows with the awards earned and reaches the bound with all 50.
-  * Bounds and the wording of the note are sheets of qol_rules.xlsx (PartySkillBounds, Settings).
-    A skill without a bound there keeps its line.
+  * The sentences and their bounds are the sheet PartySkillBounds of qol_rules.xlsx.
+    A skill without a sentence there keeps its line.
 """
 import os
 import sys
@@ -25,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_PATH = os.path.join(BASE_DIR, 'backups', 'PartySkillData.pck')
 OUTPUT_PATH = os.path.join(BASE_DIR, 'data_tables', 'qol_party_skill_text.xlsx')
 HEADERS = ['Filename', 'Skill', 'Members', 'Vanilla_Effect', 'QoL_Effect', 'Edited', 'Effect_ID', 'Bounds', 'Source']
-MAX_LINE = rules.setting('line_width')
+MAX_LINE = rules.setting('party_line_width')
 
 
 def load_edited():

@@ -19,5 +19,8 @@ SKILL_SENTENCES = rules.pairs('ShortSkills', 'Skill', 'Sentence')
 
 # skill name -> (line 1 with places for its figures, labels of the box whose figures go there).
 # {dmg} is the damage word. For skills with several effects, where a list at the end would not fit.
+# Templates whose figures are values the box below already shows are used only when the setting
+# line1_values is yes; those whose figures are chances are always used.
+LINE1_VALUES = rules.yes(rules.setting('line1_values'))
 SKILL_TEMPLATES = {r['Skill']: (r['Template'], [label.strip() for label in r['Labels'].split('|')])
-                   for r in rules.rows('SkillTemplates')}
+                   for r in rules.rows('SkillTemplates') if LINE1_VALUES or r['Figures'] == 'chances'}
