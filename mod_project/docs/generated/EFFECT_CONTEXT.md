@@ -345,15 +345,6 @@ mulss 100
 call 0x48c350
 ```
 
-## 262 Dark Aura  (skills 1, enemy attacks 3)
-
-asked at `0x423d9b`:
-```
-status 262 (Dark Aura)
-comiss 1
-status 45 (?)
-```
-
 ## 266 TP Cost Reduction  (skills 1, enemy attacks 0)
 
 asked at `0x4fd331`:
@@ -452,15 +443,6 @@ call 0x48c1d0
 stat
 stat
 call 0x56c010
-```
-
-## 304 Anti-Dark Aura  (skills 1, enemy attacks 0)
-
-asked at `0x423d7a`:
-```
-status 262 (Dark Aura)
-comiss 1
-status 45 (?)
 ```
 
 ## 307 Absolute Attack  (skills 1, enemy attacks 1)
