@@ -936,6 +936,72 @@ Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wis
 | Panagia | Plains of Light | Humans | 99 | 22,500 | 665 | 602 | 288 | 532 | 153 | 171 | 100,000 | 0.30 | 12 | stun, sleep, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, slow, turn delay |
 | Radiant Being | Plains of Light | race 1 | 99 | 48,000 | 642 | 578 | 295 | 431 | 166 | 163 | 500,000 | 0.36 | 13 | stun, silence, petrification, instant death, freeze, poison, paralysis, shadow sew, turn delay |
 
+## Encounter rate
+
+Each step in a zone rolls the chance of the zone for a random battle; for the first 8 steps after a battle none can start (`docs/FORMULAS.md` 14). The mean number of steps between two battles follows from both. Zones with the same figures are counted together.
+
+| Dungeon | Zones | Chance per step (%) | Mean steps between battles | With the strongest piece that lowers it | With the strongest piece that raises it |
+|---|---|---|---|---|---|
+| st00 | 1 | 5 | 28.0 | 41.3 | 22.3 |
+| st00 | 2 | 10 | 18.0 | 20.5 | 16.3 |
+| st01 | 1 | 5 | 28.0 | 41.3 | 22.3 |
+| st01 | 3 | 6 | 24.7 | 33.0 | 20.5 |
+| st02 | 3 | 5 | 28.0 | 41.3 | 22.3 |
+| st02 | 3 | 6 | 24.7 | 33.0 | 20.5 |
+| st02 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st03 | 1 | 5 | 28.0 | 41.3 | 22.3 |
+| st03 | 4 | 6 | 24.7 | 33.0 | 20.5 |
+| st03 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st04 | 4 | 6 | 24.7 | 33.0 | 20.5 |
+| st04 | 4 | 8 | 20.5 | 24.7 | 18.0 |
+| st05 | 2 | 6 | 24.7 | 33.0 | 20.5 |
+| st06 | 2 | 5 | 28.0 | 41.3 | 22.3 |
+| st06 | 3 | 6 | 24.7 | 33.0 | 20.5 |
+| st07 | 1 | 0 | none | none | none |
+| st07 | 2 | 5 | 28.0 | 41.3 | 22.3 |
+| st07 | 1 | 6 | 24.7 | 33.0 | 20.5 |
+| st08 | 1 | 5 | 28.0 | 41.3 | 22.3 |
+| st08 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st08 | 1 | 8 | 20.5 | 24.7 | 18.0 |
+| st09 | 1 | 0 | none | none | none |
+| st09 | 2 | 5 | 28.0 | 41.3 | 22.3 |
+| st09 | 1 | 6 | 24.7 | 33.0 | 20.5 |
+| st09 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st09 | 2 | 8 | 20.5 | 24.7 | 18.0 |
+| st10 | 1 | 0 | none | none | none |
+| st10 | 2 | 5 | 28.0 | 41.3 | 22.3 |
+| st10 | 3 | 6 | 24.7 | 33.0 | 20.5 |
+| st10 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st11 | 1 | 6 | 24.7 | 33.0 | 20.5 |
+| st11 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st11 | 1 | 8 | 20.5 | 24.7 | 18.0 |
+| st12 | 1 | 0 | none | none | none |
+| st12 | 12 | 6 | 24.7 | 33.0 | 20.5 |
+| st12 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st13 | 2 | 0 | none | none | none |
+| st13 | 11 | 6 | 24.7 | 33.0 | 20.5 |
+| st13 | 3 | 7 | 22.3 | 28.0 | 19.1 |
+| st14 | 5 | 6 | 24.7 | 33.0 | 20.5 |
+| st14 | 7 | 7 | 22.3 | 28.0 | 19.1 |
+| st14 | 3 | 8 | 20.5 | 24.7 | 18.0 |
+| st14 | 3 | 10 | 18.0 | 20.5 | 16.3 |
+| st15 | 3 | 6 | 24.7 | 33.0 | 20.5 |
+| st15 | 12 | 7 | 22.3 | 28.0 | 19.1 |
+| st15 | 4 | 8 | 20.5 | 24.7 | 18.0 |
+| st15 | 1 | 10 | 18.0 | 20.5 | 16.3 |
+| st20 | 2 | 6 | 24.7 | 33.0 | 20.5 |
+| st20 | 4 | 7 | 22.3 | 28.0 | 19.1 |
+| st21 | 10 | 6 | 24.7 | 33.0 | 20.5 |
+| st21 | 1 | 7 | 22.3 | 28.0 | 19.1 |
+| st21 | 5 | 8 | 20.5 | 24.7 | 18.0 |
+| st21 | 6 | 10 | 18.0 | 20.5 | 16.3 |
+| st22 | 3 | 6 | 24.7 | 33.0 | 20.5 |
+| st22 | 3 | 8 | 20.5 | 24.7 | 18.0 |
+| st23 | 2 | 0 | none | none | none |
+| st23 | 7 | 7 | 22.3 | 28.0 | 19.1 |
+| st23 | 5 | 8 | 20.5 | 24.7 | 18.0 |
+| st23 | 2 | 9 | 19.1 | 22.3 | 17.1 |
+
 ## Summons
 
 105 forms of 35 summons (`tools/summon_data.py`, `docs/FORMULAS.md` 11). The form used is the last whose level is not above the average level of the party; each stat is the best "stat of a party member * factor", and not below the figure of the enemy the summon comes from.

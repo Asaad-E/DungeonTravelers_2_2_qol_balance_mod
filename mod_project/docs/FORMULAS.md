@@ -609,3 +609,26 @@ added to every living member at once (`0x4e4b70`). The skills that move Pep are 
 
 The same file gives the base class and the unique skill of each character; `InitialData.bin` gives her starting
 class and EXP. These amounts are data: a lever of the kind the plan calls benign.
+
+## 14. Encounter rate (`Dungeon::CDungeonBase::_CheckEncount`, `0x4bc6a0`) **[code]**
+
+The check runs on a step. Nothing happens on cells of kinds 1, 2, 3, 4, 6 and 7; kind 5 starts its own battle.
+Otherwise the cell names its zone, and the zone gives the chance:
+
+    chance = zone[0x1C]                      percent; 0 in a zone with no random battles
+    chance = 0  while fewer than 8 steps have passed since the last battle (0x4bc77b; not before the first one)
+    chance = 0  while game flag 997 is off
+    if chance > 0:
+        chance += int(Whistle)               status of effect 18 on the party (its value is 4)
+        chance += int(status of effect 21)   no skill uses it
+        chance += -1 with a piece of enchantment 211, -2 with 212, +1 with 213, +2 with 214 (each counted once)
+        chance = max(1, chance)
+    a battle starts when a number below 100 is under the chance
+
+So the mean walk between two battles is `8 + 100 / chance` steps: 28 steps at 5, 22.3 at 7, 18 at 10. The figure of
+every zone is in `docs/generated/BALANCE_BASELINE.md`. It is one int of the floor file: data, not code.
+
+After that roll the same step rolls five special chances of the zone (`zone[0x20]` to `zone[0x30]`), each one only
+while its game flag (601 to 605) is on and it has not fired yet, and only once the dungeon counters allow it
+(`0x556380`: a counter of at least 5 and at least 50 steps, 25 with a piece of enchantment 259); the same four
+enchantments shift them. What each of the five starts was not followed.

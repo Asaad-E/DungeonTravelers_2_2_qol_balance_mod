@@ -167,6 +167,12 @@ class Floors(unittest.TestCase):
                 self.assertEqual(sum(f['chance'] for f in floor['formations']), 100)
                 self.assertEqual([f['number'] for f in floor['formations']], list(range(1, len(floor['formations']) + 1)))
 
+    def test_every_zone_has_an_encounter_chance(self):
+        """zone+0x1C is the chance per step of a random battle (0x4bc773): a small percent in every zone that has formations."""
+        chances = [zone['encounter'] for zone in floor_data.floors()]
+        self.assertTrue(all(0 <= c <= 10 for c in chances), sorted(set(chances)))
+        self.assertGreater(sum(1 for c in chances if c >= 5), 0.9 * len(chances))
+
     def test_zone_factors_raise_and_lower(self):
         """The five floats a battle copies from its zone (0x44994d): two that raise, two that lower, one for elements."""
         for floor in self.floors:

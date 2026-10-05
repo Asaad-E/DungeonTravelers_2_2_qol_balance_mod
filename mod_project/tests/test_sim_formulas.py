@@ -188,5 +188,21 @@ class LevelReset(unittest.TestCase):
         self.assertEqual(after([60]), 1)
 
 
+
+class Encounters(unittest.TestCase):
+    def test_chance_per_step(self):
+        """_CheckEncount (0x4bc6a0): zone chance, plus Whistle, plus the pieces, never below 1; 0 stays 0."""
+        self.assertEqual(progression.encounter_chance(6), 6)
+        self.assertEqual(progression.encounter_chance(6, alarm=4), 10)
+        self.assertEqual(progression.encounter_chance(6, pieces=(211, 212)), 3)
+        self.assertEqual(progression.encounter_chance(2, pieces=(211, 212)), 1)
+        self.assertEqual(progression.encounter_chance(0, alarm=4), 0)
+
+    def test_steps_between_battles(self):
+        self.assertAlmostEqual(progression.steps_between_battles(10), 18)
+        self.assertAlmostEqual(progression.steps_between_battles(5), 28)
+        self.assertEqual(progression.steps_between_battles(0), float('inf'))
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -71,3 +71,23 @@ def resets_to_crown(level, steps=RESET_STEPS, cap=RESET_MAX):
     """Resets from this level, always down to level 1, that reach the cap; None when that level earns nothing."""
     gained = reset_bonus(level, 1, 0, steps, cap)
     return None if gained == 0 else -(-cap // gained)
+
+
+# Random battles (Dungeon::CDungeonBase::_CheckEncount, 0x4bc6a0; docs/FORMULAS.md 14)
+ENCOUNTER_GRACE = 8          # steps after a battle during which no random battle can start (0x4bc77b)
+ENCOUNTER_MIN = 1            # the chance per step never falls below 1 percent (0x4bc849)
+ENCOUNTER_PIECES = {211: -1, 212: -2, 213: 1, 214: 2}        # enchantment: points added while the party has a piece
+
+
+def encounter_chance(zone_chance, alarm=0, pieces=()):
+    """Chance in percent of a random battle on one step. zone_chance: the figure of the zone (0 means no battles there);
+    alarm: the value of Whistle while it lasts; pieces: the enchantment ids the party wears."""
+    if zone_chance <= 0:
+        return 0
+    return max(ENCOUNTER_MIN, zone_chance + int(alarm) + sum(ENCOUNTER_PIECES[p] for p in set(pieces)))
+
+
+def steps_between_battles(zone_chance, alarm=0, pieces=(), grace=ENCOUNTER_GRACE):
+    """Mean number of steps from the end of a battle to the next random one: the grace, then one roll per step."""
+    chance = encounter_chance(zone_chance, alarm, pieces)
+    return float('inf') if chance == 0 else grace + 100 / chance
