@@ -4,6 +4,7 @@ import struct
 import unittest
 
 import _paths
+import class_data
 import enemy_ai
 import enemy_data
 from pck_handler import PckArchive
@@ -58,6 +59,25 @@ class ClassGrowth(unittest.TestCase):
         self.assertEqual({len(b) for _, b in rows}, {4 + 99 * 32})
         hp, tp, atk, dfn, intel, res, dex, agi = struct.unpack_from('<8i', bytes(rows[1][1]), 4 + 32 * 19)
         self.assertEqual((tp, intel, res, dex, agi), (63, 15, 18, 25, 19))
+
+    def test_the_row_of_a_class_is_the_one_the_game_picks(self):
+        """GetClassLevelID (0x5545b0): Paladin is row 1, and a class with two routes has a row per route."""
+        luco = class_data.stats(1, 20)
+        self.assertEqual((luco['tp'], luco['int'], luco['res'], luco['dex'], luco['agi']), (63, 15, 18, 25, 19))
+        self.assertEqual(class_data.growth_row(4, previous=1), 4)
+        self.assertEqual(class_data.growth_row(4, previous=2), 5)
+        self.assertEqual(class_data.growth_row(4), 4)               # any other previous class: the first row
+        self.assertEqual(sorted(row for _, _, row in class_data.routes()), list(range(38)))
+
+    def test_a_route_only_changes_what_comes_after_it(self):
+        """Both Samurai rows have the HP of their second class at level 30 and differ at level 99."""
+        table = class_data.growth()
+        for final, first, second in ((4, 1, 2), (10, 7, 8), (17, 13, 14), (18, 14, 15), (24, 21, 22)):
+            for previous in (first, second):
+                with self.subTest(final=final, previous=previous):
+                    self.assertEqual(class_data.stats(final, 30, previous, table)['hp'],
+                                     class_data.stats(previous, 30, table=table)['hp'])
+            self.assertNotEqual(class_data.stats(final, 99, first, table), class_data.stats(final, 99, second, table))
 
 
 

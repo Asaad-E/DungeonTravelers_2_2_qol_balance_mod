@@ -295,3 +295,15 @@ The code that returns the row number (`[party vtable + 0x17c]`) is not read.
 
 Nothing else enters the weight: not damage dealt, not healing, not HP. Enmity in this game is the position, Provoke
 and the two enchantments.
+
+## 10. Stats of a character (`0x4f5d60`; row chosen by `0x5545b0`) **[code]**
+
+    stat = growth row[level] + bonus of the character for that stat + one figure added to every stat
+
+* The growth row is a row of `ClassLevelData` (99 levels of HP, TP, ATK, DEF, INT, RES, DEX, AGI). There are 38
+  rows for 32 classes: `Parameter::CParameterClassLevel::GetClassLevelID` takes the current class and the class
+  before it, and the six classes that can be reached from two classes have one row per route (Samurai, Treasure
+  Hunter, Magical Princess, Sage, Mistress, Papillon). The same class therefore grows differently by route.
+  `tools/class_data.py` holds the table; the figures are in `generated/BALANCE_BASELINE.md`.
+* The bonus per stat sits at offsets 0xdc onwards of the character, the figure added to every stat at 0x120.
+  **[open]** what feeds each (equipment, passive skills, crowns).
