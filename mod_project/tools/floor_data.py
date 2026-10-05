@@ -1,8 +1,10 @@
 """
-Random encounters of every floor: reader of Data/ENG/Dungeon/stNN/Data.pck (backed up in backups/Dungeon/stNN/).
+Random encounters of every floor: reader of the floor parameter files of Data/ENG/Dungeon/stNN/Data.pck.
 
 Data.pck of a dungeon holds, per floor, a parameter file (StNN_FFFF.bin), its map and one .epd file per formation
-(where each enemy stands on screen, 24 records of six ints; not read here).
+(where each enemy stands on screen, 24 records of six ints; not read here). The vanilla parameter files of every
+dungeon are kept together in backups/Dungeon/floor_parameters.zip (the whole Data.pck files are 15 MB of maps
+and textures); `python mod_project/tools/floor_data.py --collect` rebuilds that file from an unmodified game.
 
 Parameter file of a floor (little endian), as far as it is read:
     0xA0        pointer (8 bytes) to the block of the floor
@@ -22,10 +24,12 @@ import os
 import re
 import struct
 import sys
+import zipfile
 from pck_handler import PckArchive
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DUNGEON_DIR = os.path.join(BASE_DIR, 'backups', 'Dungeon')
+FLOOR_ZIP = os.path.join(BASE_DIR, 'backups', 'Dungeon', 'floor_parameters.zip')
+GAME_DUNGEON_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Dungeon')
 BLOCK_POINTER, COUNT, FORMATIONS, RECORD = 0xA0, 0x5C, 0x60, 88
 ENEMY_SLOTS = 12
 
@@ -47,24 +51,39 @@ def read_floor(blob):
     return found
 
 
-def floors(directory=DUNGEON_DIR):
+def collect(game_dir=GAME_DUNGEON_DIR, path=FLOOR_ZIP):
+    """Copies the parameter file of every floor of the game into one archive, as stNN/StNN_FFFF.bin."""
+    count = 0
+    with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as archive:
+        for dungeon in sorted(os.listdir(game_dir)):
+            data = os.path.join(game_dir, dungeon, 'Data.pck')
+            if not re.fullmatch(r'st\d+', dungeon) or not os.path.exists(data):
+                continue
+            for name, blob in PckArchive(data).files:
+                if name.endswith('.bin'):
+                    archive.writestr(zipfile.ZipInfo(f'{dungeon}/{name}', (2000, 1, 1, 0, 0, 0)), bytes(blob))
+                    count += 1
+    return count
+
+
+def floors(path=FLOOR_ZIP):
     """Every floor with formations: [{'dungeon': 'st02', 'floor': 'St02_0010', 'formations': [...]}]."""
     found = []
-    for dungeon in sorted(os.listdir(directory)):
-        path = os.path.join(directory, dungeon, 'Data.pck')
-        if not re.fullmatch(r'st\d+', dungeon) or not os.path.exists(path):
-            continue
-        for name, blob in PckArchive(path).files:
-            if name.endswith('.bin'):
-                formations = read_floor(blob)
-                if formations:
-                    found.append({'dungeon': dungeon, 'floor': name[:-4], 'formations': formations})
+    with zipfile.ZipFile(path) as archive:
+        for entry in sorted(archive.namelist()):
+            dungeon, name = entry.split('/')
+            formations = read_floor(archive.read(entry))
+            if formations:
+                found.append({'dungeon': dungeon, 'floor': name[:-4], 'formations': formations})
     return found
 
 
 def main():
     import enemy_data
     sys.stdout.reconfigure(encoding='utf-8')
+    if sys.argv[1:] == ['--collect']:
+        print(f'{collect()} floor parameter files written to {FLOOR_ZIP}')
+        return
     names = {e['id']: f"{e['name']} L{e['level']}" for e in enemy_data.enemies()}
     for floor in floors():
         if sys.argv[1:] and floor['dungeon'] not in sys.argv[1:]:
