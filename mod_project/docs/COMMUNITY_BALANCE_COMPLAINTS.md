@@ -191,3 +191,8 @@ Across 5ch threads and Atwiki discussions, players repeatedly advocated for:
   * JP players described re-leveling all 18 heroines to Crown as: *"A grueling hundreds-of-hours torture that only extreme masochists finish."*
 * **Takeaway:** Providing **+100% to +150% Catch-Up EXP** when current level is $\le (\text{Peak Level} - 10)$ respects the player's time and encourages creative reclassing and crowning across the entire cast.
 
+---
+
+## Second search (2026-10-05)
+
+A second search of Japanese player complaints, made by another agent for the user, is not copied here. It lives in one place only: the sheet `Criticisms` of `data_tables/balance_criteria.xlsx`, as rows S01 to S27 and as one more voice on the rows that already held the same complaint (column `Also_Raised_By`, "JP search 2"). The `About` sheet of that workbook says how it is to be read.
