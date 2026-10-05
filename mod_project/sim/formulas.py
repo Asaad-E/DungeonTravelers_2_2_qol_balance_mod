@@ -154,3 +154,14 @@ def range_factor(attack_range, dist):
     if attack_range == MID:
         return 0.75 if dist == 2 else 1.0
     return 1.0
+
+
+# --- ailments (the roll of each ailment command, e.g. 0x481ea0 for poison) ---------------------------
+def ailment_chance(base, resistance, flat_penalty=0.0):
+    """Chance in percent that an ailment lands. base: the value of the effect (0.30 is 30%).
+    resistance: the target's resistance to the element the ailment belongs to. Every full 10 points remove a
+    tenth of the chance (integer division by 10 at 0x481fc2), so 100 blocks it and a negative resistance adds.
+    Immunity enchantments and the immunity flag of an enemy are decided before this and are not modelled here."""
+    chance = base * 100.0
+    steps = int(resistance / 10)          # the code divides as integers, towards zero
+    return chance - steps * chance / 10.0 - flat_penalty

@@ -155,6 +155,23 @@ wait until the next turn = 1 - value
 
 Computed with A at the cap (wait 0.08) and B at level 1 (AGI 47 at level 1 is a crowned character, which is how these tests are run): base `(47 + 100) / 200 * 1.025`, weapon term `1.60 / 12 * 1.01`, `F1 = F2 = 1`, defending. The same test with chant speed UP stops improving at three pieces, as the cap of 0.5 on a sum of 0.2 per piece predicts. No constant was fitted.
 
+## 5b. Ailments against resistance (`0x481ea0` for poison; one such method per ailment) **[code]**
+
+Each ailment is a command class of its own (the class of an effect id is set in `Command::CreateCommand`, `0x47b220`); the roll is its virtual method at slot 6.
+
+```
+blocked outright if the target already has the ailment, wears an immunity enchantment, or is an enemy flagged immune
+chance = value of the effect * 100
+chance = chance - (resistance / 10, as integers) * chance / 10          (0x481fc2 - 0x481fea)
+the ailment lands if a random number below 100 is below the chance      (0x48201b)
+```
+
+* **resistance** is the target's resistance to the element the ailment belongs to, read as a stat (`call [vtable+0x34]` with index 10 for poison: water). The indices 6 to 13 are the eight resistances in the order of the enemy record: slash, stab, bash, fire, water, wind, earth, lightning.
+* **Resistance works in steps of ten points**: 0 to 9 change nothing, 50 halves the chance, 100 removes it (the "Block" the game announces). A negative resistance raises the chance.
+* When nothing can land (chance at or below 0) the result is "block"; otherwise a failed roll is a "miss".
+* In one context (the command comes from a source of kind 4) enchantment 269 on the target takes a flat 15 points off, and enchantment 138 blocks.
+* **[open]** turn delay (effect 54) and the skills that skip a turn (Warning Shot, Magnificent Steps): their rolls are separate code.
+
 ## 6. Other formulas stated by the messages **[message]**
 
 | What | Formula |
@@ -183,6 +200,6 @@ The messages also name every chance roll of a passive or unique skill as it is r
 2. The magic function, instruction by instruction.
 3. Critical: function, multiplier, the "1 in 3" interruption.
 4. Range factor `0x44fbb0`; the guaranteed minimum.
-5. Ailment chance against resistance (`ccommandprobabilitybase.cpp`).
+5. Turn delay (effect 54) and turn skipping: their rolls and what makes an enemy immune.
 6. Healing constants and caps; EXP division and the factor by level gap; enmity and targeting (`cbattleai2.cpp`).
 7. Every enchantment magnitude (the calls through `[vtable+0xf0]`), into a generated table.

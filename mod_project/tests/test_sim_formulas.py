@@ -76,3 +76,12 @@ class Range(unittest.TestCase):
         self.assertEqual([f.range_factor(f.MID, d) for d in (0, 1, 2)], [1.0, 1.0, 0.75])
         self.assertEqual([f.range_factor(f.LONG, d) for d in (0, 1, 2)], [1.0, 1.0, 1.0])
         self.assertEqual(f.distance(True, True), 2)
+
+
+class Ailments(unittest.TestCase):
+    def test_resistance_removes_a_tenth_of_the_chance_per_ten_points(self):
+        self.assertAlmostEqual(f.ailment_chance(0.30, 0), 30.0)
+        self.assertAlmostEqual(f.ailment_chance(0.30, 9), 30.0)        # below ten points nothing changes
+        self.assertAlmostEqual(f.ailment_chance(0.30, 50), 15.0)
+        self.assertAlmostEqual(f.ailment_chance(0.30, 100), 0.0)       # the "block" the game announces
+        self.assertAlmostEqual(f.ailment_chance(0.30, -20), 36.0)
