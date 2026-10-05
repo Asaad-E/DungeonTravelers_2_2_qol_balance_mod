@@ -16,7 +16,7 @@ The state of an effect:
     located   the program handles it, in code not read yet: the addresses say where
     not found no handler found by these three searches: it is handled some other way, or by nothing
 An effect read by hand in a place the searches cannot see (an id compared in a register, a lookup far from
-its id) is listed in the sheet EffectNotes of balance_criteria.xlsx with the section that holds it.
+its id) has its rule in the sheet EffectRules of balance_criteria.xlsx, which also counts as read.
 """
 import collections
 import os
@@ -106,7 +106,7 @@ def main():
     effects = [dict(zip(header, r)) for r in rows[1:]]
     ids = {e['Effect_ID'] for e in effects}
     classes = command_classes(exe, md)
-    notes = {r[0]: r[1] for r in openpyxl.load_workbook(os.path.join(TABLES_DIR, 'balance_criteria.xlsx'), read_only=True)['EffectNotes'].iter_rows(min_row=2, values_only=True) if r and r[0] is not None}
+    notes = {r[0]: r[1] for r in openpyxl.load_workbook(os.path.join(TABLES_DIR, 'balance_criteria.xlsx'), read_only=True)['EffectRules'].iter_rows(min_row=2, values_only=True) if r and r[0] is not None}
     asked = askers(exe, md, ids)
     slot6 = {}
     out = []
@@ -119,11 +119,10 @@ def main():
         apply_method = exe.u32(vtable + 24) if vtable else None
         plain = apply_method == PLAIN_APPLY
         class_read = bool(apply_method and (plain or section_of(apply_method)))
-        if eid in notes:                                    # read by hand where the searches cannot see
+        if eid in notes:                                    # its rule is written in the sheet EffectRules
             sections = sorted(set(sections) | {notes[eid]})
-            unread = []
-            if not vtable or class_read:
-                places = places or [0]
+            unread, class_read = [], True
+            places = places or [0]
         if (places or vtable) and not unread and (not vtable or class_read):
             state = 'read'
         elif places or vtable:
