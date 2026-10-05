@@ -171,7 +171,7 @@ The messages also name every chance roll of a passive or unique skill as it is r
 
 ## 8. Still to read
 
-1. In `_SetTime`: which of `F1`, `F2` is the skill speed, and the call that returns the weight of an enemy.
+1. In `_SetTime`: which of `F1`, `F2` is the skill speed, and the call that returns the weight of an enemy. Read so far: the weight is a virtual call (slot `0xf4`); for a player it comes from the equipped weapon; two other unit classes (`0x4feeb0`, `0x5001d0`: summons and mercenaries are the candidates) take a rank index from their own record and return the delay of that weapon rank; the class of an ordinary enemy is not identified yet.
 2. The magic function, instruction by instruction.
 3. Critical: function, multiplier, the "1 in 3" interruption.
 4. Range factor `0x44fbb0`; the guaranteed minimum.
