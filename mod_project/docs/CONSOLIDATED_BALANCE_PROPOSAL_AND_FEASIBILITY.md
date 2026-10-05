@@ -1,21 +1,25 @@
 # Dungeon Travelers 2-2: Master Balance Proposal, Community Foundations, and Technical Feasibility Reference
 
 **Document Status:** Definitive Technical & Balance Reference  
-**Scope:** Consolidated compilation of all proposed balance adjustments, Japanese community origins, verified vanilla baselines, dialogue script adaptations, and technical binary feasibility classification.  
+**Scope:** Consolidated compilation of all proposed balance adjustments, Japanese community origins, verified vanilla baselines from `vanilla_source_of_truth.xlsx`, dialogue script requirements, and technical binary feasibility classification.  
 **Language:** English  
 
 ---
 
 ## 1. Executive Summary & Methodological Foundations
 
-### 1.1 Source-of-Truth Mandate
-All vanilla baseline parameters in this document are extracted directly from `vanilla_source_of_truth.xlsx` and raw binary parameter archives (`.bin` / `.pck`). Earlier design drafts occasionally based balance proposals on forum memory or unverified baselines (e.g., assuming *Halving Slice* was 115%–175% when the binary is 80%–110%). Any future balance adjustments must strictly branch from verified source-of-truth baselines.
+### 1.1 Source-of-Truth Mandate & `CommandData.pck`
+All vanilla baseline parameters in this document are extracted directly from `vanilla_source_of_truth.xlsx` and raw binary parameter archives (`.bin` / `.pck`). 
+
+A vital architectural discovery is **`CommandData.pck`** (containing 364 binary records). `CommandData.pck` provides the engine's canonical internal names for every skill command, trap effect, and status condition (e.g., Effect 0: Physical Attack, Effect 26: Physical power modifier, Effect 48: DEF conversion, Effect 54: Turn delay pushback, Effect 170: Aggro, Effect 264: Interruption rate DOWN). It serves as the primary tool for determining which mechanics possess editable parameter fields in `.pck` records.
+
+Any future balance pass must programmatically generate its baseline figures from `vanilla_source_of_truth.xlsx` to avoid manual copy errors (such as previous misstatements of *Tinker Squash* or *Trump Card*).
 
 ### 1.2 Note on Theoretical Combat Simulations
 Earlier combat simulation models (`exhaustive_combat_simulator.py`) evaluated theoretical turn-economy pacing using hardcoded enemy stat baselines (e.g., 180 AGI, 380 DEF), as enemy attribute tables are not stored in player parameter archives. They serve as mathematical trend indicators rather than live engine battle telemetry.
 
 ### 1.3 Technical Feasibility Classification
-Proposed modifications are categorized into four technical classifications:
+"Verified" indicates that the binary struct, offsets, and data types have been mapped and confirmed in the `.pck` files; it does not imply comprehensive in-game balance telemetry has been playtested. Proposed modifications are categorized into four technical classifications:
 
 * **Group 1: Verified in Binary Data Tables (Technically Functional in PCKs)**  
   Parameters with mapped, confirmed binary structs that have been successfully injected and tested:
@@ -29,16 +33,17 @@ Proposed modifications are categorized into four technical classifications:
 * **Group 2: Feasible & Confirmed in Known PCK Structs (Ready to Implement)**  
   Fields verified in `.pck` binary records, where earlier builds updated display text but left binary values untouched:
   * Skill TP cost integer arrays and power float arrays (`TechniqueSkillData.pck`, `MagicSkillData.pck`).
-  * Spell chant speed multipliers in `MagicSkillData.pck`.
-  * Action recovery delay floats (*Attract*, *Dark Aura*).
-  * *Tinker Squash* turn delay pushback float array (25% → 43%).
-  * *Cover* interception mitigation per-level parameter (0.7 → 0.4).
-  * Passive proc rates (*Holy Shield*, *Concentrate*).
+  * Spell chant speed multipliers in `MagicSkillData.pck` (stored as multipliers like 1.25x).
+  * Skill speed multipliers (*Attract*, *Provoke*).
+  * *Tinker Squash* turn delay pushback float array (25% → 43%, Effect 54) and TP cost (10 → 32).
+  * *Trump Card* DEF-to-ATK conversion bonus (60% → 150%, Effect 48) and TP cost (38 → 50).
+  * *Concentrate* chant interruption reduction parameter (10% → 50% reduction in `PassiveSkillData_0281.bin`, Effect 264).
   * Trap damage and instant-death rate floats in `TrapData.pck`.
   * *Golden Apple* Full TP recovery (set float to `999.0`, matching vanilla `Mermaid Meat`).
 
-* **Group 3: Probably Feasible in PCK Tables (Unconfirmed Structs)**  
-  Parameters believed to reside in existing parameter files whose exact offsets require final mapping:
+* **Group 3: Probably Feasible in PCK Tables (Unconfirmed Structs / Mechanics)**  
+  Parameters believed to reside in existing parameter files whose exact scaling formula or structure requires further mapping:
+  * *Cover* Effect 171 per-level parameter (`0.7 -> 0.4` in `TechniqueSkillData_0008.bin`). The parameter exists, but the exact mechanic it scales (damage transfer percentage, mitigation factor, or duration) is unverified in engine code.
   * Paladin base DEF growth multiplier in `ClassLevelData.pck`.
   * Summon doll attribute scaling and duration parameters in minion skill records.
   * Joint Skill Pep and TP cost headers in `JoinSkillData.pck`.
@@ -48,7 +53,7 @@ Proposed modifications are categorized into four technical classifications:
   Mechanics where no corresponding parameter field, flag, or struct exists in inspected data tables:
   * *Elemental Resistance Penetration (+50 pierce):* No magic penetration flag exists in `MagicSkillData.pck`.
   * *Universal Defend Command Immunity:* Crit/interrupt immunity is not parameter-driven in `StringData.pck`.
-  * *Global Chant Crit Interrupt Rule (33.3%):* Hardcoded combat rule with no parameter table.
+  * *Global Chant Crit Interrupt Rule (33.3%):* Hardcoded combat rule with no parameter table (the 33.3% figure itself is a community-derived estimate).
   * *Summon Doll Guts (1 HP Survival):* Minion entities lack passive trait slots for Guts.
   * *Buffet Meal 900-Step Duration & Dispel Immunity:* No step counter or dispel flag exists in `FoodMenuData.pck`.
   * *Boss Diminishing Returns:* No stateful resistance counter exists in enemy data.
@@ -69,12 +74,12 @@ All proposed adjustments originated from documented friction in Japanese communi
    ┌───────────────────────┼────────────────────────┐
    ▼                       ▼                        ▼
 [Action Speed       [Postgame Magic          ["Trap Skill Level"
- Hegemony]           Collapse & 33.3%]        TP Inversion]
+ Hegemony]           Collapse & Interrupts]   TP Inversion]
    │                       │                        │
    ▼                       ▼                        ▼
 • Compressed Delay   • Master Spell Chant/    • Flattened TP Curves
   Multipliers (D-F)    Power Adjustments        at Levels 6-10
-• 2H Weapon Viability• Spell Power Scaling    • Preserved Damage/Proc
+• Heavy Weapon Flow  • Spell Power Scaling    • Preserved Damage/Proc
                        (Penetration proxy)      Scalings
    │                       │                        │
    ├───────────────────────┼────────────────────────┤
@@ -84,7 +89,7 @@ All proposed adjustments originated from documented friction in Japanese communi
    │                       │                        │
    ▼                       ▼                        ▼
 • Paladin DEF Boost  • Doll Per-Level Scaling • Smoothed EXP Curve
-• Dark Lord Attract    (Duration & Stats)       (-35.7% at Lv71-99)
+• Attract Speed/Aggro  (Duration & Stats)       (-35.7% at Lv71-99)
 • Defend Command     • Summon Survivability   • Bag Storage Milestones
   Stance Utility                                (40 & 50 slots)
 ```
@@ -99,10 +104,10 @@ All proposed adjustments originated from documented friction in Japanese communi
 ## 3. Comprehensive Balance Catalog & Baseline Verification
 
 ### System A: Action Economy & Weapon Speed Recovery (`WeaponRankData.pck`)
-* **Community Friction:** Heavy weapons (2H Greatswords, 2H Axes, Firearms) have high recovery delay multipliers ($2.30\times \sim 2.90\times$, Ranks D to F) and forfeit the off-hand shield slot. Endgame bosses with 150+ AGI lap heavy weapon users 2 to 3 times, creating high mortality before a second action.
+* **Community Friction:** Heavy weapons (2H Greatswords, 2H Axes, Firearms) have high recovery delay multipliers ($2.30\times \sim 2.90\times$, Ranks D to F) and forfeit the off-hand shield slot. Endgame bosses with high AGI lap heavy weapon users multiple times, creating high mortality before a second action.
 * **Exact Multipliers:**
 
-| Delay Rank | Weapon Types | Vanilla Multiplier | Proposed Balanced Multiplier | Relative Turn Recovery Gain |
+| Delay Rank | Weapon Categories | Vanilla Multiplier | Proposed Balanced Multiplier | Relative Turn Recovery Gain |
 |:---:|:---|:---:|:---:|:---:|
 | **Rank A+** | Daggers, Shortswords, Fans | `1.00x` | **`1.00x`** | Baseline benchmark |
 | **Rank A** | Rapiers, Light Katanas | `1.20x` | **`1.15x`** | +4.2% faster |
@@ -114,18 +119,18 @@ All proposed adjustments originated from documented friction in Japanese communi
 | **Rank D** | 2H Greatswords | `2.30x` | **`1.95x`** | **+15.2% faster** |
 | **Rank E+** | Heavy 2H Greatswords | `2.45x` | **`2.05x`** | **+16.3% faster** |
 | **Rank E** | 2H Battleaxes, Heavy Guns | `2.60x` | **`2.15x`** | **+17.3% faster** |
-| **Rank F+** | Heavy Artillery Guns | `2.75x` | **`2.25x`** | **+18.2% faster** |
-| **Rank F** | Anti-Materiel Rifles / Colossal Axes | `2.90x` | **`2.35x`** | **+19.0% faster** |
+| **Rank F+** | Artillery-type Guns | `2.75x` | **`2.25x`** | **+18.2% faster** |
+| **Rank F** | Colossal Axes / Heavy Rifles | `2.90x` | **`2.35x`** | **+19.0% faster** |
 
-* **Status:** **Group 1 (Verified in Data).** The 12 IEEE 754 floats at offset `0x10` of `WeaponRankData.pck` are verified and functional. Theoretical 2H passive damage mitigation traits fall into **Group 4 (No Data Parameter Found)**.
+* **Status:** **Group 1 (Verified in Data).** The 12 IEEE 754 floats at offset `0x10` of `WeaponRankData.pck` are verified and functional. Theoretical passive damage reduction traits for 2H weapons fall into **Group 4 (No Data Parameter Found)**.
 
 ---
 
-### System B: Magic Scaling, Chant Delays & Spell Tuning (`MagicSkillData.pck`)
-* **Community Friction:** Endgame bosses feature $\ge 100$ all-element resistances, cutting magic damage by $\ge 50\%$. Multi-hit attacks frequently trigger chant critical interrupts (flat 33.3%). Physical burst classes (*Dark Lord*, *Samurai*, *Sniper*) deal immediate defense-piercing burst damage, relegating pure casters (*Witch*, *Sage*) to utility roles.
+### System B: Magic Scaling, Chant Delays & Spell Tuning (`MagicSkillData.pck`, `PassiveSkillData.pck`)
+* **Community Friction:** Endgame bosses feature $\ge 100$ all-element resistances, cutting magic damage by $\ge 50\%$. Multi-hit attacks frequently trigger chant interrupts. Physical burst classes (*Dark Lord*, *Samurai*, *Sniper*) deal immediate burst damage, relegating pure casters (*Witch*, *Sage*) to utility roles.
 * **Exact Parameters & Baselines:**
 
-| Spell / Mechanic | Target File | Real Vanilla Baseline | Proposed Parameter | Status / Technical Classification |
+| Spell / Mechanic | Target File | Real Vanilla Baseline (`vanilla_source_of_truth.xlsx`) | Proposed Parameter | Technical Classification |
 |---|---|---|---|---|
 | **Master Spells Chant** | `MagicSkillData_0146..162.bin` | Stored as Multipliers (e.g. `1.25x`) | **-25% to -33% Multiplier** | Group 2 (Float edit feasible; stored as multipliers, not raw frames) |
 | **Master Spells Power** | `MagicSkillData_0146..162.bin` | Lv 5: `1,300` | **Lv 5: `1,650` (+27%)** | Group 2 (Float edit feasible) |
@@ -133,17 +138,17 @@ All proposed adjustments originated from documented friction in Japanese communi
 | **Tier 3 All Spells Power** | `MagicSkillData.pck` | **`300 -> 750 power`** | **`380 -> 850 power`** | Group 2 (Float edit feasible) |
 | **Circle Heal HP Cap** | `MagicSkillData.pck` | **`80 -> 600 HP`** | **`120 -> 900 HP`** | Group 2 (Float edit feasible) |
 | **Heal HP Cap** | `MagicSkillData.pck` | `100 -> 800 HP` | **`150 -> 1,200 HP`** | Group 2 (Float edit feasible) |
+| **Concentrate Passive** | `PassiveSkillData_0281.bin` | **-10% to -50% Interrupt Rate** (Effect 264: `0.1 -> 0.5`) | **-20% to -70% Interrupt Rate** | **Group 2: Feasible via PCK Structs** (Already an interrupt reduction stat!) |
 | **Elemental Resistance Pierce** | Master Spell Flag | `0 Res Pierce` | **`50 Res Pierce`** | **Group 4 (No data parameter found in PCK structs)** |
-| **Global Chant Crit Interrupt** | Combat Engine Global | Flat `33.3%` per crit hit | **`10.0%` base** | **Group 4 (No data parameter found in PCK structs)** |
-| **Concentrate Lv 5 Passive** | `PassiveSkillData.pck` | Cast speed multiplier | **80% Interrupt Resistance** | **Group 4 (No data parameter found in PCK structs)** |
+| **Global Chant Crit Interrupt** | Combat Engine Global | Flat interrupt check (community estimates 33.3%) | **`10.0%` base** | **Group 4 (No data parameter found in PCK structs)** |
 
-* **Note on Elemental Resistance Penetration:** No field, offset, or bitmask exists for magic penetration in `MagicSkillData.pck` (unlike physical Armor Penetration). Directly tuning base spell power floats (e.g., from 1,300 to ~1,800–2,000) provides the effective operational proxy for higher endgame magic damage.
+* **Note on Elemental Resistance Penetration:** No field, offset, or bitmask exists for magic penetration in `MagicSkillData.pck`. Directly tuning base spell power floats (e.g., from 1,300 to ~1,800–2,000) provides the effective operational proxy for higher endgame magic damage.
 
 ---
 
 ### System C: Active Skill TP Scaling & "Trap Skill Level" Fix
 * **Community Friction:** Active skills scale TP costs steeply while scaling damage output linearly. Leveling an active skill from Lv 1 to Lv 10 cuts its damage-per-TP efficiency by up to 71%, causing veteran guides to advise leaving skills at Lv 1–3.
-* **Ground-Truth Baseline vs. Initial Drafts:**
+* **Ground-Truth Baseline vs. Flawed Initial Proposals:**
 
 | Skill | Class | Real Vanilla Baseline (`vanilla_source_of_truth.xlsx`) | Flawed Baseline in Earlier Drafts | Proposed Parameter (Recalculated) |
 |---|---|---|---|---|
@@ -151,29 +156,29 @@ All proposed adjustments originated from documented friction in Japanese communi
 | **Armor Penetration** | SA / DL | **`84 -> 120% ATK, DEF -16 -> -25%, TP 14 -> 32`** | `120 -> 180% ATK, DEF -15 -> -30%` | `100 -> 150% ATK, TP 12 -> 26` |
 | **Shield Bash** | PL / VL | **`85 -> 102% ATK, 30 -> 38% Stun, TP 6 -> 14`** | `110 -> 150% ATK, 20 -> 40% Stun` | `95 -> 130% ATK, TP 5 -> 10` |
 | **Berserk** | BE | **`ATK +20 -> +50%, DEF -11 -> -25%, TP 8 -> 16`** | `ATK +25 -> +65%, DEF -15 -> -35%` | `ATK +25 -> +65%, TP 6 -> 14` |
-| **Tinker Squash** | PA | **`Delay pushback 25 -> 43%, TP 12 -> 40`** | `Delay pushback 10 -> 35%` (Mislabeled "Slash") | `Delay pushback 25 -> 43%, TP 10 -> 30` |
+| **Tinker Squash** | PA | **`Delay pushback 25 -> 43%, TP 10 -> 32, ATK +50% -> +156%`** | `Delay pushback 10 -> 35%, TP 12 -> 40` (Mislabeled "Slash") | `Delay pushback 25 -> 43%, TP 8 -> 26` |
+| **Trump Card** | JO | **`DEF converted to ATK bonus 60 -> 150% (DEF = 0), TP 38 -> 50`** | `Colossal burst damage, self DEF -50%` | `DEF conversion 80 -> 180%, TP 28 -> 40` |
 | **Raging Smash** | FI / BE | `125 -> 200% ATK, TP 5 -> 28` | `125 -> 200% ATK, TP 5 -> 28` | `130 -> 225% ATK, TP 4 -> 18` |
 | **Fireball** | MU / WI | `70 -> 520 Power, TP 5 -> 32` | `70 -> 520 Power, TP 5 -> 32` | `80 -> 580 Power, TP 4 -> 18` |
-| **Eagle Arrow** | AR / SN | `2 hits, 75 -> 115%/hit, TP 8 -> 26` | Mislabeled as "Falcon Arrow" | `2 hits, 85 -> 135%/hit, TP 6 -> 21` |
-| **Trump Card** | JO | `Colossal burst, self DEF -50%, TP 25 -> 48` | `Colossal burst, self DEF -50%` | `Colossal burst, self DEF -25%, TP 18 -> 35` |
 
+* **Note on Non-Existent Skills:** "Eagle Arrow" / "Falcon Arrow" does not exist in DT2-2. Bow skills in the engine are *Spiral Arrow* (Technique 43), *Freeze Shot* (45), *Paralysis Shot* (46), *Gravity Shot* (47), *Arrow Rain* (48), *Star Dust Arrow* (49), and *Divine Cannon* (50).
 * **Status:** **Group 2 (Feasible via PCK Structs).** TP cost integer arrays (offset `0x5c..0x80`) and power float arrays (offset `0x130..0x154`) exist in `TechniqueSkillData.pck` and `MagicSkillData.pck`.
 
 ---
 
 ### System D: Tank Parity & Frontline Balance
-* **Community Friction:** Valkyrie dominates defensive slots through *Circle Protection* (full-party damage immunity), *Cover*, *Parry*, and *Holy Shield*. Paladins and Dark Lords lack party-wide wipe prevention.
-* **Exact Parameters:**
+* **Community Friction:** Valkyrie dominates defensive slots through *Circle Protection* (full-party damage immunity), *Cover*, *Parry*, and defense passives. Paladins and Dark Lords lack tools to prevent party wipes.
+* **Exact Parameters & Data Status:**
   * **Paladin DEF Scaling:** Base DEF growth in `ClassLevelData.pck` proposed to increase from `1.35x` to **`1.55x`**. *(Group 3: Probably feasible in PCK).*
-  * **Paladin Cover Interception:** Per-level effect scaling parameter exists in binary (`0.7 -> 0.4` across levels). *(Group 2: Feasible via PCK Structs).*
-  * **Paladin Holy Shield:** Proc rate in `PassiveSkillData.pck` (`30%` vanilla, proposed `35% ~ 45%`). *(Group 2: Feasible via PCK Structs).*
-  * **Dark Lord Attract / Dark Aura:** Recovery delay floats compressed from Rank E (`2.60x`) to Rank B (`1.50x`). Aggro baseline: 150 (Attract), 250 (Provoke). *(Group 2: Feasible via PCK Structs).*
+  * **Paladin Cover Parameter:** `TechniqueSkillData_0008.bin` contains Effect 171 per-level parameter (`0.7 -> 0.4` across skill levels). *(Group 3: Parameter exists, but exact mechanic/scaling it governs is unverified in engine code).*
+  * **Paladin Defense Passives:** Real Paladin passives are `Auto-Guard` (`PassiveSkillData_0266.bin`, proc to Defend automatically) and `Imperial Guard` (`PassiveSkillData_0277.bin`, back row damage cut when front row uses a shield). `Divine Shield` (`MagicSkillData_0201.bin`) is an active Priest/Bishop magic buff, not a Paladin passive.
+  * **Dark Lord Attract & Provoke:** Skills have their own speed multipliers and do not use weapon delay ranks. *Attract* (`TechniqueSkillData_0066.bin`) has speed multiplier `1.25 -> 1.77` and generates Aggro 150 (Effect 170). *Provoke* (`TechniqueSkillData_0004.bin`) has speed `1.50 -> 2.00` and generates Aggro 250 (Effect 170). *Dark Aura* (`PassiveSkillData_0279.bin`, Effect 262) is a passive with values 1 to 6.
   * **Universal Defend Command Immunity & Covered Chant:** Proposed 100% crit/interrupt immunity for Defend. *(Group 4: No Data Parameter Found; `StringData.pck` only holds display strings).*
 
 ---
 
 ### System E: Soul Summoner Doll Durability
-* **Community Friction:** Dolls possess low static HP (~700 at Lv 99) and 0 elemental resistance, often falling to turn 1 boss AoE sweeps.
+* **Community Friction:** Dolls possess low static HP (community reports ~700 at Lv 99) and 0 elemental resistance, often falling to turn 1 boss AoE sweeps.
 * **Exact Parameters:**
   * **Doll Per-Level Parameters:** Minion summon skills in `TechniqueSkillData.pck` contain per-level parameters governing duration and stat factors. *(Group 3: Probably feasible in PCK).*
   * **Proposed HP/RES Scaling:** Proposed formula $\text{Doll HP} = \text{Base} + 0.60 \times \text{Summoner Max HP}$ and 50 All Elemental Resistances.
@@ -205,7 +210,7 @@ All proposed adjustments originated from documented friction in Japanese communi
     * Gap $\ge 98$ (Lv 99 Reset to Lv 1 yields gap 98, the engine maximum): $+5$ to all base attributes + Crown Milestone.
   * **The Complete EXP & Leveling Gear Ecosystem:**
     * **Enchant 275 (Double EXP, `x2.0`):**
-      * *Vanilla Distribution:* Exists exclusively on ultra-endgame/postgame gear: *Lord Mashiro's Fan* (`EquipmentData_0475.bin`, Fan weapon) and *Therion's Crown* (`EquipmentData_0627.bin`, Helm).
+      * *Vanilla Distribution:* Exists exclusively on postgame equipment: *Lord Mashiro's Fan* (`EquipmentData_0475.bin`, Fan weapon) and *Therion's Crown* (`EquipmentData_0627.bin`, Helm).
       * *Mod Training Gear Implementation:* Packed into *Slave's Torc* (`EquipmentData_0744.bin`, Accessory) at offset `0x68`. This transforms an early-accessible accessory (which in vanilla only possessed AGI DOWN and damage reduction) into dedicated training gear for catch-up and Crown resets.
     * **Enchant 270 (Higher-Level Enemy EXP, `+15%`):**
       * *Single Monster Sealbooks:* *Sealbook [Grimoire]* (ID 308) and *Sealbook [Great-Fruit]* (ID 515).
@@ -230,15 +235,16 @@ All proposed adjustments originated from documented friction in Japanese communi
 
 ---
 
-### System G: In-Game Script Modifications & Dialogue Refinements
-During mod development, script dialogues across 6 `.adv.bin` archives were updated to communicate mechanics. Key technical resolutions include:
-* **Trailing Quote String Matching:** Spoken dialogue lines ending in `"` failed to match string-replacement patterns that looked for a trailing null byte (`\x00`), causing 11 lines to be skipped in earlier builds. Resolved by matching the exact quote-terminated string.
-* **Rin-Rin Mart Prices (`ShopStore.pck`):** Dialogue was corrected to cite store buy prices (Magical Fruit 300 G, Fairy Apple 900 G) rather than their sell prices (100 G / 300 G).
+### System G: In-Game Script Modifications & Technical Dialogue Requirements
+*(Note: The active workspace currently runs 100% original vanilla scripts. The items below represent technical requirements that must be resolved before building a rebalanced dialogue variant).*
+
+* **The String Patching Quotation Bug:** The string replacement logic in `apply_mod.py` failed when attempting to patch spoken dialogue lines ending in quotation marks `"` followed by `\x00` (causing 11 replacements to be skipped in earlier tests). The string patcher must be refactored to support quote-terminated strings before modifying script archives.
+* **Rin-Rin Mart Prices (`ShopStore.pck`):** Dialogue must cite store buy prices (Magical Fruit 300 G, Fairy Apple 900 G) rather than their sell prices (100 G / 300 G).
 * **Persona & In-Universe Integrity:**
-  * Preserved Fried and Euthys's save joke in lecture `BattleTeacher_Sp01` (*"Abandon hope and make peace with your fate"*).
-  * Corrected Crown requirements in `BattleTeacher_Sp03` (clarifying that a gap of 59 grants +1 stats, while a Crown requires resetting from Lv 99 to Lv 1).
-  * Maintained Blacksmith's formal tone and Mary Conductor's dialogue constraints (max 3 lines / ~62 characters per box).
-  * Removed developer patch jargon ("capped at", "telemetry", "DPS") in favor of in-universe phrasing.
+  * Preserve Fried and Euthys's save joke in lecture `BattleTeacher_Sp01` (*"Abandon hope and make peace with your fate"*).
+  * State Crown requirements accurately in `BattleTeacher_Sp03` (clarifying that a gap of 59 grants +1 stats, while a Crown requires resetting from Lv 99 to Lv 1).
+  * Maintain Blacksmith's formal tone and Mary Conductor's dialogue constraints (max 3 lines / ~62 characters per box).
+  * Eliminate developer patch jargon ("capped at", "telemetry", "DPS") in favor of in-universe phrasing.
 
 ---
 
@@ -248,9 +254,10 @@ During mod development, script dialogues across 6 `.adv.bin` archives were updat
   * *Fairy Apple* (`ItemData_0020.bin`): Restores **100 TP** (vanilla: 50 TP). Buy: 900 G, Sell: 300 G.
   * *Golden Apple* (`ItemData_0021.bin`): Vanilla binary is 100 TP. Setting float at `0x28` to **`999.0`** provides true Full TP recovery (matching vanilla `Mermaid Meat` behavior).
 * **Revival Consumables:**
-  * *Mui Kuha Medicine* (`ItemData_0026.bin`): Restores **30% Max HP** (vanilla: 10% Max HP).
-  * *Peggy's Revivifying Tonic* (`ItemData_0052.bin`): Float is `1.0` (**1% HP revive** in engine and Japanese wiki).
-  * *Mandragora Root*: Restores **60% Max HP** (vanilla: 1 HP / 20%).
+  * *Mui Kuha Medicine* (`ItemData_0026.bin`): Restores **30% Max HP** (vanilla: 10% Max HP). Buy: 1200 G, Sell: 400 G.
+  * *Peggy's Revivifying Tonic* (`ItemData_0052.bin`): Float is `1.0` (**1% HP revive** in engine and Japanese wiki). Buy: 600 G, Sell: 200 G.
+  * *Resurrection Stone* (`ItemData_0514.bin`): Vanilla revival item (Type 15).
+  * *(Correction: "Mandragora Root" is not a revival consumable; `Mandra Root` Item 835 is an ingredient).*
 * **Exploration Tools:**
   * *Flashlight* (`ItemData_0029.bin`): Binary float is `10.0`. In-engine step mechanics use a factor-of-5 multiplier (**vanilla 10.0 = 50 steps**). Setting float to 30.0 yields **150 steps**.
 * **Buffet Meals (`FoodMenuData.pck`):**
@@ -281,7 +288,7 @@ During mod development, script dialogues across 6 `.adv.bin` archives were updat
 * **Trap Values:**
   * *Damage Floor / Mine*: Stored float is `0.5` (50% HP damage); proposed reduction to `0.25` (25% HP).
   * *Killer Floor*: Stored float is `0.5` (50% instant death check); proposed reduction to `0.25` (25%).
-  * Elemental gas trap affinities: Poison = Water, Sleep = Wind, Paralysis = Lightning.
+  * Gas trap status IDs (from `Traps` and `CommandData.pck`): Status 113 (Poison), Status 114 (Freeze), Status 115 (Paralysis), Status 116 (Sleep), Status 117 (Silence), Status 120 (Petrification), Status 122 (Slow).
 * **Status:** Modifying rate floats in 32-byte records of `TrapData.pck` is **Group 2 (Feasible via PCK Structs)**. Dispel floor single-target scope change is **Group 4 (No Data Parameter Found)**.
 
 ---
@@ -303,9 +310,10 @@ During mod development, script dialogues across 6 `.adv.bin` archives were updat
 | **Golden Apple (Full TP)** | `ItemData_0021.bin` | Set float to 999.0 (like Mermaid Meat)| Text Only (Binary = 100) | **Group 2: Feasible via PCK Structs** |
 | **Skill TP Curves** | `TechniqueSkillData.pck` / `MagicSkillData.pck` | Flattened TP costs at Lv 6-10 | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
 | **Spell Power & Chant Speed** | `MagicSkillData.pck` | Higher base power, lower chant speed | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
-| **Cover Interception Scaling**| `TechniqueSkillData.pck` | Modify per-level rate (0.7 -> 0.4) | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
-| **Dark Lord Attract Delay** | `TechniqueSkillData.pck` | Delay float compressed to 1.50x | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
+| **Concentrate Interruption Rate**| `PassiveSkillData_0281.bin`| Scale interrupt reduction (-10% to -50% vanilla)| Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
+| **Dark Lord Attract / Provoke** | `TechniqueSkillData.pck` | Speed multiplier & Aggro scaling | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
 | **Trap Floor Lethality** | `TrapData.pck` | Reduced damage/death floats | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
+| **Cover Parameter Scaling** | `TechniqueSkillData_0008.bin`| Modify Effect 171 per-level rate (0.7 -> 0.4)| Unverified in Engine Code | **Group 3: Probably Feasible in PCK** |
 | **Paladin Base DEF (1.55x)** | `ClassLevelData.pck` | +15% physical DEF growth | Text Only in Mixed Build | **Group 3: Probably Feasible in PCK** |
 | **Doll Base HP / Duration** | Summon Skill Structs | Scaled minion params per level | Proposed / Text Only | **Group 3: Probably Feasible in PCK** |
 | **Joint Skill Costs** | `JoinSkillData.pck` | Lower Pep / % TP in header | Proposed / Text Only | **Group 3: Probably Feasible in PCK** |
@@ -329,7 +337,7 @@ To maintain technical integrity and avoid misleading players, the project is str
 ### Variant A: Mechanics Transparency & QoL Mod (Pure Vanilla Math)
 * **Design Goal:** Complete mechanical transparency with zero balance alterations.
 * **Features:**
-  * Exact numerical skill data displayed cleanly (Line 1 vanilla lore, Line 2 sequential values, Line 3 resource costs; max 3 lines).
+  * Exact numerical skill data displayed cleanly (integrating damage keywords and numeric values directly, preserving/shortening original flavor text within 1–3 lines).
   * Equipment descriptions keep **Line 1 vanilla text untouched with lines 2 and 3 blank**, preventing the equipment enchantment overdraw bug.
   * Exact recovery values, trap rates, grand seal auras, and joint skill requirements displayed.
   * In-game dialogue preserves all original humor and character tone (e.g., Fried's save joke in `Sp01`).
@@ -344,5 +352,5 @@ To maintain technical integrity and avoid misleading players, the project is str
   4. **Bag & Economy Milestones:** Apply Group 1 bag upgrades (40 & 50 slots) and gold bounties in `QuestRankData.pck`.
   5. **Exploration & Recovery:** Apply Group 1 Flashlight (150 steps via factor 5) and consumable adjustments in `ItemData.pck`. Set *Golden Apple* float to `999.0` for authentic Full TP recovery.
   6. **Skill Struct Updates:** Modify the actual binary structs in `TechniqueSkillData.pck` and `MagicSkillData.pck` (not just UI strings). For Master Spells, scale base power floats directly as the viable proxy for elemental penetration.
-  7. **Dialogue Patching:** Apply clean string replacement without trailing quote mismatch, reflect accurate store buy prices, and preserve in-universe character voices.
+  7. **Dialogue Patching Refactor:** Refactor `apply_mod.py` string matching to support quote-terminated strings (`"`), reflect accurate store buy prices, and preserve in-universe character voices.
   8. **Honest Omissions:** Do not advertise or display mechanics in Group 4 (Resistance Penetration, Defend Crit Immunity, 900-step meals, Doll Guts) where no underlying data parameters exist.
