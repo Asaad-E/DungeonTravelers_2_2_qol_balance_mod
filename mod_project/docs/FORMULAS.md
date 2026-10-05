@@ -201,7 +201,8 @@ The messages also name every chance roll of a passive or unique skill as it is r
 3. Critical: function, multiplier, the "1 in 3" interruption.
 4. Range factor `0x44fbb0`; the guaranteed minimum.
 5. Turn delay (effect 54) and turn skipping: their rolls and what makes an enemy immune.
-6. Healing constants and caps; EXP division and the factor by level gap; enmity and targeting (`cbattleai2.cpp`).
+6. Healing constants and caps; EXP division and the factor by level gap. Of targeting (section 9.1): the code that
+   returns the formation row, and the name of every attack scope.
 7. Every enchantment magnitude (the calls through `[vtable+0xf0]`), into a generated table.
 
 ## 9. Enemy AI script (`EnemyAIData.bin`, `cbattleai2.cpp`)
@@ -231,17 +232,45 @@ runner `0x430f10`. The layout below parses all 516 scripts to their terminator.
 `0x1000 + c`: a further command c follows (no tail) and must pass too.
 **Tail.** First byte not 0: the command fires only once. Second byte not 0: stop reading commands after a set switch.
 
-**Sources** (function `0x432690`, in the order of its code; the numbering is read from that order, not yet from the
-switch itself): own HP ratio, lowest HP ratio among allies, among opponents, lowest TP ratio among allies, among
-opponents, an ally with an ailment, an opponent with an ailment, a chanting opponent, an opponent in the back row,
-in the front row, an opponent with a buff, an ally with a debuff.
+**Sources** (jump table `0x432fa0`, twelve cases, each named by its debug message): 0 own HP ratio, 1 lowest HP
+ratio among allies, 2 among opponents, 3 lowest TP ratio among allies, 4 among opponents, 5 an ally with an
+ailment, 6 an opponent with an ailment, 7 a chanting opponent, 8 an opponent in the back row, 9 in the front row,
+10 an opponent with a buff, 11 an ally with a debuff.
+
+**Target kinds of command 1** (jump table `0x434754`, sixteen cases, each named by its debug message): 0 ally with
+the lowest HP ratio, 1 opponent with the lowest HP ratio, 2 and 3 the same for TP, 4 ally and 5 opponent with the
+heaviest ailment, 6 chanting opponent, 7 opponent in the back row, 8 ally without the effect of the skill, 9 ally
+with a more serious ailment, 10 opponent in the front row, 11 opponent with a buff, 12 ally with a debuff, 13 ally
+and 14 opponent with an ailment, 15 dead ally. How many scripts use each is in `generated/BALANCE_BASELINE.md`.
 
 **Choice of attack** (`0x430f10`): the set is 0; the commands before the first set run in order until one decides.
 With no attack decided, a number below the sum of the 16 weights of the current set is rolled and the slot it falls
-in is taken; then the commands of that set run. A set switch marks the set as done and rolls again in the new one.
-Silence, freeze and shadow bind replace the choice with attack slot 0.
+in is taken; then the commands of that set run (the parser files every command under the set read last,
+`0x430cd7`). A set switch marks the set as done and rolls again in the new one. Silence, freeze and shadow bind
+replace the choice with attack slot 0.
 
-**Target** (`0x43b0d0` -> `0x43f450`): the scope comes from the attack record (file 0x2C). For a single target the
-code either rolls evenly among the candidates (`0x490790`) or, at `0x43f7e9`, builds a list of the value at offset
-0x70 of each candidate and hands it to `0x505ad0`. That call is not read yet: a pick weighted by that value (Enmity)
-is the likely reading and must be confirmed, together with what writes offset 0x70.
+### 9.1 Who gets hit (`0x43b0d0` -> `0x43f450`; weights by `0x44a630`, slot 10 of the battle class) **[code]**
+
+The scope of an attack is the int at file offset 0x2C of its record. Scopes 5 to 12 act on the unit's own side,
+the others on the opposing side. A target set by command 1 is used when that unit is alive; otherwise:
+
+- An enemy picking **one target on the party's side** rolls a number below the sum of the members' weights and
+  takes the member it falls on (`0x43f7e9`, `0x505ad0`). Every other single pick (the party's automatic targets,
+  a pick on the unit's own side) is an even roll among the candidates (`0x490790`).
+- Scope 1 and 6 (several random targets) roll evenly, once per hit, with no weights (`0x43f8a2`).
+- Scope 2 and 7 take the row of the picked unit, 4 and 8 the whole side, 9 and 10 the unit itself, 14 everyone.
+
+Weight of a living member, recomputed at every pick:
+
+    weight = share of its position                      table 0x6517a0, by formation; each row adds up to 100
+           + value of effect 170 on that enemy          only for the member who put it there (cut to an integer)
+           + 10 per piece with enchantment 49
+           -  5 per piece with enchantment 50
+    weight = max(10, weight)
+
+Rows of the table: (100) (50 50) (60 40) (33 34 33) (38 38 24) (40 30 30) (28 28 28 16) (30 30 20 20) (31 23 23 23)
+(24 24 24 14 14) (26 26 16 16 16). Read from the figures: one row per party size and number of members in front.
+The code that returns the row number (`[party vtable + 0x17c]`) is not read.
+
+Nothing else enters the weight: not damage dealt, not healing, not HP. Enmity in this game is the position, Provoke
+and the two enchantments.

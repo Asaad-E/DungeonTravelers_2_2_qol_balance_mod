@@ -165,3 +165,27 @@ def ailment_chance(base, resistance, flat_penalty=0.0):
     chance = base * 100.0
     steps = int(resistance / 10)          # the code divides as integers, towards zero
     return chance - steps * chance / 10.0 - flat_penalty
+
+
+# --- who an enemy aims at (0x43f450, weights set by 0x44a630) ----------------------------------------
+# Share of each party position by formation, table at 0x6517a0 (five ints per row, each row adds up to 100).
+# The row is chosen by a formation number the party object returns; which formation each row stands for is
+# read from its figures (members, and how many stand in front), not yet from the code that returns the number.
+TARGET_SHARE = ((100,), (50, 50), (60, 40), (33, 34, 33), (38, 38, 24), (40, 30, 30), (28, 28, 28, 16),
+                (30, 30, 20, 20), (31, 23, 23, 23), (24, 24, 24, 14, 14), (26, 26, 16, 16, 16))
+ENMITY_UP, ENMITY_DOWN = 10, 5     # 0x44a736 (enchantment 49), 0x44a74d (enchantment 50), per piece
+ENMITY_MIN = 10                    # 0x44a752
+
+
+def target_weight(share, provoked=0.0, up=0, down=0):
+    """Weight of one party member when an enemy picks a single target on the party's side.
+    share: its figure of TARGET_SHARE. provoked: the value of effect 170 on that enemy when this member put
+    it there (it is cut to an integer). up, down: equipped pieces with enchantment 49 and 50."""
+    return max(ENMITY_MIN, share + int(provoked) + ENMITY_UP * up - ENMITY_DOWN * down)
+
+
+def target_chances(weights):
+    """Chance of each living member to be the one picked: the code rolls a number below the sum of the
+    weights and takes the member it falls on (0x505ad0)."""
+    total = float(sum(weights))
+    return [w / total for w in weights]

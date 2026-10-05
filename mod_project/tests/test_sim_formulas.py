@@ -65,9 +65,6 @@ class Interruption(unittest.TestCase):
         self.assertLess(f.interruption_chance(300, 1000, modifier=0.5), f.interruption_chance(300, 1000))
 
 
-if __name__ == '__main__':
-    unittest.main()
-
 
 class Range(unittest.TestCase):
     def test_the_lesson_of_the_game_is_what_the_code_does(self):
@@ -85,3 +82,26 @@ class Ailments(unittest.TestCase):
         self.assertAlmostEqual(f.ailment_chance(0.30, 50), 15.0)
         self.assertAlmostEqual(f.ailment_chance(0.30, 100), 0.0)       # the "block" the game announces
         self.assertAlmostEqual(f.ailment_chance(0.30, -20), 36.0)
+
+
+class Targets(unittest.TestCase):
+    def test_every_formation_shares_out_one_hundred(self):
+        for row in f.TARGET_SHARE:
+            self.assertEqual(sum(row), 100)
+
+    def test_a_provoke_of_250_draws_about_four_attacks_in_five(self):
+        """Three in front and two behind; the first one has put an effect 170 of 250 on the enemy."""
+        share = f.TARGET_SHARE[9]
+        weights = [f.target_weight(share[0], provoked=250.0)] + [f.target_weight(s) for s in share[1:]]
+        chances = f.target_chances(weights)
+        self.assertAlmostEqual(chances[0], 274 / 350)
+        self.assertAlmostEqual(sum(chances), 1.0)
+
+    def test_enchantments_and_the_floor(self):
+        self.assertEqual(f.target_weight(24, up=2), 44)
+        self.assertEqual(f.target_weight(14, down=1), 10)          # 9 is lifted to the floor
+        self.assertEqual(f.target_weight(14, down=5), f.ENMITY_MIN)
+
+
+if __name__ == '__main__':
+    unittest.main()

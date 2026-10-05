@@ -77,6 +77,62 @@ Every figure here is read from the game files; none is typed.
 
 Enemies of level 85+ with 100 or more in all five elements: 3 of 85 (Gam the Wise, Myrddin, Samson).
 
+## Enemy behaviour
+
+516 scripts of `EnemyAIData.bin`, decoded by `tools/enemy_ai.py`.
+
+### Sets of attack weights per enemy
+
+| Sets | Enemies |
+|---|---|
+| 1 | 90 |
+| 2 | 183 |
+| 3 | 126 |
+| 4 | 49 |
+| 5 | 28 |
+| 6 | 25 |
+| 7 | 9 |
+| 8 | 3 |
+| 10 | 2 |
+| 12 | 1 |
+
+### Conditions (enemies whose script uses each)
+
+| Condition | Enemies |
+|---|---|
+| last skill used is this one | 275 |
+| this skill is active | 188 |
+| turns taken + 1 <= N | 124 |
+| own HP ratio <= N | 86 |
+| this skill was used N times or more | 69 |
+| lowest HP ratio among allies <= N | 22 |
+| an ally has an ailment | 5 |
+| an opponent has a buff | 1 |
+| own HP ratio > N | 1 |
+
+### Target changes written in the scripts
+
+Any other single target on the party is the weighted roll of `docs/FORMULAS.md` 9.
+
+| Target | Commands |
+|---|---|
+| ally with the lowest HP ratio | 22 |
+| opponent with the lowest HP ratio | 0 |
+| ally with the lowest TP ratio | 0 |
+| opponent with the lowest TP ratio | 0 |
+| ally with the heaviest ailment | 1 |
+| opponent with the heaviest ailment | 0 |
+| chanting opponent | 0 |
+| opponent in the back row | 0 |
+| ally without the effect of the skill | 0 |
+| ally with a more serious ailment | 2 |
+| opponent in the front row | 0 |
+| opponent with a buff | 2 |
+| ally with a debuff | 0 |
+| ally with an ailment | 0 |
+| opponent with an ailment | 0 |
+| dead ally | 0 |
+
 ## Skills named by the complaints and by the guide
 
 The box of each skill as the QoL variant shows it: every figure is read from the binary and checked by the build.

@@ -4,6 +4,7 @@ import struct
 import unittest
 
 import _paths
+import enemy_ai
 import enemy_data
 from pck_handler import PckArchive
 
@@ -57,6 +58,51 @@ class ClassGrowth(unittest.TestCase):
         self.assertEqual({len(b) for _, b in rows}, {4 + 99 * 32})
         hp, tp, atk, dfn, intel, res, dex, agi = struct.unpack_from('<8i', bytes(rows[1][1]), 4 + 32 * 19)
         self.assertEqual((tp, intel, res, dex, agi), (63, 15, 18, 25, 19))
+
+
+
+class EnemyBehaviour(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.enemies = enemy_data.enemies()
+        cls.scripts = {e['id']: enemy_ai.decode(e['ai']) for e in cls.enemies}
+
+    def test_every_script_decodes_to_its_end_and_carries_its_own_id(self):
+        self.assertEqual(len(self.scripts), len(self.enemies))
+        for enemy in self.enemies:
+            self.assertEqual(self.scripts[enemy['id']]['id'], enemy['id'])
+
+    def test_every_enemy_has_a_set_0_with_weights(self):
+        for enemy in self.enemies:
+            with self.subTest(enemy=enemy['name']):
+                self.assertGreater(sum(self.scripts[enemy['id']]['sets'][0]['weights']), 0)
+
+    def test_weights_only_point_at_attacks_the_enemy_has(self):
+        for enemy in self.enemies:
+            for entry in self.scripts[enemy['id']]['sets'].values():
+                used = [slot for slot, weight in enumerate(entry['weights']) if weight]
+                with self.subTest(enemy=enemy['name']):
+                    self.assertLess(max(used, default=0), len(enemy['attacks']))
+
+    def test_a_command_after_a_set_speaks_of_a_skill_of_that_set(self):
+        """What shows that the commands after a set belong to it (the parser files them at 0x430cd7)."""
+        for enemy in self.enemies:
+            for entry in self.scripts[enemy['id']]['sets'].values():
+                for command in entry['commands']:
+                    word = command['args'][0]
+                    if word & enemy_ai.SLOT:
+                        with self.subTest(enemy=enemy['name']):
+                            self.assertGreater(entry['weights'][word & 0x3FFF], 0)
+
+    def test_known_scripts(self):
+        by_name = {e['name']: self.scripts[e['id']] for e in self.enemies}
+        self.assertEqual(by_name['Pirate']['sets'][0]['weights'][:3], [50, 30, 20])
+        medic = by_name['Medic']
+        self.assertEqual(enemy_ai.describe(medic['opening'][0]), 'an ally has an ailment -> set 1')
+        self.assertEqual(enemy_ai.describe(medic['sets'][1]['commands'][0]),
+                         'slot 2 aims at: ally with a more serious ailment')
+        selene = by_name['Selene']
+        self.assertEqual(enemy_ai.describe(selene['opening'][0]), 'own HP ratio <= 50 -> set 1 (once)')
 
 
 if __name__ == '__main__':
