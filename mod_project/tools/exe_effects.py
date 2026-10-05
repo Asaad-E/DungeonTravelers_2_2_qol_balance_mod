@@ -69,7 +69,7 @@ def command_classes(exe, md):
                 m = re.fullmatch(r'dword ptr \[e..\], (0x6[0-9a-f]{5})', i.op_str)
                 if m:
                     vtable = int(m.group(1), 16)                           # the last store wins: the class itself, after its bases
-            if i.mnemonic == 'jmp' or k > 70:
+            if i.mnemonic in ('jmp', 'ret') or k > 70:              # a case ends in a return or a jump to the common end
                 break
         if vtable:
             table[eid] = vtable
@@ -151,13 +151,16 @@ def main():
         unread = [a for a in places if not section_of(a)]
         vtable = classes.get(eid)
         apply_method = exe.u32(vtable + 24) if vtable else None
-        plain = bool(apply_method) and is_plain(exe, md, apply_method)
-        class_read = bool(apply_method and (plain or section_of(apply_method)))
+        own_section = section_of(apply_method) if apply_method else None
+        plain = bool(apply_method) and not own_section and is_plain(exe, md, apply_method)
+        class_read = bool(apply_method and (plain or own_section))
         if eid in notes:                                    # its rule is written in the sheet EffectRules
             sections = sorted(set(sections) | {notes[eid]})
             unread, class_read = [], True
             places = places or [0]
-        if places and not unread and (not vtable or class_read):      # a class that only records the effect needs a reader
+        if own_section:
+            sections = sorted(set(sections) | {own_section})
+        if (places or own_section) and not unread and (not vtable or class_read):   # a class that only records the effect needs a reader
             state = 'read'
         elif places or (vtable and not plain):
             state = 'located'

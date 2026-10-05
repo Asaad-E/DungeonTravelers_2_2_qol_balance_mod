@@ -103,13 +103,6 @@ has effect 84 (Snackification)
 
 ## 101 Clone  (skills 1, enemy attacks 8)
 
-own command `0x4817c0`:
-```
-heal amount
-max HP
-HP
-max HP
-```
 asked at `0x41f947`:
 ```
 status 101 (Clone)
@@ -121,13 +114,6 @@ HP
 
 ## 102 Clone  (skills 1, enemy attacks 3)
 
-own command `0x4817c0`:
-```
-heal amount
-max HP
-HP
-max HP
-```
 asked at `0x41faaf`:
 ```
 status 102 (Clone)
@@ -181,18 +167,19 @@ call 0x43e6d0
 
 ## 121 Special Petrification  (skills 0, enemy attacks 7)
 
-own command `0x4835d0`:
+own command `0x4834b0`:
 ```
+pieces with enchantment 135 (Nullify petrification)
+pieces with enchantment 137 (Nullify all status ailments)
+stat earth
+cmp 100
+call 0x558030
 pieces with enchantment 138 (Nullify gas traps)
 pieces with enchantment 137 (Nullify all status ailments)
 pieces with enchantment 139 (Nullify slow)
 call 0x558120
 fmul 100
 stat earth
-divss 10
-pieces with enchantment 269 (Less likely to trigger traps)
-subss 15
-ROLL below 100
 ```
 asked at `0x4e585e`:
 ```
@@ -217,9 +204,15 @@ call 0x47e500
 
 ## 123 Shadow Sew chance  (skills 1, enemy attacks 28)
 
-own command `0x483a60`:
+own command `0x483840`:
 ```
-max HP
+pieces with enchantment 137 (Nullify all status ailments)
+level
+level
+fmul 100
+ROLL below 100
+call 0x48bf90
+call 0x48bf90
 ```
 asked at `0x4fa6d5`:
 ```
@@ -267,24 +260,6 @@ call 0x4e51c0
 call 0x49fe50
 call 0x4f2270
 call 0x413460
-```
-
-## 143 Special Sleep  (skills 1, enemy attacks 3)
-
-own command `0x484150`:
-```
-set 10
-cmp 31
-call 0x606f90
-```
-
-## 167 Magic accuracy modifier  (skills 0, enemy attacks 27)
-
-own command `0x4864c0`:
-```
-call 0x47e340
-ROLL below 100
-fmul 100
 ```
 
 ## 171 Cover  (skills 1, enemy attacks 0)
