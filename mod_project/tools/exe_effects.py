@@ -1,0 +1,167 @@
+"""
+Where the program handles every skill effect: the list that says what is still to read before the simulator.
+
+    python mod_project/tools/exe_effects.py
+
+For each effect id that a skill or an enemy attack uses (sheet Effects of vanilla_source_of_truth.xlsx) the tool
+looks in the executable for:
+    * the class Command::CreateCommand (0x47b220) builds for it: an effect with a class acts by itself
+      (an ailment, a heal, a summon) and its methods hold its rule
+    * every place that asks "is effect N in this action / on this unit": mov edx, N + a call to one of the lookup functions (FINDERS), and
+      push N + push 0 + call [vtable + 0x48]. The function that asks is the formula the effect enters
+Writes docs/generated/EFFECT_COVERAGE.md and the sheet EffectCoverage of data_tables/balance_criteria.xlsx.
+
+The state of an effect:
+    read      every place that handles it lies in a function docs/FORMULAS.md covers (table READ below)
+    located   the program handles it, in code not read yet: the addresses say where
+    not found no handler found by these three searches: it is handled some other way, or by nothing
+An effect read by hand in a place the searches cannot see (an id compared in a register, a lookup far from
+its id) is listed in the sheet EffectNotes of balance_criteria.xlsx with the section that holds it.
+"""
+import collections
+import os
+import re
+import struct
+import sys
+
+import capstone
+import openpyxl
+from exe_reader import Exe
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
+OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'EFFECT_COVERAGE.md')
+CREATE_COMMAND, FIND_EFFECT, STATUS_SLOT = 0x47b220, 0x47e340, 0x48
+# functions that take an effect id in edx: find it among the effects of an action or of a unit (0x47e340 and its
+# siblings), ask whether an enemy attack carries it (0x557620), or build its command at once (0x47b220)
+FINDERS = {0x47e340, 0x47e290, 0x47e390, 0x48cbf0, 0x48c680, 0x557620, 0x56ce70, 0x47b220}
+# functions (first address, last address, section of docs/FORMULAS.md) whose handling of an effect is read
+READ = ((0x44a850, 0x44d36f, '2 physical attack'), (0x44d370, 0x44f18f, '3 magic attack'), (0x44f190, 0x44f5c7, '4 critical hits'),
+        (0x4499d0, 0x44a62f, '5 order of turns'), (0x44a630, 0x44a79f, '9.1 targets'), (0x481ea0, 0x483a5f, '5b ailments'),
+        (0x423a30, 0x423ca8, '5c turn delay'), (0x48d730, 0x48d930, '6b healing'), (0x48c5c0, 0x48c680, '6b heal cap'),
+        (0x4817c0, 0x481a1f, '6b, 6d recovery'), (0x483a60, 0x483ee0, '6d recovery'), (0x450710, 0x45082f, '6c EXP'),
+        (0x445830, 0x445aa5, '6c EXP'), (0x484150, 0x485d5b, '11.1 dolls'), (0x4fdfd0, 0x4fe11b, '11.1 dolls'),
+        (0x431aa0, 0x434760, '9 enemy AI'))
+PLAIN_APPLY = 0x480090         # the apply method most effects share: it records "applied" and rolls nothing
+
+
+def section_of(address):
+    for low, high, name in READ:
+        if low <= address <= high:
+            return name
+    return None
+
+
+def command_classes(exe, md):
+    """{effect id: vtable} from CreateCommand: 'mov [obj + 0xc], id' or a pushed id before the constructor."""
+    table, last, pending = {}, None, None
+    for i in md.disasm(exe.read(CREATE_COMMAND, 0x4000), CREATE_COMMAND):
+        if i.mnemonic == 'mov':
+            m = re.fullmatch(r'dword ptr \[esi \+ 0xc\], (0x[0-9a-f]+|\d+)', i.op_str)
+            if m:
+                last = int(m.group(1), 0)
+                continue
+            m = re.fullmatch(r'dword ptr \[esi\], (0x6[0-9a-f]+)', i.op_str)
+            if m and last is not None:
+                table[last] = int(m.group(1), 16)
+                continue
+        if i.mnemonic == 'push' and re.fullmatch(r'(0x[0-9a-f]+|\d+)', i.op_str) and 0 < int(i.op_str, 0) < 0x200:
+            pending = int(i.op_str, 0)
+        elif i.mnemonic == 'call' and pending is not None and i.op_str.startswith('0x48'):
+            last, pending = pending, None
+        if i.address > CREATE_COMMAND + 0x3f00:
+            break
+    return table
+
+
+def askers(exe, md, ids):
+    """{effect id: set of addresses that ask for it}."""
+    text_va, size = exe.text[1], exe.text[4]
+    code = exe.read(text_va, size)
+    found = collections.defaultdict(set)
+    for m in re.finditer(rb'\xba(....)', code, re.S):                      # mov edx, imm32 ... call FIND_EFFECT
+        eid = struct.unpack('<I', m.group(1))[0]
+        if eid not in ids:
+            continue
+        for k, i in enumerate(md.disasm(code[m.start():m.start() + 80], text_va + m.start())):
+            if k > 14 or (k > 0 and i.mnemonic == 'mov' and i.op_str.startswith('edx,')):
+                break
+            if i.mnemonic == 'call':                                       # the first call after it decides
+                if re.fullmatch(r'0x[0-9a-f]+', i.op_str) and int(i.op_str, 16) in FINDERS:
+                    found[eid].add(text_va + m.start())
+                break
+    for m in re.finditer(rb'(?:\x6a(.)|\x68(....))\x6a\x00', code, re.S):  # push id; push 0; ... call [reg + 0x48]
+        eid = m.group(1)[0] if m.group(1) else struct.unpack('<I', m.group(2))[0]
+        if eid in ids and re.search(rb'\xff[\x50-\x57]\x48', code[m.end():m.end() + 12]):
+            found[eid].add(text_va + m.start())
+    return found
+
+
+def main():
+    exe = Exe()
+    md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    wb = openpyxl.load_workbook(os.path.join(TABLES_DIR, 'vanilla_source_of_truth.xlsx'), read_only=True)
+    rows = list(wb['Effects'].iter_rows(values_only=True))
+    header = rows[0]
+    effects = [dict(zip(header, r)) for r in rows[1:]]
+    ids = {e['Effect_ID'] for e in effects}
+    classes = command_classes(exe, md)
+    notes = {r[0]: r[1] for r in openpyxl.load_workbook(os.path.join(TABLES_DIR, 'balance_criteria.xlsx'), read_only=True)['EffectNotes'].iter_rows(min_row=2, values_only=True) if r and r[0] is not None}
+    asked = askers(exe, md, ids)
+    slot6 = {}
+    out = []
+    for e in effects:
+        eid = e['Effect_ID']
+        places = sorted(asked.get(eid, ()))
+        sections = sorted({section_of(a) for a in places if section_of(a)})
+        unread = [a for a in places if not section_of(a)]
+        vtable = classes.get(eid)
+        apply_method = exe.u32(vtable + 24) if vtable else None
+        plain = apply_method == PLAIN_APPLY
+        class_read = bool(apply_method and (plain or section_of(apply_method)))
+        if eid in notes:                                    # read by hand where the searches cannot see
+            sections = sorted(set(sections) | {notes[eid]})
+            unread = []
+            if not vtable or class_read:
+                places = places or [0]
+        if (places or vtable) and not unread and (not vtable or class_read):
+            state = 'read'
+        elif places or vtable:
+            state = 'located'
+        else:
+            state = 'not found'
+        out.append({'id': eid, 'name': e['Name'] or e['Game_Name'], 'named': e['Status'], 'uses': (e['Skill_Uses'] or 0, e['EnemyAttack_Uses'] or 0),
+                    'state': state, 'sections': sections, 'class': None if plain else apply_method, 'unread': unread, 'used_by': e['Used_By'] or ''})
+    counts = collections.Counter(o['state'] for o in out)
+    lines = ['# Skill effects and the code that handles them (generated)', '',
+             'Generated by `tools/exe_effects.py`. Do not edit: run the tool again.', '',
+             f"{len(out)} effects are used by a skill or an enemy attack: **{counts['read']} read**, {counts['located']} located in code not read "
+             f"yet, {counts['not found']} with no handler found by the searches of the tool.", '',
+             '"Read" means every place that handles the effect lies in a function `docs/FORMULAS.md` covers; it does not mean the '
+             'figure of that one effect was checked by hand.', '',
+             '| Id | Effect | Skills | Enemy attacks | State | In the formula of | Its own command | Other places that ask for it | Used by |',
+             '|---|---|---|---|---|---|---|---|---|']
+    order = {'located': 0, 'not found': 1, 'read': 2}
+    for o in sorted(out, key=lambda o: (order[o['state']], -(o['uses'][0] + o['uses'][1]), o['id'])):
+        other = ', '.join(f'`{a:#x}`' for a in o['unread'][:5]) + (' ...' if len(o['unread']) > 5 else '')
+        lines.append(f"| {o['id']} | {o['name']} | {o['uses'][0]} | {o['uses'][1]} | {o['state']} | {', '.join(o['sections'])} | "
+                     f"{'`%#x`' % o['class'] if o['class'] else ''} | {other} | {str(o['used_by'])[:70]} |")
+    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
+    with open(OUTPUT_PATH, 'w', encoding='utf-8', newline='\n') as f:
+        f.write('\n'.join(lines) + '\n')
+    path = os.path.join(TABLES_DIR, 'balance_criteria.xlsx')
+    book = openpyxl.load_workbook(path)
+    if 'EffectCoverage' in book.sheetnames:
+        del book['EffectCoverage']
+    ws = book.create_sheet('EffectCoverage')
+    ws.append(['Effect_ID', 'Effect', 'Skill_Uses', 'EnemyAttack_Uses', 'State', 'In_Formula', 'Own_Command', 'Other_Places'])
+    for o in sorted(out, key=lambda o: o['id']):
+        ws.append([o['id'], o['name'], o['uses'][0], o['uses'][1], o['state'], ', '.join(o['sections']),
+                   f"{o['class']:#x}" if o['class'] else None, ', '.join(f'{a:#x}' for a in o['unread'])])
+    book.save(path)
+    print(f"Wrote {OUTPUT_PATH}: {dict(counts)}; command classes found: {len(classes)}")
+
+
+if __name__ == '__main__':
+    sys.stdout.reconfigure(encoding='utf-8')
+    main()
