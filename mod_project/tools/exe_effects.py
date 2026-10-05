@@ -161,6 +161,7 @@ def main():
     classes = command_classes(exe, md)
     rules = [r for r in openpyxl.load_workbook(os.path.join(TABLES_DIR, 'balance_criteria.xlsx'), read_only=True)['EffectRules'].iter_rows(min_row=2, values_only=True) if r and r[0] is not None]
     notes = {r[0]: r[1] for r in rules}
+    texts = {r[0]: r[2] for r in rules}
     partly = {r[0] for r in rules if len(r) > 4 and r[4] == 'partly'}
     asked = askers(exe, md, ids)
     slot6 = {}
@@ -202,13 +203,13 @@ def main():
              f"yet, {counts['not found']} with no handler found by the searches of the tool.", '',
              '"Read" means every place that handles the effect lies in a function `docs/FORMULAS.md` covers; it does not mean the '
              'figure of that one effect was checked by hand.', '',
-             '| Id | Effect | Skills | Enemy attacks | State | In the formula of | Its own command | Other places that ask for it | Used by |',
-             '|---|---|---|---|---|---|---|---|---|']
+             '| Id | Effect | Skills | Enemy attacks | State | In the formula of | Its own command | Other places that ask for it | Used by | Rule read from the code |',
+             '|---|---|---|---|---|---|---|---|---|---|']
     order = {'located': 0, 'not found': 1, 'partly read': 2, 'read': 3}
     for o in sorted(out, key=lambda o: (order[o['state']], -(o['uses'][0] + o['uses'][1]), o['id'])):
         other = ', '.join(f'`{a:#x}`' for a in o['unread'][:5]) + (' ...' if len(o['unread']) > 5 else '')
         lines.append(f"| {o['id']} | {o['name']} | {o['uses'][0]} | {o['uses'][1]} | {o['state']} | {', '.join(o['sections'])} | "
-                     f"{'`%#x`' % o['class'] if o['class'] else ''} | {other} | {str(o['used_by'])[:70]} |")
+                     f"{'`%#x`' % o['class'] if o['class'] else ''} | {other} | {str(o['used_by'])[:70]} | {texts.get(o['id'], '')} |")
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(lines) + '\n')

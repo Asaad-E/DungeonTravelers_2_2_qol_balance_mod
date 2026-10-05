@@ -449,3 +449,69 @@ stats      = the function of a character                                        
 * **[open]** which class and level the stat function is fed for a doll (it shares its owner's character number,
   `0x4fd87c`, so the owner's own figures are the likely answer), and when `DeletePuppetCommand` is called.
 
+## 12. What each effect of a skill does
+
+The rule of every effect, as far as it is read, is one row of the sheet `EffectRules` of
+`data_tables/balance_criteria.xlsx` and one line of `docs/generated/EFFECT_COVERAGE.md`, which is generated from that
+sheet and from a search of the program (`tools/exe_effects.py`) and says for each effect whether it is read, partly
+read, located or not found. What follows is how the program is built around them, read while filling that sheet.
+
+### 12.1 How an effect is built
+
+`Command::CreateCommand` (`0x47b220`) switches on the effect id and builds one object per effect; some cases call a
+small constructor instead (`0x478000 - 0x47b220`). Every effect class has, among others:
+
+* a method that **applies** it (slot 6): most classes share one that only records "applied" (`0x480090`), so the
+  effect lands without a roll and its meaning is wherever a formula asks for it; an ailment has its own, with its
+  roll (5b);
+* a method run **every turn** (slot 3): regeneration, Carol and Chorale act there; for an ailment it wears the ailment
+  off;
+* a row of yes/no methods that class it (song, dance and so on).
+
+A formula asks for an effect in one of these ways: by id among the effects of the action (`0x47e340` and its
+siblings), by id among the statuses of a unit (slots 0x48 and 0x50 of the unit), as a passive of the unit or of the
+whole party (`0x4fab50`, `0x4e4dd0`), or by walking the effects of the action and comparing ids.
+
+### 12.2 Number of hits (`0x417cd0`)
+
+A multi-hit effect sets the count: a fixed number, or a base plus a weighted pick from a table; while effect 210 is in
+the action the pick uses a second table that never gives the lowest count. A plain attack with none of them rolls
+Triple Attack first (three more hits) and, failing that, Double Attack (two more), each a roll below 100 under
+`value * 100`. The tables are in the sheet.
+
+### 12.3 Special damage (`0x44f720`)
+
+Before the cap, an action that carries one of these effects replaces the computed damage: a fixed amount (8), a share of
+the user's HP (12), a share of the target's max HP times the resistance factor (138), half or three quarters of the
+target's HP (140, 141), all but one of the target's HP (142) or of the user's (434), the user's level times a value
+(435). Afterwards effect 2 sends the damage to TP instead of HP (`0x44ce96`).
+
+### 12.4 When a unit is about to act (`0x436c40 - 0x436f8b`)
+
+In order: a petrified unit does not act; a sleeping one loses its turn; a paralysed one loses it on a roll below 100
+under 30; then each opponent with Warning Shot, Mesmerized or the Erotic Dance rolls below 100 under `value * 100`.
+What a success of those three does next is only partly followed (see the sheet).
+
+### 12.5 Ailments over time (`0x48d180`, `0x482150`) **[read in part]**
+
+An ailment keeps a recovery chance. Each time its turn method runs, a roll below 100 under that chance ends it; on a
+failure the chance rises by 10. A piece with enchantment 265 makes the check come sooner outside battle (every two steps
+of its counter instead of five). Poison takes `int(max HP * 0.05)` when it ticks. Where the chance starts and how often
+the method runs are not followed.
+
+### 12.6 Statuses that change stats (`0x4fbdd0`)
+
+When the stats of a unit are recomputed, each of the six stats gains `int(stat * value)` of its own buff (effects 41 to
+46) and of the all-stat ones (189, 193, 194); resistances gain the value of theirs (169, 184 to 186, 202, 248, 341); max
+HP gains `max HP * value` (172); Trump Card adds `int(DEF * value)` to ATK and sets the DEF bonus to -10,000; a
+petrified unit gains half its DEF and loses half its AGI.
+
+### 12.7 Damage received (`0x47e500`)
+
+TP Conversion and the enchantments 72 and 73 turn part of the damage a unit takes into TP; Resuscitate raises a fallen
+unit at `int(max HP * value)`; Stamina is checked against a share of max HP. The sheet has the figures.
+
+### 12.8 Songs and dances (`0x48bf90`)
+
+A song or a dance is applied with its value plus the bonus of its performer: the value of Song Bonus or Dance Bonus
+(effects 279, 280) plus `min(0.05, 0.02 * pieces + 0.01 * mini pieces)` of the matching enchantments.
