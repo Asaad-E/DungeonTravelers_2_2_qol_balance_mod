@@ -11,7 +11,7 @@
 ### 1.1 Source-of-Truth Mandate & `CommandData.pck`
 All vanilla baseline parameters in this document are extracted directly from `vanilla_source_of_truth.xlsx` and raw binary parameter archives (`.bin` / `.pck`). 
 
-A vital architectural discovery is **`CommandData.pck`** (containing 364 binary records). `CommandData.pck` provides the engine's canonical internal names for every skill command, trap effect, and status condition (e.g., Effect 0: Physical Attack, Effect 26: Physical power modifier, Effect 48: DEF conversion, Effect 54: Turn delay pushback, Effect 170: Aggro, Effect 264: Interruption rate DOWN). It serves as the primary tool for determining which mechanics possess editable parameter fields in `.pck` records.
+A vital architectural discovery is **`CommandData.pck`** (containing 364 binary records, naming 317 in-game effects). `CommandData.pck` provides the engine's canonical internal names for skill commands, trap effects, and status conditions (e.g., Effect 0: `"Physical Attack"`, Effect 26: `"Weapon Attack"`, Effect 48: `"Trump Card"`, Effect 54: `"Turn Delay"`, Effect 170: `"Taunt"`, Effect 171: `"Cover"`, Effect 264: `"Magic Interruption Modifier"`). It serves as the primary tool for determining which mechanics possess editable parameter fields in `.pck` records.
 
 Any future balance pass must programmatically generate its baseline figures from `vanilla_source_of_truth.xlsx` to avoid manual copy errors (such as previous misstatements of *Tinker Squash* or *Trump Card*).
 
@@ -35,15 +35,15 @@ Earlier combat simulation models (`exhaustive_combat_simulator.py`) evaluated th
   * Skill TP cost integer arrays and power float arrays (`TechniqueSkillData.pck`, `MagicSkillData.pck`).
   * Spell chant speed multipliers in `MagicSkillData.pck` (stored as multipliers like 1.25x).
   * Skill speed multipliers (*Attract*, *Provoke*).
-  * *Tinker Squash* turn delay pushback float array (25% → 43%, Effect 54) and TP cost (10 → 32).
-  * *Trump Card* DEF-to-ATK conversion bonus (60% → 150%, Effect 48) and TP cost (38 → 50).
-  * *Concentrate* chant interruption reduction parameter (10% → 50% reduction in `PassiveSkillData_0281.bin`, Effect 264).
+  * *Tinker Squash* turn delay pushback float array (25% → 43%, Effect 54 / "Turn Delay") and TP cost (10 → 32).
+  * *Trump Card* DEF-to-ATK conversion bonus (60% → 150%, Effect 48 / "Trump Card") and TP cost (38 → 50).
+  * *Concentrate* chant interruption reduction parameter (10% → 50% reduction in `PassiveSkillData_0281.bin`, Effect 264 / "Magic Interruption Modifier").
   * Trap damage and instant-death rate floats in `TrapData.pck`.
   * *Golden Apple* Full TP recovery (set float to `999.0`, matching vanilla `Mermaid Meat`).
 
 * **Group 3: Probably Feasible in PCK Tables (Unconfirmed Structs / Mechanics)**  
   Parameters believed to reside in existing parameter files whose exact scaling formula or structure requires further mapping:
-  * *Cover* Effect 171 per-level parameter (`0.7 -> 0.4` in `TechniqueSkillData_0008.bin`). The parameter exists, but the exact mechanic it scales (damage transfer percentage, mitigation factor, or duration) is unverified in engine code.
+  * *Cover* Effect 171 per-level parameter (`0.7 -> 0.4` in `TechniqueSkillData_0019.bin`). The parameter exists, but the exact mechanic it scales (damage transfer percentage, mitigation factor, or duration) is unverified in engine code.
   * Paladin base DEF growth multiplier in `ClassLevelData.pck`.
   * Summon doll attribute scaling and duration parameters in minion skill records.
   * Joint Skill Pep and TP cost headers in `JoinSkillData.pck`.
@@ -107,20 +107,20 @@ All proposed adjustments originated from documented friction in Japanese communi
 * **Community Friction:** Heavy weapons (2H Greatswords, 2H Axes, Firearms) have high recovery delay multipliers ($2.30\times \sim 2.90\times$, Ranks D to F) and forfeit the off-hand shield slot. Endgame bosses with high AGI lap heavy weapon users multiple times, creating high mortality before a second action.
 * **Exact Multipliers:**
 
-| Delay Rank | Weapon Categories | Vanilla Multiplier | Proposed Balanced Multiplier | Relative Turn Recovery Gain |
+| Delay Rank | In-Game Weapon Examples (`Equipment`) | Vanilla Multiplier | Proposed Balanced Multiplier | Relative Turn Recovery Gain |
 |:---:|:---|:---:|:---:|:---:|
-| **Rank A+** | Daggers, Shortswords, Fans | `1.00x` | **`1.00x`** | Baseline benchmark |
-| **Rank A** | Rapiers, Light Katanas | `1.20x` | **`1.15x`** | +4.2% faster |
-| **Rank B+** | Standard 1H Swords, Short Bows | `1.40x` | **`1.30x`** | +7.1% faster |
-| **Rank B** | Spears, Whips, Cards | `1.60x` | **`1.45x`** | +9.4% faster |
-| **Rank C+** | Heavy Katanas, Great Spears | `1.80x` | **`1.60x`** | +11.1% faster |
-| **Rank C** | Flails, War Hammers | `2.00x` | **`1.75x`** | +12.5% faster |
-| **Rank D+** | Heavy Bows, Greatbows | `2.15x` | **`1.85x`** | +14.0% faster |
-| **Rank D** | 2H Greatswords | `2.30x` | **`1.95x`** | **+15.2% faster** |
-| **Rank E+** | Heavy 2H Greatswords | `2.45x` | **`2.05x`** | **+16.3% faster** |
-| **Rank E** | 2H Battleaxes, Heavy Guns | `2.60x` | **`2.15x`** | **+17.3% faster** |
-| **Rank F+** | Artillery-type Guns | `2.75x` | **`2.25x`** | **+18.2% faster** |
-| **Rank F** | Colossal Axes / Heavy Rifles | `2.90x` | **`2.35x`** | **+19.0% faster** |
+| **Rank A+** | Daggers (`Edge of Tartarus`) | `1.00x` | **`1.00x`** | Baseline benchmark |
+| **Rank A** | Daggers, Knives (`Pluto Knife`, `Assassin's Dagger`, `Shamrock`) | `1.20x` | **`1.15x`** | +4.2% faster |
+| **Rank B+** | 1H Swords, Batons (`Phantom Menace`, `Spiritstaff Tulsa`) | `1.40x` | **`1.30x`** | +7.1% faster |
+| **Rank B** | Spears, Flutes, Stilettos (`Heaven's Voice`, `Stunning Stiletto`) | `1.60x` | **`1.45x`** | +9.4% faster |
+| **Rank C+** | Katanas, Spikes (`Bamboo Spike`, `Bashousen`) | `1.80x` | **`1.60x`** | +11.1% faster |
+| **Rank C** | Staves, Whips, Hammers (`Tentacle Whip`, `Westward Staff`) | `2.00x` | **`1.75x`** | +12.5% faster |
+| **Rank D+** | Heavy Spears, Drills, Forks (`Battle Fork`, `Dreadspear Pisear`, `Miracle Drill`) | `2.15x` | **`1.85x`** | +14.0% faster |
+| **Rank D** | Heavy Katanas, Swords (`Samidare`, `Hacchozashi`, `Walawichani`) | `2.30x` | **`1.95x`** | **+15.2% faster** |
+| **Rank E+** | Lances, Arbalests (`Heavy Lance`, `Kanesada`, `Arbalest`) | `2.45x` | **`2.05x`** | **+16.3% faster** |
+| **Rank E** | Hammers, Harkens (`Kotetsu`, `Titan Hammer`, `Double Harken`) | `2.60x` | **`2.15x`** | **+17.3% faster** |
+| **Rank F+** | Great Tachis, War Axes (`Taro Tachi`, `Valhalla Axe`, `Ayamur Magna`) | `2.75x` | **`2.25x`** | **+18.2% faster** |
+| **Rank F** | Colossal Axes, Cleavers (`Heavy Axe`, `Asterios`, `Kuchinawa's Cleaver`) | `2.90x` | **`2.35x`** | **+19.0% faster** |
 
 * **Status:** **Group 1 (Verified in Data).** The 12 IEEE 754 floats at offset `0x10` of `WeaponRankData.pck` are verified and functional. Theoretical passive damage reduction traits for 2H weapons fall into **Group 4 (No Data Parameter Found)**.
 
@@ -147,7 +147,7 @@ All proposed adjustments originated from documented friction in Japanese communi
 ---
 
 ### System C: Active Skill TP Scaling & "Trap Skill Level" Fix
-* **Community Friction:** Active skills scale TP costs steeply while scaling damage output linearly. Leveling an active skill from Lv 1 to Lv 10 cuts its damage-per-TP efficiency by up to 71%, causing veteran guides to advise leaving skills at Lv 1–3.
+* **Community Friction:** Active skills scale TP costs steeply while scaling damage output linearly. Leveling an active skill from Lv 1 to Lv 10 cuts damage-per-TP efficiency significantly (e.g. *Tinker Squash* damage/TP ratio drops by 47% from Lv 1 to Lv 10; *Halving Slice* ratio drops by 30%), causing veteran guides to advise leaving skills at Lv 1–3.
 * **Ground-Truth Baseline vs. Flawed Initial Proposals:**
 
 | Skill | Class | Real Vanilla Baseline (`vanilla_source_of_truth.xlsx`) | Flawed Baseline in Earlier Drafts | Proposed Parameter (Recalculated) |
@@ -170,9 +170,9 @@ All proposed adjustments originated from documented friction in Japanese communi
 * **Community Friction:** Valkyrie dominates defensive slots through *Circle Protection* (full-party damage immunity), *Cover*, *Parry*, and defense passives. Paladins and Dark Lords lack tools to prevent party wipes.
 * **Exact Parameters & Data Status:**
   * **Paladin DEF Scaling:** Base DEF growth in `ClassLevelData.pck` proposed to increase from `1.35x` to **`1.55x`**. *(Group 3: Probably feasible in PCK).*
-  * **Paladin Cover Parameter:** `TechniqueSkillData_0008.bin` contains Effect 171 per-level parameter (`0.7 -> 0.4` across skill levels). *(Group 3: Parameter exists, but exact mechanic/scaling it governs is unverified in engine code).*
+  * **Paladin Cover Parameter:** `TechniqueSkillData_0019.bin` (ID 19) contains Effect 171 per-level parameter (`0.7 -> 0.4` across skill levels). *(Group 3: Parameter exists, but exact mechanic/scaling it governs is unverified in engine code).*
   * **Paladin Defense Passives:** Real Paladin passives are `Auto-Guard` (`PassiveSkillData_0266.bin`, proc to Defend automatically) and `Imperial Guard` (`PassiveSkillData_0277.bin`, back row damage cut when front row uses a shield). `Divine Shield` (`MagicSkillData_0201.bin`) is an active Priest/Bishop magic buff, not a Paladin passive.
-  * **Dark Lord Attract & Provoke:** Skills have their own speed multipliers and do not use weapon delay ranks. *Attract* (`TechniqueSkillData_0066.bin`) has speed multiplier `1.25 -> 1.77` and generates Aggro 150 (Effect 170). *Provoke* (`TechniqueSkillData_0004.bin`) has speed `1.50 -> 2.00` and generates Aggro 250 (Effect 170). *Dark Aura* (`PassiveSkillData_0279.bin`, Effect 262) is a passive with values 1 to 6.
+  * **Dark Lord Attract & Provoke:** Skills have their own speed multipliers and do not use weapon delay ranks. *Attract* (`TechniqueSkillData_0001.bin`, ID 1) has speed multiplier `1.25 -> 1.77` and generates Aggro 150 (Effect 170 / "Taunt"). *Provoke* (`TechniqueSkillData_0000.bin`, ID 0) has speed `1.50 -> 2.00` and generates Aggro 250 (Effect 170 / "Taunt"). *Dark Aura* (`PassiveSkillData_0279.bin`, Effect 262) is a passive with values 1 to 6.
   * **Universal Defend Command Immunity & Covered Chant:** Proposed 100% crit/interrupt immunity for Defend. *(Group 4: No Data Parameter Found; `StringData.pck` only holds display strings).*
 
 ---
@@ -253,11 +253,11 @@ All proposed adjustments originated from documented friction in Japanese communi
   * *Magical Fruit* (`ItemData_0019.bin`): Restores **50 TP** (vanilla: 25 TP). Buy: 300 G, Sell: 100 G.
   * *Fairy Apple* (`ItemData_0020.bin`): Restores **100 TP** (vanilla: 50 TP). Buy: 900 G, Sell: 300 G.
   * *Golden Apple* (`ItemData_0021.bin`): Vanilla binary is 100 TP. Setting float at `0x28` to **`999.0`** provides true Full TP recovery (matching vanilla `Mermaid Meat` behavior).
-* **Revival Consumables:**
-  * *Mui Kuha Medicine* (`ItemData_0026.bin`): Restores **30% Max HP** (vanilla: 10% Max HP). Buy: 1200 G, Sell: 400 G.
-  * *Peggy's Revivifying Tonic* (`ItemData_0052.bin`): Float is `1.0` (**1% HP revive** in engine and Japanese wiki). Buy: 600 G, Sell: 200 G.
-  * *Resurrection Stone* (`ItemData_0514.bin`): Vanilla revival item (Type 15).
-  * *(Correction: "Mandragora Root" is not a revival consumable; `Mandra Root` Item 835 is an ingredient).*
+* **Revival & Cleansing Consumables:**
+  * *Mui Kuha Medicine* (`ItemData_0026.bin`): Restores **30% Max HP** (vanilla: 10% Max HP, Effect Type 8: Revival, value 10.0). Buy: 1200 G, Sell: 400 G.
+  * *Peggy's Revivifying Tonic* (`ItemData_0052.bin`): Stored float is `1.0` (**1% Max HP revive** in engine and Japanese wiki, Effect Type 8, value 1.0). Buy: 600 G, Sell: 200 G.
+  * *Resurrection Stone* (`ItemData_0514.bin`): Restores **15% Max HP** (Effect Type 8: Revival, value 15.0; not Type 15 freeze). Buy: 5000 G, Sell: 1000 G.
+  * *Mandra Root* (`ItemData_0835.bin`): Usable cleansing item (Effect Type 7: Status recovery, value 1.0) that cures all status ailments and stat debuffs. (Not an inert cooking ingredient).
 * **Exploration Tools:**
   * *Flashlight* (`ItemData_0029.bin`): Binary float is `10.0`. In-engine step mechanics use a factor-of-5 multiplier (**vanilla 10.0 = 50 steps**). Setting float to 30.0 yields **150 steps**.
 * **Buffet Meals (`FoodMenuData.pck`):**
@@ -313,7 +313,7 @@ All proposed adjustments originated from documented friction in Japanese communi
 | **Concentrate Interruption Rate**| `PassiveSkillData_0281.bin`| Scale interrupt reduction (-10% to -50% vanilla)| Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
 | **Dark Lord Attract / Provoke** | `TechniqueSkillData.pck` | Speed multiplier & Aggro scaling | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
 | **Trap Floor Lethality** | `TrapData.pck` | Reduced damage/death floats | Text Only in Mixed Build | **Group 2: Feasible via PCK Structs** |
-| **Cover Parameter Scaling** | `TechniqueSkillData_0008.bin`| Modify Effect 171 per-level rate (0.7 -> 0.4)| Unverified in Engine Code | **Group 3: Probably Feasible in PCK** |
+| **Cover Parameter Scaling** | `TechniqueSkillData_0019.bin`| Modify Effect 171 per-level rate (0.7 -> 0.4)| Unverified in Engine Code | **Group 3: Probably Feasible in PCK** |
 | **Paladin Base DEF (1.55x)** | `ClassLevelData.pck` | +15% physical DEF growth | Text Only in Mixed Build | **Group 3: Probably Feasible in PCK** |
 | **Doll Base HP / Duration** | Summon Skill Structs | Scaled minion params per level | Proposed / Text Only | **Group 3: Probably Feasible in PCK** |
 | **Joint Skill Costs** | `JoinSkillData.pck` | Lower Pep / % TP in header | Proposed / Text Only | **Group 3: Probably Feasible in PCK** |
