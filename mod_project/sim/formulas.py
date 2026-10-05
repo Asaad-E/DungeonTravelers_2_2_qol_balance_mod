@@ -36,6 +36,7 @@ CRIT_ENCHANT_MAX, CRIT_ENCHANT_MIN = 50.0, -50.0  # 0x44f41a, 0x44f459
 CRIT_PER_EARLIER_HIT = 5.0     # 0x44f49b   effect 125
 CRIT_MIN, CRIT_MIN_268, CRIT_MAX = 5.0, 20.0, 50.0   # 0x44f4cd, 0x44f4c3, 0x44f4db
 CRIT_FACTOR = 1.25             # 0x44f5a6
+MAGIC_CRIT_CHANCE, MAGIC_CRIT_FACTOR = 20, 1.25   # 0x44eded, 0x44edf2   with effect 301 (Critical Magic) active
 MIN_DAMAGE = 3                 # 0x44cb49   1 or 2 at random on a critical hit (0x44cb3c)
 WARNING_SHOT = 0.3             # 0x44caed   final damage * 3 / 10
 
@@ -243,3 +244,10 @@ def heal(res, coefficient, mastery=0.0, cap=None, cap_bonus=0.0, random=0.50):
         limit += int(limit * cap_bonus)
         amount = min(amount, limit)
     return amount
+
+
+def fraction_recovery(maximum, value, cap=None):
+    """Revival, HP recovery, TP recovery and heal by percent (effects 105, 128, 129, 132): a fraction of the
+    target's maximum. cap: only for effect 132, the cap of heal()."""
+    amount = int(maximum * value)
+    return amount if cap is None else min(amount, int(cap))

@@ -136,6 +136,10 @@ class Healing(unittest.TestCase):
         self.assertEqual(f.heal(999, 9.0, cap=500), 500)
         self.assertEqual(f.heal(999, 9.0, cap=500, cap_bonus=0.2), 600)
 
+    def test_recovery_by_fraction_of_the_target(self):
+        self.assertEqual(f.fraction_recovery(1234, 0.3), 370)
+        self.assertEqual(f.fraction_recovery(1234, 0.5, cap=500), 500)
+
     def test_doll_pieces_stop_at_one(self):
         self.assertAlmostEqual(f.doll_heal_bonus(up=1), 0.4)
         self.assertAlmostEqual(f.doll_heal_bonus(up=5, mini_up=5), 1.0)
