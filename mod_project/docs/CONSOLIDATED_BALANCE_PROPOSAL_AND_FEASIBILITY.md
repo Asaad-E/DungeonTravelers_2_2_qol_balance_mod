@@ -421,3 +421,65 @@ The following suggestions originate directly from Japanese community discussions
 * **Data Grounding:** The engine currently supports static EXP bonuses via equipment (Enchant 275 Double EXP) and sealbooks (Enchant 270 +15% against higher-level enemies).
 * **Unverified Proposal (Group 4):** A proposed dynamic engine hook that grants `+100%` bonus EXP whenever $\text{Current Level} \le (\text{Peak Level} - 10)$. Until executable hooks can be developed, the verified solution remains the **Slave's Torc training gear (Enchant 275) + Dragon Papi synergy**, which safely achieves a $5.0\times$ catch-up rate in duo party compositions.
 
+---
+
+## 7. Methodological Evaluation Frameworks for Balance Tuning
+
+To evaluate and tune proposed balance adjustments rigorously—without hallucinated mechanics, speculative stats, or spreadsheet bloat—the following prompt frameworks are established for analytical agents and human testers. Each framework is grounded strictly in game design theory, psychological flow, and verified binary parameters.
+
+### 7.1 Adversarial Combat Simulation Framework (Turn Economy & Survival Math)
+* **Design Lens:** Sid Meier's *Interesting Decisions* & Mathematical Parity.
+* **Target Objective:** Stress-test whether weapon delay compression (System A) and skill TP/power adjustments (System C) create degenerate dominant strategies or trivialize difficulty.
+* **Actionable Evaluation Prompt:**
+  ```text
+  You are an Adversarial Combat Balance Analyst for Dungeon Travelers 2-2.
+  Using ONLY verified data from `vanilla_source_of_truth.xlsx` (WeaponRanks, Skills, SkillLevels):
+  1. Turn Economy Ratio: Calculate the action frequency ratio over 100 combat ticks between:
+     - Rank A+ (0.96x mod vs 1.00x vanilla)
+     - Rank B (1.39x mod vs 1.60x vanilla)
+     - Rank F (2.26x mod vs 2.90x vanilla)
+  2. Survivability & Window of Vulnerability: Determine if a 2.26x recovery multiplier allows 
+     a 2H weapon user to take a defensive action before a fast enemy (1.3x–1.5x speed) acts twice.
+  3. Active Skill Damage-per-TP Efficiency: Calculate the exact damage/TP ratio of Lv 1 vs Lv 5 vs Lv 10 
+     for Halving Slice (TP 28->50, ATK 100->145%) and Tinker Squash (TP 8->26, ATK +50->+156%).
+  4. Boundary Check: Confirm that no physical technique exceeds single-target magic burst (Tier 3 / Master),
+     and that basic-attack procs do not render active skills obsolete.
+  Deliver a concise mathematical verdict stating whether the changes preserve challenge without frustration.
+  ```
+
+### 7.2 Game Flow & Visceral Friction Framework (Eliminating Calculator Overhead)
+* **Design Lens:** Mihaly Csikszentmihalyi's *Flow* & Steve Swink's *Game Feel*.
+* **Target Objective:** Ensure that mechanical transparency and balance changes streamline player decision-making during dungeon crawls rather than imposing mental arithmetic fatigue ("playing with a calculator").
+* **Actionable Evaluation Prompt:**
+  ```text
+  You are a Game Flow & UX Systems Evaluator for Dungeon Travelers 2-2.
+  Evaluate the cognitive load and tactile rhythm of combat and exploration:
+  1. Combat Readability: Verify that skill descriptions convey utility at a glance (e.g., total ATK %,
+     status chance, TP cost) without requiring manual math during turn selection.
+  2. Attrition Rhythm: Evaluate how early TP consumables (Magical Fruit 50 TP, Fairy Apple 100 TP)
+     and early SP pacing (+25 SP across Lv 2-26) affect dungeon exploration rhythm.
+     Do they remove boring basic-attack slogs while preserving resource tension across floors?
+  3. Inventory Friction: Evaluate the 40-slot (Rank 2) and 50-slot (Rank 8) bag upgrades. Does it 
+     allow completing standard floor loops without inventory exhaustion while maintaining town return value?
+  4. Flow State Verdict: Confirm whether the player stays immersed in dungeon exploration without
+     hitting artificial progression walls or spreadsheet fatigue.
+  ```
+
+### 7.3 Difficulty Curve & Progression Pacing Framework
+* **Design Lens:** Jesse Schell's *The Art of Game Design* & Raph Koster's *A Theory of Fun*.
+* **Target Objective:** Validate that the smoothed EXP curve (-35.7% late postgame) maintains authentic hardcore DRPG tension while removing masochistic repetition.
+* **Actionable Evaluation Prompt:**
+  ```text
+  You are a Progression Pacing & Difficulty Curve Auditor for Dungeon Travelers 2-2.
+  Inspect `vanilla_source_of_truth.xlsx` ('ExpCurve' sheet) and `LvExpSkptData.pck`:
+  1. Campaign Pacing (Lv 1–50): Verify that Lv 1–9 is strictly vanilla, and Lv 11–50 maintains 
+     boss encounter difficulty without accidental over-leveling during standard story exploration.
+  2. Late & Postgame Curve (Lv 71–99): Verify the 1,317,866 EXP threshold (-35.7% reduction).
+     Confirm that cumulative requirements strictly increase monotonically with zero inversions.
+  3. Catch-Up Loop: Evaluate the progression rate of a reset character (Lv 1) in a high-level party
+     using Slave's Torc (Enchant 275 Double EXP) under the engine's EXP division rule.
+     Does it reach mid-game viability within a healthy 15–30 minute session without breaking level progression?
+  Deliver a concise verdict verifying that endgame prestige (Crown) remains an earned achievement.
+  ```
+
+
