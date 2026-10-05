@@ -587,6 +587,44 @@ A counter is built by `_SetupCounter` (`0x425930`).
 * Paean (`0x439380`): its value is the `bonus` of the EXP share (6c).
 * Solo Duet, On Stage, Double Puppet: two songs, dances or dolls at once instead of one; one more ends the oldest.
 
+### 12.15 When an effect that lasts acts (`Battle::CBattleBase::Update`, `0x4363bc`; states at `0x439820`)
+
+The turn of a unit goes through numbered states. The ones read:
+
+    0    start: Esarhaddon removes ailments (0x436727)
+    4    petrification runs its per-turn method, before anything else (0x436be4)
+    6    a unit that cannot act says so and its turn ends (0x436ca1)
+    9 - 11   the rolls of the opponents: Warning Shot, Mesmerized, Erotic Dance; a success ends the turn
+    12   the command is chosen (Murder License replaces it, 0x437364)
+    13 - 15  the action
+    16   **every status of the unit runs its per-turn method** (0x437b0c): regeneration, Carol, Chorale, poison,
+         the damage of an enemy dance, natural recovery
+
+So regeneration and poison act **after** the action of their bearer, once per turn of that unit. On the map the same
+methods run on every step for each party member (`0x4fb660`, called at `0x4b221f`), and every tenth step a piece of
+enchantment 216 acts.
+
+### 12.16 Steal (`Battle::CBattle::_Steal`, `0x44fd60`)
+
+    chance = 0.5 * (DEX of the thief + 50) / (AGI of the target + 50) * (value of effect 60 + value of effect 61)
+    kept between 0.05 and 0.95; a number below 100 under chance * 100
+    gold:  int(gold of the enemy record * factor)      factor = value of effect 62 when the action has it, else 1
+           once per enemy (a byte of the enemy, 0x155)
+    item:  the item of the steal fields of the enemy record; once per enemy (0x154)
+    an enemy thief takes int(gold of the party * value of 62) and carries it; it comes back when that enemy falls
+
+### 12.17 Weapons in the stats of a character (`_CalculateParameterEquipment`, `0x4f6500`)
+
+Each of the six pieces adds its six stats (10.1). For a weapon two of them are scaled:
+
+    ATK and RES of the weapon:   stat + int(stat * (weapon mastery 243 + Weapon Mastery 298))
+    DEF, INT, DEX, AGI:          as they are
+
+The mastery multiplies **the weapon's** figure, never the character's; and it reaches RES, not INT, so a mace or a
+tome gains RES from it and a staff gains nothing but on its small ATK. A weapon in the off hand adds nothing here:
+with Dual Wield each of its stats is added at the end as `int(stat * value)` (`0x4fc26f`), 0.30 at level 1 and 0.72
+at level 10.
+
 ## 13. Pep and the data of a character (`tools/character_data.py`) **[code]**
 
 Pep is a float of the character (`0xd8`). `0x4f69e0` keeps it **between 70 and 130** every time it changes, and then
