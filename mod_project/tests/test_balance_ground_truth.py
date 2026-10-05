@@ -5,6 +5,7 @@ import unittest
 
 import _paths
 import class_data
+import class_modifier_data
 import character_data
 import doll_data
 import random_move_data
@@ -269,6 +270,26 @@ class Characters(unittest.TestCase):
                 self.assertGreaterEqual(girl['pep'][0], 0)
         self.assertEqual(character_data.clamp_pep(500), 130)
         self.assertEqual(character_data.clamp_pep(0), 70)
+
+
+class ClassModifiers(unittest.TestCase):
+    def test_tables_of_the_executable(self):
+        """_CalculateParameterSpecialty (0x4f7c60): one table per class, two for the six classes with two routes."""
+        rows = class_modifier_data.class_modifiers()
+        self.assertEqual(sorted({r['class'] for r in rows}), list(range(32)))
+        self.assertEqual(len(rows), 38)
+        two_routes = sorted({r['class'] for r in rows if r['previous'] is not None})
+        self.assertEqual(two_routes, [4, 10, 17, 18, 24, 30])                 # the same classes class_data.GROWTH_ROW splits
+        for row in rows:
+            for entry in row['entries']:
+                self.assertTrue(0.005 < entry['modifier'] < 0.06, (row['class'], entry))
+        fighter = next(r for r in rows if r['class'] == 0)
+        self.assertEqual([(e['type_name'], round(e['modifier'], 2)) for e in fighter['entries']], [('Sword', 0.01)])
+
+    def test_gain_of_a_stat(self):
+        self.assertEqual(class_modifier_data.specialty_gain(200, 100, 0.05), 15)
+        self.assertEqual(class_modifier_data.specialty_gain(200, 0, 0.05), 0)             # the piece must give the stat
+        self.assertEqual(class_modifier_data.specialty_gain(200, 100, 0.05, yearning=6), 33)
 
 
 class SkillTree(unittest.TestCase):

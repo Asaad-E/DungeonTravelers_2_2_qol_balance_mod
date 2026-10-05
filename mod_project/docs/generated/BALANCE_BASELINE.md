@@ -265,6 +265,51 @@ Stats of each class and route before any bonus (`ClassLevelData`; the row is cho
 | Papillon (from Trickster) | 1282 | 341 | 130 | 111 | 119 | 110 | 133 | 122 |
 | Joker | 1317 | 294 | 136 | 98 | 98 | 87 | 157 | 126 |
 
+## Class modifiers
+
+What a class gains from the piece it specialises in: for every stat the piece gives, `int((stat of the character + stat of the piece) * modifier)` (`tools/class_modifier_data.py`, `docs/FORMULAS.md` 10.4). The tables are written in the executable. Six advanced classes have one table per class they can come from.
+
+| Class | Coming from | Modifiers |
+|---|---|---|
+| Fighter |  | Sword +1% |
+| Paladin |  | Sword +2%, Polearm +3%, Shield +2% |
+| Berserker |  | Sword +2%, Axe +2% |
+| Valkyrie |  | Sword +3%, Polearm +5%, Shield +3% |
+| Samurai | Paladin | Sword +2%, Shield +2%, Katana +3% |
+| Samurai | Berserker | Sword +2%, Axe +2%, Katana +3% |
+| Dark Lord |  | Sword +2%, Axe +5% |
+| Scout |  | Dagger +1%, Bow +1% |
+| Archer |  | Dagger +2%, Bow +3% |
+| Assassin |  | Dagger +3% |
+| Sniper |  | Dagger +2%, Bow +5% |
+| Treasure Hunter | Archer | Dagger +3%, Bow +3% |
+| Treasure Hunter | Assassin | Dagger +5%, Bow +2%, Whip +3% |
+| Kunoichi |  | Dagger +3%, Katana +3%, Projectile +2% |
+| Magic User |  | Staff +1% |
+| Sorceress |  | Staff +2% |
+| Enchantress |  | Tome +2% |
+| Priestess |  | Mace +2% |
+| Witch |  | Staff +5% |
+| Magical Princess | Sorceress | Staff +2%, Sword +4% |
+| Magical Princess | Enchantress | Tome +2%, Sword +4% |
+| Sage | Enchantress | Staff +2%, Tome +5% |
+| Sage | Priestess | Staff +3%, Tome +3% |
+| Bishop |  | Staff +2%, Mace +3% |
+| Maid |  | slot 4 +2% |
+| Bard |  | slot 4 +2%, Microphone +2% |
+| Dancer |  | slot 4 +2%, Instrument +3% |
+| Diva |  | slot 4 +2%, Microphone +4% |
+| Mistress | Bard | slot 4 +2%, Microphone +2%, Whip +3% |
+| Mistress | Dancer | slot 4 +2%, Instrument +2%, Whip +3% |
+| Etoile |  | slot 4 +2%, Instrument +4% |
+| Spieler |  | Dagger +1%, Projectile +1% |
+| Doll Master |  | Dagger +1%, Projectile +1%, Staff +1% |
+| Trickster |  | Dagger +2%, Projectile +2% |
+| Soul Summoner |  | Sword +3%, Staff +3% |
+| Papillon | Doll Master | Dagger +1%, Staff +2%, Fan +3% |
+| Papillon | Trickster | Dagger +2%, Projectile +2%, Fan +3% |
+| Joker |  | Whip +3%, Axe +4% |
+
 ## Skills of each class
 
 Each skill file names the classes that learn it in a mask of bits (`tools/skill_tree_data.py`). SP is the cost of every level of every skill of the class added up. The range is the one of a technique; a spell has none.

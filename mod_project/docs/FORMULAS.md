@@ -414,6 +414,18 @@ is hidden: the action of a doll, a result of a random move.
 The field after the attribute is a set of flags. In a technique bits 0 to 3 are the range (short, mid, long, none),
 bit 4 "usable in battle", bit 5 "usable on the map"; in a spell the two flags sit at bits 3 and 4.
 
+### 10.4 Class modifiers (`Game::CGamePlayerStatus::_CalculateParameterSpecialty`, `0x4f7c60`) **[code]**
+
+Each class has a short table in the executable (`tools/class_modifier_data.py`): entries of an equipment slot, a
+weapon type and a modifier. For the weapon the type must match; the off hand counts when it holds a shield; slots 2
+to 4 count whatever they hold. For each stat the piece gives:
+
+    gain = int((stat of the character + stat of the piece) * (modifier + 0.01 * Yearning))        never below 0
+
+and the gains are added to the stats. The modifiers run from 0.01 (a base class) to 0.05 (Valkyrie with a polearm,
+Witch with a staff, Sniper with a bow, Dark Lord with an axe). Samurai, Treasure Hunter, Magical Princess, Sage,
+Mistress and Papillon have a different table for each class they come from, as their growth does (10).
+
 ## 11. Summons (`0x4ffc90`) **[code]**
 
 A summon has three forms (`SummonData`, one record each; `tools/summon_data.py`).
