@@ -33,24 +33,29 @@ stat
 call 0x56c010
 ```
 
-## 12 Self-Destruct Damage  (skills 0, enemy attacks 2)
+## 22 Treasure Search  (skills 1, enemy attacks 0)
 
-asked at `0x44fb84`:
+asked at `0x42e9cb`:
 ```
-effect 12 (Self-Destruct Damage)
-movss 1
+HP
+cmp 22
+call 0x47e500
 ```
 
-## 48 Trump Card  (skills 1, enemy attacks 3)
+## 66 Pep UP  (skills 1, enemy attacks 1)
 
-own command `0x48bd60`:
+own command `0x480e20`:
 ```
-magic attack
-```
-asked at `0x4fbfb4`:
-```
-status 48 (Trump Card)
-stat DEF
+call 0x4f69e0
+movss 100
+call 0x4f69e0
+cmp 80
+cmp 337
+call 0x572910
+call 0x428960
+cmp 16
+cmp 31
+call 0x606f90
 ```
 
 ## 77 Sacrifice  (skills 1, enemy attacks 0)
@@ -98,6 +103,13 @@ has effect 84 (Snackification)
 
 ## 101 Clone  (skills 1, enemy attacks 8)
 
+own command `0x4817c0`:
+```
+heal amount
+max HP
+HP
+max HP
+```
 asked at `0x41f947`:
 ```
 status 101 (Clone)
@@ -109,6 +121,13 @@ HP
 
 ## 102 Clone  (skills 1, enemy attacks 3)
 
+own command `0x4817c0`:
+```
+heal amount
+max HP
+HP
+max HP
+```
 asked at `0x41faaf`:
 ```
 status 102 (Clone)
@@ -162,19 +181,30 @@ call 0x43e6d0
 
 ## 121 Special Petrification  (skills 0, enemy attacks 7)
 
-own command `0x4834b0`:
+own command `0x4835d0`:
 ```
-pieces with enchantment 135 (Nullify petrification)
-pieces with enchantment 137 (Nullify all status ailments)
-stat earth
-cmp 100
-call 0x558030
 pieces with enchantment 138 (Nullify gas traps)
 pieces with enchantment 137 (Nullify all status ailments)
 pieces with enchantment 139 (Nullify slow)
 call 0x558120
 fmul 100
 stat earth
+divss 10
+pieces with enchantment 269 (Less likely to trigger traps)
+subss 15
+ROLL below 100
+```
+asked at `0x4e585e`:
+```
+HP
+cmp 121
+HP
+cmp 119
+HP
+cmp 139
+call 0x4e51c0
+call 0x49fe50
+call 0x4f2270
 ```
 asked at `0x5107c9`:
 ```
@@ -187,15 +217,17 @@ call 0x47e500
 
 ## 123 Shadow Sew chance  (skills 1, enemy attacks 28)
 
-own command `0x483840`:
+own command `0x483a60`:
 ```
-pieces with enchantment 137 (Nullify all status ailments)
-level
-level
-fmul 100
-ROLL below 100
-call 0x48bf90
-call 0x48bf90
+max HP
+```
+asked at `0x4fa6d5`:
+```
+HP
+cmp 123
+cmp 116
+stat
+stat
 ```
 asked at `0x4fb652`:
 ```
@@ -219,15 +251,6 @@ call 0x538090
 call 0x538140
 ```
 
-## 138 Damage as a fraction of the target max HP  (skills 6, enemy attacks 23)
-
-asked at `0x43b16d`:
-```
-attack has effect 138 (Damage as a fraction of the target max HP)
-attack has effect 112 (Multiple Hits, One Per Target)
-pick targets
-```
-
 ## 139 Special Instakill  (skills 0, enemy attacks 4)
 
 own command `0x484020`:
@@ -236,48 +259,32 @@ cmp 2
 HP
 set 10
 ```
-
-## 140 Halve HP  (skills 1, enemy attacks 0)
-
-asked at `0x422671`:
+asked at `0x4e5878`:
 ```
-effect? 140 (Halve HP)
-effect? 141 (?)
-effect? 142 (Reduce HP to 1)
-call 0x41f920
-effect 74 (Dispel)
-ROLL below (ecx)
-mulss 100
-MESSAGE 強化解除 : %d / %d
-```
-
-## 142 Reduce HP to 1  (skills 0, enemy attacks 2)
-
-asked at `0x422693`:
-```
-effect? 142 (Reduce HP to 1)
-call 0x41f920
-effect 74 (Dispel)
-ROLL below (ecx)
-mulss 100
-MESSAGE 強化解除 : %d / %d
-call 0x418c30
-```
-asked at `0x44fa43`:
-```
-effect 142 (Reduce HP to 1)
 HP
-effect 434 (User's HP-1 Damage)
-HP
-HP
-cmp 435
-level
+cmp 139
+call 0x4e51c0
+call 0x49fe50
+call 0x4f2270
+call 0x413460
 ```
-asked at `0x44fb27`:
+
+## 143 Special Sleep  (skills 1, enemy attacks 3)
+
+own command `0x484150`:
 ```
-effect 142 (Reduce HP to 1)
-effect 12 (Self-Destruct Damage)
-movss 1
+set 10
+cmp 31
+call 0x606f90
+```
+
+## 167 Magic accuracy modifier  (skills 0, enemy attacks 27)
+
+own command `0x4864c0`:
+```
+call 0x47e340
+ROLL below 100
+fmul 100
 ```
 
 ## 171 Cover  (skills 1, enemy attacks 0)
@@ -291,15 +298,6 @@ call 0x572910
 
 ## 181 Barrier System  (skills 0, enemy attacks 2)
 
-own command `0x486c70`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-```
 asked at `0x41fbd0`:
 ```
 status 181 (Barrier System)
@@ -308,18 +306,6 @@ max HP
 ucomiss 0
 HP
 HP
-```
-
-## 182 Nullify Short-Mid  (skills 0, enemy attacks 1)
-
-own command `0x486e70`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
 ```
 
 ## 188 Resuscitate  (skills 1, enemy attacks 0)
@@ -332,183 +318,15 @@ call 0x498a70
 HP
 ```
 
-## 189 Magical Change  (skills 1, enemy attacks 4)
+## 199 Damage every turn as a fraction of the target max HP  (skills 1, enemy attacks 4)
 
-asked at `0x4fc144`:
+asked at `0x42f0fa`:
 ```
-status 189 (Magical Change)
-status 193 (Limiter Removal)
-status 194 (Beginning of the End)
-cmp 5
-cmp 13
-```
-
-## 190 Limit Field  (skills 1, enemy attacks 3)
-
-asked at `0x44fb17`:
-```
-effect 190 (Limit Field)
-effect 142 (Reduce HP to 1)
-effect 12 (Self-Destruct Damage)
-```
-
-## 192 All Resistances 100  (skills 0, enemy attacks 4)
-
-own command `0x487540`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-cmp 980
-cmp 981
-cmp 982
-call 0x48c6e0
-```
-
-## 193 Limiter Removal  (skills 0, enemy attacks 8)
-
-own command `0x487780`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-call 0x48c6e0
-```
-asked at `0x4fc156`:
-```
-status 193 (Limiter Removal)
-status 194 (Beginning of the End)
-cmp 5
-cmp 13
-status 202 (Hopak)
-```
-
-## 194 Beginning of the End  (skills 0, enemy attacks 3)
-
-own command `0x4879d0`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-```
-asked at `0x4fc169`:
-```
-status 194 (Beginning of the End)
-cmp 5
-cmp 13
-status 202 (Hopak)
-status 341 (Emaciating Geas)
-```
-
-## 195 Waltz  (skills 1, enemy attacks 7)
-
-own command `0x487bd0`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-call 0x48bf90
-```
-
-## 196 Samba  (skills 1, enemy attacks 4)
-
-own command `0x487e00`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-```
-
-## 197 Tango  (skills 1, enemy attacks 6)
-
-own command `0x488000`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-```
-
-## 198 Polka  (skills 1, enemy attacks 4)
-
-own command `0x488200`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-call 0x48bf90
-```
-
-## 201 Mazurka  (skills 1, enemy attacks 5)
-
-own command `0x4884f0`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-```
-
-## 202 Hopak  (skills 1, enemy attacks 4)
-
-own command `0x4886f0`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-call 0x48bf90
-mulss 100
-```
-asked at `0x4fc1ea`:
-```
-status 202 (Hopak)
-status 341 (Emaciating Geas)
-status 248 (Resistance)
-status 256 (Lefty Bonus)
-```
-
-## 205 Faded Blossoms  (skills 0, enemy attacks 3)
-
-own command `0x487e00`:
-```
-call 0x572910
-call 0x428960
-call 0x4291b0
-cmp 16
-cmp 31
-call 0x606f90
-```
-
-## 256 Lefty Bonus  (skills 1, enemy attacks 0)
-
-asked at `0x4fc26f`:
-```
-status 256 (Lefty Bonus)
+HP
+cmp 199
+HP
+cmp 339
+call 0x47e500
 ```
 
 ## 257 TP Conversion  (skills 1, enemy attacks 0)
@@ -588,22 +406,12 @@ call 0x43ac80
 call 0x48c1d0
 ```
 
-## 341 Emaciating Geas  (skills 0, enemy attacks 3)
+## 339 Debilitating Geas  (skills 0, enemy attacks 2)
 
-asked at `0x4fc1fc`:
+asked at `0x42f10a`:
 ```
-status 341 (Emaciating Geas)
-status 248 (Resistance)
-status 256 (Lefty Bonus)
-```
-
-## 434 User's HP-1 Damage  (skills 1, enemy attacks 0)
-
-asked at `0x44fa63`:
-```
-effect 434 (User's HP-1 Damage)
 HP
+cmp 339
+call 0x47e500
 HP
-cmp 435
-level
 ```

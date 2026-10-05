@@ -28,12 +28,14 @@ import sys
 
 import capstone
 import openpyxl
+import exe_digest
 from exe_reader import Exe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'EFFECT_COVERAGE.md')
 CREATE_COMMAND, FIND_EFFECT, STATUS_SLOT = 0x47b220, 0x47e340, 0x48
+CASE_TABLE, JUMP_TABLE, FIRST_ID, LAST_ID = 0x47e0a4, 0x47de14, 9, 9 + 0x1b8
 # functions that take an effect id in edx: find it among the effects of an action or of a unit (0x47e340 and its
 # siblings), ask whether an enemy attack carries it (0x557620), or build its command at once (0x47b220)
 FINDERS = {0x47e340, 0x47e290, 0x47e390, 0x48cbf0, 0x48c680, 0x557620, 0x56ce70, 0x47b220}
@@ -55,25 +57,41 @@ def section_of(address):
 
 
 def command_classes(exe, md):
-    """{effect id: vtable} from CreateCommand: 'mov [obj + 0xc], id' or a pushed id before the constructor."""
-    table, last, pending = {}, None, None
-    for i in md.disasm(exe.read(CREATE_COMMAND, 0x4000), CREATE_COMMAND):
-        if i.mnemonic == 'mov':
-            m = re.fullmatch(r'dword ptr \[esi \+ 0xc\], (0x[0-9a-f]+|\d+)', i.op_str)
-            if m:
-                last = int(m.group(1), 0)
-                continue
-            m = re.fullmatch(r'dword ptr \[esi\], (0x6[0-9a-f]+)', i.op_str)
-            if m and last is not None:
-                table[last] = int(m.group(1), 16)
-                continue
-        if i.mnemonic == 'push' and re.fullmatch(r'(0x[0-9a-f]+|\d+)', i.op_str) and 0 < int(i.op_str, 0) < 0x200:
-            pending = int(i.op_str, 0)
-        elif i.mnemonic == 'call' and pending is not None and i.op_str.startswith('0x48'):
-            last, pending = pending, None
-        if i.address > CREATE_COMMAND + 0x3f00:
-            break
+    """{effect id: vtable of the class CreateCommand builds for it}. CreateCommand switches on id - 9 through a byte
+    table (0x47e0a4) and a jump table (0x47de14); each case builds one class and jumps to the common end."""
+    table = {}
+    default = exe.u32(JUMP_TABLE + 4 * exe.read(CASE_TABLE + LAST_ID - FIRST_ID, 1)[0])
+    for eid in range(FIRST_ID, LAST_ID + 1):
+        target = exe.u32(JUMP_TABLE + 4 * exe.read(CASE_TABLE + eid - FIRST_ID, 1)[0])
+        vtable = None
+        for k, i in enumerate(md.disasm(exe.read(target, 0x140), target)):
+            if i.mnemonic == 'mov':
+                m = re.fullmatch(r'dword ptr \[e..\], (0x6[0-9a-f]{5})', i.op_str)
+                if m:
+                    vtable = int(m.group(1), 16)                           # the last store wins: the class itself, after its bases
+            if i.mnemonic == 'jmp' or k > 70:
+                break
+        if vtable:
+            table[eid] = vtable
     return table
+
+
+_PLAIN = {}
+
+
+def is_plain(exe, md, method):
+    """True when an apply method has no rule of its own: up to its first return it rolls nothing, reads no stat,
+    HP or enchantment and uses no constant; it only records the effect on the target (and builds its message)."""
+    if method not in _PLAIN:
+        end = method + 0x400
+        for i in md.disasm(exe.read(method, 0x400), method):
+            if i.mnemonic == 'ret':
+                end = i.address
+                break
+        events = [ev[10:] for ev in exe_digest.digest(exe, method, end)]
+        quiet = lambda ev: ev.startswith('call ') or ev in ('cmp 16', 'cmp 31', 'cmp 15', 'value', 'dead?', 'level')
+        _PLAIN[method] = method == PLAIN_APPLY or all(quiet(ev) for ev in events)
+    return _PLAIN[method]
 
 
 def askers(exe, md, ids):
@@ -133,15 +151,15 @@ def main():
         unread = [a for a in places if not section_of(a)]
         vtable = classes.get(eid)
         apply_method = exe.u32(vtable + 24) if vtable else None
-        plain = apply_method == PLAIN_APPLY
+        plain = bool(apply_method) and is_plain(exe, md, apply_method)
         class_read = bool(apply_method and (plain or section_of(apply_method)))
         if eid in notes:                                    # its rule is written in the sheet EffectRules
             sections = sorted(set(sections) | {notes[eid]})
             unread, class_read = [], True
             places = places or [0]
-        if (places or vtable) and not unread and (not vtable or class_read):
+        if places and not unread and (not vtable or class_read):      # a class that only records the effect needs a reader
             state = 'read'
-        elif places or vtable:
+        elif places or (vtable and not plain):
             state = 'located'
         else:
             state = 'not found'
