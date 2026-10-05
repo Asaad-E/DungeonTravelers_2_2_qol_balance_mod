@@ -7,6 +7,7 @@ import _paths
 import class_data
 import enemy_ai
 import enemy_data
+import floor_data
 from pck_handler import PckArchive
 
 
@@ -123,6 +124,34 @@ class EnemyBehaviour(unittest.TestCase):
                          'slot 2 aims at: ally with a more serious ailment')
         selene = by_name['Selene']
         self.assertEqual(enemy_ai.describe(selene['opening'][0]), 'own HP ratio <= 50 -> set 1 (once)')
+
+
+
+class Floors(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.floors = floor_data.floors()
+        cls.enemy_ids = {e['id'] for e in enemy_data.enemies()}
+
+    def test_every_floor_shares_out_one_hundred_among_its_formations(self):
+        self.assertGreater(len(self.floors), 100)
+        for floor in self.floors:
+            with self.subTest(floor=floor['floor']):
+                self.assertEqual(sum(f['chance'] for f in floor['formations']), 100)
+                self.assertEqual([f['number'] for f in floor['formations']], list(range(1, len(floor['formations']) + 1)))
+
+    def test_every_formation_holds_known_enemies(self):
+        for floor in self.floors:
+            for formation in floor['formations']:
+                with self.subTest(floor=floor['floor'], formation=formation['number']):
+                    self.assertTrue(formation['enemies'])
+                    self.assertTrue({e for e, _ in formation['enemies']} <= self.enemy_ids)
+
+    def test_a_lone_enemy_stands_in_front(self):
+        for floor in self.floors:
+            for formation in floor['formations']:
+                if len(formation['enemies']) == 1:
+                    self.assertTrue(formation['enemies'][0][1], floor['floor'])
 
 
 if __name__ == '__main__':
