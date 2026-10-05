@@ -154,6 +154,7 @@ class Exe:
 
 
 def main():
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     exe = Exe()
     cmd, arg = sys.argv[1], sys.argv[2]
     if cmd == 'strings':
@@ -168,7 +169,7 @@ def main():
                 print(f'    at {r:08x}, in the function at {start:08x}' if start else f'    at {r:08x}')
     elif cmd in ('func', 'floats'):
         va = int(arg, 16)
-        start = exe.function_start(va + 1) or va
+        start = exe.function_start(va + 3) or va
         ins = exe.disassemble(start)
         print(f'function at {start:08x}, {len(ins)} instructions, to {ins[-1].address:08x}')
         for i in ins:
