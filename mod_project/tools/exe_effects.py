@@ -95,6 +95,9 @@ def command_classes(exe, md):
 _PLAIN = {}
 
 
+UNIQUE_EFFECT_FIELD = 'w_0x50'          # UniqueSkillData 0x50: the effect id of the unique skill
+
+
 def is_plain(exe, md, method):
     """True when an apply method has no rule of its own: up to its first return it rolls nothing, reads no stat,
     HP or enchantment and uses no constant; it only records the effect on the target (and builds its message)."""
@@ -166,6 +169,15 @@ def main():
     rows = list(wb['Effects'].iter_rows(values_only=True))
     header = rows[0]
     effects = [dict(zip(header, r)) for r in rows[1:]]
+    unique_rows = list(wb['UniqueSkills'].iter_rows(values_only=True))        # a unique skill names its effect in one field
+    for unique in (dict(zip(unique_rows[0], r)) for r in unique_rows[1:]):
+        known = next((e for e in effects if e['Effect_ID'] == unique[UNIQUE_EFFECT_FIELD]), None)
+        if known:
+            known['Skill_Uses'] = (known['Skill_Uses'] or 0) + 1
+            known['Used_By'] = ', '.join(x for x in (known['Used_By'], unique['Name']) if x)
+        else:
+            effects.append({'Effect_ID': unique[UNIQUE_EFFECT_FIELD], 'Game_Name': None, 'Name': unique['Name'] + ' (unique skill)',
+                            'Status': 'Unique skill', 'Skill_Uses': 1, 'EnemyAttack_Uses': 0, 'Used_By': unique['Name']})
     ids = {e['Effect_ID'] for e in effects}
     classes = command_classes(exe, md)
     rules = [r for r in openpyxl.load_workbook(os.path.join(TABLES_DIR, 'balance_criteria.xlsx'), read_only=True)['EffectRules'].iter_rows(min_row=2, values_only=True) if r and r[0] is not None]

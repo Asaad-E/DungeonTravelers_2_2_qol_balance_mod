@@ -625,6 +625,42 @@ tome gains RES from it and a staff gains nothing but on its small ATK. A weapon 
 with Dual Wield each of its stats is added at the end as `int(stat * value)` (`0x4fc26f`), 0.30 at level 1 and 0.72
 at level 10.
 
+### 12.18 How long a status lasts and whether two stack (`Command::CCommandTurnBase`, `0x48d590`; `0x4f9930`)
+
+* A status carries a number of turns. Its per-turn method takes one away each time it runs (12.15: after the action of
+  its bearer) and removes the status when the count reaches 0. A status created with 0 turns is never counted down:
+  it stays until something removes it.
+* On the map a turn is **five steps**: the method runs on every step but only every fifth one counts (`0x48d5ed`).
+* Some statuses end at once when their bearer cannot act (their class answers yes at slot `0x8c`).
+* A few classes use the base method `0x48bc50`, which removes the status the first time it runs: they last until
+  the next tick of their bearer.
+* **Two statuses of the same effect do not stack**: when a unit receives one it already has, the old one is deleted
+  and the new one takes its place, with the value and the turns of the new one, even if it is weaker (`0x4f9b72`).
+  The only exception read is petrification below its third stage. Statuses of different effects that move the same
+  stat do add up, each in its place of the formulas.
+
+### 12.19 Unique skills (`UniqueSkillData`: the effect id is the int at `0x50`, the animation at `0x48`)
+
+Each unique skill is a status of one effect, and its value by level is its chance or its size. All but one roll
+`value * 100`:
+
+    Third Eye Wide        start of each opponent's turn: one of poison, paralysis, sleep, freeze, silence, stun, dispel at 0.75
+    Sugar Coma            a short-range hit on her: the attacker gets Slow and speed -0.2
+    Furious Strike        her physical action ignores defence and cannot miss
+    Alter Fate            a hit on her deals nothing
+    Usurper of Souls      before her action: the summoned units of the other side are removed
+    Did You Call for Me?  after her action: she acts twice
+    Undaunted Spirit      end of a turn, while fallen: she rises
+    Tranquil Song         before her action: ATK -0.1 and INT -0.1 on every opponent
+    Forerunner            a chanted spell is cast at once
+    Overstock Clearance   before her action: she first uses an item of her stock
+    Shadow Heart          before her action: a unit of her own joins to attack
+    Arcane Shield         the roll is 15 in 100, written in the program; the value is the share of the damage sent back
+
+Without a roll: Positive Trance (2.4), Elbow Grease (2.2), Wreathed in Glory (adds to the speed of her skills), Maximum
+Maid (the bonus of maid skills), Demon Wall (damage from three races), Yearning (0.01 per point on each class
+modifier).
+
 ## 13. Pep and the data of a character (`tools/character_data.py`) **[code]**
 
 Pep is a float of the character (`0xd8`). `0x4f69e0` keeps it **between 70 and 130** every time it changes, and then
