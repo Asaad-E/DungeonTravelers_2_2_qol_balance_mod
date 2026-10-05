@@ -56,16 +56,16 @@ def enemy_sections(enemies):
                     + [number(statistics.median(max(e['res_' + k] for k in PHYSICAL) for e in group)),
                        number(statistics.median(max(e['res_' + k] for k in ELEMENTS) for e in group)),
                        number(statistics.median(min(e['res_' + k] for k in ELEMENTS) for e in group)),
-                       f"{statistics.median(e['f44'] for e in group):.2f}"])
+                       f"{statistics.median(e['weight'] for e in group):.2f}"])
     lines += table(['Level', 'Enemies'] + [s.upper() if s not in ('exp', 'gold') else s.capitalize() for s in STATS]
-                   + ['Highest physical resistance', 'Highest elemental resistance', 'Lowest elemental resistance', 'Float 0x44'], rows)
+                   + ['Highest physical resistance', 'Highest elemental resistance', 'Lowest elemental resistance', 'Weight (turn order)'], rows)
     lines += ['', '### The 40 enemies with most HP', '']
     top = sorted(enemies, key=lambda e: (-e['hp'], e['id']))[:40]
     lines += table(['Enemy', 'Habitat', 'Lv', 'HP', 'ATK', 'DEF', 'INT', 'RES', 'DEX', 'AGI', 'EXP', 'Slash', 'Stab', 'Bash',
-                    'Fire', 'Water', 'Wind', 'Earth', 'Lightning', 'Float 0x40', 'Float 0x44', 'Attacks'],
+                    'Fire', 'Water', 'Wind', 'Earth', 'Lightning', 'Swing', 'Weight', 'Attacks'],
                    [[e['name'], e['habitat'], e['level'], number(e['hp']), e['atk'], e['def'], e['int'], e['res'], e['dex'], e['agi'],
                      number(e['exp'])] + [e['res_' + k] for k in enemy_data.RESISTANCES]
-                    + [f"{e['f40']:.2f}", f"{e['f44']:.2f}", len(e['attacks'])] for e in top])
+                    + [f"{e['swing']:.2f}", f"{e['weight']:.2f}", len(e['attacks'])] for e in top])
     lines += ['', '### Resistances of enemies of level 85 and above', '']
     late = [e for e in enemies if e['level'] >= 85]
     rows = []

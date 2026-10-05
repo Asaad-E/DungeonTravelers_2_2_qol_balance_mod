@@ -7,7 +7,7 @@ Every figure here is read from the game files; none is typed.
 
 516 entries of `Enemy.pck`. Medians per level band.
 
-| Level | Enemies | HP | ATK | DEF | INT | RES | DEX | AGI | Exp | Gold | Highest physical resistance | Highest elemental resistance | Lowest elemental resistance | Float 0x44 |
+| Level | Enemies | HP | ATK | DEF | INT | RES | DEX | AGI | Exp | Gold | Highest physical resistance | Highest elemental resistance | Lowest elemental resistance | Weight (turn order) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1-14 | 41 | 183 | 37 | 27 | 15 | 22 | 16 | 15 | 81 | 8 | 10 | 30 | -30 | 1.50 |
 | 15-29 | 65 | 354 | 70 | 55 | 26 | 42 | 31 | 26 | 225 | 11 | 30 | 40 | -30 | 1.40 |
@@ -19,7 +19,7 @@ Every figure here is read from the game files; none is typed.
 
 ### The 40 enemies with most HP
 
-| Enemy | Habitat | Lv | HP | ATK | DEF | INT | RES | DEX | AGI | EXP | Slash | Stab | Bash | Fire | Water | Wind | Earth | Lightning | Float 0x40 | Float 0x44 | Attacks |
+| Enemy | Habitat | Lv | HP | ATK | DEF | INT | RES | DEX | AGI | EXP | Slash | Stab | Bash | Fire | Water | Wind | Earth | Lightning | Swing | Weight | Attacks |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Crom Cruach | Hell's Hole | 99 | 62,000 | 1049 | 802 | 315 | 492 | 216 | 182 | 400,000 | 80 | 100 | 90 | 60 | 100 | 100 | 80 | 90 | 0.25 | 0.25 | 12 |
 | Hell's Angel | Plains of Light | 92 | 60,000 | 451 | 573 | 231 | 407 | 172 | 138 | 350,000 | 80 | 100 | 75 | 75 | 75 | 100 | 50 | 75 | 0.20 | 0.24 | 11 |

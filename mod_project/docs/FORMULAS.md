@@ -17,6 +17,8 @@ Nothing here was measured in the game. Constants are quoted from the code, with 
 | `call [vtable+0xf0]` with an id | How many pieces of equipment carry an enchantment | Followed by a multiplication by the size of one enchantment and a cap |
 | `call 0x414560` | The debug print | Every message goes through it |
 | `call 0x490790` | Random integer below the pushed bound | Used for every roll |
+| `call 0x5587c0`, `0x5576a0`, `0x5593f0` | The record of an enemy (`EnemyStatusData`), of an enemy attack (`EnemyAttackData`), of a piece of equipment. They return the record itself, so the offsets after them are the offsets of the file | Each is `map lookup; add eax, 0x18` |
+| `mov ecx, [0x7389d8]` (or another map) + `call 0x507310` + `mov eax, [eax]` | The same lookup written inline. Here the offsets are those of the file **plus `0x18`** | `0x4f2150` reads `[eax + 0x5c]`: file offset `0x44` |
 
 ---
 
@@ -71,7 +73,9 @@ final    = damage C * (1 + other bonuses)
 * **Race bonus** (`0x44bfe3 - 0x44c2cb`): enchantments against a kind of enemy add 0.30, 0.15 or 0.60 per piece according to their tier; effects 87 and 88 are read here.
 * **Defending** halves the damage (`0x44c576`).
 * Changes of the final value, each with its message: Warning Shot, a guaranteed minimum, wide magic guard, Positive Trance (`(Pep - 100) / 100` of the damage when Pep is above 100, `0x44ccce`), sleep, a bonus against enemies with an ailment (0.15 per piece of an enchantment, `0x44cd83`), double damage against the Magic User line, fixed damage, damage only to the living.
-* **[open]** the range factor (`0x44fbb0`), the critical multiplier and when a hit is critical (the critical formulas are among the messages; their function is not read yet), the size of the guaranteed minimum.
+* **Range** (`0x44a7d0`, `_GetAttackRangeRevision`) **[code]**: the distance is 0 when attacker and target are both in the front row, 1 when one of them is in the back row, 2 when both are (`0x44a7a0`). A short-range attack does full damage at distance 0, 0.75 at 1 and 0.5 at 2; a mid-range attack does 0.75 at distance 2 and full damage otherwise; long range and no range always do full damage. The lesson of the game states exactly this.
+* **Zones** (`0x44fbb0`): a zone multiplies attack A, before defence is subtracted, by a factor kept per battle; this is why a zone that doubles attack more than doubles damage.
+* **[open]** the critical multiplier, the size of the guaranteed minimum.
 
 ### 2.5 Chant interruption **[message + code]** (`0x44d001 - 0x44d259`)
 
@@ -107,15 +111,19 @@ final     = damage C * (1 + other bonuses) * critical
 * Read in the code (`0x44d370`): the hit chance is kept between 25 and 95 (`0x44da2b`, `0x44da37`); magic accuracy enchantments count 3 per piece, capped at 50 (`0x44d67b`, `0x44d699`); attack A is `INT * (2 + swing)` (`0x44dc97`); the power of the spell is effect 1; the enchantments that boost the magic of one element add 0.20 per piece (`0x44e070` and the five blocks after it, effects 325 to 329).
 * **[open]** the rest of this function (defence side, the caps of the other enchantments), the zones ("攻撃値Ａ倍率変更": a zone multiplies attack A, before defence, as the guide says).
 
-## 4. Critical hits **[message]**
+## 4. Critical hits (`0x44f190`) **[message + code]**
 
 ```
-value A = (own DEX * 0.2) / (own DEX + target AGI) * 100
-value B = (own level - target level) * 0.5
-rate    = (value A + value B + skill value) * (1 + own enchantments * 0.02) * (1 + target enchantments * 0.02)
+value A = (own DEX * 0.2) / (own DEX + target AGI) * 100                              (0x44f1d8 - 0x44f20d)
+value B = (own level - target level) * 0.5, not below 0                               (0x44f250, 0x44f258)
+rate    = (value A + value B + skill) * (1 + own enchantments * 0.02) * (1 + target enchantments * 0.02)
 ```
 
-Further messages: +5 from the second hit of a multi-hit attack; a direct value; critical against beasts. **[open]** the function and the multiplier.
+* skill: effects 31 (critical rate of the skill or buff), 32 (the target's vulnerability), 174 and 211, added together.
+* Enchantments: critical rate UP counts 4 per piece and its DOWN version subtracts 4, with the sum capped at 50; the target's side is kept at -50 or above (`0x44f357 - 0x44f459`). Through the factor of 0.02 one piece is worth +8% of the rate.
+* Effect 125 adds 5 per earlier hit of the same attack (`0x44f49b`), the "+5 from the second hit" of the messages.
+* The rate is then limited (constants 5, 20 and 50 at `0x44f4c3 - 0x44f4db`) and overridden by effect 70 (a fixed rate) and effect 110, and rolled out of 100.
+* **[open]** the exact limits, and the multiplier a critical hit applies to damage.
 
 ## 5. Order of turns (`0x4499d0`, `Battle::CBattle::_SetTime`, "行動時間の計算") **[message + code, checked]**
 
@@ -128,9 +136,9 @@ value is capped at 0.92                                                         
 wait until the next turn = 1 - value
 ```
 
-* **weight** is the delay multiplier of the weapon rank (the float of `WeaponRankData`: 1.00 for A+ up to 2.90 for F). For an enemy the same call returns a value of its own record; the float at `0x44` of `EnemyStatusData` is the candidate (ordinary enemies sit in the range of the weapon ranks, bosses far below) **[open: read the call]**.
+* **weight** is a virtual call of the unit (slot `0xf4`). For a player it is the delay multiplier of the rank of the equipped weapon (the float of `WeaponRankData`: 1.00 for A+ up to 2.90 for F). **For an enemy it is the float at `0x44` of `EnemyStatusData`** (`0x4f2150`, slot `0xf4` of the enemy class) **[code]**. Summons and mercenaries take a rank index from their own record and return the delay of that weapon rank (`0x4feeb0`, `0x5001d0`). Ordinary enemies carry weights in the range of the weapon ranks; bosses carry a fraction of the lightest weapon, which is why they act several times per turn of the party: it is one number per enemy, in data.
 * **The weapon term is subtracted from the base and grows with the level of the unit.** A slow weapon does not multiply the wait: it takes a bite of `weight / 12 * (1 + level / 100)` out of a base that depends on AGI. The slower the class, the larger the share it loses, and the bite doubles between level 1 and level 99. This is the mechanism behind the complaint about two-handed weapons, and it means that changing the twelve multipliers does not act as a percentage.
-* **`F1`, `F2`**: factors of the action, read from the skill for a player (`[vtable+0x154]`, `[vtable+0x158]`) and from the attack record for an enemy; 1 for a plain action such as defending. One of them is the speed shown in the skill box: higher is sooner **[open: which is which]**.
+* **`F1`, `F2`**: factors of the action, read from the skill for a player (`[vtable+0x154]`, `[vtable+0x158]`); 1 for a plain action such as defending. One of them is the speed shown in the skill box: higher is sooner **[open: which is which]**. For an enemy they are two floats of the attack record: file offsets `0x44` and `0x34` of `EnemyAttackData` (`0x449d53`, `0x449e20`). The float at `0x44`, taken until now for the power of the attack, is its speed factor.
 * **slow**: 0.5 while the unit has status 122, else 1 (`0x449e65`).
 * **buffs**, added together. Acting: effects 168 (speed buff), 217, 221, and 261 while HP is at or below 40% of max; plus 201, 340, 276, 277 and, in one case, 316. Chanting: effects 214, 265, 281.
 * **enchantments**: acting, +0.10 per piece of enchantment 51 (speed UP), +0.05 per piece of 52, -0.10 per piece of 53; chanting, +0.20 per piece of 54 (chant speed UP), +0.10 per piece of 55, -0.20 per piece of 56. Each sum is kept between -0.5 and +0.5 (`0x44a1b3 - 0x44a1d4`): five speed UP or three chant speed UP reach the cap.
@@ -171,7 +179,7 @@ The messages also name every chance roll of a passive or unique skill as it is r
 
 ## 8. Still to read
 
-1. In `_SetTime`: which of `F1`, `F2` is the skill speed, and the call that returns the weight of an enemy. Read so far: the weight is a virtual call (slot `0xf4`); for a player it comes from the equipped weapon; two other unit classes (`0x4feeb0`, `0x5001d0`: summons and mercenaries are the candidates) take a rank index from their own record and return the delay of that weapon rank; the class of an ordinary enemy is not identified yet.
+1. In `_SetTime`: which of `F1`, `F2` is the skill speed.
 2. The magic function, instruction by instruction.
 3. Critical: function, multiplier, the "1 in 3" interruption.
 4. Range factor `0x44fbb0`; the guaranteed minimum.

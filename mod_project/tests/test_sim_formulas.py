@@ -67,3 +67,12 @@ class Interruption(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Range(unittest.TestCase):
+    def test_the_lesson_of_the_game_is_what_the_code_does(self):
+        """Lesson 7: a short-range weapon does 100, 75 from or into the back row, 50 when both are in the back."""
+        self.assertEqual([f.range_factor(f.SHORT, d) for d in (0, 1, 2)], [1.0, 0.75, 0.5])
+        self.assertEqual([f.range_factor(f.MID, d) for d in (0, 1, 2)], [1.0, 1.0, 0.75])
+        self.assertEqual([f.range_factor(f.LONG, d) for d in (0, 1, 2)], [1.0, 1.0, 1.0])
+        self.assertEqual(f.distance(True, True), 2)

@@ -10,7 +10,8 @@ EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 
     0x00 id            0x08 name pointer        0x10 race
     0x14 level         0x18 max HP              0x1C ATK   0x20 DEF   0x24 INT
     0x28 RES           0x2C DEX                 0x30 AGI   0x34 EXP   0x38 gold
-    0x3C flags         0x40 float               0x44 float
+    0x3C flags         0x40 swing: spread of its damage (docs/FORMULAS.md 2.2)
+                       0x44 weight: its term in the order of turns (docs/FORMULAS.md 5)
     0x48 eight resistances: slash, stab, bash, fire, water, wind, earth, lightning
          (Selene: 15, 30, 0, 10, 0, 0, 20, 20, the figures of her status screen)
     0x68..0xA8 drops and materialize (not decoded field by field yet)
@@ -41,7 +42,7 @@ def read_status(b):
              'name': cstring(b, struct.unpack_from('<Q', b, 0x08)[0]),
              'habitat': cstring(b, struct.unpack_from('<Q', b, 0x108)[0]),
              'flags': struct.unpack_from('<I', b, 0x3C)[0],
-             'f40': struct.unpack_from('<f', b, 0x40)[0], 'f44': struct.unpack_from('<f', b, 0x44)[0]}
+             'swing': struct.unpack_from('<f', b, 0x40)[0], 'weight': struct.unpack_from('<f', b, 0x44)[0]}
     for key, off in STATS:
         enemy[key] = struct.unpack_from('<i', b, off)[0]
     for k, key in enumerate(RESISTANCES):

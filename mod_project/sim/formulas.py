@@ -137,3 +137,20 @@ def critical_rate(dex, target_agi, level, target_level, skill=0.0, enchant=0.0, 
     a = (dex * CRIT_DEX) / (dex + target_agi) * 100.0
     b = (level - target_level) * CRIT_LEVEL
     return (a + b + skill) * (1 + enchant * 0.02) * (1 + target_enchant * 0.02)
+
+
+# --- range (0x44a7d0, _GetAttackRangeRevision) -----------------------------------------------------
+SHORT, MID, LONG, NO_RANGE = 0, 1, 2, 3
+
+
+def distance(attacker_in_back_row, target_in_back_row):
+    """0 when both are in the front row, 1 when one is in the back row, 2 when both are (0x44a7a0)."""
+    return int(bool(attacker_in_back_row)) + int(bool(target_in_back_row))
+
+
+def range_factor(attack_range, dist):
+    if attack_range == SHORT:
+        return {0: 1.0, 1: 0.75, 2: 0.5}[dist]
+    if attack_range == MID:
+        return 0.75 if dist == 2 else 1.0
+    return 1.0
