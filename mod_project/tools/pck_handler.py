@@ -317,46 +317,44 @@ class SealScrollHelper:
 
 
 class JoinSkillHelper:
-    """Helper for reading and writing JoinSkillData .bin structures safely."""
-    
+    """JoinSkillData: header of 0x98 bytes, then three strings (name, description, battle message),
+    each padded to 8 bytes. The message is empty in every skill but the internal "Genocide Rain's Action".
+
+    0x08/0x10/0x20 string pointers, 0x18 participants, 0x28 Pep needed, 0x2C Pep spent (floats),
+    0x30 target, 0x34 attribute, 0x40 power, 0x44 turns, 0x48 delay (floats), 0x4C TP divisor (each
+    participant pays max TP / divisor), 0x50 effect count, 0x54 four slots (int id, float value, int tail).
+    """
+    HEADER = 0x98
+    POINTERS = (8, 16, 0x20)
+    SLOTS, SLOT_COUNT = 0x54, 0x50
+
+    @staticmethod
+    def _strings(bin_data):
+        return [bytes(bin_data[p:bin_data.find(b'\x00', p)]).decode('utf-8')
+                for p in (struct.unpack_from('<Q', bin_data, off)[0] for off in JoinSkillHelper.POINTERS)]
+
     @staticmethod
     def read_joint(bin_data):
-        p0 = struct.unpack('<I', bin_data[8:12])[0]
-        p1 = struct.unpack('<I', bin_data[16:20])[0]
-        name = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
-        desc = bin_data[p1:bin_data.find(b'\x00', p1)].decode('latin-1')
-        return {'name': name, 'desc': desc}
+        name, desc, msg = JoinSkillHelper._strings(bin_data)
+        count = struct.unpack_from('<i', bin_data, JoinSkillHelper.SLOT_COUNT)[0]
+        return {'name': name, 'desc': desc, 'msg': msg,
+                'members': struct.unpack_from('<i', bin_data, 0x18)[0],
+                'pep_needed': struct.unpack_from('<f', bin_data, 0x28)[0],
+                'pep_cost': struct.unpack_from('<f', bin_data, 0x2C)[0],
+                'power': struct.unpack_from('<f', bin_data, 0x40)[0],
+                'turns': struct.unpack_from('<f', bin_data, 0x44)[0],
+                'delay': struct.unpack_from('<f', bin_data, 0x48)[0],
+                'tp_divisor': struct.unpack_from('<i', bin_data, 0x4C)[0],
+                'effects': [struct.unpack_from('<ifi', bin_data, JoinSkillHelper.SLOTS + 12 * k) for k in range(count)]}
 
     @staticmethod
     def write_joint(bin_data, new_desc):
-        fixed_hdr = bytearray(bin_data[:0x98])
-        p0 = struct.unpack('<I', bin_data[8:12])[0]
-        name_str = bin_data[p0:bin_data.find(b'\x00', p0)].decode('latin-1')
-
-        name_bytes = name_str.encode('latin-1') + b'\x00'
-        desc_bytes = new_desc.encode('latin-1') + b'\x00'
-
-        new_p0 = 0x98
-        pad0 = (8 - (len(name_bytes) % 8)) % 8
-        name_bytes += b'\x00' * pad0
-
-        new_p1 = new_p0 + len(name_bytes)
-        pad1 = (8 - (len(desc_bytes) % 8)) % 8
-        desc_bytes += b'\x00' * pad1
-
-        struct.pack_into('<I', fixed_hdr, 8, new_p0)
-        struct.pack_into('<I', fixed_hdr, 16, new_p1)
-
-        res = bytearray(fixed_hdr)
-        res.extend(name_bytes)
-        res.extend(desc_bytes)
-
-        # 0x20 is unpadded length before 8-byte align pad
-        struct.pack_into('<I', res, 0x20, len(res))
-        pad_end = (8 - (len(res) % 8)) % 8
-        if pad_end == 0:
-            pad_end = 8
-        res.extend(b'\x00' * pad_end)
+        name, _, msg = JoinSkillHelper._strings(bin_data)
+        res = bytearray(bin_data[:JoinSkillHelper.HEADER])
+        for off, text in zip(JoinSkillHelper.POINTERS, (name, new_desc, msg)):
+            struct.pack_into('<Q', res, off, len(res))
+            raw = text.encode('utf-8') + b'\x00'
+            res.extend(raw + b'\x00' * ((8 - len(raw) % 8) % 8))
         return bytes(res)
 
 

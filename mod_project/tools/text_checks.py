@@ -529,3 +529,60 @@ def check_party_skill_text(b, text, vanilla_text):
     if text != party_skill_text(b, vanilla_text):
         return [f"'{text}': not the original sentence followed by the bounds of the table ({party_skill_bounds(b)})"], 0
     return [], len(party_skill_bounds(b))
+
+
+# ---------------------------------------------------------------------------
+# Joint skills
+# ---------------------------------------------------------------------------
+# A joint skill has one sentence. Where it speaks of an effect whose value the entry stores, the value
+# is written into the sentence: "High chance of instakill." -> "85% chance of instakill.". The sentences
+# are the sheet JointSkillSentences of qol_rules.xlsx, with {eID} where the value of effect ID goes; how
+# each value is written is the sheet JointEffects. A skill without a row keeps the game's text.
+JOINT_SLOTS, JOINT_SLOT_COUNT = 0x54, 0x50
+JOINT_PLACE_RE = re.compile(r'\{e(\d+)\}')
+JOINT_STYLES = {
+    'chance': lambda v: f'{min(100 * v, 100):g}%',          # a chance stored above 100% is 100%
+    'pct': lambda v: f'{100 * v:g}%',
+    'signed_pct': lambda v: f'{100 * v:+g}%',
+    'signed_points_pct': lambda v: f'{v:+g}%',
+    'signed_num': lambda v: f'{v:+g}',
+    'num': lambda v: f'{v:g}',
+    'times': lambda v: f'{1 + v:g}x',
+}
+JOINT_EFFECTS = {int(r['Effect_ID']): (r['Style'], str(r['Text'])) for r in rules.rows('JointEffects')}
+JOINT_SENTENCES = rules.pairs('JointSkillSentences', 'Skill', 'Sentence')
+
+
+def joint_effects(b):
+    count = struct.unpack_from('<i', b, JOINT_SLOT_COUNT)[0]
+    return [struct.unpack_from('<ifi', b, JOINT_SLOTS + 12 * k) for k in range(count)]
+
+
+def joint_skill_text(b, name, vanilla_text):
+    """(text, problems): the sentence of the rules sheet with the stored values, or the game's text."""
+    template = JOINT_SENTENCES.get(name)
+    if template is None:
+        return vanilla_text, []
+    stored, problems = {i: v for i, v, _ in joint_effects(b)}, []
+
+    def value(m):
+        effect_id = int(m.group(1))
+        if effect_id not in stored:
+            problems.append(f'{name}: the sentence quotes effect {effect_id}, which the skill does not hold')
+            return m.group(0)
+        if effect_id not in JOINT_EFFECTS:
+            problems.append(f'{name}: effect {effect_id} has no row in the sheet JointEffects')
+            return m.group(0)
+        style, text = JOINT_EFFECTS[effect_id]
+        return text if style == 'text' else JOINT_STYLES[style](stored[effect_id])
+    return JOINT_PLACE_RE.sub(value, template), problems
+
+
+def check_joint_skill_text(b, name, text, vanilla_text):
+    """The game's text, or the sentence of the rules sheet filled from the entry. Returns (problems, verified)."""
+    if text == vanilla_text:
+        return [], 0
+    expected, problems = joint_skill_text(b, name, vanilla_text)
+    if text != expected:
+        problems.append(f"'{text}': not the sentence of the rules sheet with the stored values ('{expected}')")
+    return problems, 0 if problems else len(JOINT_PLACE_RE.findall(JOINT_SENTENCES[name]))

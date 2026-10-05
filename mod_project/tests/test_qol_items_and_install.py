@@ -313,3 +313,48 @@ class Rules(unittest.TestCase):
         with open(os.path.join(_paths.TOOLS_DIR, 'shortened_text.py'), encoding='utf-8') as f:
             source = f.read()
         self.assertNotIn('Yakisoba', source)
+
+
+class JointSkills(unittest.TestCase):
+    """Joint skills: the sentence of the rules sheet, filled with the values the entry stores."""
+
+    @classmethod
+    def setUpClass(cls):
+        from pck_handler import JoinSkillHelper
+        cls.helper = JoinSkillHelper
+        cls.entries = PckArchive(os.path.join(_paths.BACKUP_DIR, bv.JOINT_PCK)).files
+        cls.table = bv.load_joint_skill_text(os.path.join(_paths.TABLES_DIR, 'qol_joint_skill_text.xlsx'))
+        cls.by_name = {cls.helper.read_joint(b)['name']: (b, cls.table[fn]) for fn, b in cls.entries}
+
+    def test_writer_reproduces_the_originals(self):
+        for fn, b in self.entries:
+            with self.subTest(entry=fn):
+                self.assertEqual(self.helper.write_joint(b, self.helper.read_joint(b)['desc']), bytes(b))
+
+    def test_layout_agrees_with_the_guide(self):
+        """DT2-2 wiki, pages/27.html: Rush Zanber costs 1/7 of max TP, Jackpot all of it, Avatara needs five."""
+        read = lambda name: self.helper.read_joint(self.by_name[name][0])
+        self.assertEqual(read('Rush Zanber')['tp_divisor'], 7)
+        self.assertEqual(read('Jackpot')['tp_divisor'], 1)
+        self.assertEqual(read('Avatara')['members'], 5)
+        self.assertEqual(read("Genocide Rain's Action")['msg'], 'Genocide Rain(St) pours down!')
+
+    def test_stored_value_replaces_the_vague_word(self):
+        self.assertEqual(self.by_name['Divine Punishment!'][1]['vanilla'],
+                         'Deal physical damage to an enemy row. High chance of instakill.')
+        self.assertEqual(self.by_name['Divine Punishment!'][1]['desc'],
+                         'Deal physical damage to an enemy row. 85% chance of instakill.')
+        self.assertEqual(self.by_name['Bunker Buster'][1]['desc'],
+                         'Deal damage and reduce physical attack/defense (-25%). Pierces to the back row.')
+        self.assertEqual(self.by_name['Rush Zanber'][1]['desc'], self.by_name['Rush Zanber'][1]['vanilla'])
+
+    def test_clean_build_and_a_wrong_value(self):
+        for mutate, clean in ((False, True), (True, False)):
+            table, problems = copy.deepcopy(self.table), []
+            if mutate:
+                fn = next(f for f, r in table.items() if '85% chance of instakill' in r['desc'])
+                table[fn]['desc'] = table[fn]['desc'].replace('85%', '95%')
+            with tempfile.TemporaryDirectory() as out:
+                bv.build_joint_skills(out, table, problems)
+                bv.verify_joint_skills(out, table, bv.VARIANTS['qol'], problems)
+            self.assertEqual(problems == [], clean, problems)

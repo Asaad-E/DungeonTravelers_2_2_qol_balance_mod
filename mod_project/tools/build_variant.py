@@ -40,10 +40,10 @@ import argparse
 import collections
 import openpyxl
 from pck_handler import (PckArchive, SkillHelper, EnchantHelper, WeaponRankHelper, ItemHelper, EnemyAttackHelper,
-                         FoodMenuHelper, PartySkillHelper)
+                         FoodMenuHelper, PartySkillHelper, JoinSkillHelper)
 from extract_vanilla import SKILL_LAYOUTS
 from text_checks import (check_skill_text, check_item_text, check_enemy_attack_text, check_food_text,
-                         check_party_skill_text, skill_tables)
+                         check_party_skill_text, check_joint_skill_text, skill_tables)
 import magnitude_words
 import enchant_values
 import weapon_rank_labels
@@ -77,6 +77,7 @@ ITEM_HEADER = 0x70
 ITEM_POINTERS = (8, 16, 0x60)
 FOOD_PCK = 'FoodMenuData.pck'
 PARTY_PCK = 'PartySkillData.pck'
+JOINT_PCK = 'JoinSkillData.pck'
 ENEMY_PCK = 'EnemyAttackData.pck'
 ENEMY_HEADER = 0xA0
 ENEMY_POINTERS = (8, 16, 24, 32)
@@ -85,6 +86,7 @@ VARIANTS = {
     'qol': {'skill_text': 'qol_skill_text.xlsx', 'enchant_text': 'qol_enchant_text.xlsx',
             'item_text': 'qol_item_text.xlsx', 'enemy_attack_text': 'qol_enemy_attack_text.xlsx',
             'food_text': 'qol_food_text.xlsx', 'party_skill_text': 'qol_party_skill_text.xlsx',
+            'joint_skill_text': 'qol_joint_skill_text.xlsx',
             'numeric_changes_allowed': False},
 }
 
@@ -167,6 +169,7 @@ def self_test_writers(problems):
                          (RANK_PCK, lambda b: WeaponRankHelper.write_rank(b, WeaponRankHelper.read_rank(b)['name'])),
                          (ITEM_PCK, lambda b: ItemHelper.write_item(b, ItemHelper.read_item(b)['desc'])),
                          (FOOD_PCK, lambda b: FoodMenuHelper.write_food_menu(b, FoodMenuHelper.read_food_menu(b)['effect'])),
+                         (JOINT_PCK, lambda b: JoinSkillHelper.write_joint(b, JoinSkillHelper.read_joint(b)['desc'])),
                          (PARTY_PCK, lambda b: PartySkillHelper.write_party_skill(
                              b, PartySkillHelper.read_party_skill(b)['effect'])),
                          (ENEMY_PCK, lambda b: EnemyAttackHelper.write_enemy_attack(
@@ -381,6 +384,56 @@ def verify_party_skills(out_dir, table, variant, problems):
     return counts
 
 
+def load_joint_skill_text(path):
+    ws = openpyxl.load_workbook(path)['JointSkills']
+    header = [c.value for c in ws[1]]
+    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
+    return {r[col['Filename']]: {'vanilla': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
+            for r in ws.iter_rows(min_row=2, values_only=True)}
+
+
+def build_joint_skills(out_dir, table, problems):
+    """Joint skills: the sentence states the stored value of the effects it speaks of."""
+    stats = collections.Counter()
+    archive = PckArchive(os.path.join(BACKUP_DIR, JOINT_PCK))
+    for i, (fn, b) in enumerate(archive.files):
+        skill, row = JoinSkillHelper.read_joint(b), table.get(fn)
+        if row is None or row['vanilla'] != skill['desc']:
+            problems.append(f"{JOINT_PCK}/{fn}: no row in the joint skill table, or the table is stale")
+            continue
+        if row['desc'] == skill['desc']:
+            stats['kept'] += 1
+            continue
+        archive.files[i] = (fn, JoinSkillHelper.write_joint(b, row['desc']))
+        stats['rewritten'] += 1
+    archive.save(os.path.join(out_dir, JOINT_PCK))
+    return stats
+
+
+def verify_joint_skills(out_dir, table, variant, problems):
+    counts = collections.Counter()
+    original = PckArchive(os.path.join(BACKUP_DIR, JOINT_PCK)).files
+    built = PckArchive(os.path.join(out_dir, JOINT_PCK)).files
+    for (fn, old), (_, new) in zip(original, built):
+        was, now = JoinSkillHelper.read_joint(old), JoinSkillHelper.read_joint(new)
+        label = f"{JOINT_PCK}/{fn} ({was['name']})"
+        counts['entries'] += 1
+        if not variant['numeric_changes_allowed'] and (
+                numeric_part(new, JoinSkillHelper.HEADER, JoinSkillHelper.POINTERS)
+                != numeric_part(old, JoinSkillHelper.HEADER, JoinSkillHelper.POINTERS)):
+            problems.append(f"{label}: numeric data differs from the original")
+        if (now['name'], now['msg']) != (was['name'], was['msg']):
+            problems.append(f"{label}: name or battle message changed")
+        if now['desc'] != table[fn]['desc'] or len(now['desc']) > MAX_LINE or '\n' in now['desc']:
+            problems.append(f"{label}: built text differs from the joint skill table, or is not one line of {MAX_LINE}")
+        if now['desc'] == was['desc'] and bytes(new) != bytes(old):
+            problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
+        found, verified = check_joint_skill_text(new, was['name'], now['desc'], was['desc'])
+        problems.extend(f"{label}: {p}" for p in found)
+        counts['numbers'] += verified
+    return counts
+
+
 def build_weapon_ranks(out_dir):
     """Rank names are generated from the multiplier of each entry; the multipliers are not touched."""
     archive = PckArchive(os.path.join(BACKUP_DIR, RANK_PCK))
@@ -583,16 +636,18 @@ def main():
     enchant_path = os.path.join(TABLES_DIR, variant['enchant_text'])
     item_path = os.path.join(TABLES_DIR, variant['item_text'])
     enemy_path = os.path.join(TABLES_DIR, variant['enemy_attack_text'])
-    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, PARTY_PCK, RANK_PCK]
+    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, PARTY_PCK, JOINT_PCK, RANK_PCK]
     food_path = os.path.join(TABLES_DIR, variant['food_text'])
     party_path = os.path.join(TABLES_DIR, variant['party_skill_text'])
+    joint_path = os.path.join(TABLES_DIR, variant['joint_skill_text'])
 
     print(f"=== Building variant '{args.variant}' ===")
     for path, generator in ((table_path, 'generate_qol_skill_text.py'), (enchant_path, 'generate_qol_enchant_text.py'),
                             (item_path, 'generate_qol_item_text.py'),
                             (enemy_path, 'generate_qol_enemy_attack_text.py'),
                             (food_path, 'generate_qol_food_text.py'),
-                            (party_path, 'generate_qol_party_skill_text.py')):
+                            (party_path, 'generate_qol_party_skill_text.py'),
+                            (joint_path, 'generate_qol_joint_skill_text.py')):
         if not os.path.exists(path):
             print(f"Error: {path} not found. Run tools/{generator} first.")
             sys.exit(1)
@@ -621,6 +676,9 @@ def main():
         party = load_party_skill_text(party_path)
         stats = build_party_skills(out_dir, party, problems)
         print(f"    Built {PARTY_PCK}: {stats['rewritten']} effect lines with their bounds, {stats['kept']} kept byte-identical")
+        joint = load_joint_skill_text(joint_path)
+        stats = build_joint_skills(out_dir, joint, problems)
+        print(f"    Built {JOINT_PCK}: {stats['rewritten']} sentences with their stored values, {stats['kept']} kept byte-identical")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:
@@ -650,6 +708,9 @@ def main():
             counts = verify_party_skills(out_dir, party, variant, problems)
             print(f"    Verified {counts['entries']} party skills: values, names and members identical; "
                   f"{counts['numbers']} bounds from a player guide (the binary holds none)")
+            counts = verify_joint_skills(out_dir, joint, variant, problems)
+            print(f"    Verified {counts['entries']} joint skills: values, names and messages identical; "
+                  f"{counts['numbers']} values in the text checked against the built binary")
             labels = verify_weapon_ranks(out_dir, variant, problems)
             print(f"    Verified {len(labels)} weapon ranks: multipliers identical to the original, "
                   f"each label shows its own multiplier")
