@@ -235,8 +235,8 @@ class Meals(unittest.TestCase):
         b, row = by_name['Banango Ice Cream']
         self.assertEqual(food_amounts(b), (30, 20))
         self.assertEqual(row['effect'], 'Heal 30% HP and 20% TP.')
-        self.assertEqual(by_name['Raspberry Supreme'][1]['effect'], 'Heal status ailments + 80% HP and TP + gain Aim.')
-        self.assertEqual(by_name['Miracle Shake'][1]['effect'], 'Heal all TP + gain Divine Shield.')      # already exact
+        self.assertEqual(by_name['Raspberry Supreme'][1]['effect'], 'Heal status ailments + 80% HP and TP + gain Aim Lv10.')
+        self.assertEqual(by_name['Miracle Shake'][1]['effect'], 'Heal all TP + gain Divine Shield Lv5.')      # already exact
         self.assertNotEqual(check_food_text(b, 'Heal 40% HP and 20% TP.', row['vanilla'])[0], [])
         self.assertNotEqual(check_food_text(b, 'Restores 30% HP and 20% TP.', row['vanilla'])[0], [])
 

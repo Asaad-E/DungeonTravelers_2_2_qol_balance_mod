@@ -269,6 +269,8 @@ Third pass, on a screenshot of the Heal box sent by the user ("HP recovery?", "n
 * **Heals show the multiple of RES**: `Heals RES: 4x (+1x/Lv) -> 13x`. The stored figure (8 to 26) is the coefficient of `RES * about 0.5 * figure` (`docs/FORMULAS.md` 6b); half of it is what multiplies RES. Heal, Circle Heal, Primevil. Label and style in the sheet `SkillEffectLabels`.
 * **Air between the items of a line**: three spaces on each side of the bar (`Turns: 3 -> 7   |   TP Cost: 1 -> 5`) whenever the widened line stays within 92 characters (settings `skill_separator_pad`, `skill_wide_line`). What a line holds is still chosen for 85. 92 is read off the screenshot (73 characters end at three quarters of the box), not measured with a full line: **to be looked at on screen**.
 
+Fourth pass: **the level of the buff a meal gives** is decoded and shown (`gain Aim Lv10`, `gain Protect Lv5 and Accelerator Lv5`). Each meal effect type has a method that writes the level into the effect and performs the skill (`tools/item_effect_data.py`, `meal_buffs`); it is the level the game itself announces when the meal is eaten (`StringData` 183 to 196). Brave, Protect and Sun Veil are performed at the last level of their skill. Phrases in the sheet `MealBuffs`.
+
 Known and **not shown**, each with its reason:
 
 | What | Why not |
@@ -278,6 +280,5 @@ Known and **not shown**, each with its reason:
 | Power of the other enemy attacks and of joint skills | Left alone by decision of the user |
 | Cost of a joint skill | Left alone by decision of the user (2026-10-05) |
 | Chances of the random moves, class modifiers, rules of vague passives | Their boxes are prose with no room for a table |
-| Level of the buff a meal gives | Still not decoded |
 
 Still open, needs the user: the play-through.

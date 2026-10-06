@@ -507,7 +507,25 @@ def food_text(b, effect_line):
         if what == 'TP' and tp is not None:
             return f'{tp}% TP'
         return m.group(0)
-    return FOOD_VAGUE_RE.sub(exact, effect_line)
+    text = FOOD_VAGUE_RE.sub(exact, effect_line)
+    levels = meal_buff_levels()
+    for effect_type, _ in food_effects(b):         # "gain Aim" -> "gain Aim Lv10": the level the program gives the buff
+        phrase = MEAL_PHRASES.get(effect_type)
+        if phrase and effect_type in levels and phrase in text:
+            text = text.replace(phrase, f'{phrase} Lv{levels[effect_type]}', 1)
+    return text
+
+
+MEAL_PHRASES = {int(r['Type']): r['Phrase'] for r in rules.rows('MealBuffs') if r.get('Phrase') and str(r['Type']).isdigit()}
+_MEAL_LEVELS = []
+
+
+def meal_buff_levels():
+    """{meal effect type: level of the buff}, read from the program (tools/item_effect_data.py)."""
+    if not _MEAL_LEVELS:
+        import item_effect_data
+        _MEAL_LEVELS.append({kind: level for kind, (_, level) in item_effect_data.meal_buffs().items()})
+    return _MEAL_LEVELS[0]
 
 
 def check_food_text(b, text, vanilla_text):

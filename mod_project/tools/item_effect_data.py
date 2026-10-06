@@ -49,6 +49,45 @@ def skill_items(exe=None):
     return found
 
 
+# A meal buff: push -1; push 1; push skill id, with the level written into the object first (mov [esi + 8], float)
+MEAL_TYPES = range(73, 87)
+MEAL_SKILL = re.compile(rb'\x6a\xff.{0,3}?\x6a\x01(?:\x6a(.)|\x68(....))', re.S)
+MEAL_LEVEL = re.compile(rb'\xc7\x46\x08(....)', re.S)
+
+
+def meal_buffs(exe=None):
+    """{item effect type: (skill id, level)} of the effect types the meals use for their buffs (0x513c30 on): the
+    method stores the level as a float in the effect and then performs the skill. The game announces the same
+    level when the meal is eaten (StringData 183 to 196)."""
+    exe = exe or Exe()
+    cases = struct.unpack(f'<{TYPES}I', exe.read(SWITCH_TABLE, 4 * TYPES))
+    found = {}
+    for kind in MEAL_TYPES:
+        stores = [struct.unpack('<I', m.group(1))[0] for m in re.finditer(rb'\xc7[\x00-\x07](....)', exe.read(cases[kind], 0x4c), re.S)]
+        vtables = [v for v in stores if RDATA[0] <= v < RDATA[1]]
+        body = exe.read(exe.u32(vtables[-1] + 4 * APPLY_SLOT), 0x30)
+        skill, level = MEAL_SKILL.search(body), MEAL_LEVEL.search(body)
+        if skill and level:
+            found[kind] = (skill.group(1)[0] if skill.group(1) else struct.unpack('<I', skill.group(2))[0],
+                           int(struct.unpack('<f', level.group(1))[0]))
+    # The three party buffs (Brave, Protect, Sun Veil) perform their skill with no level given: the program then
+    # asks the skill table how many levels the skill has and uses the last one (0x50b0ea, 0x56c690).
+    levels = {r[2]: r[4] for r in openpyxl.load_workbook(WORKBOOK, read_only=True)['Skills'].iter_rows(min_row=2, values_only=True)}
+    for kind in MAX_LEVEL_TYPES:
+        stores = [struct.unpack('<I', m.group(1))[0] for m in re.finditer(rb'\xc7[\x00-\x07](....)', exe.read(cases[kind], 0x4c), re.S)]
+        vtables = [v for v in stores if RDATA[0] <= v < RDATA[1]]
+        skill = NO_LEVEL_SKILL.search(exe.read(exe.u32(vtables[-1] + 4 * APPLY_SLOT), 0x30))
+        skill_id = skill.group(1)[0] if skill.group(1) else struct.unpack('<I', skill.group(2))[0]
+        found[kind] = (skill_id, levels[skill_id])
+    return found
+
+
+NO_LEVEL_SKILL = re.compile(rb'\x6a\xff.{0,3}?\x6a\x00(?:\x6a(.)|\x68(....))', re.S)      # push -1; push 0; push skill id
+
+
+MAX_LEVEL_TYPES = (35, 36, 39)
+
+
 def skill_names():
     rows = openpyxl.load_workbook(WORKBOOK, read_only=True)['Skills'].iter_rows(min_row=2, values_only=True)
     return {r[2]: r[3] for r in rows}
