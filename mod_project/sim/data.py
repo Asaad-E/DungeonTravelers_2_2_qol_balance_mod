@@ -89,7 +89,7 @@ class Skill:
 class EnemyAttack:
     """An EnemyAttackData record: also the attacks of summons and guest allies, and the passives of enemies."""
     __slots__ = ('id', 'name', 'target', 'attr', 'chant_speed', 'accuracy', 'power', 'turns', 'speed', 'effects',
-                 'range', 'passive')
+                 'range', 'passive', 'chant_stat')
 
     def __init__(self, **kw):
         for k in self.__slots__:
@@ -214,7 +214,14 @@ def _load_attacks(wb, data):
             id=r['Skill_ID'], name=r['Name'], target=r['Target_Code'], attr=r['Attr_Code'],
             chant_speed=r['Chant_Speed'] or 0, accuracy=r['Accuracy'] or 0, power=r['Power'] or 0,
             turns=int(r['Turns'] or 0), speed=r['Speed'] if r['Speed'] else 1.0, effects=effects, range=reach,
-            passive='Passive Skill' in str(r['Vanilla_Desc'] or ''))
+            passive='Passive Skill' in str(r['Vanilla_Desc'] or ''),
+            chant_stat=_enemy_chant_stat(r['Anim_0x28'] or 0))
+
+
+def _enemy_chant_stat(word):
+    """_SetTime (0x449b0d - 0x449b38) reads the word at file 0x28 of a chanted enemy attack: bit 11 INT, bit 12 RES.
+    Of the 2,375 attacks, the 423 that chant have exactly one of the two (334 INT, 89 RES)."""
+    return 'int' if word >> 11 & 1 else 'res' if word >> 12 & 1 else None
 
 
 def _load_equipment(wb, data):

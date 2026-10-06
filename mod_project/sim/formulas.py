@@ -125,9 +125,13 @@ def magic_hit(spell_accuracy, intel, target_res, loose_spirit=0.0, enchant=0.0, 
 def magic_damage(intel, power, target_res, mastery=0.0, modifiers=0.0, enchant=0.0, second_modifiers=0.0,
                  element_boost=0.0, target_modifiers=0.0, target_enchant=0.0, swing=0.0, power_boost=0.0,
                  damage_cut=0.0, resistance=0.0, critical=1.0, other=0.0):
-    """Damage of a spell before the final changes."""
+    """Damage of a spell before the final changes (0x44dcc0 - 0x44e6c6):
+        attack B = (INT * (2 + swing) + power * (1 + mastery) * (1 + modifiers)) * (1 + enchant * 0.01)
+        attack C = attack B * (1 + second_modifiers) * (1 + element_boost)
+    modifiers (Waltz 195, effect 335, the Power of a joint skill) multiply the power of the spell only;
+    second_modifiers is Spiritual Fantasia (212)."""
     a = intel * (ATTACK_BASE + swing)
-    b = (a + power * (1 + mastery)) * (1 + modifiers) * (1 + enchant * 0.01)
+    b = (a + power * (1 + mastery) * (1 + modifiers)) * (1 + enchant * 0.01)
     c = b * (1 + second_modifiers) * (1 + element_boost)
     defence = target_res * MAGIC_DEFENCE_FACTOR * (1 + target_modifiers) * (1 + target_enchant * 0.01)
     damage = (c - defence) * (1 + power_boost) * (1 + damage_cut) * resistance_factor(resistance)
