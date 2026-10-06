@@ -354,7 +354,25 @@ def enemy_effect_facts(b):
         if value == 0 or (style == 'pct' and not 0 < value <= 1):
             continue
         facts[label] = write_value(value, style)
+    power = round(struct.unpack_from('<f', b, ENEMY_POWER)[0], 4)
+    if power and i32(b, 0) in power_scope() and any(i == PLAIN_HIT for i, _, _ in slots) and POWER_LABEL not in facts:
+        facts[POWER_LABEL] = write_value(power, 'signed_pct')
     return facts
+
+
+ENEMY_POWER = 0x3C           # float: what a physical attack adds to the modifiers of its attack value (0x44b497)
+PLAIN_HIT = 0                # the effect of a hit that deals physical damage
+POWER_LABEL = rules.setting('enemy_power_label')
+_POWER_SCOPE = []
+
+
+def power_scope():
+    """Ids of the enemy attacks whose power is shown: the ones a summon of the player can use."""
+    if not _POWER_SCOPE:
+        import summon_data
+        _POWER_SCOPE.append({attack for summon in summon_data.summons() for attack in summon['attacks']}
+                            if rules.setting('enemy_power_scope') == 'summons' else set())
+    return _POWER_SCOPE[0]
 
 
 def stated_in_prose(prose):

@@ -187,7 +187,7 @@ class EnemyAttacks(unittest.TestCase):
     def test_exact_chance_goes_on_the_data_line_and_the_prose_stays(self):
         row = self.table[POISON_SHOT]
         self.assertEqual(enemy_ailments(self.entries[POISON_SHOT]), {'Poison': 30.0})
-        self.assertEqual(row['desc'], 'Target: Single / Type: Stab / Range: Long / Poison: 30%\n'
+        self.assertEqual(row['desc'], 'Target: Single / Type: Stab / Range: Long / Poison: 30% / Power: +15%\n'
                                       'Fire an arrow doused in some real toxic stuff.\n'
                                       'If it hits, it may inflict poison. Also, ouch.')
         self.assertEqual(row['desc'].split('\n')[1:], row['vanilla_desc'].split('\n')[1:])

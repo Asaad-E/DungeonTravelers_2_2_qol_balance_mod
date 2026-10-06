@@ -253,16 +253,26 @@ Reading the program settled things the QoL variant had left open. Applied throug
 | Items of types 29, 32, 89, 90 (8 items) | `40% Accelerator`, `20% War Cry`, `lose 5% of gold`, `Fireball Lv3` | `tools/item_effect_data.py`, `docs/FORMULAS.md` 15 |
 | Arcane Shield, `Activation rate: 15%` | Unchanged on screen; its source is now the program, not a guide | `docs/FORMULAS.md` 12.19 |
 
+Second pass the same day, on the user's review:
+
+| What | On screen now | Source |
+|---|---|---|
+| Demon Wall | `Taken: -12% -> ... -> -20%` ("Damage taken" is one character too long) | `docs/FORMULAS.md` 12.19 |
+| Perdurabo, Musiy, Star Dust Arrow | `Duration`, the word the other dolls already used | effect 147 |
+| Items of types 54, 55, 60, 61 and the ones that had no room (11 items, sentences shortened by hand in `ShortItems`) | `50% max HP damage up to 100`, `silences Apparitions`, `30% HP to Beasts`, `25% Accelerator` | `docs/FORMULAS.md` 15 |
+| Power of the attacks of the player's summons (150 data lines) | `Power: +20%` | `EnemyAttackData 0x3C`, `docs/FORMULAS.md` 9.2; setting `enemy_power_scope` |
+
+The player has 35 summons in 105 forms (`tools/summon_data.py`); together they use 413 enemy attacks, 154 with a power. Only those show it.
+
 Known and **not shown**, each with its reason:
 
 | What | Why not |
 |---|---|
-| Demon Wall label | One character over the 85 of its line; stays `Lv1-9` |
-| Spartan, Oracles, Catalina, Mercidarian: turns on field | No room in their boxes |
-| Item types 53 to 57, 60, 61 (13 items) | Their code was read only as far as their conditions (`docs/FORMULAS.md` 15); nothing is shown that is not certain |
-| Cost of a joint skill (share of max TP, Pep needed and spent) | The Pep fields are now confirmed in code, but the sentences have no room: the screenshot of the joint skill menu still decides (2.7) |
-| Power of enemy attacks and of joint skills | Known (`docs/FORMULAS.md` 9.2, 15). 2,375 data lines with little room, seen only for summons: not worth the risk of a full regeneration without a look at the enemy info screen |
-| Chances of the random moves, class modifiers, rules of vague passives | The boxes of those skills are prose with no room for a table; the class screen is three full lines of prose (2.1) |
+| Dark Cloud (type 56 and petrifying 0.8) | Its second value is stored on another scale than the other items of its type (0.8 against 25 or 50): which reading is right is not known |
+| Power on 4 summon attacks | No room on their data line |
+| Power of the other enemy attacks and of joint skills | Left alone by decision of the user |
+| Cost of a joint skill | Left alone by decision of the user (2026-10-05) |
+| Chances of the random moves, class modifiers, rules of vague passives | Their boxes are prose with no room for a table |
 | Level of the buff a meal gives | Still not decoded |
 
-Still open from before, both need the user: a screenshot of the joint skill menu, and the play-through.
+Still open, needs the user: the play-through.
