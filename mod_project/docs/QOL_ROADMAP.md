@@ -239,21 +239,30 @@ Still open:
 
 * **Doll skills.** Their boxes keep the vague words of the game ("ATK UP") because the value of the doll effect could not be read as a figure. The Balance reading shows why: a doll performs a hidden action skill, and the real power, ailment chance, heal power and spell power are the figures of that skill (`tools/doll_data.py`, `docs/FORMULAS.md` 11.1). The boxes of Spartan, Oracles, Mercidarian, Catalina and Musiy can show them exactly. Not done: the variant is closed and accepted; it is a candidate for its next revision.
 
-## Found during Balance phase 0 (2026-10-05): pending, NOT applied to the QoL build
+## Found during Balance phase 0 (2026-10-05) and applied to the QoL build the same day
 
-The QoL variant was closed on 2026-10-04. Reading the program afterwards settled things it had left open. None of this is in the build yet.
+Reading the program settled things the QoL variant had left open. Applied through the rule sheets of `data_tables/qol_rules.xlsx`, built, verified and installed:
 
-| What | Now known | Source |
+| What | On screen now | Source |
 |---|---|---|
-| The 21 items with an undecoded effect | Types 27, 29, 32 and 90 perform a named skill (Fleet Foot, Accelerator, War Cry, Fireball); 53/54 damage by max HP capped at 100; 89 takes 5% of gold | `tools/item_effect_data.py`, `docs/FORMULAS.md` 15 |
-| Pep needed and spent by a joint skill | Confirmed in code: usable when every participant has the Pep needed; each loses the Pep spent | `docs/FORMULAS.md` 13 |
-| Power of a joint skill | Added to the modifiers of the magic formula | `docs/FORMULAS.md` 15 |
-| Power, accuracy and turns of an enemy attack | Three named fields | `docs/FORMULAS.md` 9.2 |
-| Doll skills | Exact figures come from the hidden action skill | `tools/doll_data.py` |
-| Unique skills | Exact chance per level; Arcane Shield is a fixed 15% | `docs/FORMULAS.md` 12.19 |
-| Random moves | Chance of every result, with and without Triple Joker | `tools/random_move_data.py` |
-| Passive skills whose text is vague | Rules read: Cover, Guts, Auto-Guard, Recycle, Support Shot, Dual Wield, masteries, Economy, Elusiveness and the rest | sheet `EffectRules` of `balance_criteria.xlsx` |
-| Class modifiers | Exact percent per class and weapon | `tools/class_modifier_data.py` |
+| Cover, Parry | `Cover ends per hit: 70% -> ... -> 40%`, `Parry ends per block: 80% -> ... -> 52%` (tables the game never explained) | `docs/FORMULAS.md` 12.12, sheet `EffectRules` |
+| Shadow Heart, Undaunted Spirit | `Activation rate` in place of `Lv1-9` | `docs/FORMULAS.md` 12.19 |
+| Positive Trance | `Pep over 100 per +1% damage: 10 -> ... -> 2` | `docs/FORMULAS.md` 2.4 |
+| Yearning | `Class modifiers (%): 2 -> ... -> 10` | `docs/FORMULAS.md` 10.4 |
+| Star Dust Arrow, Perdurabo, Musiy | `Turns on field` | effect 147 |
+| Items of types 29, 32, 89, 90 (8 items) | `40% Accelerator`, `20% War Cry`, `lose 5% of gold`, `Fireball Lv3` | `tools/item_effect_data.py`, `docs/FORMULAS.md` 15 |
+| Arcane Shield, `Activation rate: 15%` | Unchanged on screen; its source is now the program, not a guide | `docs/FORMULAS.md` 12.19 |
 
-Still open from before: a screenshot of the joint skill menu, and the user's play-through.
+Known and **not shown**, each with its reason:
 
+| What | Why not |
+|---|---|
+| Demon Wall label | One character over the 85 of its line; stays `Lv1-9` |
+| Spartan, Oracles, Catalina, Mercidarian: turns on field | No room in their boxes |
+| Item types 53 to 57, 60, 61 (13 items) | Their code was read only as far as their conditions (`docs/FORMULAS.md` 15); nothing is shown that is not certain |
+| Cost of a joint skill (share of max TP, Pep needed and spent) | The Pep fields are now confirmed in code, but the sentences have no room: the screenshot of the joint skill menu still decides (2.7) |
+| Power of enemy attacks and of joint skills | Known (`docs/FORMULAS.md` 9.2, 15). 2,375 data lines with little room, seen only for summons: not worth the risk of a full regeneration without a look at the enemy info screen |
+| Chances of the random moves, class modifiers, rules of vague passives | The boxes of those skills are prose with no room for a table; the class screen is three full lines of prose (2.1) |
+| Level of the buff a meal gives | Still not decoded |
+
+Still open from before, both need the user: a screenshot of the joint skill menu, and the play-through.
