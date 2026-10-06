@@ -103,7 +103,8 @@ def checkpoint_gear(data, setup, cid):
     """The gear level of a checkpoint: gear_level at its floor, and never below the one of an earlier checkpoint."""
     best = 0
     for cp in setup.checkpoints:
-        enemies = next(b for b in data.fixed if b['floor'] == cp['Floor'] and b['number'] == cp['Battle'])['enemies']
+        enemies = [e for number in battle_numbers(cp) for b in data.fixed
+                   if b['floor'] == cp['Floor'] and b['number'] == number for e in b['enemies']]
         level = max(data.enemies[e]['level'] for e, _ in enemies)
         best = max(best, gear_level(data, cp['Floor'], level, int(setup.settings['gear_min_formations']),
                                     int(setup.settings['gear_level_margin'])))
@@ -186,13 +187,19 @@ def fixed_battle(data, floor, number):
     return [build_enemy(data, enemy, front) for enemy, front in battle['enemies']]
 
 
+def battle_numbers(cp):
+    """The fixed battles of a checkpoint: one number, or several joined by + that are fought in a row."""
+    return [int(n) for n in str(cp['Battle (several joined by + are fought in a row)']).split('+')]
+
+
 def checkpoint_fight(data, setup, cid, level=None, crown=None):
+    """The party and the enemy groups of a checkpoint: [enemies of the first battle, of the next ...]."""
     cp = setup.checkpoint(cid)
-    enemies = fixed_battle(data, cp['Floor'], cp['Battle'])
-    level = level if level is not None else max(e.level for e in enemies)          # A15
+    groups = [fixed_battle(data, cp['Floor'], n) for n in battle_numbers(cp)]
+    level = level if level is not None else max(e.level for g in groups for e in g)          # A15
     party = reference_party(data, setup, cp['Chapter'], level, checkpoint_gear(data, setup, cid),
                             crown if crown is not None else int(cp['Crown bonus'] or 0))
-    return party, enemies
+    return party, groups
 
 
 def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle_setup=None):
@@ -205,7 +212,26 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
     results = []
     for k in range(runs):
         rng = random.Random(seed + k)
-        battle = Battle(data, party_factory(), enemy_factory(), rng, choose_member=policy, setup=options,
-                        max_time=float(setup.settings.get('max_time', 400)))
-        results.append(battle.run())
+        party, groups = party_factory(), enemy_factory()
+        if groups and not isinstance(groups[0], list):
+            groups = [groups]
+        result = None
+        for enemies in groups:
+            for unit in party:                       # a battle that follows another: HP and TP carry over
+                unit.statuses, unit.chant, unit.song, unit.dance = {}, None, [], []
+            party = [u for u in party if u.kind == 'member']
+            battle = Battle(data, party, enemies, rng, choose_member=policy, setup=options,
+                            max_time=float(setup.settings.get('max_time', 400)))
+            part = battle.run()
+            if result is None:
+                result = part
+                result['parts'] = [part]
+            else:
+                result['parts'].append(part)
+                result.update({'won': part['won'], 'lost': part['lost'], 'time': result['time'] + part['time'],
+                               'actions': result['actions'] + part['actions'], 'hp_left': part['hp_left'],
+                               'tp_left': part['tp_left'], 'alive': part['alive']})
+            if not part['won']:
+                break
+        results.append(result)
     return results

@@ -34,6 +34,7 @@ def handles(where, *ids, assumption=None):
 
 # --- what the effects are ---------------------------------------------------------------------------------
 PLAIN_HIT, MAGIC_POWER = 0, 1
+TRANQUIL_TURNS = 4                           # Tranquil Song asks for 4 turns (docs/FORMULAS.md 12.19)
 START_GAUGE, RANDOM_ORDER = 500, 20          # 0x44919a: push 0x1f4 (and /1000.0 at 0x6d96b0); 0x449322 - 0x449329
 WEAPON_ELEMENTS = {325: 4, 326: 5, 327: 8, 328: 6, 329: 7}            # fire, water, lightning, wind, earth
 AILMENTS = {113: 'poison', 114: 'freeze', 115: 'paralysis', 116: 'sleep', 117: 'silence', 118: 'stun',
@@ -63,7 +64,7 @@ CHANT_SPEED_BUFFS = (214, 265, 281)
 CRIT_TERMS = (31, 174, 211)
 handles('units.build_member (docs/FORMULAS.md 10.4, 12.17)', 243, 298, 256, 449)
 handles('Battle.physical_damage (2.2 - 2.4)', 26, 161, 195, 335, 219, 162, 187, 196, 205, 336, 28, 69, 73, 191, 190,
-        308, 440, 443, 87, 88, 47, 49, 50, 111, 286, 255, 325, 326, 327, 328, 329)
+        308, 440, 443, 87, 88, 47, 49, 50, 111, 286, 255, 325, 326, 327, 328, 329, 0)
 handles('Battle.physical_damage (2.4, "other" bonus; 0x44c60e - 0x44c6b6)', 71, 136)
 handles('Battle.hits (2.1, 3)', 29, 55, 72, *ACCURACY_BUFFS, *EVASION_BUFFS, 30, *MAGIC_ACCURACY_BUFFS,
         *MAGIC_EVASION_BUFFS, 220, 221)
@@ -77,14 +78,14 @@ handles('Battle.number_of_hits (12.2)', 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 
 handles('Battle.special_damage (12.3)', 8, 12, 138, 140, 141, 142, 434, 435)
 handles('Battle.apply_ailment (5b, 5c)', *AILMENTS)
 handles('Battle.after_hit (12.9)', 74, 75, 76, 2, 54, 60, 61, 84, 106, 235, 262, 304, 293, 320, 121, 139, 25, 170, 66,
-        80, 79, 168)
+        80, 79, 168, 249)
 handles('Battle.voided (12.12)', 171, 101, 102, 181, 182, 192, 285, 250, 303, 307, 180, 349, 346, 260)
 handles('Battle.heal (6b, 6d)', 103, 9, 245, 295, 317, 104, 105, 128, 129, 130, 131, 132, 426)
 handles('Battle.tick and end_of_turn (12.15)', 246, 247, 215, 216, 199, 339, 288, 289, 354, 311, 147, 297)
 handles('Battle.take_damage (12.7)', 257, 188, 254, 312, 447)
 handles('Battle.turn and lost_turn (12.4, 12.19)', 259, 283, 203, 345)
 handles('Battle.perform', 10, 425, 358, 152, 153, 154, 155, 315, 228, 229, 230, 231, 232, 233, 266, 279, 280, 287, 284,
-        313, 123, 300, 348, 146)
+        313, 123, 300, 348)
 handles('Battle.use_item (15)', 274, 275)
 handles('outside battle: acts on the map, in menus or after the battle (sim/expedition.py)', 17, 18, 20, 22, 107, 108,
         306, 272, 273, 269, 270, 271, 282, 428, 433, 218)
@@ -364,23 +365,63 @@ class Battle:
         if self.lost_turn(unit):
             self.record.add('turns_lost', unit)
         else:
-            action = self.next_action(unit)
+            self.before_action(unit)
+            action = self.next_action(unit) if unit.alive else None
             if action is not None:
                 acted = True
                 self.perform(action)
         self.end_of_turn(unit, acted)
+        self.undaunted()
+
+    def before_action(self, unit):
+        """States 3, 13, 14 and 15 (docs/FORMULAS.md 12.19): the unique skills that act before the action."""
+        if not unit.unique:
+            return
+        effect, value = unit.unique
+        if effect == 446 and unit.items and self.roll(value) and self.choose_member:
+            from sim.policy import act_item                              # Overstock Clearance: an item of her stock
+            hurt = any(m.hp_ratio < 0.6 for m in self.allies(unit) if m.kind == 'member')
+            item = act_item(None, self, unit, 'heal' if hurt else 'tp')
+            if item is not None:
+                self.use_item(item)
+        if effect == 357 and self.roll(value):                           # Tranquil Song: ATK and INT -0.1, 4 turns
+            for other in self.opponents(unit):
+                other.statuses[41] = Status(41, -0.1, TRANQUIL_TURNS, unit)
+                other.statuses[43] = Status(43, -0.1, TRANQUIL_TURNS, unit)
+        if effect == 350 and self.roll(value):                           # Usurper of Souls
+            for other in [u for u in self.units if u.side != unit.side and u.alive and u.kind in ('doll', 'summon')]:
+                self.remove_doll(other)
+        if effect == 448 and self.roll(value):                           # Shadow Heart
+            if not any(u.alive and getattr(u, 'shadow_of', None) is unit for u in self.units):
+                self.add_shadow(unit)
+
+    def add_shadow(self, owner):
+        """Shadow Heart: a unit of her own joins to attack. Built like a doll, a copy of its owner (A20: how long it
+        stays and what it does beyond a plain attack are not read)."""
+        unit = build_doll(owner, {'name': owner.name + "'s shadow", 'turns': [1], 'range': None, 'actions': []}, 1)
+        unit.shadow_of = owner
+        unit.position = len(self.units)
+        unit.next_time = self.time + self.wait(unit)
+        self.units.append(unit)
+
+    def undaunted(self):
+        """State 22: each fallen unit with Undaunted Spirit rolls and rises; the record of the revival carries 1."""
+        for u in self.units:
+            if not u.alive and u.kind == 'member' and u.unique and u.unique[0] == 355 and self.roll(u.unique[1]):
+                u.alive, u.hp = True, 1
+                u.next_time = self.time + self.wait(u)
 
     def lost_turn(self, unit):
-        """States 4 to 11: what keeps a unit from acting."""
+        """States 4 to 11 (0x436c40 - 0x436d4c): a petrified unit (slot 0xc8) and a sleeping one (slot 0xbc) lose the
+        turn; a paralysed one (slot 0xb8) loses it on a roll below 100 under 30. Freeze and Shadow Sew do not stop a
+        unit: they narrow what it may do (next_action)."""
         if not unit.alive:
             return True
-        if 120 in unit.statuses or 114 in unit.statuses:
+        if 120 in unit.statuses:
             return self.deny(unit)
         if 116 in unit.statuses:
             return self.deny(unit)
         if 115 in unit.statuses and self.rng.randrange(100) < 30:
-            return self.deny(unit)
-        if 123 in unit.statuses:                      # Shadow Sew
             return self.deny(unit)
         for other in self.opponents(unit):
             for effect in (259, 283):                 # Warning Shot, Mesmerized
@@ -457,6 +498,9 @@ class Battle:
         if getattr(unit, 'extra', 0) > 0:
             unit.extra -= 1
             unit.next_time = self.time
+            unit.extra_turn = True
+        elif getattr(unit, 'extra_turn', False):
+            unit.extra_turn = False                   # the extra actions do not roll again
         elif acted and unit.chant is None and not self.over():
             if unit.has(288) and self.roll(unit.value(288)):
                 unit.extra = 1
@@ -467,6 +511,7 @@ class Battle:
             if getattr(unit, 'extra', 0) > 0:
                 unit.extra -= 1
                 unit.next_time = self.time
+                unit.extra_turn = True
 
     def tick(self, unit):
         for effect in list(unit.statuses):
@@ -488,7 +533,15 @@ class Battle:
             elif effect == 113:
                 self.lose_hp(unit, int(unit.max_hp * 0.05), None)
             elif effect in (199, 339):
-                self.lose_hp(unit, int(unit.max_hp * s.value), s.source)
+                amount = int(unit.max_hp * s.value)
+                if s.data is not None:          # the Damage cap (296) of the action that put it
+                    amount = min(amount, int(s.data))
+                self.lose_hp(unit, amount, s.source)
+            elif effect == 200:                 # Subtle Dance: int(max HP * value) taken from TP, capped the same way
+                amount = int(unit.max_hp * s.value)
+                if s.data is not None:
+                    amount = min(amount, int(s.data))
+                unit.tp = max(0, unit.tp - amount)
             if effect in AILMENTS and effect in unit.statuses and effect not in (119, 123):
                 # 0x48d211 - 0x48d228: a number below 100 under the recovery chance ends the ailment; otherwise the
                 # chance rises by 10. It starts at the turns figure of the action that caused it (0x47bc03: the third
@@ -528,6 +581,8 @@ class Battle:
         if not action.chanting and action.kind == 'skill' and action.chant_speed is None:
             self.pay(action)
         key = getattr(action.source, 'name', 'Attack')
+        if self.log is not None:
+            self.log.append(f'{self.time:7.3f} {unit.name} ({unit.hp}/{unit.max_hp} HP, {unit.tp} TP): {key}')
         self.record.add('skill_uses', (unit, key))
         unit.last_skill = action.source
         unit.uses[key] = unit.uses.get(key, 0) + 1
@@ -1032,6 +1087,9 @@ class Battle:
         if amount >= target.hp and target.has(254) and self.roll(target.value(254)):
             amount = target.hp - 1
         before = target.hp
+        if self.log is not None:
+            self.log.append(f'          -> {target.name} takes {amount}{" (critical)" if critical else ""}, '
+                            f'{max(0, target.hp - amount)}/{target.max_hp} left')
         self.lose_hp(target, amount, unit)
         if unit is not None and unit.side != target.side:
             self.record.add('damage', unit, min(before, amount))
@@ -1173,7 +1231,8 @@ class Battle:
                     self.perform_song(unit, action, target, effect, value, dance)
                 else:
                     target.statuses[effect] = Status(effect, value, action.turns, unit,
-                                                     getattr(action.source, 'name', None), kind)
+                                                     getattr(action.source, 'name', None), kind,
+                                                     data=action.value(296) if effect in (199, 200, 339) else None)
         if hostile and dealt:
             if target.has(262) and action.physical and action.reach == SHORT and not unit.has(304):
                 points = int(target.value(262))
@@ -1335,6 +1394,8 @@ class Battle:
 
     def doll_action(self, doll):
         actions = doll.doll['actions']
+        if not actions:
+            return Action(doll, 'attack')
         chosen = self.rng.choice(actions)
         skill = self.data.skills.get(('Magic' if doll.doll['skill'] == 100 else 'Technique', chosen['skill']))
         if skill is None:
