@@ -59,6 +59,7 @@ BUILD_DIR = os.path.join(BASE_DIR, 'build')
 PARAM_SUBDIR = os.path.join('Data', 'ENG', 'Parameter')
 
 MAX_LINE = 85
+SKILL_LINE = rules.setting('skill_wide_line')     # a skill box line with widened separators
 BATTLE_LINE = rules.setting('battle_line_width')   # the battle bar: line 1 of techniques, spells, joint skills
 MAX_BOX_LINES = 3
 
@@ -557,7 +558,7 @@ def verify_skills(out_dir, table, variant, problems):
                     problems.append(f"{label}: {len(lines)} lines")
                 added = lines[len(row['vanilla_desc'].split('\n')):] if category == 'Unique' else lvup.split('\n')
                 for line in added:
-                    if len(line) > MAX_LINE:
+                    if len(line) > SKILL_LINE:
                         problems.append(f"{label}: line of {len(line)} chars")
                 if '~' in desc + lvup:
                     problems.append(f"{label}: contains tilde")

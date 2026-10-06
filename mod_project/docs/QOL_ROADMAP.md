@@ -264,6 +264,11 @@ Second pass the same day, on the user's review:
 
 The player has 35 summons in 105 forms (`tools/summon_data.py`); together they use 413 enemy attacks, 154 with a power. Only those show it.
 
+Third pass, on a screenshot of the Heal box sent by the user ("HP recovery?", "no air"):
+
+* **Heals show the multiple of RES**: `Heals RES: 4x (+1x/Lv) -> 13x`. The stored figure (8 to 26) is the coefficient of `RES * about 0.5 * figure` (`docs/FORMULAS.md` 6b); half of it is what multiplies RES. Heal, Circle Heal, Primevil. Label and style in the sheet `SkillEffectLabels`.
+* **Air between the items of a line**: three spaces on each side of the bar (`Turns: 3 -> 7   |   TP Cost: 1 -> 5`) whenever the widened line stays within 92 characters (settings `skill_separator_pad`, `skill_wide_line`). What a line holds is still chosen for 85. 92 is read off the screenshot (73 characters end at three quarters of the box), not measured with a full line: **to be looked at on screen**.
+
 Known and **not shown**, each with its reason:
 
 | What | Why not |

@@ -59,8 +59,9 @@ def skill_tables(category, b):
 
 
 def displays(values):
-    """Ways a stored table can legitimately be printed: as is, as a percentage, or as 100% + value."""
-    return [list(values), [100 * v for v in values], [100 * (1 + v) for v in values]]
+    """Ways a stored table can legitimately be printed: as is, as a percentage, as 100% + value, or halved
+    (the power of a heal as the multiple of RES it restores: docs/FORMULAS.md 6b)."""
+    return [list(values), [100 * v for v in values], [100 * (1 + v) for v in values], [0.5 * v for v in values]]
 
 
 def close(a, b):

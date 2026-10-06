@@ -43,6 +43,14 @@ MAX_LINE = 85        # measured on screen
 BATTLE_LINE = rules.setting('battle_line_width')    # the battle bar draws line 1 of techniques and spells
 MAX_BOX_LINES = 3    # description + level-up lines
 SEP = ' | '
+WIDE_LINE = rules.setting('skill_wide_line')              # a line may reach this once its separators are widened
+WIDE_SEP = ' ' * rules.setting('skill_separator_pad') + '|' + ' ' * rules.setting('skill_separator_pad')
+
+
+def airy(line):
+    """The same line with wider separators, when it still fits: the box has room and a full line is hard to read."""
+    wide = line.replace(SEP, WIDE_SEP)
+    return wide if len(wide) <= WIDE_LINE else line
 HEADERS = ['Category', 'Filename', 'Skill_Name', 'Levels', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp',
            'Edited', 'Coverage', 'Phrases_Kept_As_Vanilla', 'Tables_Not_Shown', 'Not_Level_By_Level', 'Left_Out',
            'Previous_Mod_Desc', 'Previous_Mod_LvUp', 'Line1_Notes']
@@ -65,7 +73,7 @@ AILMENT_IDS = collections.OrderedDict([
 _LABELS = collections.defaultdict(list)
 for _row in rules.rows('SkillEffectLabels'):
     _LABELS[_row['Table']].append(_row)
-EFFECT_STEMS = {r['Vanilla_Phrase']: (int(r['Effect_ID']), r['Label']) for r in _LABELS['stem']}
+EFFECT_STEMS = {r['Vanilla_Phrase']: (int(r['Effect_ID']), r['Label'], r['Style']) for r in _LABELS['stem']}
 ALT_STEMS = {r['Vanilla_Phrase']: (int(r['Effect_ID']), r['Label'], r['Style']) for r in _LABELS['alt']}
 MULTI_STEMS = collections.OrderedDict()
 for _row in _LABELS['multi']:
@@ -176,6 +184,8 @@ STYLES = {   # style -> (transform, unit, show the sign)
     'abs_num_pct': (lambda v: abs(v), '%', False),
     'neg_num_pct': (lambda v: -v, '%', False),
     'mult': (lambda v: v, 'x', False),
+    # A heal restores RES * about 0.5 * the stored figure (docs/FORMULAS.md 6b): shown as the multiple of RES.
+    'half_mult': (lambda v: 0.5 * v, 'x', False),
 }
 
 
@@ -394,10 +404,10 @@ def build_segments(skill):
                     resolved[idx] = [Segment('Accuracy', sl['values'], 'signed_pct')]
                     used.add(sl['key'])
         elif stem in EFFECT_STEMS:
-            eff_id, label = EFFECT_STEMS[stem]
+            eff_id, label, fixed_style = EFFECT_STEMS[stem]
             sl = slot_by_id(eff_id)
             if sl and varies(sl['values']):
-                resolved[idx] = [Segment(label, sl['values'], generic_style(stem, sl['values'], direction))]
+                resolved[idx] = [Segment(label, sl['values'], fixed_style or generic_style(stem, sl['values'], direction))]
                 used.add(sl['key'])
             elif stem in ALT_STEMS:
                 eff_id, label, style = ALT_STEMS[stem]
@@ -596,7 +606,7 @@ def generate_skill(skill):
     if lines is None:
         row['coverage'] = 'ERROR: does not fit'
         return row
-    row['lvup'], row['shortened'], row['left_out'] = '\n'.join(lines), shortened, left_out
+    row['lvup'], row['shortened'], row['left_out'] = '\n'.join(airy(line) for line in lines), shortened, left_out
     row['effects'] = [(s.label, s.shown(), STYLES[s.style][1]) for s in segments if s.is_data() and s.kind() == 'effect']
     row['coverage'] = 'Partial' if unresolved else 'Full'
     return row
@@ -646,7 +656,7 @@ def generate_unique(unique):
     crown = Segment('Crown EX', values[9:], style)
     line = levels.render('const' if levels.is_constant() else 'list') + SEP + crown.render('const')
     note = UNIQUE_NOTES.get(unique['name'])     # a figure only a guide gives; the line says so
-    return unique['desc'] + '\n' + line + ('\n' + note if note else '')
+    return unique['desc'] + '\n' + airy(line) + ('\n' + note if note else '')
 
 
 # ---------------------------------------------------------------------------
@@ -658,7 +668,7 @@ def check_box(name, vanilla_desc, desc, lvup, problems):
         problems.append(f"{name}: {len(lines)} lines")
     added = lines[len(vanilla_desc.split('\n')):] if desc.startswith(vanilla_desc) else lines
     for line in added:
-        if len(line) > MAX_LINE:
+        if len(line) > WIDE_LINE:
             problems.append(f"{name}: line of {len(line)} chars: '{line}'")
     if '~' in desc + lvup:
         problems.append(f"{name}: contains tilde")

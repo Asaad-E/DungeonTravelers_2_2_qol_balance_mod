@@ -34,7 +34,8 @@ class TextTable(unittest.TestCase):
                                  (info['desc'], info['lvup']))
 
     def test_boxes_fit_the_screen(self):
-        """3 lines and 85 characters, measured on screen; no tilde (missing glyph)."""
+        """3 lines; a line is chosen for 85 characters, measured on screen, and may reach the wide limit once its
+        separators are widened; with narrow separators it is back within 85. No tilde (missing glyph)."""
         for key, row in self.table.items():
             if (row['desc'], row['lvup']) == (row['vanilla_desc'], row['vanilla_lvup']):
                 continue
@@ -42,7 +43,8 @@ class TextTable(unittest.TestCase):
             added = lines[len(row['vanilla_desc'].split('\n')):] if row['desc'].startswith(row['vanilla_desc']) else lines
             with self.subTest(skill=key[1]):
                 self.assertLessEqual(len(lines), bv.MAX_BOX_LINES)
-                self.assertTrue(all(len(l) <= bv.MAX_LINE for l in added), added)
+                self.assertTrue(all(len(l) <= bv.SKILL_LINE for l in added), added)
+                self.assertTrue(all(len(' | '.join(part.strip() for part in l.split('|'))) <= bv.MAX_LINE for l in added), added)
                 self.assertNotIn('~', row['desc'] + row['lvup'])
                 (row['desc'] + row['lvup']).encode('latin-1')
 
