@@ -762,3 +762,67 @@ An item has up to four (type, value) pairs. The program turns each into an objec
 
 A **joint skill** is computed by the magic formula: when the action is a joint skill, its Power field
 (`JoinSkillData 0x40`) is added to the modifiers of attack B (`0x44df1f`), beside effects 195 and 335.
+
+## 16. Read on 2026-10-06 (phase 0 reopened for four pieces, and the assumptions of the simulator)
+
+### 16.1 Sealbooks (`SealScrollData`; map `0x738a14`)
+
+    0x00 id: the id of the enemy it seals      0x18 kind: 0 a sealbook, 1 a grand sealbook
+    0x1C number of enchantments                0x20 up to four enchantment ids          0x34 level
+
+* A sealbook carried by a character adds its enchantments to the same list as her pieces of equipment
+  (`0x4f7b5d - 0x4f7bdd`), so they count in every formula that counts pieces. Soul Seal (effect 314) gives a doll a
+  share of the stats of the enemy of its owner's sealbook (`GetSealScrollID`, `0x4f4fc0`; `0x4fdfe2 - 0x4fe0fa`).
+* A grand sealbook has one enchantment (Scanner: 298, chants +0.25 on the gauge value; the roll before it is "a
+  number below 10 under 10", so it always applies, `0x44a359 - 0x44a394`). From the GameFAQs guide (Grand Sealbooks):
+  one is carried at a time, its enchantment acts for the whole party and its summon stands in the party.
+* The piece counter (`0x4f5470`) stops at one for an enchantment whose record has a flag; which field holds the flag
+  is not identified (bit 0 of file offset 0x20 is not it: Speed UP has it and stacks in the player test of 5).
+
+### 16.2 Zones that forbid magic
+
+A zone slot of value 2 on the cell forbids the actions whose skill carries the magic flag (`0x41a48b`, `0x41c191`,
+`0x41e04f`, the test `0x4e4560`); a battle that starts on it plays the voice `Fleed_Zone_00010` (`0x44906c`). Dolls are
+techniques and fight there. Which fixed battles stand on such cells is not read (the `.map` files and the event
+positions).
+
+### 16.3 Rank of a unique skill (`0x4f615e - 0x4f61e3`)
+
+Rank = level / 10 (no unique skill below level 10); rank 10, the EX value, once the bonus of the resets reaches 50.
+
+### 16.4 Poison (`0x482186 - 0x4821ff`)
+
+`int(max HP * 0.05)`, at most 250; a figure of 0, or one that would take the last HP, leaves 1 HP: poison never kills.
+A sleeping unit takes none.
+
+### 16.5 The rest read for the simulator (`data_tables/sim_setup.xlsx`, sheet Assumptions)
+
+* Start of a battle (`0x449130`): a member or an enemy starts at a gauge of (a number below 500, plus 1) / 1000, a guest
+  ally or a summon at the value of a plain action; one battle in five every gauge is (a number below 93) / 100.
+* Who can be picked (`0x43e6d0`): units numbered below 2000. Dolls (2000 + n, `0x43a205`), guest allies and summons
+  (3000, `0x4497ce`) are never picked: they cannot be hurt by the other side.
+* Piercing (`0x43fa64`; lists built at `0x43def0`): the target and the units its list names; for the party, the overlap
+  of the front and back rows centred on each other.
+* Hit (`0x44aef3 - 0x44afbb`, `0x44da4a - 0x44daac`): Fixed accuracy and a direct accuracy value set the chance to
+  value * 100; a sleeping target (slot `0xbc`) is hit for certain. Slots `0xb0 - 0xc4` test poison, freeze, paralysis,
+  sleep and silence.
+* A turn (`0x436c40 - 0x436d4c`): petrified (slot `0xc8`) and asleep lose it, paralysed on 30 in 100; freeze and Shadow
+  Sew do not stop a unit.
+* Stun (`0x4fa185 - 0x4fa2f2`): ends the chant, song, dance and doll of the target, sets its gauge to 0 and is removed
+  at once. No turn is skipped.
+* Double and Triple Attack (`0x418045 - 0x4180e3`): Triple rolls and adds 3 hits, Double rolls on its own and adds 2;
+  with neither the attack hits once.
+* Recovery of an ailment (`0x47bc03`, `0x48d211`): the chance starts at the turns figure of the action that caused it
+  (0 for every skill of the player) and rises by 10 after each failed check.
+* Enemy chants (`0x449b0d - 0x449b38`): bit 11 of the word at file 0x28 of the attack, INT; bit 12, RES.
+* Magic attack (`0x44dcc0 - 0x44e6c6`): attack B = (INT * (2 + swing) + power * (1 + Magic Mastery) * (1 + 195 + 335 +
+  joint power)) * (1 + enchantments * 0.01); attack C = attack B * (1 + Spiritual Fantasia) * (1 + element boost), the
+  element boost being 0.2 for the matching element status 325 - 329 and 0.2 per piece of its "magic buff" enchantment
+  (78 - 82). A spell of a doll adds 500 * (Doll Mastery + min(0.05, 0.02 * pieces of 304 + 0.01 * pieces of 305)) to its
+  power. Magic hit terms of the user: 167, 309, 197, 222, 278, 353; of the target: 165, 198. Magic defence modifiers:
+  163, 196, 205, 336, 213, 220, 223.
+* Effects 71 and 136 (`0x44c60e - 0x44c6b6`): 71 adds its value to the "other" bonus once for every buff or debuff of
+  the target; 136 adds value * the number of the hit record.
+* Dolls (`0x4f3290` from `0x4fd867`): a copy of the owner's character (class, level, bonuses, equipment), HP 9,999.
+* Revive item (`0x5101a4 - 0x5101ca`): int(max HP * the value of the item / 100), at least 1.
+* Per-turn damage of effects 199 and 339 is capped by the Damage cap (296) of the action that put it.

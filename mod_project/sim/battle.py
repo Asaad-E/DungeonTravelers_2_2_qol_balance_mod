@@ -34,7 +34,8 @@ def handles(where, *ids, assumption=None):
 
 # --- what the effects are ---------------------------------------------------------------------------------
 PLAIN_HIT, MAGIC_POWER = 0, 1
-TRANQUIL_TURNS = 4                           # Tranquil Song asks for 4 turns (docs/FORMULAS.md 12.19)
+POISON_SHARE, POISON_CAP = 0.05, 250        # 0x482197 (float at 0x6d92ec), 0x4821ed
+TRANQUIL_TURNS = 4                          # Tranquil Song asks for 4 turns (docs/FORMULAS.md 12.19)
 START_GAUGE, RANDOM_ORDER = 500, 20          # 0x44919a: push 0x1f4 (and /1000.0 at 0x6d96b0); 0x449322 - 0x449329
 WEAPON_ELEMENTS = {325: 4, 326: 5, 327: 8, 328: 6, 329: 7}            # fire, water, lightning, wind, earth
 AILMENTS = {113: 'poison', 114: 'freeze', 115: 'paralysis', 116: 'sleep', 117: 'silence', 118: 'stun',
@@ -530,8 +531,13 @@ class Battle:
                 bonus = s.data or 0.0
                 ally = self.rng.choice(self.allies(unit))
                 ally.tp = min(ally.max_tp, ally.tp + int(s.value + 100 * bonus))
-            elif effect == 113:
-                self.lose_hp(unit, int(unit.max_hp * 0.05), None)
+            elif effect == 113 and 116 not in unit.statuses:
+                # 0x482186 - 0x4821ff: int(max HP * 0.05), at most 250; a figure of 0 or one that would take the last
+                # HP leaves 1 HP (poison never kills); a sleeping unit takes none
+                amount = min(POISON_CAP, int(unit.max_hp * POISON_SHARE))
+                if amount <= 0 or amount >= unit.hp:
+                    amount = unit.hp - 1
+                self.lose_hp(unit, amount, None)
             elif effect in (199, 339):
                 amount = int(unit.max_hp * s.value)
                 if s.data is not None:          # the Damage cap (296) of the action that put it

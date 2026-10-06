@@ -161,8 +161,15 @@ def class_modifier_entries(data, class_id, previous):
     return chosen[0]['entries'] if chosen else []
 
 
+def unique_rank(level, crown_bonus):
+    """Which of the ten values of a unique skill a character has (0x4f615e - 0x4f61e3): level / 10, none below level 10;
+    the tenth (EX) once the bonus of the resets reaches 50."""
+    return 10 if crown_bonus >= 50 else level // 10
+
+
 def build_member(data, character, class_id, level, previous=None, equipment=(), skills=None, passives=None,
-                 crown_bonus=0, unique_level=1, name=None, front=True, items=None):
+                 crown_bonus=0, unique_level=None, name=None, front=True, items=None, sealbook=None,
+                 party_enchants=()):
     """A party member. equipment: [(slot, equipment id, upgrade level)], slot 0 main hand, 1 off hand, 2-4 the rest.
     skills: {skill id: level}; passive skills among them are turned into passive effects."""
     import class_data
@@ -178,10 +185,11 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
             for effect, _, values in skill.effects:
                 passive_values[effect] = max(passive_values.get(effect, 0.0), values[min(lv, len(values)) - 1])
     unique = None
-    if character is not None and character.get('unique_skill') is not None:
+    rank = unique_rank(level, crown_bonus) if unique_level is None else unique_level
+    if character is not None and character.get('unique_skill') is not None and rank > 0:
         u = data.unique.get(character['unique_skill'])
         if u:
-            unique = (u['effect'], u['values'][max(1, min(10, unique_level)) - 1])
+            unique = (u['effect'], u['values'][min(10, rank) - 1])
             passive_values[u['effect']] = unique[1]
     mastery = passive_values.get(MASTERY, 0.0) + passive_values.get(MASTERY_ALL, 0.0)
     totals = dict(character_stats)
@@ -218,7 +226,18 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
     unit = Unit(name or (character['name'] if character else f'class {class_id}'), PARTY, level, hp, tp, totals,
                 weight=rank_delay, swing=weapon['swing'] if weapon else 0.0, kind='member')
     unit.passives = passive_values
+    # The sealbook of the character adds its enchantments to the same list as the pieces (0x4f7b5d - 0x4f7bdd); the
+    # grand sealbook the party carries adds its one enchantment to every member (party_enchants)
+    if sealbook is not None and sealbook in data.sealbooks:
+        for e in data.sealbooks[sealbook]['enchants']:
+            enchants[e] = enchants.get(e, 0) + 1
+    for e in party_enchants:
+        enchants[e] = enchants.get(e, 0) + 1
+    # The piece counter (0x4f5470) stops at one for an enchantment whose record (map 0x7389d0) has a flag set; which
+    # field that is was not identified (bit 0 of file 0x20 is not it: Speed UP has it, and stacks in the test of
+    # atwiki page 105), so every enchantment is counted by pieces here
     unit.enchants = enchants
+    unit.sealbook = sealbook
     unit.weapon = weapon
     unit.attack_range = weapon['range'] if weapon else SHORT
     unit.attack_attr = weapon['attr'] if weapon else 3                      # bare hands bash

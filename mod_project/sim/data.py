@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.join(PROJECT_DIR, 'tools')
 WORKBOOK = os.path.join(PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx')
 CRITERIA = os.path.join(PROJECT_DIR, 'data_tables', 'balance_criteria.xlsx')
 CACHE = os.path.join(SIM_DIR, '__pycache__', 'game_data.pkl')
-CACHE_VERSION = 3
+CACHE_VERSION = 4
 LEVELS = [f'Lv{k}' for k in range(1, 11)]
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)
@@ -125,6 +125,7 @@ class GameData:
         self.characters = []
         self.equipment = {}         # equipment id -> dict
         self.enchants = {}
+        self.sealbooks = {}            # sealbook id -> {'name', 'grand', 'level', 'enchants'}
         self.weapon_ranks = {}      # rank index -> delay
         self.items = {}
         self.item_skills = {}       # item effect type -> skill id it performs
@@ -238,6 +239,13 @@ def _load_equipment(wb, data):
         data.equipment[r['Equip_ID']] = piece
     for r in _rows(wb, 'Enchants'):
         data.enchants[r['Enchant_ID']] = r['Name']
+    # SealScrollData: 0x00 id (the id of the enemy it seals), 0x18 kind (0 a sealbook, 1 a grand sealbook),
+    # 0x1C number of enchantments and 0x20 their ids (read into the enchantment list at 0x4f7b5d), 0x34 level
+    for r in _rows(wb, 'Raw_SealScroll'):
+        count = max(0, min(4, r['w_0x1c'] or 0))
+        ids = [r[f'w_0x{0x20 + 4 * k:02x}'] for k in range(count)]
+        data.sealbooks[r['w_0x00']] = {'name': r['Name'], 'grand': r['w_0x18'] == 1, 'level': r['w_0x34'],
+                                       'enchants': [e for e in ids if e is not None and e >= 0]}
     for r in _rows(wb, 'WeaponRanks'):
         data.weapon_ranks[r['Rank_Idx']] = r['Delay_Mult']
 
