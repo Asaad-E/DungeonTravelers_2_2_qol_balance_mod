@@ -19,6 +19,12 @@ Parameter file of a floor (little endian), as far as it is read:
               (a lone enemy always has 1; the party's side sets the same flag at 0x43db3c)
         0x40  chance of the formation in percent (they add up to 100 in every zone)
         0x44  five more ints, not decoded (-1, an offset, 0, 1, -1 on every formation)
+    zone+0x68   number of pieces of equipment the zone can give, and zone+0x70 a pointer (8 bytes) to them,
+                36 bytes each: the equipment id, then four (lowest, highest) upgrade levels, one per kind of
+                drop; -1 where the piece is not given for that kind. An enemy that drops a piece draws it with
+                the number in its record (EnemyStatusData 0x80, 1 to 3): the code keeps the pieces whose lowest
+                level for that kind is above 0, picks one with equal chances and gives it a level picked evenly
+                between the two figures (0x555c70, called at 0x55862f with the zone of the cell)
     zone+0x1C   chance in percent of a random battle on each step taken in the zone (Dungeon::CDungeonBase::
                 _CheckEncount, 0x4bc773; docs/FORMULAS.md 14)
     zone+0x20   five more chances in percent, of the special battles of the zone (0x4bc8a1 - 0x4bca73)
@@ -46,6 +52,20 @@ FIXED_COUNT, FIXED_POINTER = 0x28, 0x30
 ENEMY_SLOTS = 12
 ZONE_FACTORS, FACTOR_NAMES = 0xB8, ('up_a', 'up_b', 'down_a', 'down_b', 'element')
 ENCOUNTER = 0x1C               # the chance of a random battle per step, then the five special chances
+EQUIPMENT_COUNT, EQUIPMENT_POINTER, EQUIPMENT_RECORD, DROP_KINDS = 0x68, 0x70, 0x24, 4
+
+
+def read_equipment(blob, block):
+    """Pieces a zone can give: [{'equipment': id, 'levels': {kind: (lowest, highest)}}], kinds without the piece left out."""
+    count = struct.unpack_from('<i', blob, block + EQUIPMENT_COUNT)[0]
+    start = struct.unpack_from('<Q', blob, block + EQUIPMENT_POINTER)[0]
+    found = []
+    for k in range(count):
+        values = struct.unpack_from(f'<{1 + 2 * DROP_KINDS}i', blob, start + EQUIPMENT_RECORD * k)
+        levels = {kind: (values[1 + 2 * kind], values[2 + 2 * kind]) for kind in range(DROP_KINDS)
+                  if values[1 + 2 * kind] > 0}
+        found.append({'equipment': values[0], 'levels': levels})
+    return found
 
 
 def read_formation(blob, base):
@@ -80,7 +100,8 @@ def read_zones(blob):
         found = [read_formation(blob, start + RECORD * k) for k in range(count)]
         factors = dict(zip(FACTOR_NAMES, struct.unpack_from('<5f', blob, block + ZONE_FACTORS)))
         chances = struct.unpack_from('<6i', blob, block + ENCOUNTER)
-        zones.append((found, factors, {'encounter': chances[0], 'special': list(chances[1:])}))
+        zones.append((found, factors, {'encounter': chances[0], 'special': list(chances[1:]),
+                                       'equipment': read_equipment(blob, block)}))
     return zones
 
 
@@ -113,7 +134,8 @@ def floors(path=FLOOR_ZIP):
                     label = name[:-4] if len(zones) == 1 else f'{name[:-4]} zone {zone + 1}'
                     found.append({'dungeon': dungeon, 'floor': name[:-4], 'zone': zone, 'name': label,
                                   'formations': formations, 'zone_factors': factors,
-                                  'encounter': chances['encounter'], 'special_encounters': chances['special']})
+                                  'encounter': chances['encounter'], 'special_encounters': chances['special'],
+                                  'equipment': chances['equipment']})
     return found
 
 
