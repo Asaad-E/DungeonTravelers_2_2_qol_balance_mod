@@ -38,6 +38,7 @@ PLAIN_HIT, MAGIC_POWER = 0, 1
 POISON_SHARE, POISON_CAP = 0.05, 250        # 0x482197 (float at 0x6d92ec), 0x4821ed
 TRANQUIL_TURNS = 4                          # Tranquil Song asks for 4 turns (docs/FORMULAS.md 12.19)
 START_GAUGE, RANDOM_ORDER = 500, 20          # 0x44919a: push 0x1f4 (and /1000.0 at 0x6d96b0); 0x449322 - 0x449329
+AMBUSH_CHANCE = {0: 6, 1: 4}                 # 0x4491d1 (the party strikes first), 0x4491e4 (the enemies)
 WEAPON_ELEMENTS = {325: 4, 326: 5, 327: 8, 328: 6, 329: 7}            # fire, water, lightning, wind, earth
 AILMENTS = {113: 'poison', 114: 'freeze', 115: 'paralysis', 116: 'sleep', 117: 'silence', 118: 'stun',
             119: 'instant death', 120: 'petrification', 122: 'slow', 123: 'shadow sew'}
@@ -81,6 +82,10 @@ AILMENT_ENDS = {114: ('dance', 'doll'), 116: ('chant', 'song', 'dance', 'doll'),
                 118: ('chant', 'song', 'dance', 'doll'), 121: ('chant', 'song', 'dance', 'doll'),
                 123: ('chant', 'song', 'dance', 'doll')}
 MATERIAL_GUARD = 179
+# the third argument of CreateCommand (0x47b2ea: the turns of a status, the starting recovery chance of an ailment)
+# as the passives pass it: Dark Aura 0x423e30, Ecstasy 0x47f5fc, Slow Target 0x4244c7 / 0x424559, Sugar Coma 0x42291d
+DARK_AURA_TURNS, ECSTASY_TURNS = 4, 3
+SLOW_TARGET, SUGAR_COMA = (5, 5), (5, 3)          # (recovery start of Slow, turns of the speed modifier)
 handles('units.build_member (docs/FORMULAS.md 10.4, 12.17)', 243, 298, 256, 449)
 handles('Battle.physical_damage (2.2 - 2.4)', 26, 161, 195, 335, 219, 162, 187, 196, 205, 336, 28, 69, 73, 191, 190,
         308, 440, 443, 87, 88, 47, 49, 50, 111, 286, 255, 325, 326, 327, 328, 329, 0)
@@ -107,6 +112,7 @@ handles('Battle.turn and lost_turn (12.4, 12.19)', 259, 283, 203, 345)
 handles('Battle.perform', 10, 425, 358, 152, 153, 154, 155, 315, 228, 229, 230, 231, 232, 233, 266, 279, 280, 287, 284,
         313, 123, 300, 348)
 handles('Battle.use_item (15)', 274, 275)
+handles('Battle.ambush (0x44a3d0)', 267, 268, 321)
 # zone value 2 (docs/FORMULAS.md 16.2) is applied in Battle.perform
 handles('outside battle: acts on the map, in menus or after the battle (sim/expedition.py)', 17, 18, 20, 22, 107, 108,
         306, 272, 273, 269, 270, 271, 282, 428, 433, 218)
@@ -197,7 +203,8 @@ class Action:
         0x41a483; +0x50 bit 5 of another table, 0x41c184) that the extracted files do not map yet (assumption A21):
         a skill of the magic file, a chanted enemy attack or an action with a magic power."""
         s = self.source
-        return self.has(MAGIC_POWER) or (isinstance(s, Skill) and s.category == 'Magic') or             (isinstance(s, EnemyAttack) and s.chanted)
+        return self.has(MAGIC_POWER) or (isinstance(s, Skill) and s.category == 'Magic') or \
+            (isinstance(s, EnemyAttack) and s.chanted)
 
     @property
     def reach(self):
@@ -350,22 +357,44 @@ class Battle:
     def start(self):
         """The gauges at the start of a battle (0x449130). A unit acts when its gauge reaches 1, so it first waits
         1 - gauge. A party member or an enemy starts at (a number below 500, plus 1) / 1000; a guest ally or a summon
-        (unit number 3000, set at 0x4497ce) at the value of a plain action (slot 0x20 of the battle). Then, unless the
-        battle opens with an ambush either way (0x44a3d0, not modelled: a fight of the simulator starts even), a roll
-        below 100 under 20 gives every unit a gauge of (a number below 93) / 100 (0x44931c - 0x449373). First Grid
-        then rolls for its bearer (0x4493d6)."""
+        (unit number 3000, set at 0x4497ce) at the value of a plain action (slot 0x20 of the battle). Then the party
+        may strike first and, failing that, the enemies (ambush); with neither, a roll below 100 under 20 gives every
+        unit a gauge of (a number below 93) / 100 (0x44931c - 0x449373). First Grid then rolls for its bearer
+        (0x4493d6)."""
         for u in self.units:
             if u.kind in ('summon', 'npc'):
                 gauge = 1.0 - self.wait(u)
             else:
                 gauge = (self.rng.randrange(START_GAUGE) + 1) / 1000.0
             u.next_time = 1.0 - gauge
-        if self.rng.randrange(100) < RANDOM_ORDER:
+        ambush = self.ambush(PARTY) or self.ambush(ENEMIES)
+        if not ambush and self.rng.randrange(100) < RANDOM_ORDER:
             for u in self.units:
                 u.next_time = 1.0 - self.rng.randrange(93) / 100.0
         for u in self.units:
             if u.has(300) and self.roll(u.value(300)):                  # First Grid
                 u.next_time = 0.0
+
+    def ambush(self, side):
+        """0x44a3d0, called for the party (6 in 100) then for the enemies (4 in 100) at 0x4491cf - 0x4491e8. Only a
+        battle flagged as random (+0x32 of the battle) rolls, unless a unit of the side has Absolute Preemptive
+        Attack (321), which makes it certain; Preemptive Attack Chance (268) of the side adds value * 100; Preemptive
+        Attack Evasion (267) of the other side then rolls to stop it. On success every unit of the side starts with
+        a full gauge."""
+        mine = [u for u in self.units if u.side == side and u.alive]
+        others = [u for u in self.units if u.side != side and u.alive]
+        certain = any(u.has(321) for u in mine)
+        if not certain and not self.setup.get('random_battle'):
+            return False
+        chance = AMBUSH_CHANCE[side] + int(max((u.value(268) for u in mine), default=0.0) * 100)
+        if not certain:
+            if self.rng.randrange(100) >= chance:
+                return False
+            if self.rng.randrange(100) < int(max((u.value(267) for u in others), default=0.0) * 100):
+                return False
+        for u in mine:
+            u.next_time = 0.0
+        return True
 
     # --- the battle -----------------------------------------------------------------------------------------
     def run(self):
@@ -879,8 +908,9 @@ class Battle:
                 self.counter(target, unit)
                 return True
         if target.unique and target.unique[0] == 346 and action.reach == SHORT and self.roll(target.unique[1]):
-            unit.statuses[122] = Status(122, 1.0, 0, target)
-            unit.statuses[168] = Status(168, -0.2, 0, target)
+            # 0x42291d - 0x4229ff: Slow with a recovery chance that starts at 5, speed -0.2 for 3 turns
+            unit.statuses[122] = Status(122, 1.0, 0, target, data=SUGAR_COMA[0])
+            unit.statuses[168] = Status(168, -0.2, SUGAR_COMA[1], target)
         for effect in (101, 102, 181):
             s = target.statuses.get(effect)
             if s and not any(action.has(e) for e in (140, 141, 142)) and (action.physical or action.magic):
@@ -910,8 +940,9 @@ class Battle:
             return True
         earlier = index if action.has(125) else 0
         rate = f.critical_rate(unit.stat('dex'), target.stat('agi'), unit.level, target.level,
-                               skill=sum(action.value(e, 0.0) or 0.0 for e in CRIT_TERMS) + sum(
-                                   unit.status_value(e) for e in CRIT_TERMS) + target.status_value(32),
+                               # 0x44f262 - 0x44f301: 31, 174, 211 first found among the action and the user,
+                               # 32 the target's
+                               skill=sum(self.first(action, unit, e) for e in CRIT_TERMS) + target.value(32),
                                enchant=f.critical_enchant(unit.pieces(45), unit.pieces(46)),
                                target_enchant=-f.critical_enchant(target.pieces(47), target.pieces(48)),
                                earlier_hits=earlier, floor_268=bool(unit.pieces(268)),
@@ -1030,7 +1061,7 @@ class Battle:
             element_boost = 0.2 * (status in unit.statuses) + 0.2 * unit.pieces(enchant)
         resist_index = RESIST_INDEX.get(attr)
         resistance = target.resistance(resist_index) if resist_index is not None else 0
-        power_boost = unit.status_value(27) + unit.status_value(173) + (action.value(27, 0.0) or 0.0)
+        power_boost = self.first(action, unit, 27) + self.first(action, unit, 173)      # 0x44e66e, 0x44e6a2
         cut = max(-0.25, -(0.10 * target.pieces(68) + 0.05 * target.pieces(69) + 0.08 * target.pieces(70)
                            + 0.04 * target.pieces(71))) + target.status_value(183)
         if expect:
@@ -1110,7 +1141,8 @@ class Battle:
         if action.has(55) or action.has(72) or 116 in target.statuses:
             return 0.0
         unit = action.actor
-        skill_acc = action.value(29, 0.0) if isinstance(action.source, Skill) else             (getattr(action.source, 'accuracy', 0.0) or 0.0)
+        skill_acc = action.value(29, 0.0) if isinstance(action.source, Skill) else \
+            (getattr(action.source, 'accuracy', 0.0) or 0.0)
         kw = dict(buffs=sum(self.first(action, unit, e) for e in ACCURACY_BUFFS),
                   enchant=min(50, 4 * unit.pieces(31) + 2 * unit.pieces(32)),
                   target_enchant=min(50, 4 * target.pieces(35) + 2 * target.pieces(36)),
@@ -1134,8 +1166,7 @@ class Battle:
         else:
             unit = action.actor
             rate = f.critical_rate(unit.stat('dex'), target.stat('agi'), unit.level, target.level,
-                                   skill=sum(action.value(e, 0.0) or 0.0 for e in CRIT_TERMS)
-                                   + sum(unit.status_value(e) for e in CRIT_TERMS),
+                                   skill=sum(self.first(action, unit, e) for e in CRIT_TERMS) + target.value(32),
                                    enchant=f.critical_enchant(unit.pieces(45), unit.pieces(46)),
                                    target_enchant=-f.critical_enchant(target.pieces(47), target.pieces(48)),
                                    floor_268=bool(unit.pieces(268)), fixed=action.value(70))
@@ -1231,8 +1262,8 @@ class Battle:
                 target.tp = min(target.max_tp, target.tp + gained)
         if target.alive and target.has(312) and not target.ecstasy_done and before >= target.max_hp / 2 > target.hp:
             target.ecstasy_done = True
-            target.statuses[41] = Status(41, target.value(312), 0, target)
-            target.statuses[45] = Status(45, target.value(312), 0, target)
+            target.statuses[41] = Status(41, target.value(312), ECSTASY_TURNS, target)     # 0x47f5fc, 0x47f633
+            target.statuses[45] = Status(45, target.value(312), ECSTASY_TURNS, target)
         if target.alive and amount > 0:
             target.statuses.pop(116, None)               # 0x47ea6b - 0x47ea80: damage wakes a sleeping unit
             if target.chant is not None or self.performing(target):
@@ -1303,6 +1334,7 @@ class Battle:
                 if hostile or effect == 123:
                     if effect == 123:
                         if hostile and unit.level > target.level and 'shadow sew' not in target.immune \
+                                and not target.pieces(f.ENCHANT_NULLIFY_ALL) \
                                 and self.roll(value):
                             target.statuses[123] = Status(123, 1, max(1, action.turns or 1), unit)
                             self.end_parts(target, AILMENT_ENDS[123])
@@ -1359,7 +1391,8 @@ class Battle:
             if effect == 139 and hostile and 116 in target.statuses and 'instant death' not in target.immune:
                 self.lose_hp(target, target.hp, unit)
                 continue
-            if effect == 121 and hostile and 'petrification' not in target.immune and target.resistance(6) < 100:
+            if effect == 121 and hostile and 'petrification' not in target.immune and target.resistance(6) < 100 \
+                    and not self.nullified(target, 120):
                 target.statuses[120] = Status(120, 1, 0, unit)
                 self.end_parts(target, AILMENT_ENDS[121])
                 continue
@@ -1384,10 +1417,12 @@ class Battle:
                 points = int(target.value(262))
                 for k, stat_effect in enumerate((45, 44, 43, 42, 41, 46)[:points]):
                     old = unit.statuses.get(stat_effect)
-                    unit.statuses[stat_effect] = Status(stat_effect, (old.value if old else 0.0) - 0.1, 0, target)
+                    unit.statuses[stat_effect] = Status(stat_effect, (old.value if old else 0.0) - 0.1,
+                                                        DARK_AURA_TURNS, target)
             if unit.has(293) and self.roll(unit.value(293)) and 'slow' not in target.immune:
-                target.statuses[122] = Status(122, 1.0, 0, unit)
-                target.statuses[168] = Status(168, -0.75, 0, unit)
+                # 0x4244c7 - 0x424579: Slow with a recovery chance that starts at 5, speed -0.75 for 5 turns
+                target.statuses[122] = Status(122, 1.0, 0, unit, data=SLOW_TARGET[0])
+                target.statuses[168] = Status(168, -0.75, SLOW_TARGET[1], unit)
             if target.has(249) and action.physical and action.reach in (SHORT, MID) and not unit.has(307) \
                     and self.roll(target.value(249)) and target.alive:
                 self.counter(target, unit)
@@ -1416,7 +1451,7 @@ class Battle:
         name = AILMENTS[effect]
         if name in target.immune or effect in target.statuses:
             return False
-        if target.has(192):
+        if target.has(192) or self.nullified(target, effect):
             return False
         index = AILMENT_RESIST.get(effect)
         resistance = target.resistance(index) if index is not None else 0
@@ -1440,6 +1475,13 @@ class Battle:
         target.statuses[effect] = Status(effect, value, 0, unit, data=start)
         self.end_parts(target, AILMENT_ENDS.get(effect, ()))
         return True
+
+    @staticmethod
+    def nullified(target, ailment):
+        """A piece of the enchantment that nullifies the ailment, or of Nullify all status ailments (137), stops it
+        before its roll (0x481f2d poison ... 0x48367a slow; Shadow Sew looks at 137 only, 0x4838ae)."""
+        own = [e for e, a in f.ENCHANT_NULLIFY_AILMENT.items() if a == ailment]
+        return bool(target.pieces(f.ENCHANT_NULLIFY_ALL) or any(target.pieces(e) for e in own))
 
     def stun(self, target):
         """Stun (0x4fa185 - 0x4fa2f2): the chant, song, dance and doll of the target end, its gauge is set to 0 (its

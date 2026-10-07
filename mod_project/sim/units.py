@@ -164,6 +164,39 @@ def class_modifier_entries(data, class_id, previous):
     return chosen[0]['entries'] if chosen else []
 
 
+def enchant_bonus(enchants, base, base_hp, base_tp, front):
+    """What the enchantments add to a character (0x4f8270): {'hp', 'tp', six stats, 'resist': eight sums}. base: the
+    six stats before equipment (growth, bonus and resets: the getters 0x4f98c0 and 0x4f98d0 at that point)."""
+    total = {s: 0 for s in STATS}
+    hp = tp = 0
+    resist = [0] * 8
+    for e, n in enchants.items():
+        for _ in range(n):
+            if e in f.ENCHANT_SHARE:
+                figure, divisor, floor = f.ENCHANT_SHARE[e]
+                source = base_hp if figure == 'hp' else base_tp if figure == 'tp' else base[figure]
+                share = max(floor, int(source / abs(divisor)))
+                share = share if divisor > 0 else -share
+                if figure == 'hp':
+                    hp += share
+                elif figure == 'tp':
+                    tp += share
+                else:
+                    total[figure] += share
+            if e in f.ENCHANT_ALL_STATS:
+                for s in STATS:
+                    total[s] += f.ENCHANT_ALL_STATS[e]
+            for index, value in f.ENCHANT_RESIST.get(e, {}).items():
+                resist[index] += value
+            if e in f.ENCHANT_LINE and f.ENCHANT_LINE[e][0] == front:
+                for s, share in f.ENCHANT_LINE[e][1].items():
+                    total[s] += int(base[s] * share) if share < 1 else int(base[s] / share)
+    half_hp, half_tp = int(base_hp / 2), int(base_tp / 2)
+    cap = f.ENCHANT_RESIST_CAP
+    return dict(total, hp=max(-half_hp, min(half_hp, hp)), tp=max(-half_tp, min(half_tp, tp)),
+                resist=[max(-cap, min(cap, r)) for r in resist])
+
+
 def unique_rank(level, crown_bonus):
     """Which of the ten values of a unique skill a character has (0x4f615e - 0x4f61e3): level / 10, none below level 10;
     the tenth (EX) once the bonus of the resets reaches 50."""
@@ -224,11 +257,6 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
                         gains[s] += max(0, int((character_stats[s] + stats[s]) * (entry['modifier'] + 0.01 * yearning)))
     for s in STATS:
         totals[s] += gains[s]
-    rank_delay = data.weapon_ranks[weapon['rank']] if weapon and weapon['rank'] is not None and weapon['rank'] >= 0 \
-        else unarmed_delay(data, class_id)
-    unit = Unit(name or (character['name'] if character else f'class {class_id}'), PARTY, level, hp, tp, totals,
-                weight=rank_delay, swing=weapon['swing'] if weapon else 0.0, kind='member')
-    unit.passives = passive_values
     # The sealbook of the character adds its enchantments to the same list as the pieces (0x4f7b5d - 0x4f7bdd); the
     # grand sealbook the party carries adds its one enchantment to every member (party_enchants)
     if sealbook is not None and sealbook in data.sealbooks:
@@ -236,9 +264,21 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
             enchants[e] = enchants.get(e, 0) + 1
     for e in party_enchants:
         enchants[e] = enchants.get(e, 0) + 1
-    # The piece counter (0x4f5470) stops at one for an enchantment whose record (map 0x7389d0) has a flag set; which
-    # field that is was not identified (bit 0 of file 0x20 is not it: Speed UP has it, and stacks in the test of
-    # atwiki page 105), so every enchantment is counted by pieces here
+    # The piece counter (0x4f5470) and the stat function (0x4f8311) count one piece only of an enchantment whose flag
+    # bit 0 (EnchantData 0x20) is clear
+    enchants = {e: (n if e in data.enchant_stacks else min(n, 1)) for e, n in enchants.items()}
+    bonus = enchant_bonus(enchants, character_stats, hp, tp, front)
+    for s in STATS:
+        totals[s] += bonus[s]
+    hp, tp = hp + bonus['hp'], tp + bonus['tp']
+    # each resistance of a character is its own bonus plus the bonus of the resets (0x4f5f04 - 0x4f5f74), then the
+    # sum of its enchantments (0x4f8490)
+    resist = [crown_bonus + r for r in bonus['resist']]
+    rank_delay = data.weapon_ranks[weapon['rank']] if weapon and weapon['rank'] is not None and weapon['rank'] >= 0 \
+        else unarmed_delay(data, class_id)
+    unit = Unit(name or (character['name'] if character else f'class {class_id}'), PARTY, level, hp, tp, totals,
+                resist=resist, weight=rank_delay, swing=weapon['swing'] if weapon else 0.0, kind='member')
+    unit.passives = passive_values
     unit.enchants = enchants
     unit.sealbook = sealbook
     unit.weapon = weapon

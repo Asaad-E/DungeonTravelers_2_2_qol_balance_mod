@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.join(PROJECT_DIR, 'tools')
 WORKBOOK = os.path.join(PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx')
 CRITERIA = os.path.join(PROJECT_DIR, 'data_tables', 'balance_criteria.xlsx')
 CACHE = os.path.join(SIM_DIR, '__pycache__', 'game_data.pkl')
-CACHE_VERSION = 5
+CACHE_VERSION = 6
 LEVELS = [f'Lv{k}' for k in range(1, 11)]
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)
@@ -125,6 +125,7 @@ class GameData:
         self.characters = []
         self.equipment = {}         # equipment id -> dict
         self.enchants = {}
+        self.enchant_stacks = set()  # enchantments every piece of which counts (EnchantData 0x20 bit 0; 0x4f5499)
         self.sealbooks = {}            # sealbook id -> {'name', 'grand', 'level', 'enchants'}
         self.weapon_ranks = {}      # rank index -> delay
         self.items = {}
@@ -241,6 +242,10 @@ def _load_equipment(wb, data):
         data.equipment[r['Equip_ID']] = piece
     for r in _rows(wb, 'Enchants'):
         data.enchants[r['Enchant_ID']] = r['Name']
+        # the piece counter (0x4f5470) and the stat function (0x4f8311) count one piece only when bit 0 of the flags
+        # (file 0x20, memory 0x38 of the record of map 0x7389d0) is clear
+        if (r['w_0x20'] or 0) & 1:
+            data.enchant_stacks.add(r['Enchant_ID'])
     # SealScrollData: 0x00 id (the id of the enemy it seals), 0x18 kind (0 a sealbook, 1 a grand sealbook),
     # 0x1C number of enchantments and 0x20 their ids (read into the enchantment list at 0x4f7b5d), 0x34 level
     for r in _rows(wb, 'Raw_SealScroll'):

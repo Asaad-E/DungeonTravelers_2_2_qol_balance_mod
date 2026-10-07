@@ -49,6 +49,45 @@ TP_CONVERSION_UP, TP_CONVERSION_MINI = 0.05, 0.1   # 0x47e6b1, 0x47e6e4: enchant
 TP_CONVERSION_MAX = 0.5                            # 0x47e70e
 TP_CONVERSION_FLOOR, TP_CONVERSION_FLOOR_73 = 1, 5  # 0x47e700, 0x47e6f9
 
+# --- what the enchantments of a character add (0x4f8270 - 0x4f8fcf) ---------------------------------------------
+# Each piece (one only for an enchantment that does not stack) adds to a sum per figure. HP, TP and the six stats are
+# shares of the figure before equipment (growth + bonus + resets): (figure, divisor, floor), int(base / divisor) at
+# least the floor; a negative divisor takes the share away. The HP sum and the TP sum stay within half the base
+# (0x4f842c - 0x4f8467); each resistance sum within -100 and 100 (0x4f8490 - 0x4f84ae).
+ENCHANT_SHARE = {0: ('hp', 10, 4), 1: ('hp', 20, 2), 2: ('hp', -10, 0), 3: ('tp', 10, 4), 4: ('tp', 20, 2),
+                 5: ('tp', -10, 0), 6: ('atk', 10, 4), 7: ('atk', 20, 2), 8: ('atk', -10, 0), 9: ('def', 10, 4),
+                 10: ('def', 20, 2), 11: ('def', -10, 0), 12: ('int', 10, 4), 13: ('int', 20, 2), 14: ('int', -10, 0),
+                 15: ('res', 10, 4), 16: ('res', 20, 2), 17: ('res', -10, 0), 18: ('dex', 10, 4), 19: ('dex', 20, 2),
+                 20: ('dex', -10, 0), 21: ('agi', 10, 4), 22: ('agi', 20, 2), 23: ('agi', -10, 0)}
+ENCHANT_ALL_STATS = {24: 1, 25: 3, 26: 6, 27: 9, 28: 12}                     # 0x4f88bc - 0x4f8957
+# resistances in the order of the eight (slash, stab, bash, fire, water, wind, earth, lightning)
+_PHYS, _ELEM = (0, 1, 2), (3, 4, 5, 6, 7)
+ENCHANT_RESIST = {88: {3: 20}, 89: {3: 10}, 90: {3: -20}, 91: {4: 20}, 92: {4: 10}, 93: {4: -20},
+                  94: {5: 20}, 95: {5: 10}, 96: {5: -20}, 97: {6: 20}, 98: {6: 10}, 99: {6: -20},
+                  100: {7: 20}, 101: {7: 10}, 102: {7: -20},
+                  103: {i: 50 for i in _ELEM}, 104: {i: 15 for i in _ELEM}, 105: {i: 7 for i in _ELEM},
+                  106: {i: -15 for i in _ELEM},
+                  107: {0: 20}, 108: {0: 10}, 109: {0: -20}, 110: {1: 20}, 111: {1: 10}, 112: {1: -20},
+                  113: {2: 20}, 114: {2: 10}, 115: {2: -20},
+                  116: {i: 25 for i in _PHYS}, 117: {i: 10 for i in _PHYS}, 118: {i: 5 for i in _PHYS},
+                  119: {i: -10 for i in _PHYS},
+                  310: {3: 100}, 311: {3: 50}, 312: {3: -50}, 315: {4: 100}, 316: {4: 50}, 317: {4: -50},
+                  320: {5: 100}, 321: {5: 50}, 322: {5: -50}, 325: {6: 100}, 326: {6: 50}, 327: {6: -50},
+                  330: {7: 100}, 331: {7: 50}, 332: {7: -50},
+                  335: {i: 75 for i in _ELEM}, 336: {i: -30 for i in _ELEM},
+                  340: {0: 100}, 341: {0: 50}, 342: {0: -50}, 345: {1: 100}, 346: {1: 50}, 347: {1: -50},
+                  350: {2: 100}, 351: {2: 50}, 352: {2: -50},
+                  355: {i: 50 for i in _PHYS}, 356: {i: -20 for i in _PHYS}}
+ENCHANT_RESIST_CAP = 100
+# the enchantments of one line of the party (the party object at 0x71fc24, slot 0x164 for the front line, 0x16c for
+# the back line): (front line, {stat: share}); a share of 0.08 is int(stat * 0.08) (0x4f8bde), 25 and 50 are
+# int(stat / 25) and int(stat / 50) (0x4f8c31 - 0x4f8d7e)
+ENCHANT_LINE = {222: (True, {'atk': 0.08}), 223: (True, {'atk': 25, 'def': 25}), 224: (False, {'int': 0.08}),
+                225: (False, {'int': 25, 'res': 25}), 281: (False, {'dex': 50, 'agi': 50})}
+# ailments a piece of these enchantments stops (the roll of each ailment: 0x481f2d poison ... 0x48329a; 137 all)
+ENCHANT_NULLIFY_AILMENT = {129: 118, 130: 114, 131: 113, 132: 116, 133: 117, 134: 119, 135: 120, 136: 115, 139: 122}
+ENCHANT_NULLIFY_ALL = 137
+
 
 def clamp(value, low, high):
     return max(low, min(high, value))
