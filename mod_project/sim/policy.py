@@ -78,7 +78,12 @@ class Policy:
             chosen = ACTIONS[action](self, battle, unit, a_arg)
             if chosen is not None:
                 return chosen
-        return Action(unit, 'attack', target=best_single_target(battle, unit, Action(unit, 'attack')))
+        attack = Action(unit, 'attack')
+        target = best_single_target(battle, unit, attack)
+        if target is None or battle.expected_damage(attack, target) <= 0:
+            return Action(unit, 'defend')             # nothing it can do lands: a player defends
+        attack.target = target
+        return attack
 
     # the cost of time and TP of an action ---------------------------------------------------------------------
     def time_of(self, battle, action):
@@ -305,8 +310,8 @@ def act_status(policy, battle, unit, arg):
                 continue
             return action
         if code in (SINGLE, ALL, ROW):
-            foes = [t for t in enemies_of(battle, unit) if effect not in t.statuses or
-                    (effect == 170 and unit not in t.provoked_by)]
+            foes = [t for t in enemies_of(battle, unit) if (effect not in t.statuses or
+                    (effect == 170 and unit not in t.provoked_by)) and not battle.visibly_voided(action, t)]
             if not foes:
                 continue
             action.target = max(foes, key=lambda t: t.stat('atk'))
@@ -320,7 +325,11 @@ def act_dispel(policy, battle, unit, arg):
         return None
     for skill, level in options(battle, unit):
         if gives(skill, 74):
-            return Action(unit, 'skill', skill, level, target=buffed[0])
+            action = Action(unit, 'skill', skill, level)
+            reachable = [t for t in buffed if not battle.visibly_voided(action, t)]
+            if reachable:
+                action.target = reachable[0]
+                return action
     return None
 
 

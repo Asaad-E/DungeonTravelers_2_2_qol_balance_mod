@@ -1172,6 +1172,8 @@ class Battle:
         """Mean damage of the whole action on one target: hits, accuracy and critical rate taken at their means."""
         if action.has(25) or not (action.physical or action.magic or self.special(action)):
             return 0.0
+        if self.visibly_voided(action, target):
+            return 0.0
         hits = self.mean_hits(action)
         chance = self.hit_chance(action, target)
         if self.special(action):
@@ -1187,6 +1189,12 @@ class Battle:
                                    floor_268=bool(unit.pieces(268)), fixed=action.value(70))
             per_hit = self.physical_damage(action, target, 0, f.expected_critical_factor(rate), expect=True)
         return chance * hits * per_hit
+
+    @staticmethod
+    def visibly_voided(action, target):
+        """What a player sees will come to nothing on this target: a barrier against all but Neutral (192) and Nullify
+        Short-Mid (182) are statuses shown on the unit (the checks of voided, 12.12)."""
+        return (target.has(192) and action.attr != NEUTRAL) or (target.has(182) and action.reach in (SHORT, MID))
 
     def mean_hits(self, action):
         for effect, (base, picks, weights, rondo_weights) in MULTI_HIT.items():

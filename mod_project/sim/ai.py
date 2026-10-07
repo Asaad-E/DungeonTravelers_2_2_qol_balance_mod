@@ -2,7 +2,7 @@
 What an enemy, a summon or a guest ally does on its turn: its script of EnemyAIData run as the program runs it
 (docs/FORMULAS.md 9; decoded by tools/enemy_ai.py).
 
-The set is 0 at the start. The commands before the first set run in order until one decides; with no attack decided
+The set is 0 at the start of every turn (0x430f56). The commands before the first set run in order until one decides; with no attack decided
 the code rolls a number below the sum of the 16 weights of the current set and takes the slot it falls in, then runs
 the commands of that set: one that passes may name another attack or switch to another set, which rolls again there.
 Silence, freeze and shadow bind replace the choice with attack slot 0.
@@ -25,6 +25,7 @@ def choose(battle, unit):
     script = unit.script
     if not script:
         return attack_action(battle, unit, roll_uniform(battle, attacks))
+    unit.ai_set = 0                     # 0x430f56: every turn the runner starts again from set 0
     decided = run(battle, unit, script['opening'])
     switches = 0
     while decided is None or decided[0] == 'set':

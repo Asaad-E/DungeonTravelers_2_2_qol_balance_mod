@@ -350,7 +350,7 @@ heaviest ailment, 6 chanting opponent, 7 opponent in the back row, 8 ally withou
 with a more serious ailment, 10 opponent in the front row, 11 opponent with a buff, 12 ally with a debuff, 13 ally
 and 14 opponent with an ailment, 15 dead ally. How many scripts use each is in `generated/BALANCE_BASELINE.md`.
 
-**Choice of attack** (`0x430f10`): the set is 0; the commands before the first set run in order until one decides.
+**Choice of attack** (`0x430f10`): the set is 0 at the start of every turn, and the weights are copied back from the script (`0x430f56`, `0x430f91`): a set chosen on one turn does not carry to the next; the commands before the first set run in order until one decides.
 With no attack decided, a number below the sum of the 16 weights of the current set is rolled and the slot it falls
 in is taken; then the commands of that set run (the parser files every command under the set read last,
 `0x430cd7`). A set switch marks the set as done and rolls again in the new one. Silence, freeze and shadow bind

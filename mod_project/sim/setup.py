@@ -28,6 +28,7 @@ class Setup:
                       for r in _rows(wb, 'Joins')]
         self.assumptions = _rows(wb, 'Assumptions')
         self.calibration = _rows(wb, 'Calibration')
+        self.guide_levels = {r['Checkpoint']: r for r in _rows(wb, 'GuideLevels')}
 
     def checkpoint(self, cid):
         return next(c for c in self.checkpoints if c['ID'] == cid)
