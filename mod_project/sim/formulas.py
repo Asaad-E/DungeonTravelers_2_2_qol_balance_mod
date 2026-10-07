@@ -39,6 +39,15 @@ CRIT_FACTOR = 1.25             # 0x44f5a6
 MAGIC_CRIT_CHANCE, MAGIC_CRIT_FACTOR = 20, 1.25   # 0x44eded, 0x44edf2   with effect 301 (Critical Magic) active
 MIN_DAMAGE = 3                 # 0x44cb49   1 or 2 at random on a critical hit (0x44cb3c)
 WARNING_SHOT = 0.3             # 0x44caed   final damage * 3 / 10
+SLEEP_DAMAGE = (3, 2)          # 0x44cd3b (blow), 0x44eff9 (spell): a sleeping target takes int(damage * 3 / 2)
+# A plain attack of a unit that wears a piece of these enchantments carries the effect when it has none of its own
+# (0x421258 - 0x4216d2; 0x42155a, 0x421604): enchantment -> (effect, value). The first piece found decides.
+PLAIN_ATTACK_ENCHANTS = {161: (75, 0.5), 162: (75, 0.15), 163: (76, 0.2), 164: (76, 0.05),
+                         153: (113, 0.18), 154: (116, 0.15), 155: (117, 0.18), 156: (114, 0.18), 157: (115, 0.15),
+                         158: (118, 0.12), 159: (120, 0.1), 165: (122, 0.12), 197: (119, 0.75), 160: (119, 0.07)}
+TP_CONVERSION_UP, TP_CONVERSION_MINI = 0.05, 0.1   # 0x47e6b1, 0x47e6e4: enchantments 72 and 73 on damage taken
+TP_CONVERSION_MAX = 0.5                            # 0x47e70e
+TP_CONVERSION_FLOOR, TP_CONVERSION_FLOOR_73 = 1, 5  # 0x47e700, 0x47e6f9
 
 
 def clamp(value, low, high):
@@ -139,12 +148,15 @@ def magic_damage(intel, power, target_res, mastery=0.0, modifiers=0.0, enchant=0
 
 
 # --- chant interruption and critical hits -----------------------------------------------------------
-def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0, critical=False):
+def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0, critical=False, physical=True):
     """Chance that a hit of this damage breaks the chant of a unit with this max HP.
     modifier: effect 264 (Concentrate); enchant: the sum the code subtracts. The rate is 0 to 0.95 and is rolled
-    as an integer percent; a critical hit rolls again at INTERRUPT_CRITICAL in a hundred, whatever the damage."""
-    a = clamp(damage / (max_hp * INTERRUPT_HP_FACTOR * (1 + modifier)), 0.0, INTERRUPT_MAX)
-    rate = int(clamp(a - enchant, 0.0, INTERRUPT_MAX) * 100) / 100.0
+    as an integer percent; a critical hit rolls again at INTERRUPT_CRITICAL in a hundred, whatever the damage.
+    Only the physical damage function rolls the rate (0x44d1f3); the magic one has only the critical roll (0x44f12c)."""
+    rate = 0.0
+    if physical:
+        a = clamp(damage / (max_hp * INTERRUPT_HP_FACTOR * (1 + modifier)), 0.0, INTERRUPT_MAX)
+        rate = int(clamp(a - enchant, 0.0, INTERRUPT_MAX) * 100) / 100.0
     if critical:
         rate = 1 - (1 - rate) * (1 - INTERRUPT_CRITICAL / 100.0)
     return rate

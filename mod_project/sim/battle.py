@@ -16,7 +16,8 @@ import math
 from sim import formulas as f
 from sim.data import (SINGLE, RANDOM, ROW, PIERCE, ALL, ALLY, RANDOM_ALLY, ALLY_ROW, ALLIES, SELF, NO_TARGET,
                       ALLY_MOST_TP_LOST, EVERYONE, ANYONE, OWN_SIDE, WEAPON_ATTR, NEUTRAL, PHYSICAL_ATTRS,
-                      RESIST_INDEX, SHORT, MID, LONG, NO_RANGE, Skill, EnemyAttack)
+                      RESIST_INDEX, SHORT, MID, LONG, NO_RANGE, SLASH, STAB, BASH, FIRE, WATER, WIND, EARTH,
+                      LIGHTNING, Skill, EnemyAttack)
 from sim.units import Status, PARTY, ENEMIES, build_doll
 
 HANDLED = {}        # effect id -> where the code acts on it
@@ -47,6 +48,7 @@ AILMENTS = {113: 'poison', 114: 'freeze', 115: 'paralysis', 116: 'sleep', 117: '
 AILMENT_RESIST = {113: 4, 114: 4, 115: 7, 116: 5, 117: 5, 118: 3, 119: 6, 120: 6, 122: 6}
 # Statuses of the list Cures and Esarhaddon walk (table 0x6cc79c; Esarhaddon 0x6c9a7c stops at slow)
 CURE_ORDER = (113, 115, 117, 114, 116, 120, 122)
+CURE_ALL = 8                                   # 0x481b12: a value of exactly 8 also clears the second list (slot 0x90)
 ESARHADDON_ORDER = (113, 115, 117, 114, 116, 122)
 STAT_STATUSES = (41, 42, 43, 44, 45, 46, 189, 193, 194, 48, 172, 169, 184, 185, 186, 202, 248, 341)
 handles('units.Unit.stat / resistance / max_hp (docs/FORMULAS.md 12.6)', *STAT_STATUSES)
@@ -63,15 +65,32 @@ DOLL_MAGIC_SCALE = 500.0                     # 0x44de26 (float at 0x6d9640)
 SPEED_BUFFS = (168, 217, 221, 201, 340, 316)
 CHANT_SPEED_BUFFS = (214, 265, 281)
 CRIT_TERMS = (31, 174, 211)
+# magic hit (0x44d759 - 0x44da43): Maid Mastery (278) and effect 353 count only for skill 205, Lullaby (0x44d8ea);
+# the divisor is the value of the target's Nocturne (220), else of its Kotodama Blessing (223), else 1 (0x44d95f)
+LULLABY, LULLABY_ACCURACY = 205, (278, 353)
+MAGIC_HIT_DIVISORS = (220, 223)
+AGE_ONLY = {149: False, 150: True}          # an action with 149 cannot hit an adult, one with 150 a minor (0x44affd)
+STAB_EVASION = 253                          # Flowing Water Stance: evasion against stab blows, then a counter (0x44b12a)
+# hits a piece of these enchantments makes void (0x421ae4 - 0x421c5a): enchantment -> attribute; 123 voids every blow
+NULLIFY_ENCHANTS = {120: (SLASH,), 121: (STAB,), 122: (BASH,), 123: PHYSICAL_ATTRS, 124: (FIRE,), 125: (WATER,),
+                    126: (WIND,), 127: (EARTH,), 128: (LIGHTNING,)}
+NULLIFY_BLOWS_ONLY = (120, 121, 122, 123)
+# what an ailment ends when it lands (status creation 0x4f9930: the end-chant, end-song, end-dance and end-doll calls
+# 0x43bc50, 0x43c110, 0x43c600, 0x43c9b0 under each id)
+AILMENT_ENDS = {114: ('dance', 'doll'), 116: ('chant', 'song', 'dance', 'doll'), 117: ('chant', 'song'),
+                118: ('chant', 'song', 'dance', 'doll'), 121: ('chant', 'song', 'dance', 'doll'),
+                123: ('chant', 'song', 'dance', 'doll')}
+MATERIAL_GUARD = 179
 handles('units.build_member (docs/FORMULAS.md 10.4, 12.17)', 243, 298, 256, 449)
 handles('Battle.physical_damage (2.2 - 2.4)', 26, 161, 195, 335, 219, 162, 187, 196, 205, 336, 28, 69, 73, 191, 190,
         308, 440, 443, 87, 88, 47, 49, 50, 111, 286, 255, 325, 326, 327, 328, 329, 0)
-handles('Battle.physical_damage (2.4, "other" bonus; 0x44c60e - 0x44c6b6)', 71, 136)
+handles('Battle.physical_damage (2.4, "other" bonus; 0x44c60e - 0x44c75f)', 71, 136, 179)
 handles('Battle.hits (2.1, 3)', 29, 55, 72, *ACCURACY_BUFFS, *EVASION_BUFFS, 30, *MAGIC_ACCURACY_BUFFS,
         *MAGIC_EVASION_BUFFS, 220, 221)
 handles('Battle.magic_damage (3; 0x44dcc0 - 0x44e6c6)', 1, 27, 173, 183, 163, 244, 296, 301, 212, 196, 205, 336, 213,
         220, 223)
-handles('Battle.hit_chance (3; 0x44d700 - 0x44d955)', 309, 197, 198, 222, 278, 353)
+handles('Battle.hit_chance (2.1, 3; 0x44aa08 - 0x44b0e8, 0x44d700 - 0x44db2c)', 309, 197, 198, 222, 278, 353, 223,
+        149, 150, 253)
 handles('Battle.critical (4)', *CRIT_TERMS, 32, 70, 110, 125)
 handles('Battle.wait (5)', *SPEED_BUFFS, *CHANT_SPEED_BUFFS, 261, 276, 277, 352)
 handles('Battle.interrupt (2.5)', 264)
@@ -111,7 +130,11 @@ class Action:
         if isinstance(s, EnemyAttack):
             return list(s.effects)
         if self.kind == 'attack':
-            return [(PLAIN_HIT, 4, 1.0)]
+            found = [(PLAIN_HIT, 4, 1.0)]
+            for enchant, (effect, value) in f.PLAIN_ATTACK_ENCHANTS.items():
+                if self.actor.pieces(enchant) and not any(e == effect for e, _, _ in found):
+                    found.append((effect, 4, value))
+            return found
         return []
 
     def value(self, effect, default=None):
@@ -143,24 +166,38 @@ class Action:
         return a
 
     @property
+    def function(self):
+        """The attack function the program runs for the action (0x420156 - 0x42016d, 0x421238 - 0x42197d): the
+        physical one when the action carries effect 0, else the magic one when it carries effect 1 or 25 (with 25 the
+        damage is thrown away and only the hit counts, 0x421a83); an action with none of the three runs neither: it
+        lands, and its own rolls decide, as an ailment of a status skill or a steal does."""
+        if self.has(PLAIN_HIT):
+            return 'physical'
+        if self.has(MAGIC_POWER) or self.has(25):
+            return 'magic'
+        return None
+
+    @property
     def magic(self):
-        return self.has(MAGIC_POWER)
+        """A spell that deals damage: the magic function with a power."""
+        return not self.has(PLAIN_HIT) and self.has(MAGIC_POWER)
 
     @property
     def physical(self):
-        return not self.magic and (self.has(PLAIN_HIT) or self.has(26))
+        return self.has(PLAIN_HIT)
 
     @property
     def hit_roll(self):
-        """Which hit formula decides whether the action lands on an opponent: 'magic' for a spell (a skill of the magic
-        file, or an attack with a magic power or a chant), 'physical' for a blow, None for an action with neither (it
-        lands, and its own rolls decide, as an ailment or a steal does)."""
+        """Which hit formula decides whether the action lands on an opponent: the one of its attack function."""
+        return self.function
+
+    @property
+    def spell(self):
+        """What an anti-magic zone stops. The program tests a flag of the record (EnemyAttackData +0x40 bit 2,
+        0x41a483; +0x50 bit 5 of another table, 0x41c184) that the extracted files do not map yet (assumption A21):
+        a skill of the magic file, a chanted enemy attack or an action with a magic power."""
         s = self.source
-        if self.magic or (isinstance(s, Skill) and s.category == 'Magic') or (isinstance(s, EnemyAttack) and s.chanted):
-            return 'magic'
-        if self.kind == 'attack' or self.physical:
-            return 'physical'
-        return None
+        return self.has(MAGIC_POWER) or (isinstance(s, Skill) and s.category == 'Magic') or             (isinstance(s, EnemyAttack) and s.chanted)
 
     @property
     def reach(self):
@@ -365,7 +402,8 @@ class Battle:
                 else:
                     self.apply_ailment(other, unit, effect, 0.75, None)
         acted = False
-        if self.lost_turn(unit):
+        lost = self.lost_turn(unit)
+        if lost:
             self.record.add('turns_lost', unit)
         else:
             self.before_action(unit)
@@ -373,7 +411,7 @@ class Battle:
             if action is not None:
                 acted = True
                 self.perform(action)
-        self.end_of_turn(unit, acted)
+        self.end_of_turn(unit, acted, ticks=lost != 'skip')
         self.undaunted()
 
     def before_action(self, unit):
@@ -417,30 +455,29 @@ class Battle:
     def lost_turn(self, unit):
         """States 4 to 11 (0x436c40 - 0x436d4c): a petrified unit (slot 0xc8) and a sleeping one (slot 0xbc) lose the
         turn; a paralysed one (slot 0xb8) loses it on a roll below 100 under 30. Freeze and Shadow Sew do not stop a
-        unit: they narrow what it may do (next_action)."""
+        unit: they narrow what it may do (next_action).
+        Returns 'skip' when the turn goes to phase 4 (0x4392ef), which ends it without state 16: no status of the unit
+        runs its per-turn method (regeneration, poison, songs, recovery of ailments, the count of turns); petrification,
+        sleep, paralysis (0x436cf9), Mesmerized and the Erotic Dance (0x4372ea) do so. Returns 'empty' for Warning
+        Shot, which replaces the command with a skill that does nothing (state 12, 0x4371c3): state 16 still runs."""
         if not unit.alive:
-            return True
-        if 120 in unit.statuses:
-            return self.deny(unit)
-        if 116 in unit.statuses:
-            return self.deny(unit)
+            return 'skip'
+        if 120 in unit.statuses or 116 in unit.statuses:
+            return self.deny(unit, 'skip')
         if 115 in unit.statuses and self.rng.randrange(100) < 30:
-            return self.deny(unit)
+            return self.deny(unit, 'skip')
         for other in self.opponents(unit):
             for effect in (259, 283):                 # Warning Shot, Mesmerized
                 if other.has(effect) and self.roll(other.value(effect)):
-                    if effect == 259 and unit.chant is None:
-                        return self.deny(unit)
-                    return self.deny(unit)
+                    return self.deny(unit, 'empty' if effect == 259 else 'skip')
         if unit.has(203) and self.roll(unit.value(203)):
-            return self.deny(unit)
+            return self.deny(unit, 'skip')
         return False
 
-    def deny(self, unit):
+    def deny(self, unit, how):
         if unit.side == ENEMIES:
             self.record.add('denied', unit)
-        unit.chant = None if 116 in unit.statuses or 120 in unit.statuses else unit.chant
-        return True
+        return how
 
     def next_action(self, unit):
         if unit.chant is not None:
@@ -456,7 +493,10 @@ class Battle:
             action = self.choose_enemy(self, unit)
         if action is None:
             return None
-        if 117 in unit.statuses and action.magic:          # silenced: no spell
+        # silence forbids spells and songs, freeze techniques, dolls and dances (atwiki dt2-2 page 125; an enemy takes
+        # attack slot 0 instead, sim/ai.py)
+        category = action.source.category if isinstance(action.source, Skill) else None
+        if (117 in unit.statuses and category == 'Magic') or (114 in unit.statuses and category == 'Technique'):
             action = Action(unit, 'attack')
         speed = action.chant_speed
         if speed and not (unit.unique and unit.unique[0] == 358 and self.roll(unit.unique[1])):   # Forerunner
@@ -484,14 +524,14 @@ class Battle:
         self.record.add('tp_spent', unit, cost)
         action.item = action.item
 
-    def end_of_turn(self, unit, acted):
-        """State 16: each status of the unit runs its per-turn method; then the wait until its next turn."""
-        pending = getattr(self, '_pending_wait', None)
-        if unit.alive:
+    def end_of_turn(self, unit, acted, ticks=True):
+        """State 16: each status of the unit runs its per-turn method; then the wait until its next turn. After a turn
+        lost to an ailment the wait is the one of a plain action (assumption A22: the gauge phase 4 leaves is not read)."""
+        if unit.alive and ticks:
             self.tick(unit)
         if not unit.alive:
             return
-        last = self._last_action.get(unit) if hasattr(self, '_last_action') else None
+        last = self._last_action.get(unit) if hasattr(self, '_last_action') and acted else None
         if unit.chant is not None:
             wait = self.wait(unit, unit.chant, chanting=True)
         else:
@@ -586,7 +626,7 @@ class Battle:
         if action.kind == 'item':
             self.use_item(action)
             return
-        if self.zone.get('no_magic') and unit.kind != 'doll' and action.hit_roll == 'magic':
+        if self.zone.get('no_magic') and unit.kind != 'doll' and action.spell:
             self.record.add('skill_uses', (unit, 'nullified in an anti-magic zone'))
             return                                  # docs/FORMULAS.md 16.2: magic is nullified there, dolls excepted
         if not action.chanting and action.kind == 'skill' and action.chant_speed is None:
@@ -621,6 +661,10 @@ class Battle:
                 self.counter(t, unit)
                 break
         damage_by_target = {}
+        self.covered = {}                   # unit with Cover -> hits it took in place of another (0x42497a)
+        # Auto-Guard (0x417309 - 0x417362): before a physical action each target that has it rolls once
+        self.guarding = {t for t in set(targets) if action.physical and t.side != unit.side and t.has(255)
+                         and self.roll(t.value(255))}
         index = 0                           # the hit record of the action (effect 136, effect 125)
         for target in targets:
             for h in range(hits):
@@ -630,6 +674,13 @@ class Battle:
                 index += 1
                 if done == 'stop':
                     break
+        # Cover (0x42497a): after the action, each hit covered rolls value * 100 to end the Cover of that unit
+        for cover, count in self.covered.items():
+            for _ in range(count):
+                s = cover.statuses.get(171)
+                if s is not None and self.roll(s.value):
+                    cover.statuses.pop(171, None)
+        self.guarding = set()
         for target, dealt in damage_by_target.items():
             if unit.side == ENEMIES and target.side == PARTY:
                 self.record.largest_hit[unit] = max(self.record.largest_hit.get(unit, 0), dealt)
@@ -775,12 +826,13 @@ class Battle:
             target = self.redirect(action, target)
             if target is None:
                 return None
-            if self.voided(action, target):
-                return None
+            # the attack function rolls the hit first (2.1, 3); a hit that misses skips every check after it (0x421ada)
             if not self.hits(action, target):
                 return None
+            if self.voided(action, target):
+                return None
         dealt = 0
-        if hostile and not action.has(25) and (action.physical or action.magic or self.special(action)):
+        if hostile and not action.has(25) and (action.physical or action.magic):
             dealt = self.damage(action, target, index)
             if dealt is None:
                 return None
@@ -789,35 +841,46 @@ class Battle:
         return None
 
     def redirect(self, action, target):
-        """Cover (12.12): an action aimed at one unit or at random units goes to a unit of the side that has Cover."""
+        """Cover (12.12, 0x420b60 - 0x420ed6): an action aimed at one unit or at random units goes to one of the other
+        units of the side that have Cover, picked with equal chances, with no roll. The roll that ends the Cover comes
+        after the action, once per hit covered (perform)."""
         if action.target_code in (SINGLE, RANDOM):
-            covers = [u for u in self.allies(target) if u is not target and 171 in u.statuses]
+            covers = [u for u in self.allies(target) if u is not target and 171 in u.statuses and u.alive]
             if covers:
                 cover = self.rng.choice(covers)
-                if self.roll(cover.statuses[171].value):
-                    cover.statuses.pop(171, None)
+                covered = getattr(self, 'covered', None)
+                if covered is not None:
+                    covered[cover] = covered.get(cover, 0) + 1
                 return cover
         return target
 
     def voided(self, action, target):
+        """The checks that turn a landed hit away, in the order of the program (12.12; 0x421ae4 - 0x422c4b)."""
         unit = action.actor
-        if target.has(192) and action.attr != NEUTRAL:
+        attr = action.attr
+        for enchant, attrs in NULLIFY_ENCHANTS.items():          # pieces that nullify an attribute
+            if target.pieces(enchant) and attr in attrs and (action.physical or enchant not in NULLIFY_BLOWS_ONLY):
+                return True
+        if target.has(192) and attr != NEUTRAL:
             return True
-        if target.has(182) and action.physical and action.reach in (SHORT, MID):
+        if target.has(182) and action.reach in (SHORT, MID):
+            return True
+        if target.unique and target.unique[0] == 349 and self.roll(target.unique[1]):
             return True
         if 285 in target.statuses and (action.physical or action.magic):
             target.statuses.pop(285)
-            return True
-        if target.has(250) and action.physical and action.reach in (SHORT, MID) and not unit.has(307):
-            if self.roll(target.value(250)):
-                self.counter(target, unit)
-                return True
-        if target.unique and target.unique[0] == 349 and self.roll(target.unique[1]):
             return True
         if 180 in target.statuses and action.physical:
             if self.roll(target.statuses[180].value):
                 target.statuses.pop(180)
             return True
+        if target.has(250) and action.reach in (SHORT, MID) and not unit.has(307):
+            if self.roll(target.value(250)):
+                self.counter(target, unit)
+                return True
+        if target.unique and target.unique[0] == 346 and action.reach == SHORT and self.roll(target.unique[1]):
+            unit.statuses[122] = Status(122, 1.0, 0, target)
+            unit.statuses[168] = Status(168, -0.2, 0, target)
         for effect in (101, 102, 181):
             s = target.statuses.get(effect)
             if s and not any(action.has(e) for e in (140, 141, 142)) and (action.physical or action.magic):
@@ -825,19 +888,21 @@ class Battle:
                 if s.value <= 0:
                     target.statuses.pop(effect)
                 return True
-        if target.unique and target.unique[0] == 346 and action.reach == SHORT and self.roll(target.unique[1]):
-            unit.statuses[122] = Status(122, 1.0, 0, target)
-            unit.statuses[168] = Status(168, -0.2, 0, target)
         return False
 
     def hits(self, action, target):
-        """docs/FORMULAS.md 2.1 and 3: a roll below 100 under the chance cut to an integer."""
+        """docs/FORMULAS.md 2.1 and 3: a roll below 100 under the chance cut to an integer. A blow that misses only
+        because of Flowing Water Stance is answered by a counter of the target (0x44b12a; A17)."""
         if action.furious:
             return True
         chance = self.hit_chance(action, target)
-        if chance >= 1.0:
+        dodge = self.stab_dodge(action, target)
+        roll = self.rng.randrange(100)
+        if roll < int(round((chance - dodge) * 100)):
             return True
-        return self.rng.randrange(100) < int(round(chance * 100))
+        if dodge and roll < int(round(chance * 100)) and target.alive:
+            self.counter(target, action.actor)
+        return False
 
     def critical(self, action, target, index=0):
         unit = action.actor
@@ -857,7 +922,6 @@ class Battle:
         return any(action.has(e) for e in (8, 12, 138, 140, 141, 142, 434, 435))
 
     def damage(self, action, target, index):
-        unit = action.actor
         critical = False
         amount = None
         if self.special(action):
@@ -869,8 +933,17 @@ class Battle:
             amount = self.physical_damage(action, target, index, critical)
         if amount is None:
             return None
-        if target.side == PARTY and 271 in target.statuses:
-            pass
+        if 116 in target.statuses and not self.special(action):
+            # 0x44cd3b (blow), 0x44eff9 (spell): a sleeping target takes int(damage * 3 / 2); the hit wakes it
+            amount = amount * f.SLEEP_DAMAGE[0] // f.SLEEP_DAMAGE[1]
+        if action.magic:
+            cap = action.value(296)
+            if cap is not None:
+                amount = min(amount, int(cap))
+        if action.has(2):
+            # 0x44ce96, 0x44f10d: effect 2 sends the damage to TP instead of HP
+            target.tp = max(0, target.tp - amount)
+            return amount
         self.take_damage(target, amount, action, critical)
         return amount
 
@@ -878,8 +951,10 @@ class Battle:
         """expect: the mean of the rolls instead of a roll (no swing, critical as its mean factor), for the policies."""
         unit = action.actor
         furious = action.furious
-        modifiers = sum(action.value(e, 0.0) or 0.0 for e in (26,)) + (getattr(action.source, 'power', 0.0)
-                                                                       if isinstance(action.source, EnemyAttack) else 0.0)
+        # 26 is found first among the effects of the action, then among the statuses of the user (Berserk, High Risk,
+        # Defender leave theirs there): the first one found counts (0x44b3c3; the finder 0x47e340 stops at the first)
+        modifiers = self.first(action, unit, 26) + (getattr(action.source, 'power', 0.0)
+                                                    if isinstance(action.source, EnemyAttack) else 0.0)
         modifiers += sum(unit.status_value(e) for e in (161, 195, 335, 219))
         if unit.unique and unit.unique[0] == 443:
             modifiers += unit.unique[1]
@@ -895,12 +970,12 @@ class Battle:
             atk = unit.stat('res')
         if action.has(50):
             atk = atk * action.value(50)
-        target_mods = sum(target.status_value(e) for e in (162, 187, 196, 205, 336, 219)) + (action.value(28, 0.0) or 0.0)
+        target_mods = sum(target.status_value(e) for e in (28, 162, 187, 196, 205, 336, 219))     # the target's (0x44b792)
         times = action.value(73, 1.0) or 1.0
         reach = action.reach
         dist = f.distance(not unit.front, not target.front)
         cut = 1.0 - (0.10 * target.pieces(66) + 0.05 * target.pieces(67) + 0.08 * target.pieces(70) + 0.04 * target.pieces(71))
-        defending = target.defending or (not expect and target.has(255) and self.roll(target.value(255)))
+        defending = target.defending or target in getattr(self, 'guarding', ())
         resist_index = RESIST_INDEX.get(action.attr)
         resistance = target.resistance(resist_index) if resist_index is not None else 0
         race = 1.0
@@ -908,7 +983,11 @@ class Battle:
             race += action.value(88)
         if action.has(87) and target.race == 5:
             return 0
-        other = unit.status_value(191) + unit.status_value(190) + target.status_value(190) * 0
+        # 0x44c723 - 0x44c75f: Limit Field of the target, Power Charge of the user
+        other = target.value(190) + unit.status_value(191)
+        guard = target.statuses.get(MATERIAL_GUARD)
+        if guard is not None and (guard.source is None or (guard.source.alive and guard.source.shield)):
+            other += guard.value                    # Material Guard (0x44c6bb - 0x44c720)
         if target.side == PARTY and not target.front:
             guards = [m.passives.get(308) for m in self.allies(target) if m.passives.get(308)]
             if guards:
@@ -958,7 +1037,7 @@ class Battle:
             critical = 1.0 + (f.MAGIC_CRIT_FACTOR - 1.0) * f.MAGIC_CRIT_CHANCE / 100.0 if unit.has(301) else 1.0
         else:
             critical = unit.has(301) and self.rng.randrange(100) < f.MAGIC_CRIT_CHANCE
-        other = unit.status_value(190)
+        other = target.value(190)                                   # Limit Field of the target (0x44ed5b)
         value = f.magic_damage(unit.stat('int') * self.zone_factor(unit, action), power, target.stat('res'),
                                mastery=mastery, modifiers=modifiers,
                                enchant=min(50, 4 * unit.pieces(37) + 2 * unit.pieces(38)),
@@ -969,16 +1048,17 @@ class Battle:
                                damage_cut=cut, resistance=resistance,
                                critical=critical if expect else (f.MAGIC_CRIT_FACTOR if critical else 1.0), other=other)
         damage = max(0.0, value) if expect else max(0, int(value))
-        cap = action.value(296)
-        if cap is not None:
-            damage = min(damage, int(cap))
+        if expect and action.value(296) is not None:
+            damage = min(damage, int(action.value(296)))
         return damage, critical
 
     # --- what the policies ask ---------------------------------------------------------------------------------
     def hit_chance(self, action, target):
         """Chance in [0, 1] that the action lands (docs/FORMULAS.md 2.1, 3). After the formula and its limits (5 to
         100 for a blow, 25 to 95 for a spell), Fixed accuracy (55) and a direct accuracy value (72) set the chance to
-        value * 100, and a sleeping target is hit for certain (0x44aef3 - 0x44afbb; 0x44da4a - 0x44daac)."""
+        value * 100, a sleeping target is hit for certain (0x44aef3 - 0x44afbb; 0x44da4a - 0x44daac), and an action
+        that hits only adults or only minors (149, 150) cannot hit the others (0x44affd - 0x44b0e8, 0x44dab9).
+        For a stab blow this is the chance before Flowing Water Stance (stab_dodge)."""
         unit = action.actor
         roll = action.hit_roll
         if roll is None:
@@ -988,24 +1068,27 @@ class Battle:
                 acc = action.source.accuracy[min(action.level, len(action.source.accuracy)) - 1]
             else:
                 acc = getattr(action.source, 'accuracy', 0.0) or 0.0
+            buffs = sum(self.first(action, unit, e) for e in MAGIC_ACCURACY_BUFFS)
+            if isinstance(action.source, Skill) and action.source.id == LULLABY:
+                buffs += sum(self.first(action, unit, e) for e in LULLABY_ACCURACY)
+            divisor = next((target.value(e) for e in MAGIC_HIT_DIVISORS if target.has(e)), 1.0) or 1.0
             chance = f.magic_hit(acc, unit.stat('int'), target.stat('res'),
-                                 loose_spirit=(action.value(30, 0.0) or 0.0) + unit.status_value(30),
+                                 loose_spirit=self.first(action, unit, 30),
                                  enchant=3 * unit.pieces(39) + 2 * unit.pieces(40),
                                  target_enchant=3 * target.pieces(43) + 2 * target.pieces(44),
-                                 buffs=sum(unit.value(e) for e in MAGIC_ACCURACY_BUFFS),
-                                 target_evasion=sum(target.value(e) for e in MAGIC_EVASION_BUFFS),
-                                 divisor=1.0 + unit.status_value(220))
+                                 buffs=buffs, target_evasion=sum(target.value(e) for e in MAGIC_EVASION_BUFFS),
+                                 divisor=divisor)
         else:
             if isinstance(action.source, Skill):
                 skill_acc = action.value(29, 0.0)
             else:
                 skill_acc = getattr(action.source, 'accuracy', 0.0) or 0.0
             chance = f.physical_hit(unit.stat('dex'), target.stat('agi'), skill_acc or 0.0,
-                                    buffs=sum(unit.value(e) for e in ACCURACY_BUFFS),
+                                    buffs=sum(self.first(action, unit, e) for e in ACCURACY_BUFFS),
                                     target_buffs=sum(target.value(e) for e in EVASION_BUFFS),
                                     enchant=min(50, 4 * unit.pieces(31) + 2 * unit.pieces(32)),
                                     target_enchant=min(50, 4 * target.pieces(35) + 2 * target.pieces(36)),
-                                    divisor=1.0 + unit.status_value(221))
+                                    divisor=1.0 + target.value(221))           # the target's Barcarole (0x44ae0b)
         if action.has(55):
             chance = action.value(55) * 100
         elif action.has(72):
@@ -1014,7 +1097,29 @@ class Battle:
             chance = 100.0
         if roll == 'physical':
             chance = f.clamp(chance, f.HIT_MIN, f.HIT_MAX)
+        for effect, adult in AGE_ONLY.items():
+            if action.has(effect) and target.adult == adult:
+                chance = 0.0
         return int(chance) / 100.0
+
+    def stab_dodge(self, action, target):
+        """Flowing Water Stance (253, 0x44abe0 - 0x44ac18 and 0x44b10e - 0x44b20f): against a stab blow its value is
+        one more evasion term; a roll that lands only without it is a dodge, and the bearer answers with a counter."""
+        if not (action.physical and action.attr == STAB and target.has(STAB_EVASION)) or action.furious:
+            return 0.0
+        if action.has(55) or action.has(72) or 116 in target.statuses:
+            return 0.0
+        unit = action.actor
+        skill_acc = action.value(29, 0.0) if isinstance(action.source, Skill) else             (getattr(action.source, 'accuracy', 0.0) or 0.0)
+        kw = dict(buffs=sum(self.first(action, unit, e) for e in ACCURACY_BUFFS),
+                  enchant=min(50, 4 * unit.pieces(31) + 2 * unit.pieces(32)),
+                  target_enchant=min(50, 4 * target.pieces(35) + 2 * target.pieces(36)),
+                  divisor=1.0 + target.value(221))
+        evasion = sum(target.value(e) for e in EVASION_BUFFS)
+        full = f.physical_hit(unit.stat('dex'), target.stat('agi'), skill_acc or 0.0, target_buffs=evasion, **kw)
+        less = f.physical_hit(unit.stat('dex'), target.stat('agi'), skill_acc or 0.0,
+                              target_buffs=evasion + target.value(STAB_EVASION), **kw)
+        return max(0.0, int(full) - int(less)) / 100.0
 
     def expected_damage(self, action, target):
         """Mean damage of the whole action on one target: hits, accuracy and critical rate taken at their means."""
@@ -1050,6 +1155,13 @@ class Battle:
         return hits
 
     def special_damage(self, action, target):
+        """12.3; then Limit Field of the target: damage + int(damage * value), except for effect 142 (0x44fb17)."""
+        amount = self._special_damage(action, target)
+        if not action.has(142) and target.has(190):
+            amount += int(amount * target.value(190))
+        return max(0, amount)
+
+    def _special_damage(self, action, target):
         unit = action.actor
         if action.has(8):
             return int(action.value(8))
@@ -1105,8 +1217,18 @@ class Battle:
         self.lose_hp(target, amount, unit)
         if unit is not None and unit.side != target.side:
             self.record.add('damage', unit, min(before, amount))
-        if target.alive and target.has(257) and amount > 0:
-            target.tp = min(target.max_tp, target.tp + max(1, int(amount * target.value(257))))
+        if target.alive and amount > 0:
+            # 0x47e64d - 0x47e72e: TP Conversion, then the enchantments 72 and 73
+            gained = max(1, int(amount * target.value(257))) if target.has(257) else 0
+            share = f.TP_CONVERSION_UP * target.pieces(72)
+            floor = f.TP_CONVERSION_FLOOR
+            if target.pieces(73):
+                share += f.TP_CONVERSION_MINI * target.pieces(73)
+                floor = f.TP_CONVERSION_FLOOR_73
+            if share:
+                gained = max(floor, gained + int(amount * min(f.TP_CONVERSION_MAX, share)))
+            if gained:
+                target.tp = min(target.max_tp, target.tp + gained)
         if target.alive and target.has(312) and not target.ecstasy_done and before >= target.max_hp / 2 > target.hp:
             target.ecstasy_done = True
             target.statuses[41] = Status(41, target.value(312), 0, target)
@@ -1114,14 +1236,14 @@ class Battle:
         if target.alive and amount > 0:
             target.statuses.pop(116, None)               # 0x47ea6b - 0x47ea80: damage wakes a sleeping unit
             if target.chant is not None or self.performing(target):
-                self.interrupt(target, amount, critical)
+                self.interrupt(target, amount, critical, action is None or not action.magic)
         if target.unique and target.unique[0] == 447 and unit is not None and not unit.has(307) and amount > 0:
             if self.rng.randrange(100) < 15:
                 self.lose_hp(unit, int(amount * target.unique[1]), target)
 
-    def interrupt(self, target, amount, critical):
+    def interrupt(self, target, amount, critical, physical=True):
         enchant = 0.10 * target.pieces(57) + 0.06 * target.pieces(58) + 0.03 * target.pieces(59)
-        chance = f.interruption_chance(amount, target.max_hp, target.value(264), enchant, critical)
+        chance = f.interruption_chance(amount, target.max_hp, target.value(264), enchant, critical, physical)
         if self.rng.random() < chance:
             # 0x47ea83 - 0x47eabb: the flag of the hit ends the chant, the songs, the dances and the dolls of the target
             if target.chant is not None:
@@ -1183,6 +1305,7 @@ class Battle:
                         if hostile and unit.level > target.level and 'shadow sew' not in target.immune \
                                 and self.roll(value):
                             target.statuses[123] = Status(123, 1, max(1, action.turns or 1), unit)
+                            self.end_parts(target, AILMENT_ENDS[123])
                     else:
                         self.apply_ailment(unit, target, effect, value, action)
                 continue
@@ -1196,9 +1319,8 @@ class Battle:
             if effect == 76 and dealt:
                 unit.tp = min(unit.max_tp, unit.tp + int(dealt * value))
                 continue
-            if effect == 2 and dealt:
-                target.tp = max(0, target.tp - dealt)
-                continue
+            if effect == 2:
+                continue                                # handled in damage: the hit goes to TP
             if effect == 54 and hostile:
                 if 'turn delay' not in target.immune and self.rng.randrange(100) < int(value * 100):
                     self.delay(target)
@@ -1207,9 +1329,10 @@ class Battle:
                 self.heal(action, target, effect, value)
                 continue
             if effect == 106 or effect == 235:
-                for e in [x for x in CURE_ORDER if x in target.statuses][:int(value)]:
+                # 0x481a92 - 0x481b0d: the first min(int(value), 7) entries of the list, each removed when present
+                for e in CURE_ORDER[:min(int(value), len(CURE_ORDER))]:
                     target.statuses.pop(e, None)
-                if value >= 8:
+                if int(value) == CURE_ALL:
                     for e in [e for e, s in target.statuses.items() if s.source is not None and s.source.side != target.side]:
                         target.statuses.pop(e, None)
                 continue
@@ -1233,11 +1356,12 @@ class Battle:
                     target.provoked_by[unit] = value
                     target.statuses[170] = Status(170, value, action.turns, unit)
                 continue
-            if effect in (139,) and hostile and not target.can_act and 'instant death' not in target.immune:
+            if effect == 139 and hostile and 116 in target.statuses and 'instant death' not in target.immune:
                 self.lose_hp(target, target.hp, unit)
                 continue
             if effect == 121 and hostile and 'petrification' not in target.immune and target.resistance(6) < 100:
                 target.statuses[120] = Status(120, 1, 0, unit)
+                self.end_parts(target, AILMENT_ENDS[121])
                 continue
             if effect == 320 and hostile and any(e in target.statuses for e in AILMENTS):
                 self.apply_ailment(unit, target, 119, value, action)
@@ -1314,29 +1438,37 @@ class Battle:
             return True
         start = int(action.turns) if action is not None and action.turns else 0
         target.statuses[effect] = Status(effect, value, 0, unit, data=start)
-        if effect in (116, 120, 114):
-            target.chant = None
+        self.end_parts(target, AILMENT_ENDS.get(effect, ()))
         return True
 
     def stun(self, target):
         """Stun (0x4fa185 - 0x4fa2f2): the chant, song, dance and doll of the target end, its gauge is set to 0 (its
         next turn comes after a whole wait of 1), and the status is removed at once: no turn is skipped."""
-        target.chant = None
-        self.end_performances(target)
+        self.end_parts(target, AILMENT_ENDS[118])
         lost = self.time + 1.0 - target.next_time
         target.next_time = self.time + 1.0
         if target.side == ENEMIES and lost > 0:
             self.record.add('delayed', target, lost)
 
     def end_performances(self, unit):
-        """Effect 425 and stun: the songs and dances the unit keeps up and its dolls end."""
-        for other in self.units:
-            for e, s in list(other.statuses.items()):
-                if s.source is unit and s.kind == 'song':
-                    other.statuses.pop(e)
-        unit.song, unit.dance = [], []
-        for doll in [u for u in self.units if u.owner is unit and u.kind == 'doll' and u.alive]:
-            self.remove_doll(doll)
+        """Effect 425 and an interrupting hit: the songs and dances the unit keeps up and its dolls end."""
+        self.end_parts(unit, ('song', 'dance', 'doll'))
+
+    def end_parts(self, unit, parts):
+        """The four end calls of the program (0x43bc50 chant, 0x43c110 songs, 0x43c600 dances, 0x43c9b0 dolls)."""
+        if 'chant' in parts:
+            unit.chant = None
+        for part in ('song', 'dance'):
+            if part in parts:
+                names = getattr(unit, part)
+                for other in self.units:
+                    for e, s in list(other.statuses.items()):
+                        if s.source is unit and s.kind == 'song' and s.skill in names:
+                            other.statuses.pop(e)
+                setattr(unit, part, [])
+        if 'doll' in parts:
+            for doll in [u for u in self.units if u.owner is unit and u.kind == 'doll' and u.alive]:
+                self.remove_doll(doll)
 
     def delay(self, target):
         """5c: the target swaps its place in the order with the unit right after it."""
@@ -1473,6 +1605,14 @@ class Battle:
                     self.perform(Action(unit, 'skill', skill, skill.levels, action.target))
 
     # --- helpers -----------------------------------------------------------------------------------------------
+    @staticmethod
+    def first(action, unit, effect):
+        """The value the attack functions read for an effect of the user's side: the first found among the effects of
+        the action, then among the statuses and passives of the user (0x47e340 stops at the first match)."""
+        if action.has(effect):
+            return action.value(effect) or 0.0
+        return unit.value(effect)
+
     def roll(self, value):
         """A roll below 100 under int(value * 100), the form of most rolls of the program."""
         return self.rng.randrange(100) < int((value or 0.0) * 100)

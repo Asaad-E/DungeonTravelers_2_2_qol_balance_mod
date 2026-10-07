@@ -19,6 +19,7 @@ ENCHANT_ENMITY_UP, ENCHANT_ENMITY_DOWN = 49, 50
 MASTERY, MASTERY_ALL, DUAL_WIELD, YEARNING = 243, 298, 256, 449
 DOLL_HP = 9999                                                                      # 0x4fd922
 PARTY, ENEMIES = 0, 1
+ADULT_BIT = 13                                                                      # EnemyStatusData 0x3C (0x44b047)
 
 
 class Status:
@@ -78,6 +79,8 @@ class Unit:
         self.defending = False
         self.stolen = False
         self.items = {}
+        self.adult = False                  # 21 or older: character flag 0x0C, enemy flag bit 13 (0x44b006 - 0x44b04c)
+        self.shield = False                 # wears a shield in the off hand (Material Guard, 0x44c6f9 - 0x44c711)
 
     # --- stats -------------------------------------------------------------------------------------------
     def status_value(self, effect, default=0.0):
@@ -244,6 +247,8 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
     unit.skills = {sid: lv for sid, lv in skills.items() if ('Passive', sid) not in data.skills}
     unit.unique = unique
     unit.character = character
+    unit.adult = bool(character and character.get('flag') == 1)
+    unit.shield = any(slot == 1 and data.equipment[equip_id]['category'] == 1 for slot, equip_id, _ in equipment)
     unit.class_id = class_id
     unit.front = front
     unit.items = dict(items or {})
@@ -269,6 +274,7 @@ def build_enemy(data, enemy_id, front=True, name=None):
     unit.enemy_id = enemy_id
     unit.exp, unit.gold = e['exp'], e['gold']
     unit.snack = e['snack']
+    unit.adult = bool(e['flags'] >> ADULT_BIT & 1)
     for attack_id in e['passives']:
         attack = data.attacks.get(attack_id)
         if attack:

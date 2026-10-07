@@ -52,6 +52,8 @@ def options(battle, unit):
             continue
         if skill.category == 'Magic' and (117 in unit.statuses or (battle.zone or {}).get('no_magic')):
             continue
+        if skill.category == 'Technique' and 114 in unit.statuses:     # frozen (atwiki dt2-2 page 125)
+            continue
         level = max(1, min(level, skill.levels))
         if skill.tp[level - 1] > unit.tp:
             continue
