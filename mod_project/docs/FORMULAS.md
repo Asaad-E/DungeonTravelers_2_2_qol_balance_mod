@@ -831,3 +831,10 @@ A sleeping unit takes none.
 * Dolls (`0x4f3290` from `0x4fd867`): a copy of the owner's character (class, level, bonuses, equipment), HP 9,999.
 * Revive item (`0x5101a4 - 0x5101ca`): int(max HP * the value of the item / 100), at least 1.
 * Per-turn damage of effects 199 and 339 is capped by the Damage cap (296) of the action that put it.
+
+### 16.6 Damage taken: waking, and the end of chants, songs, dances and dolls (`0x47ea4d - 0x47eabb`)
+
+When a hit takes HP from a living unit: a sleeping unit wakes (status 116 is removed); and when the interruption roll
+of the hit succeeded (section 2.5: damage against max HP, Concentrate, the enchantments, and the second roll of 33 in
+100 on a critical hit), the chant, the songs, the dances and the dolls of the target all end. A doll is not hurt by
+damage (9,999 HP), but damage to its owner ends it with the same chance as a chant.

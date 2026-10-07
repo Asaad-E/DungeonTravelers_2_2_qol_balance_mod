@@ -224,6 +224,7 @@ class Recorder:
         self.chants_started = {}
         self.chants_done = {}
         self.chants_broken = {}
+        self.performances_broken = {}   # unit -> songs, dances or dolls ended by damage
         self.turns_lost = {}      # unit -> turns it could not act
         self.denied = {}          # enemy -> turns taken from it by the party (sleep, paralysis, Warning Shot ...)
         self.delayed = {}         # enemy -> time its turns were pushed back (stun, turn delay)
@@ -1109,8 +1110,10 @@ class Battle:
             target.ecstasy_done = True
             target.statuses[41] = Status(41, target.value(312), 0, target)
             target.statuses[45] = Status(45, target.value(312), 0, target)
-        if target.alive and target.chant is not None and amount > 0:
-            self.interrupt(target, amount, critical)
+        if target.alive and amount > 0:
+            target.statuses.pop(116, None)               # 0x47ea6b - 0x47ea80: damage wakes a sleeping unit
+            if target.chant is not None or self.performing(target):
+                self.interrupt(target, amount, critical)
         if target.unique and target.unique[0] == 447 and unit is not None and not unit.has(307) and amount > 0:
             if self.rng.randrange(100) < 15:
                 self.lose_hp(unit, int(amount * target.unique[1]), target)
@@ -1119,8 +1122,16 @@ class Battle:
         enchant = 0.10 * target.pieces(57) + 0.06 * target.pieces(58) + 0.03 * target.pieces(59)
         chance = f.interruption_chance(amount, target.max_hp, target.value(264), enchant, critical)
         if self.rng.random() < chance:
+            # 0x47ea83 - 0x47eabb: the flag of the hit ends the chant, the songs, the dances and the dolls of the target
+            if target.chant is not None:
+                self.record.add('chants_broken', target)
+            if self.performing(target):
+                self.record.add('performances_broken', target)
             target.chant = None
-            self.record.add('chants_broken', target)
+            self.end_performances(target)
+
+    def performing(self, unit):
+        return bool(unit.song or unit.dance) or any(u.owner is unit and u.alive and u.kind == 'doll' for u in self.units)
 
     def lose_hp(self, unit, amount, source):
         if not unit.alive or amount <= 0:
