@@ -88,6 +88,7 @@ handles('Battle.turn and lost_turn (12.4, 12.19)', 259, 283, 203, 345)
 handles('Battle.perform', 10, 425, 358, 152, 153, 154, 155, 315, 228, 229, 230, 231, 232, 233, 266, 279, 280, 287, 284,
         313, 123, 300, 348)
 handles('Battle.use_item (15)', 274, 275)
+# zone value 2 (docs/FORMULAS.md 16.2) is applied in Battle.perform
 handles('outside battle: acts on the map, in menus or after the battle (sim/expedition.py)', 17, 18, 20, 22, 107, 108,
         306, 272, 273, 269, 270, 271, 282, 428, 433, 218)
 
@@ -584,6 +585,9 @@ class Battle:
         if action.kind == 'item':
             self.use_item(action)
             return
+        if self.zone.get('no_magic') and unit.kind != 'doll' and action.hit_roll == 'magic':
+            self.record.add('skill_uses', (unit, 'nullified in an anti-magic zone'))
+            return                                  # docs/FORMULAS.md 16.2: magic is nullified there, dolls excepted
         if not action.chanting and action.kind == 'skill' and action.chant_speed is None:
             self.pay(action)
         key = getattr(action.source, 'name', 'Attack')

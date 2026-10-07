@@ -783,8 +783,13 @@ A **joint skill** is computed by the magic formula: when the action is a joint s
 
 A zone slot of value 2 on the cell forbids the actions whose skill carries the magic flag (`0x41a48b`, `0x41c191`,
 `0x41e04f`, the test `0x4e4560`); a battle that starts on it plays the voice `Fleed_Zone_00010` (`0x44906c`). Dolls are
-techniques and fight there. Which fixed battles stand on such cells is not read (the `.map` files and the event
-positions).
+techniques and fight there; the game's own dialogue (event script `St06_c0030`) says the zone nullifies magic for
+everybody. Where it lies is read by `tools/map_data.py`: a map is width x height cells of 42 bytes (loader `0x4b55cf`,
+cell conversion `0x4afa40`: byte 0 the kind, 1 an index, 2 and 3 the zone slots, 6 the zone of the floor). A cell of
+kind 1 runs the event script its index names (the script list of the floor file, count at 0x78), and a script starts a
+fixed battle with the command `1F 01 00` and the battle number. 175 of the 196 fixed battles are placed on their cell;
+8 stand on a no-magic cell, Dragon Papi the one of the story. The checkpoints of the simulator take the zone slots and
+the zone factors of their cell.
 
 ### 16.3 Rank of a unique skill (`0x4f615e - 0x4f61e3`)
 

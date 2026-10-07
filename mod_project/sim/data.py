@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.join(PROJECT_DIR, 'tools')
 WORKBOOK = os.path.join(PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx')
 CRITERIA = os.path.join(PROJECT_DIR, 'data_tables', 'balance_criteria.xlsx')
 CACHE = os.path.join(SIM_DIR, '__pycache__', 'game_data.pkl')
-CACHE_VERSION = 4
+CACHE_VERSION = 5
 LEVELS = [f'Lv{k}' for k in range(1, 11)]
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)
@@ -133,6 +133,8 @@ class GameData:
         self.sp_curve = {}
         self.floors = []
         self.fixed = []
+        self.battle_cells = {}      # (floor, fixed battle) -> [event cells that start it] (tools/map_data.py)
+        self.zone_factors = {}      # (floor, zone index) -> the five factors of its damage zones
         self.summons = []
         self.dolls = []
         self.npcs = []
@@ -268,7 +270,8 @@ def _load_misc(wb, data):
 def _sources():
     files = [WORKBOOK, CRITERIA, __file__]
     for name in ('enemy_data', 'enemy_ai', 'class_data', 'class_modifier_data', 'character_data', 'floor_data',
-                 'summon_data', 'doll_data', 'npc_data', 'random_move_data', 'skill_tree_data', 'item_effect_data'):
+                 'summon_data', 'doll_data', 'npc_data', 'random_move_data', 'skill_tree_data', 'item_effect_data',
+                 'map_data'):
         files.append(os.path.join(TOOLS_DIR, name + '.py'))
     return [(f, os.path.getmtime(f)) for f in files]
 
@@ -306,6 +309,13 @@ def build():
     data.characters = character_data.characters()
     data.floors = floor_data.floors()
     data.fixed = floor_data.fixed_battles()
+    import map_data
+    import zipfile
+    data.battle_cells = map_data.battle_cells()
+    with zipfile.ZipFile(floor_data.FLOOR_ZIP) as archive:
+        for entry in archive.namelist():
+            for k, (_, factors, _) in enumerate(floor_data.read_zones(archive.read(entry))):
+                data.zone_factors[(entry.split('/')[1][:-4], k)] = factors
     data.summons = summon_data.summons()
     data.dolls = doll_data.dolls()
     data.npcs = npc_data.npcs()

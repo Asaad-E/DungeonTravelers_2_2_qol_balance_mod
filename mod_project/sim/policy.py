@@ -50,7 +50,7 @@ def options(battle, unit):
         skill = battle.data.skill_by_id.get(skill_id)
         if skill is None or not usable_in_battle(skill) or not weapon_allows(unit, skill):
             continue
-        if 117 in unit.statuses and skill.category == 'Magic':
+        if skill.category == 'Magic' and (117 in unit.statuses or (battle.zone or {}).get('no_magic')):
             continue
         level = max(1, min(level, skill.levels))
         if skill.tp[level - 1] > unit.tp:

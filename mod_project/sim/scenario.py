@@ -182,9 +182,30 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0):
     return party
 
 
+class Group(list):
+    """The enemies of one battle, with the zone of the cell it is fought on (Battle's zone argument)."""
+    zone = None
+
+
 def fixed_battle(data, floor, number):
     battle = next(b for b in data.fixed if b['floor'] == floor and b['number'] == number)
-    return [build_enemy(data, enemy, front) for enemy, front in battle['enemies']]
+    group = Group(build_enemy(data, enemy, front) for enemy, front in battle['enemies'])
+    group.zone = battle_zone(data, floor, number)
+    return group
+
+
+def battle_zone(data, floor, number):
+    """The zone slots of the event cell that starts a fixed battle and the factors of its floor zone (docs/FORMULAS.md
+    2.5, 16.2); None when the battle is started away from a cell of the floor."""
+    cells = data.battle_cells.get((floor, number))
+    if not cells:
+        return None
+    cell = cells[0]
+    return {'slots': tuple(v for v in cell['slots'] if v), 'factors': data.zone_factors.get((floor, cell['zone']), {}),
+            'no_magic': NO_MAGIC in cell['slots']}
+
+
+NO_MAGIC = 2                 # zone value that forbids magic (docs/FORMULAS.md 16.2)
 
 
 def battle_numbers(cp):
@@ -221,7 +242,7 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
                 unit.statuses, unit.chant, unit.song, unit.dance = {}, None, [], []
             party = [u for u in party if u.kind == 'member']
             battle = Battle(data, party, enemies, rng, choose_member=policy, setup=options,
-                            max_time=float(setup.settings.get('max_time', 400)))
+                            zone=getattr(enemies, 'zone', None), max_time=float(setup.settings.get('max_time', 400)))
             part = battle.run()
             if result is None:
                 result = part
