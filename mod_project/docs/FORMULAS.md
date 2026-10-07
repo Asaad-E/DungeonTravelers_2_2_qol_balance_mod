@@ -103,8 +103,10 @@ attack A = attack A * up factor of the side      when a slot of the cell is 3 (o
 ```
 
 The factors are data, five floats per zone of a floor (`tools/floor_data.py`, `zone_factors`): vanilla uses between
-2 and 2.35 for the up and element factors and between 0.5 and 0.75 for the down factors. Which side 3 and 5 stand
-for against 4 and 6 (the flag the function receives) is not followed to its callers.
+2 and 2.35 for the up and element factors and between 0.5 and 0.75 for the down factors. The flag the function receives
+is the kind of the attack, not a side: a blow passes 1 (`0x44b39d`) and reads slots 3 and 5, a spell passes 0
+(`0x44dcb0`) and reads slots 4 and 6. So 3 and 5 raise and lower physical attack, 4 and 6 magic attack, for every unit
+of both sides; 7 to 11 are fire, water, wind, earth and lightning. Read on 2026-10-07.
 
 ## 3. Magic attack (in the same file, after `0x44d366`) **[message]**
 

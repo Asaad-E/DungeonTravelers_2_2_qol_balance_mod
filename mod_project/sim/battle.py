@@ -1078,16 +1078,17 @@ class Battle:
         return (self.rng.randint(0, 2 * n) - n) / 100.0
 
     def zone_factor(self, unit, action):
-        """docs/FORMULAS.md 2.5: the factors of the zone of the cell the battle started on (setup['zone_slots'])."""
+        """docs/FORMULAS.md 2.5 (0x44fbb0): the factors of the zone of the cell the battle is fought on, for every unit
+        of both sides. A blow (flag 1, 0x44b39d) reads slot 3 (physical attack up) and 5 (down); a spell (flag 0,
+        0x44dcb0) reads 4 (magic attack up) and 6 (down); 7 to 11 raise fire, water, wind, earth and lightning for both."""
         factor = 1.0
-        slots = self.zone.get('slots', ())
         factors = self.zone.get('factors', {})
-        mine = 'a' if unit.side == PARTY else 'b'
-        for slot in slots:
-            if slot in (3, 4) and {3: 'a', 4: 'b'}[slot] == mine:
-                factor *= factors.get('up_' + mine, 1.0)
-            if slot in (5, 6) and {5: 'a', 6: 'b'}[slot] == mine:
-                factor *= factors.get('down_' + mine, 1.0)
+        physical = not action.magic
+        for slot in self.zone.get('slots', ()):
+            if slot == (3 if physical else 4):
+                factor *= factors.get('up_a' if physical else 'up_b', 1.0)
+            if slot == (5 if physical else 6):
+                factor *= factors.get('down_a' if physical else 'down_b', 1.0)
             if slot in (7, 8, 9, 10, 11) and action.attr == slot - 3:
                 factor *= factors.get('element', 1.0)
         return factor

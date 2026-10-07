@@ -11,8 +11,8 @@ it from an unmodified game). Read from the loader (0x4b55cf - 0x4b57d3) and the 
     cell + 6   the zone of the floor the cell belongs to     -> +0x18 (its encounter table, docs/FORMULAS.md 14)
 The rest of the 42 bytes (walls, doors, events) is not read here.
 
-A zone slot of value 2 forbids magic (docs/FORMULAS.md 16.2); 3 and 4 raise attack for one side or the other, 5 and 6
-lower it, 7 to 11 raise one element (2.5).
+A zone slot of value 2 forbids magic (docs/FORMULAS.md 16.2); 3 and 5 raise and lower physical attack, 4 and 6 magic
+attack, for every unit; 7 to 11 raise fire, water, wind, earth or lightning (2.5).
 
 Events: a cell of kind 1 runs the event script whose index is its byte 1, in the list of script names of the floor
 parameter file (count at 0x78, pointer at 0x80; a cell of kind 2 is a chest, its byte 1 the index of the chest table at

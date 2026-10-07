@@ -29,8 +29,9 @@ Parameter file of a floor (little endian), as far as it is read:
                 _CheckEncount, 0x4bc773; docs/FORMULAS.md 14)
     zone+0x20   five more chances in percent, of the special battles of the zone (0x4bc8a1 - 0x4bca73)
     zone+0xB8   five floats: the factors of the damage zones of the map (docs/FORMULAS.md 2.5), read at the
-                start of a battle (0x44994d): attack up for one side, for the other, attack down for one
-                side, for the other, and the factor of an element zone
+                start of a battle (0x44994d): physical attack up, magic attack up, physical attack down, magic
+                attack down, and the factor of an element zone (the zone slots 3, 4, 5, 6 and 7 - 11 of a cell;
+                docs/FORMULAS.md 2.5)
 A cell of the map names its zone (offset 0x18 of its 0x230-byte record, 0x44993a); the map files are not read here.
 Not decoded: the rest of a zone (what lies between 0x34 and 0x5C, the tables
 of what its chests hold after 0x60) and the other tables of the header.
