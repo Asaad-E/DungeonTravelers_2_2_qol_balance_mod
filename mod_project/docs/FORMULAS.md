@@ -29,11 +29,11 @@ Nothing here was measured in the game. Constants are quoted from the code, with 
 ```
 A     = 0.885 * (100 + own DEX) / (100 + target AGI) + accuracy of the skill        (0x44aac1; skill: effect 29)
 B     = (own accuracy buffs - target evasion buffs + A) * 100                        (0x44acdd)
-final = (B + own accuracy enchantments - target evasion enchantments) / Barcarolle   (0x44ae94)
+final = (B + own accuracy enchantments - target evasion enchantments) / (1 + the target's Barcarole)   (0x44ae94)
 final is kept between 5 and 100                                                      (0x44ae84, 0x44ae8c)
 ```
 
-* Accuracy buffs read: effects 166, 197, 337. Evasion buffs read: 164, 198, 338; 253 when a flag of the attack is set.
+* Accuracy buffs read: effects 166, 197, 337. Evasion buffs read: 164, 198, 338; 253 against a stab blow (16.7).
 * Enchantments: each piece counts 4, the mini version 2, the sum capped at 50 (`0x44ad3d`, `0x44ad5b`): accuracy UP is +4 points per piece, MiniUP +2, at most +50; the same for evasion.
 * Later changes of the final value, each with its own message: fixed accuracy (effect 55), a direct accuracy value (effect 72), sleep, and two effects that work only on adults or only on minors.
 
@@ -87,7 +87,7 @@ rate   = rate A - enchantments                                           kept be
 * The chance to break a chant grows with the damage of the hit against the caster's max HP: a hit for 30% of max HP interrupts 20% of the time, a hit for 75% half of the time.
 * The interruption modifier is effect 264 (Concentrate).
 * Enchantments subtract 0.10, 0.06 or 0.03 per piece according to their kind; one adds.
-* The roll is a number below 100 against the rate cut to an integer percent (`0x44d1f3`). **A critical hit rolls a second time**: a number below 100 under 33 also breaks the chant, whatever the damage (`0x44d228 - 0x44d246`). This is the "1 in 3" of the lessons.
+* The roll is a number below 100 against the rate cut to an integer percent (`0x44d1f3`). Only the physical function rolls it; a spell breaks a chant only through the second roll of a critical (16.7). **A critical hit rolls a second time**: a number below 100 under 33 also breaks the chant, whatever the damage (`0x44d228 - 0x44d246`). This is the "1 in 3" of the lessons.
 
 ---
 
@@ -672,7 +672,7 @@ at level 10.
   its bearer) and removes the status when the count reaches 0. A status created with 0 turns is never counted down:
   it stays until something removes it.
 * On the map a turn is **five steps**: the method runs on every step but only every fifth one counts (`0x48d5ed`).
-* Some statuses end at once when their bearer cannot act (their class answers yes at slot `0x8c`).
+* Some statuses end at the tick of a sleeping bearer (their class answers yes at slot `0x8c`; `0x48d5b5`, 16.7).
 * A few classes use the base method `0x48bc50`, which removes the status the first time it runs: they last until
   the next tick of their bearer.
 * **Two statuses of the same effect do not stack**: when a unit receives one it already has, the old one is deleted
@@ -839,4 +839,103 @@ A sleeping unit takes none.
 When a hit takes HP from a living unit: a sleeping unit wakes (status 116 is removed); and when the interruption roll
 of the hit succeeded (section 2.5: damage against max HP, Concentrate, the enchantments, and the second roll of 33 in
 100 on a critical hit), the chant, the songs, the dances and the dolls of the target all end. A doll is not hurt by
-damage (9,999 HP), but damage to its owner ends it with the same chance as a chant.
+damage (9,999 HP), but damage to its owner ends it with the same chance as a chant. (Corrected in 16.7: the rate is
+rolled by the physical function only; a spell interrupts only through the second roll of a critical.)
+
+### 16.7 Read on 2026-10-07: the simulator checked against the program
+
+Every rule the simulator plays was set beside the code that does it. What follows corrects or completes the sections
+above; where the two disagree, this section is the reading.
+
+**Which attack function runs** (`0x420156 - 0x42016d`, `0x421238 - 0x42197d`). An action that carries effect 0 runs the
+physical function (`0x44a850`); one without it runs the magic function (`0x44d370`) when it carries effect 1 or 25, and
+no attack function otherwise (it lands, and its own rolls decide). With effect 25 the magic function gives the hit roll
+and its damage is thrown away (`0x421a83`). The file a skill comes from does not decide it.
+
+**Lists of the attack functions.** Each function searches two lists: the effects of the action followed by the statuses
+of the user, and the statuses of the target. The finder `0x47e340` stops at the first match, so the action's own value
+of an effect hides a status of the same effect on the user (Berserk's 26 counts for a plain attack, not for a skill
+with its own power). Read in the physical function: 26 user; 28, 162, 187, 196, 205, 336, 219 target; 190 (Limit Field)
+target; 191 (Power Charge) user; 179 (Material Guard) target. Critical (`0x44f262 - 0x44f301`): 31, 174, 211 user,
+32 target. Magic power boost: 27 and 173 user (`0x44e66e`, `0x44e6a2`).
+
+**Hit chance of a blow** (`0x44aa08 - 0x44b0e8`). The divisor is 1 + the Barcarole (221) of the **target**. Flowing
+Water Stance (253) is one more evasion term against a stab blow; a roll that lands only without it is a dodge and its
+bearer then performs the skill linked to the status (`0x44b10e - 0x44b20f`). An action with 149 cannot hit an adult,
+one with 150 a minor (`0x44affd - 0x44b0e8`): adult is the flag at 0x0C of PlayerStatusData, bit 13 of the flags of an
+enemy (Conette, Monica, Grishna, Fiora, Souffle, Ist, Yae, Mefmera, Irena, Siena and Luco are adults).
+
+**Hit chance of a spell** (`0x44d759 - 0x44da43`). Own buffs 167, 309, 197, 222, 337, and 278 and 353 for Lullaby
+(skill 205) only; target's evasion 165, 198, 338. The divisor is the value of the target's Nocturne (220), else of its
+Kotodama Blessing (223), else 1: Fairy Nocturne (value 5) divides it by 5.
+
+**After the attack function** (`0x421a6a - 0x422c4b`). A hit that missed skips every check after it (`0x421ada`).
+Then, in order: nullifying enchantments (120 - 123 against blows of slash, stab, bash or any; 124 - 128 against an
+element, any action), All Resistances 100 (192), Nullify Short-Mid (182), Alter Fate, Pretend (310, blows: the damage is
+0 and the bearer performs the linked skill), Elegant Dancing, Knock Down (305, long-range blows, the same), Parry,
+Counter (any action of short or mid range), Sugar Coma, the counts of Clone, Illusion and Barrier System.
+
+**Chant interruption.** The rate of 2.5 is rolled by the physical function only. A spell breaks a chant only through
+the second roll of a critical (`0x44f12c - 0x44f146`).
+
+**Damage C of a blow** (`0x44c5b1 - 0x44c5e9`) is the product of separate factors: the race factor, resistance, the
+element factor, zone and defence, the race guard and the critical factor.
+* Race factor of a member's blow on an enemy (`0x44bfa4 - 0x44c3b0`): 1 + effect 88 + per piece 0.30 (Grand), 0.15
+  (UP) or 0.60 (Mega) of the enchantment against the target's race; against Fruit 1.0 (Mega) and 0.5 (Grand); 1.0 per
+  piece of 196 and 209 against the enemies the program lists as felines (`0x6d3820`) and sea creatures (`0x6d38b0`).
+* Race guard of an enemy's blow on a member (`0x44bd3b - 0x44bf09`; spell `0x44e914 - 0x44eb36`): 1 - 0.05 per piece of
+  the 5% enchantment and 0.10 per piece of the 10% one against the attacker's race.
+* Element factor (`0x44c3b5 - 0x44c4c5`): 1 + 0.2 per piece of "(element) attack for both sides UP" (251 - 255) on the
+  attacker and on the target.
+* A sleeping target takes int(damage * 3 / 2), blow (`0x44cd3b`) and spell (`0x44eff9`). Enchantment 280 adds 15% of
+  the damage against a target with an ailment (`0x44cd5a`, `0x44f009`); 271 adds 0.1 per piece to the other bonus while
+  the attacker is at full HP (`0x44c9af`, `0x44ec6f`).
+* Element boost of a spell (`0x44e019 - 0x44e0c2`): 0.2 for the element's status on the caster, plus 0.2 per piece of
+  the element's magic buff (78 - 82) and of 251 - 255, counted on the caster **and** on the target.
+
+**Turns.** A turn lost to petrification, sleep, paralysis, Mesmerized or the Erotic Dance ends through phase 4
+(`0x4392ef`, `0x436cf9`, `0x4372ea`) without state 16: no status of the unit ticks or counts down on it, so a sleeping
+unit gets no recovery check and sleeps until a hit wakes it or it is cured. The next turn comes after the wait of a plain
+action (kind 7: `0x449a24`, `0x449d87`, `0x44a31c`). Warning Shot replaces the command with a skill that does nothing
+(`0x4371c3`) and state 16 runs.
+
+**What an ailment ends when it lands** (status creation `0x4f9930`; end calls `0x43bc50` chant, `0x43c110` songs,
+`0x43c600` dances, `0x43c9b0` dolls): freeze ends dances and dolls; sleep, stun, Shadow Sew and effect 121 end all four;
+silence ends the chant and the songs; petrification ends none. A frozen member cannot use techniques, a silenced one
+spells and songs (atwiki dt2-2 page 125). Effect 139 kills only a sleeping target (slot `0xbc`). The statuses whose class
+answers yes at slot `0x8c` end at the tick of a sleeping bearer (`0x48d5b5 - 0x48d5d7`), not of any bearer that cannot
+act.
+
+**Durations set by passives**: the third argument of CreateCommand is the turns of a status and the starting recovery
+chance of an ailment (`0x47b2ea`). Dark Aura's debuffs last 4 turns (`0x423e30`); Ecstasy's buffs 3 (`0x47f5fc`); Slow
+Target puts Slow with recovery 5 and speed -0.75 for 5 turns (`0x4244c7`, `0x424559`); Sugar Coma Slow with recovery 5
+and speed -0.2 for 3 turns (`0x42291d`, `0x4229df`); Tranquil Song 4 (`0x43752e`). The command methods at slots 0x40 and
+0x48 take no argument, so the value pushed before them is that third argument.
+
+**Cures** (`0x481a92 - 0x481b15`): effect 106 looks at the first min(int(value), 7) entries of its list and removes each
+one present; a value of exactly 8 also clears the second list. The ATK debuff of the table is never reached.
+
+**Enchantments of a character** (`0x4f8270 - 0x4f8fcf`). The stacking flag is bit 0 of EnchantData 0x20 (memory 0x38
+of the record of map `0x7389d0`): set, every piece counts; clear, one piece only (`0x4f5499`, `0x4f8311`). Speed UP has
+it set, which agrees with the player test of atwiki page 105. Per piece, on the figures before equipment (growth, bonus
+and resets): a stat UP adds int(stat / 10), at least 4; MiniUP int(stat / 20), at least 2; DOWN takes int(stat / 10);
+"All stats +N" adds N; Max HP and Max TP the same shares, their sums kept within half the base; resistances +20, +10 and
+-20 for one, +50, +15, +7, -15 for the five elements, +25, +10, +5, -10 for the three physical kinds, Mega +100 and
+Grand +50 for one, each resistance sum kept within -100 and 100; the line enchantments 222 - 225 and 281 add 8%, 4%
+(int(stat / 25)) or 2% (int(stat / 50)) of their stats to a member of the front or the back line. The enchantments
+129 - 136 and 139 stop their ailment before its roll, 137 all of them and Shadow Sew (`0x481f2d - 0x4838ae`).
+
+**Resistances of a character** (`0x4f5f04 - 0x4f5f74`): each of the eight is the character's own bonus plus the bonus of
+the resets, before the enchantments. The resets therefore add up to 50 to every resistance (atwiki page 79 says so).
+
+**Ambushes** (`0x44a3d0`, called at `0x4491cf - 0x4491e8`): only in a random battle (flag 0x32 of the battle), unless a
+unit has Absolute Preemptive Attack (321). The party strikes first on a roll below 100 under 6 + Preemptive Attack
+Chance (268) * 100 of the party, failing that the enemies on 4 + theirs; Preemptive Attack Evasion (267) of the other
+side rolls to stop it. The side that strikes first starts with full gauges.
+
+**Random targets** (`0x43f8a2 - 0x43f9a4`): one target per hit, picked with equal chances; with effect 112 a unit is not
+picked twice.
+
+**Piercing against enemies** (`0x43e1ad - 0x43e476`): the units numbered n + 23 to n + 25 (from the front row) or
+n - 25 to n - 23 (from the back): the unit behind and its two diagonals on a grid 24 wide. How an enemy's number comes
+from the formation is still to be followed (assumption A10).

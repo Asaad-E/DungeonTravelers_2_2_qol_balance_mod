@@ -100,6 +100,7 @@ handles('Battle.critical (4)', *CRIT_TERMS, 32, 70, 110, 125)
 handles('Battle.wait (5)', *SPEED_BUFFS, *CHANT_SPEED_BUFFS, 261, 276, 277, 352)
 handles('Battle.interrupt (2.5)', 264)
 handles('Battle.number_of_hits (12.2)', 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 178, 210, 251, 252)
+handles('Battle.perform (random targets, 0x43f8a2)', 112)
 handles('Battle.special_damage (12.3)', 8, 12, 138, 140, 141, 142, 434, 435)
 handles('Battle.apply_ailment (5b, 5c)', *AILMENTS)
 handles('Battle.after_hit (12.9)', 74, 75, 76, 2, 54, 60, 61, 84, 106, 235, 262, 304, 293, 320, 121, 139, 25, 170, 66,
@@ -681,8 +682,13 @@ class Battle:
             return
         hits = self.number_of_hits(action)
         if action.target_code == RANDOM:
-            pool = targets
-            targets = [self.rng.choice(pool) for _ in range(max(1, hits))]
+            # 0x43f8a2 - 0x43f9a4: one target per hit, picked with equal chances; with effect 112 a unit is picked
+            # once at most (the picked one leaves the list)
+            pool = list(targets)
+            if action.has(112):
+                targets = self.rng.sample(pool, min(len(pool), max(1, hits)))
+            else:
+                targets = [self.rng.choice(pool) for _ in range(max(1, hits))]
             hits = 1
         # Counter Whip: the first target that has it strikes first
         for t in targets:

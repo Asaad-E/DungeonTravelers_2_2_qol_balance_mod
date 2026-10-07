@@ -7,7 +7,8 @@ PlayerStatusData.bin. The last one is the table the code calls by character id (
 
 PlayerStatusData.bin, 144 bytes, as the code reads it:
     0x00 id            0x04 base class (ClassData id)      0x08 unique skill (UniqueSkillData id)
-    0x0C a flag        0x10 count and 0x14.. up to three FoodMenu ids; 0x20 count and 0x24.. up to three more
+    0x0C 1 for an adult (the actions with effect 149 or 150 test it, 0x44b01e)
+    0x10 count and 0x14.. up to three FoodMenu ids; 0x20 count and 0x24.. up to three more
                        (by their place next to the food events of Pep: liked and disliked meals; not followed in code)
     0x30, 0x34, 0x38   three ints, not identified
     0x3C twenty-one floats: what each event adds to her Pep. The code indexes them by event
