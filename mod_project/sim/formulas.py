@@ -88,6 +88,32 @@ ENCHANT_LINE = {222: (True, {'atk': 0.08}), 223: (True, {'atk': 25, 'def': 25}),
 ENCHANT_NULLIFY_AILMENT = {129: 118, 130: 114, 131: 113, 132: 116, 133: 117, 134: 119, 135: 120, 136: 115, 139: 122}
 ENCHANT_NULLIFY_ALL = 137
 
+# --- enchantments in the damage of a hit (0x44bcd5 - 0x44c4c5 for a blow, 0x44e019 - 0x44eb36 for a spell) ---------
+# a member's blow on an enemy of a race: (enchantment, share per piece) added to the race factor (0x44bfa4 - 0x44c35a)
+RACE_ATTACK = {8: ((170, 0.3), (171, 0.15), (203, 0.6)), 7: ((172, 0.3), (173, 0.15), (204, 0.6)),
+               6: ((174, 0.3), (175, 0.15), (205, 0.6)), 4: ((176, 0.6), (177, 0.3), (178, 0.15)),
+               5: ((179, 0.3), (180, 0.15), (206, 0.6)), 9: ((181, 0.3), (182, 0.15), (207, 0.6)),
+               2: ((183, 0.3), (184, 0.15), (208, 0.6)), 0: ((185, 1.0), (186, 0.5))}
+# enemies the program lists as felines (0x6d3820, 23 ids) and sea creatures (0x6d38b0, 25 ids): enchantments 196 and
+# 209 add 1 per piece against them (0x44c364 - 0x44c3b0)
+FELINES = (210, 211, 212, 215, 216, 217, 220, 221, 222, 250, 251, 252, 253, 290, 291, 292, 805, 806, 807, 810, 811,
+           812, 1000)
+SEA_CREATURES = (59, 60, 61, 101, 102, 103, 104, 193, 194, 195, 204, 205, 206, 207, 215, 216, 217, 257, 783, 784,
+                 785, 799, 839, 840, 842)
+RACE_SPECIAL = ((196, FELINES), (209, SEA_CREATURES))
+# a hit of an enemy of a race on a member: the member's (5% piece, 10% piece) take 0.05 and 0.10 from a factor of 1
+# (0x44bd3b - 0x44bf09; spell 0x44e914 - 0x44eb36)
+RACE_GUARD = {8: (227, 228), 7: (229, 230), 6: (231, 232), 4: (233, 234), 5: (235, 236), 9: (237, 238), 2: (239, 240),
+              0: (241, 242), 3: (243, 244)}
+RACE_GUARD_SHARE = (0.05, 0.10)
+# "<element> attack for both sides UP": 0.2 per piece on the attacker and on the target, a factor of a blow
+# (0x44c3b5 - 0x44c4c5) and part of the element boost of a spell (0x44e044 - 0x44e0c2), where the element's magic
+# buff (78 - 82) is counted on both sides as well
+BOTH_SIDES_ELEMENT = {4: 251, 5: 252, 6: 253, 7: 254, 8: 255}
+ELEMENT_ENCHANT_SHARE = 0.2
+FULL_HP_BONUS = (271, 0.1)            # 0x44c9af, 0x44ec6f: at full HP each piece adds 0.1 to the other bonus
+AILING_TARGET_BONUS = (280, 0.15)     # 0x44cd5a, 0x44f009: damage + int(damage * 0.15) against a target with an ailment
+
 
 def clamp(value, low, high):
     return max(low, min(high, value))

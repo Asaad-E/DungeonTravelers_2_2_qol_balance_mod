@@ -967,6 +967,9 @@ class Battle:
         if 116 in target.statuses and not self.special(action):
             # 0x44cd3b (blow), 0x44eff9 (spell): a sleeping target takes int(damage * 3 / 2); the hit wakes it
             amount = amount * f.SLEEP_DAMAGE[0] // f.SLEEP_DAMAGE[1]
+        enchant, share = f.AILING_TARGET_BONUS
+        if not self.special(action) and action.actor.pieces(enchant) and any(e in target.statuses for e in AILMENTS):
+            amount += int(amount * share)               # 0x44cd5a, 0x44f009
         if action.magic:
             cap = action.value(296)
             if cap is not None:
@@ -1014,8 +1017,9 @@ class Battle:
             race += action.value(88)
         if action.has(87) and target.race == 5:
             return 0
+        race *= self.race_factor(unit, target) * self.element_factor(unit, target, action.attr)
         # 0x44c723 - 0x44c75f: Limit Field of the target, Power Charge of the user
-        other = target.value(190) + unit.status_value(191)
+        other = target.value(190) + unit.status_value(191) + self.full_hp_bonus(unit)
         guard = target.statuses.get(MATERIAL_GUARD)
         if guard is not None and (guard.source is None or (guard.source.alive and guard.source.shield)):
             other += guard.value                    # Material Guard (0x44c6bb - 0x44c720)
@@ -1058,7 +1062,11 @@ class Battle:
         element_boost = 0.0                                         # 0x44e019 - 0x44e3f4, one block per element
         if attr in ELEMENT_BOOST:
             status, enchant = ELEMENT_BOOST[attr]
-            element_boost = 0.2 * (status in unit.statuses) + 0.2 * unit.pieces(enchant)
+            # 0x44e019 - 0x44e0c2: the element's magic buff and the both-sides enchantment count on caster and target
+            both = f.BOTH_SIDES_ELEMENT[attr]
+            element_boost = f.ELEMENT_ENCHANT_SHARE * ((status in unit.statuses) + unit.pieces(enchant)
+                                                       + target.pieces(enchant) + unit.pieces(both)
+                                                       + target.pieces(both))
         resist_index = RESIST_INDEX.get(attr)
         resistance = target.resistance(resist_index) if resist_index is not None else 0
         power_boost = self.first(action, unit, 27) + self.first(action, unit, 173)      # 0x44e66e, 0x44e6a2
@@ -1068,7 +1076,8 @@ class Battle:
             critical = 1.0 + (f.MAGIC_CRIT_FACTOR - 1.0) * f.MAGIC_CRIT_CHANCE / 100.0 if unit.has(301) else 1.0
         else:
             critical = unit.has(301) and self.rng.randrange(100) < f.MAGIC_CRIT_CHANCE
-        other = target.value(190)                                   # Limit Field of the target (0x44ed5b)
+        other = target.value(190) + self.full_hp_bonus(unit)       # Limit Field of the target (0x44ed5b)
+        cut += self.race_guard(unit, target) - 1.0                  # 0x44e914 - 0x44eb36
         value = f.magic_damage(unit.stat('int') * self.zone_factor(unit, action), power, target.stat('res'),
                                mastery=mastery, modifiers=modifiers,
                                enchant=min(50, 4 * unit.pieces(37) + 2 * unit.pieces(38)),
@@ -1219,6 +1228,35 @@ class Battle:
         if n <= 0:
             return 0.0
         return (self.rng.randint(0, 2 * n) - n) / 100.0
+
+    def race_factor(self, unit, target):
+        """The race factor of a blow beyond effect 88 (0x44bcd5 - 0x44c3b0): a member hitting an enemy adds the shares of
+        her race enchantments; an enemy hitting a member is cut by the member's guard against its race."""
+        if unit.side == PARTY and target.side == ENEMIES:
+            bonus = sum(unit.pieces(e) * share for e, share in f.RACE_ATTACK.get(target.race, ()))
+            enemy_id = getattr(target, 'enemy_id', None)
+            bonus += sum(unit.pieces(e) for e, ids in f.RACE_SPECIAL if enemy_id in ids)
+            return 1.0 + bonus
+        return self.race_guard(unit, target)
+
+    @staticmethod
+    def race_guard(unit, target):
+        if unit.side == ENEMIES and target.side == PARTY and unit.race in f.RACE_GUARD:
+            small, large = f.RACE_GUARD[unit.race]
+            return 1.0 - f.RACE_GUARD_SHARE[0] * target.pieces(small) - f.RACE_GUARD_SHARE[1] * target.pieces(large)
+        return 1.0
+
+    @staticmethod
+    def element_factor(unit, target, attr):
+        enchant = f.BOTH_SIDES_ELEMENT.get(attr)
+        if enchant is None:
+            return 1.0
+        return 1.0 + f.ELEMENT_ENCHANT_SHARE * (unit.pieces(enchant) + target.pieces(enchant))
+
+    @staticmethod
+    def full_hp_bonus(unit):
+        enchant, share = f.FULL_HP_BONUS
+        return share * unit.pieces(enchant) if unit.hp == unit.max_hp else 0.0
 
     def zone_factor(self, unit, action):
         """docs/FORMULAS.md 2.5 (0x44fbb0): the factors of the zone of the cell the battle is fought on, for every unit
