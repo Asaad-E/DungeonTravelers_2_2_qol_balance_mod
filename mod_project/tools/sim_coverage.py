@@ -3,16 +3,20 @@ The checklist that closes phase 1 (the simulator), generated: docs/generated/SIM
 
     python mod_project/tools/sim_coverage.py
 
-It counts, from the code of sim/ and the workbooks, never by hand:
+It counts, from the code of sim/ and the workbooks, never by hand, the five steps of phase 1 (BALANCE_PLAN.md
+section 3, approach of 2026-10-07) and the engine they rest on:
     effects   every effect a skill of the player uses (or a unique skill), and whether sim/battle.py acts on it
               (HANDLED), with an assumption of data_tables/sim_setup.xlsx (ASSUMED), or not at all
     AI        the commands, sources and target kinds of the enemy scripts sim/ai.py runs, and the scripts that use
               something it does not run
-    rows      the rows of the sheet Criticisms of balance_criteria.xlsx that have a measure (sheet Measures of
-              sim_setup.xlsx naming a function of sim/measures.py that exists)
+    builds    the roles of the sheet Roles with a reference build of the guides (sheet Builds, its rows naming a source)
     tests     the calibration tests of the sheet Calibration that exist in tests/
+    check     the check of a change (sim/measures.py, function check_change)
+    postgame  the checkpoints of the postgame and the superbosses (sheet Checkpoints, chapter "Postgame") against the
+              bosses the postgame summary of the GameFAQs guide lists (sheet PostgameBosses)
     assumptions  the rows of the sheet Assumptions still open
-Phase 1 is closed when every count of the table "To close" is at its target.
+Phase 1 is closed when every count of the table "To close" is at its target. The verdicts of the rows of Criticisms
+are the checklist of phase 2, written by tools/verdicts.py.
 """
 import ast
 import os
@@ -36,6 +40,12 @@ def rows(path, sheet):
     it = openpyxl.load_workbook(path, read_only=True)[sheet].iter_rows(values_only=True)
     header = next(it)
     return [dict(zip(header, r)) for r in it if any(v is not None for v in r)]
+
+
+def optional_rows(path, sheet):
+    """The rows of a sheet that a later step of phase 1 creates; none while it does not exist."""
+    wb = openpyxl.load_workbook(path, read_only=True)
+    return rows(path, sheet) if sheet in wb.sheetnames else []
 
 
 def player_effects(data):
@@ -112,17 +122,14 @@ def main():
     gap_scripts = sorted({g[0] for g in gaps})
     scripts = sum(1 for e in data.enemies.values() if e['ai'])
 
-    criticisms = [r for r in rows(CRITERIA, 'Criticisms') if r['ID'] and r['Status'] not in ('out of scope',)
-                  and not str(r['Status']).startswith('merged')]
-    try:
-        measure_rows = {r['Row']: r for r in rows(SETUP, 'Measures')}
-    except KeyError:
-        measure_rows = {}
-    with_measure = [r for r in criticisms if r['ID'] in measure_rows
-                    and hasattr(measures, str(measure_rows[r['ID']]['Measure']))]
-    regression = rows(CRITERIA, 'Regression')
-    reg_measure = [r for r in regression if r['ID'] in measure_rows
-                   and hasattr(measures, str(measure_rows[r['ID']]['Measure']))]
+    roles = rows(SETUP, 'Roles')
+    builds = optional_rows(SETUP, 'Builds')
+    built_roles = {r['Role'] for r in builds if r.get('Role') and r.get('Source')}
+    with_build = [r for r in roles if r['Role'] in built_roles]
+    has_check = hasattr(measures, 'check_change')
+    checkpoints = rows(SETUP, 'Checkpoints')
+    postgame = [r for r in checkpoints if str(r.get('Chapter') or '').startswith('Postgame')]
+    postgame_bosses = optional_rows(SETUP, 'PostgameBosses')
 
     calibration = rows(SETUP, 'Calibration')
     tests = test_names()
@@ -141,9 +148,11 @@ def main():
            f'| AI sources read | {len(sources)} of {len(enemy_ai.SOURCES)} | all |',
            f'| AI target kinds | {len(targets)} of {len(enemy_ai.TARGETS)} | all |',
            f'| Enemy scripts that use nothing the runner lacks | {scripts - len(gap_scripts)} of {scripts} | all |',
-           f'| Rows of Criticisms with a measure | {len(with_measure)} of {len(criticisms)} | all |',
-           f'| Rows of Regression with a measure | {len(reg_measure)} of {len(regression)} | all |',
+           f'| Roles with a reference build of the guides (sheet `Builds`) | {len(with_build)} of {len(roles)} | all |',
            f'| Calibration tests written | {len(calibrated)} of {len(calibration)} | all |',
+           f'| Check of a change (`sim/measures.py`, `check_change`) | {"yes" if has_check else "no"} | yes |',
+           f'| Postgame and superboss checkpoints | {len(postgame)} of {len(postgame_bosses) or "?"} '
+           f'(sheet `PostgameBosses`{"" if postgame_bosses else " not written yet"}) | all |',
            f'| Assumptions still open | {len(open_rows)} of {len(assumptions)} | 0 (a "choice" row is a stated decision) |',
            '']
     out += ['## Effects the battle does not act on yet', '', '| Effect | Name | Used by |', '|---|---|---|']
@@ -154,8 +163,8 @@ def main():
     out += [f'| {r["ID"]} | {r["State"]} | {r["Rule used by the model"]} |' for r in assumptions]
     out += ['', '## Enemy scripts the runner cannot follow in full', '', '| Enemy | What |', '|---|---|']
     out += [f'| {name} ({eid}) | {what} |' for eid, name, what in gaps[:60]] or ['| - | - |']
-    out += ['', '## Rows of Criticisms without a measure', '', '| Row | Subject | Test |', '|---|---|---|']
-    out += [f'| {r["ID"]} | {r["Subject"]} | {r["Test"]} |' for r in criticisms if r not in with_measure] or ['| - | - | - |']
+    out += ['', '## Roles without a reference build', '', '| Role |', '|---|']
+    out += [f'| {r["Role"]} |' for r in roles if r not in with_build] or ['| - |']
     out += ['', '## Calibration', '', '| ID | Test | In tests/ |', '|---|---|---|']
     out += [f'| {r["ID"]} | {r["Test"]} | {"yes" if r in calibrated else "no"} |' for r in calibration]
     os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
@@ -164,8 +173,9 @@ def main():
     print(f'effects {len(exact) + len(assumed)}/{len(used)} (assumed {len(assumed)}), missing {len(missing)}; '
           f'AI commands {len(commands & all_commands)}/{len(all_commands)}, sources {len(sources)}/{len(enemy_ai.SOURCES)}, '
           f'targets {len(targets)}/{len(enemy_ai.TARGETS)}, scripts {scripts - len(gap_scripts)}/{scripts}; '
-          f'criticisms {len(with_measure)}/{len(criticisms)}, regression {len(reg_measure)}/{len(regression)}; '
-          f'calibration {len(calibrated)}/{len(calibration)}; assumptions open {len(open_rows)}/{len(assumptions)}')
+          f'builds {len(with_build)}/{len(roles)}; calibration {len(calibrated)}/{len(calibration)}; '
+          f'check {"yes" if has_check else "no"}; postgame {len(postgame)}/{len(postgame_bosses) or "?"}; '
+          f'assumptions open {len(open_rows)}/{len(assumptions)}')
     print(f'written {OUTPUT}')
 
 
