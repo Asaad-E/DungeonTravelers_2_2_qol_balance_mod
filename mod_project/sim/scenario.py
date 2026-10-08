@@ -68,6 +68,15 @@ def allocate_skills(data, role, level):
             budget -= cost
             levels[skill] = levels.get(skill, 0) + 1
 
+    plan = role.get('Skill plan')
+    if plan:
+        # the order of a guide: each entry 'Name:target' (a level or 'max') is raised in turn, as far as the points go
+        for entry in str(plan).split(';'):
+            name, _, target = entry.strip().partition(':')
+            skill = by_name.get(name.strip())
+            if skill is not None:
+                raise_to(skill, skill.levels if target.strip() in ('', 'max') else int(target))
+        return {skill.id: lv for skill, lv in levels.items()}
     for skill in wanted:
         raise_to(skill, 1)
     for skill in wanted:
