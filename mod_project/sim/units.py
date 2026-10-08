@@ -6,7 +6,7 @@ modifiers (10.4), statuses on stats (12.6), enemy records, summons (11) and doll
 as one entry per effect id, because a status of the same effect replaces the old one (12.18).
 """
 from sim import formulas as f
-from sim.data import NEUTRAL, SHORT
+from sim.data import NEUTRAL, SHORT, MID, LONG
 
 STATS = ('atk', 'def', 'int', 'res', 'dex', 'agi')
 STAT_BUFF = {'atk': 41, 'def': 42, 'int': 43, 'res': 44, 'dex': 45, 'agi': 46}     # 12.6
@@ -348,15 +348,26 @@ def summon_base_floor(data, form):
     return {s: enemy[s] for s in STATS} if enemy else {s: 0 for s in STATS}
 
 
-def build_doll(owner, doll, level):
+DOLL_RANGES = {'short': SHORT, 'mid': MID, 'long': LONG}
+SOUL_SEAL = 314
+
+
+def build_doll(owner, doll, level, data=None):
     """A doll (11.1): 9,999 HP, the stats of its owner (the code feeds the stat function its owner's character
-    number; docs/FORMULAS.md 11.1 leaves the class row unconfirmed), a life in turns, a hidden action each turn."""
-    unit = Unit(doll['name'], owner.side, owner.level, DOLL_HP, 0, dict(owner.base), weight=owner.weight,
+    number; docs/FORMULAS.md 11.1 leaves the class row unconfirmed), a life in turns, a hidden action each turn.
+    Soul Seal (314) of the owner adds int(stat of the enemy its sealbook seals * value) to each of the six stats
+    (0x4fdfd0 - 0x4fe102; a sealbook's id is the id of the enemy it seals)."""
+    base = dict(owner.base)
+    if data is not None and owner.has(SOUL_SEAL) and getattr(owner, 'sealbook', None) in data.enemies:
+        sealed = data.enemies[owner.sealbook]
+        for s in STATS:
+            base[s] += int(sealed[s] * owner.value(SOUL_SEAL))
+    unit = Unit(doll['name'], owner.side, owner.level, DOLL_HP, 0, base, weight=owner.weight,
                 swing=0.0, kind='doll')
     unit.owner = owner
     unit.life = doll['turns'][level - 1]
     unit.doll = doll
     unit.doll_level = level
-    unit.attack_range = doll['range'] if doll['range'] is not None else SHORT
+    unit.attack_range = DOLL_RANGES.get(doll['range'], SHORT)
     unit.front = owner.front
     return unit

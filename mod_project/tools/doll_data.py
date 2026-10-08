@@ -32,7 +32,10 @@ DOLLS = {95: (228, 'Technique', (101,), SHORT),
          97: (230, 'Technique', (104,), None),
          98: (231, 'Technique', (103,), LONG),
          99: (232, 'Technique', (105,), None),
-         100: (233, 'Magic', (235, 236, 237, 238, 239), None)}
+         100: (233, 'Magic', (235, 236, 237, 238, 239), None),
+         # Star Dust Arrow: the same function builds its arrows (0x484491 - 0x48449d, hidden action 106), as many as
+         # effect 146 says; no doll effect of its own
+         49: (None, 'Technique', (106,), LONG)}
 DOLL_HP = 9999                 # 0x4fd922, 0x4fd929
 TURNS_EFFECT, COUNT_EFFECT, MASTERY_EFFECT = 147, 146, 286
 LEVELS = [f'Lv{k}' for k in range(1, 11)]

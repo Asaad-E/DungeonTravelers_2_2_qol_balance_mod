@@ -82,6 +82,10 @@ AILMENT_ENDS = {114: ('dance', 'doll'), 116: ('chant', 'song', 'dance', 'doll'),
                 118: ('chant', 'song', 'dance', 'doll'), 121: ('chant', 'song', 'dance', 'doll'),
                 123: ('chant', 'song', 'dance', 'doll')}
 MATERIAL_GUARD = 179
+GENJIMARU, GENJIMARU_ACTION = 427, 107       # 0x48b1f0; the hidden skill of the unit it creates
+SACRIFICE, MAX_HP_DRAIN, EXTRA_TARGETS = 77, 133, 137
+SPECIAL_SLEEP = (143, 10.0, 5)               # 0x484150: a sleep command of value 10.0 (0x4841da), recovery 5 (0x484201)
+MURDER, DARK_QUEST, KNOCK_DOWN, PRETEND, DEMON_WALL, ENEMIES_FLEE = 258, 263, 305, 310, 356, 432
 # the third argument of CreateCommand (0x47b2ea: the turns of a status, the starting recovery chance of an ailment)
 # as the passives pass it: Dark Aura 0x423e30, Ecstasy 0x47f5fc, Slow Target 0x4244c7 / 0x424559, Sugar Coma 0x42291d
 DARK_AURA_TURNS, ECSTASY_TURNS = 4, 3
@@ -114,6 +118,9 @@ handles('Battle.perform', 10, 425, 358, 152, 153, 154, 155, 315, 228, 229, 230, 
         313, 123, 300, 348)
 handles('Battle.use_item (15)', 274, 275)
 handles('Battle.ambush (0x44a3d0)', 267, 268, 321)
+handles('Battle: the effects read on 2026-10-08 (docs/FORMULAS.md 16.8)', 77, 133, 137, 143, 146, 147, 258, 263, 305, 310,
+        314, 356, 427, 432)
+handles('Battle.before_action and undaunted (12.19)', 350, 355, 357, 446, 448)
 # zone value 2 (docs/FORMULAS.md 16.2) is applied in Battle.perform
 handles('outside battle: acts on the map, in menus or after the battle (sim/expedition.py)', 17, 18, 20, 22, 107, 108,
         306, 272, 273, 269, 270, 271, 282, 428, 433, 218)
@@ -672,8 +679,11 @@ class Battle:
                 action = self.random_move(action, random_effect)
                 if action is None:
                     return
-        if any(action.has(e) for e in (228, 229, 230, 231, 232, 233)):
+        if any(action.has(e) for e in (228, 229, 230, 231, 232, 233, 146)):
             self.make_doll(action)
+            return
+        if action.has(GENJIMARU):
+            self.make_genjimaru(action)
             return
         if unit.unique and unit.unique[0] == 348 and action.physical and self.roll(unit.unique[1]):
             action.furious = True                     # Furious Strike: ignores defence and cannot miss (12.19)
@@ -716,6 +726,9 @@ class Battle:
                 if s is not None and self.roll(s.value):
                     cover.statuses.pop(171, None)
         self.guarding = set()
+        if action.has(SACRIFICE) and unit.alive:
+            # 0x481060: the user takes damage equal to its own max HP
+            self.lose_hp(unit, unit.max_hp, unit)
         for target, dealt in damage_by_target.items():
             if unit.side == ENEMIES and target.side == PARTY:
                 self.record.largest_hit[unit] = max(self.record.largest_hit.get(unit, 0), dealt)
@@ -740,6 +753,10 @@ class Battle:
             if chosen is None:
                 return []
             if code == SINGLE:
+                if action.has(EXTRA_TARGETS):
+                    # 0x42017a - 0x4202f3: the next int(value) - 1 units of the target's side in the order of turns
+                    order = sorted((t for t in foes if t is not chosen), key=lambda t: (t.next_time, t.position))
+                    return [chosen] + order[:max(0, int(action.value(EXTRA_TARGETS)) - 1)]
                 return [chosen]
             if code == ROW:
                 return [t for t in foes if t.front == chosen.front]
@@ -902,8 +919,15 @@ class Battle:
             return True
         if target.unique and target.unique[0] == 349 and self.roll(target.unique[1]):
             return True
+        if target.has(PRETEND) and action.physical and self.roll(target.value(PRETEND)):
+            self.counter(target, unit)      # 0x421db8: no damage; the bearer performs the skill linked to it (A17)
+            return True
         if 285 in target.statuses and (action.physical or action.magic):
             target.statuses.pop(285)
+            return True
+        if target.has(KNOCK_DOWN) and action.physical and action.reach == LONG and \
+                (unit.side == ENEMIES or unit.weapon is not None) and self.roll(target.value(KNOCK_DOWN)):
+            self.counter(target, unit)      # 0x4221ee - 0x422540: a long-range blow with a weapon (A17)
             return True
         if 180 in target.statuses and action.physical:
             if self.roll(target.statuses[180].value):
@@ -970,6 +994,11 @@ class Battle:
             amount = self.physical_damage(action, target, index, critical)
         if amount is None:
             return None
+        if not self.special(action):
+            # Demon Wall (0x44cbf0, 0x44ef59): the first unit of the target's side that has it cuts the damage
+            wall = next((u for u in self.allies(target) if u.has(DEMON_WALL)), None)
+            if wall is not None:
+                amount = max(0, int(amount + amount * wall.value(DEMON_WALL)))
         if 116 in target.statuses and not self.special(action):
             # 0x44cd3b (blow), 0x44eff9 (spell): a sleeping target takes int(damage * 3 / 2); the hit wakes it
             amount = amount * f.SLEEP_DAMAGE[0] // f.SLEEP_DAMAGE[1]
@@ -985,6 +1014,9 @@ class Battle:
             target.tp = max(0, target.tp - amount)
             return amount
         self.take_damage(target, amount, action, critical)
+        if critical and action.physical and target.alive and (action.has(MURDER) or action.actor.has(MURDER)):
+            # Murder (0x44d26f - 0x44d2cf): a critical blow applies instant death at the value, through its roll (5b)
+            self.apply_ailment(action.actor, target, 119, self.first(action, action.actor, MURDER), action)
         return amount
 
     def physical_damage(self, action, target, index, critical, expect=False):
@@ -1037,6 +1069,9 @@ class Battle:
             other += (unit.pep - 100) / max(1.0, unit.unique[1]) / 100.0
         if action.has(136):
             other += action.value(136) * index
+        if action.has(DARK_QUEST) or unit.has(DARK_QUEST):
+            # 0x44c81a - 0x44c896: value times the ailments the attacker carries
+            other += self.first(action, unit, DARK_QUEST) * sum(1 for e in unit.statuses if e in AILMENTS)
         if action.has(71):                  # 0x44c60e: once for every buff or debuff on the target (slot 0x88 of a status)
             other += action.value(71) * sum(1 for e in target.statuses if e not in AILMENTS)
         attack_zone = self.zone_factor(unit, action)
@@ -1432,8 +1467,20 @@ class Battle:
                     target.alive = False
                     self.record.kills += 1
                 continue
-            if effect == 425:
-                target.chant = None
+            if effect == 425:                   # 0x48b060: the four end calls
+                self.end_parts(target, ('chant', 'song', 'dance', 'doll'))
+                continue
+            if effect == MAX_HP_DRAIN and hostile and dealt:
+                # 0x483ee0: the target's max HP falls by int(damage * value) (its modifier at 0x98)
+                target.max_hp_base = max(1, target.max_hp_base - int(dealt * value))
+                target.hp = min(target.hp, target.max_hp)
+                continue
+            if effect == SPECIAL_SLEEP[0]:
+                self.apply_ailment(unit, target, 116, SPECIAL_SLEEP[1], action, start=SPECIAL_SLEEP[2])
+                continue
+            if effect == ENEMIES_FLEE and hostile:
+                if self.setup.get('random_battle'):     # 0x48b3c0: only where running away is allowed
+                    target.alive = False
                 continue
             if effect == 170:
                 if hostile:
@@ -1498,7 +1545,7 @@ class Battle:
         else:
             target.statuses[effect] = Status(effect, value + bonus, 0, singer, name, 'song')
 
-    def apply_ailment(self, unit, target, effect, value, action):
+    def apply_ailment(self, unit, target, effect, value, action, start=None):
         """docs/FORMULAS.md 5b: blocked by immunity or the same ailment; then the chance against resistance."""
         name = AILMENTS[effect]
         if name in target.immune or effect in target.statuses:
@@ -1523,7 +1570,8 @@ class Battle:
         if effect == 118:
             self.stun(target)
             return True
-        start = int(action.turns) if action is not None and action.turns else 0
+        if start is None:
+            start = int(action.turns) if action is not None and action.turns else 0
         target.statuses[effect] = Status(effect, value, 0, unit, data=start)
         self.end_parts(target, AILMENT_ENDS.get(effect, ()))
         return True
@@ -1561,7 +1609,10 @@ class Battle:
                             other.statuses.pop(e)
                 setattr(unit, part, [])
         if 'doll' in parts:
-            for doll in [u for u in self.units if u.owner is unit and u.kind == 'doll' and u.alive]:
+            # the arrows of Star Dust Arrow cannot be interrupted, they end with their owner (GameFAQs guide; A28);
+            # Genjimaru is not a doll of a doll skill (A18)
+            for doll in [u for u in self.units if u.owner is unit and u.kind == 'doll' and u.alive
+                         and not getattr(u, 'arrow', False) and not getattr(u, 'genjimaru', False)]:
                 self.remove_doll(doll)
 
     def delay(self, target):
@@ -1622,23 +1673,48 @@ class Battle:
 
     # --- dolls, random moves, items ------------------------------------------------------------------------------
     def make_doll(self, action):
+        """0x484330: as many units as effect 146 says (one for every doll, two or three arrows of Star Dust Arrow),
+        each with the life of effect 147 plus effect 297 of the owner. The arrows are not dolls of the Doll Master:
+        they do not count against Double Puppet, and a new cast replaces the arrows of the one before (A28)."""
         owner = action.actor
         doll = next((d for d in self.data.dolls if d['skill'] == action.source.id), None)
         if doll is None:
             return
-        keep = 2 if owner.has(313) else 1
-        own = [u for u in self.units if u.owner is owner and u.kind == 'doll' and u.alive]
-        while len(own) >= keep:
-            self.remove_doll(own.pop(0))
-        unit = build_doll(owner, doll, action.level)
-        unit.life += int(owner.passives.get(297, 0.0))
-        unit.position = len(self.units)
-        unit.next_time = self.time + self.wait(unit)
-        self.units.append(unit)
+        arrow = doll['effect'] is None
+        if arrow:
+            for u in [u for u in self.units if u.owner is owner and getattr(u, 'arrow', False) and u.alive]:
+                self.remove_doll(u)
+        else:
+            keep = 2 if owner.has(313) else 1
+            own = [u for u in self.units if u.owner is owner and u.kind == 'doll' and u.alive
+                   and not getattr(u, 'arrow', False)]
+            while len(own) >= keep:
+                self.remove_doll(own.pop(0))
+        for _ in range(max(1, int(action.value(146, 1) or 1))):
+            unit = build_doll(owner, doll, action.level, self.data)
+            unit.arrow = arrow
+            unit.life += int(owner.passives.get(297, 0.0))
+            unit.position = len(self.units)
+            unit.next_time = self.time + self.wait(unit)
+            self.units.append(unit)
 
     def remove_doll(self, doll):
         doll.alive = False
         doll.chant = None
+
+    def make_genjimaru(self, action):
+        """Effect 427 (0x48b1f0): unless one is already in the battle, a unit built like a doll (constructor 0x4fd840,
+        9,999 HP) that performs hidden skill 107 on its turns. How long it stays is not read: until the battle ends
+        (A18)."""
+        if any(u.alive and getattr(u, 'genjimaru', False) for u in self.units):
+            return
+        record = {'skill': GENJIMARU_ACTION, 'name': 'Genjimaru', 'effect': GENJIMARU, 'range': None,
+                  'turns': [int(self.max_time) + 1], 'actions': [{'skill': GENJIMARU_ACTION}]}
+        unit = build_doll(action.actor, record, action.level, self.data)
+        unit.genjimaru = True
+        unit.position = len(self.units)
+        unit.next_time = self.time + self.wait(unit)
+        self.units.append(unit)
 
     def doll_action(self, doll):
         actions = doll.doll['actions']

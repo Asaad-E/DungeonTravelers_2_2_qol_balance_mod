@@ -401,9 +401,11 @@ class ExePatches(unittest.TestCase):
 
 class Dolls(unittest.TestCase):
     def test_every_doll_has_its_hidden_action(self):
-        """The code pairs each doll skill with action skills (0x484150); the game names them after the doll."""
+        """The code pairs each doll skill with action skills (0x484150); the game names them after the doll. The same
+        function builds the arrows of Star Dust Arrow (0x484491), which have no doll effect."""
         dolls = doll_data.dolls()
-        self.assertEqual(len(dolls), 6)
+        self.assertEqual(len(dolls), 7)
+        self.assertEqual([d['skill'] for d in dolls if d['effect'] is None], [49])
         for doll in dolls:
             with self.subTest(doll=doll['name']):
                 self.assertTrue(doll['actions'])

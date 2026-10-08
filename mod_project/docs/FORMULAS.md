@@ -699,7 +699,7 @@ Each unique skill is a status of one effect, and its value by level is its chanc
     Arcane Shield         the roll is 15 in 100, written in the program; the value is the share of the damage sent back
 
 Without a roll: Positive Trance (2.4), Elbow Grease (2.2), Wreathed in Glory (adds to the speed of her skills), Maximum
-Maid (the bonus of maid skills), Demon Wall (damage from three races), Yearning (0.01 per point on each class
+Maid (the bonus of maid skills), Demon Wall (less damage to its whole side, 16.8), Yearning (0.01 per point on each class
 modifier).
 
 ## 13. Pep and the data of a character (`tools/character_data.py`) **[code]**
@@ -939,3 +939,27 @@ picked twice.
 **Piercing against enemies** (`0x43e1ad - 0x43e476`): the units numbered n + 23 to n + 25 (from the front row) or
 n - 25 to n - 23 (from the back): the unit behind and its two diagonals on a grid 24 wide. How an enemy's number comes
 from the formation is still to be followed (assumption A10).
+
+### 16.8 Read on 2026-10-08: the last effects the simulator lacked
+
+| Effect | What it does | Where |
+|---|---|---|
+| 77 Sacrifice (Primevil) | After the action the user takes damage equal to its own max HP | `0x481060` |
+| 133 (Life Bringer) | The target loses max HP for good, int(damage of the hit * value), through the modifier of its max HP (unit slot 0x2c adds to 0x98) | `0x483ee0 - 0x483f8a` |
+| 137 (Megaton Press) | After the chosen target, the next int(value) - 1 units of its side in the order of turns are hit too | `0x42017a - 0x4202f3` |
+| 143 Special Sleep (Showtime) | A sleep command of value 10.0, recovery chance starting at 5, through the roll of sleep: certain unless immune, resistance 100 or a nullifying piece | `0x484150 - 0x48424d` |
+| 146, 147 | The doll function builds as many units as 146 says, each living 147 turns plus 297 of the owner; Star Dust Arrow goes through it too and builds two or three arrows whose action is hidden skill 106 (a shot at random targets, 1 to 3 hits, one per target) | `0x484330`, `0x484491 - 0x48449d` |
+| 258 Murder | A critical blow by an action or a user that carries it applies instant death at its value, through the roll of instant death | `0x44d26f - 0x44d2cf` |
+| 263 Dark Quest | Value times the ailments the attacker carries, added to the "other" bonus of a blow | `0x44c81a - 0x44c896` |
+| 305 Knock Down | A long-range blow (by a member only when she holds a weapon) on its bearer rolls value * 100; on a success it does nothing and the bearer performs the skill linked to the status | `0x4221ee - 0x422540` |
+| 310 Pretend | A blow on its bearer rolls value * 100; on a success it does nothing and the bearer performs the skill linked to the status | `0x421db8 - 0x42206c` |
+| 314 Soul Seal | A doll of a bearer adds to each of its six stats int(stat of the enemy its sealbook seals * value) | `0x4fdfd0 - 0x4fe102` |
+| 356 Demon Wall | When any unit of the target's side has it, the damage of a blow or a spell becomes max(0, int(damage * (1 + value))); the values are negative. The code tests no race | `0x44cbf0 - 0x44cc4e`, `0x44ef59` |
+| 427 Genjimaru | Unless one is in the battle, a unit built like a doll that performs hidden skill 107 | `0x48b1f0` |
+| 432 Enemies Flee | Each enemy targeted is marked as gone when the battle allows running away | `0x48b3c0` |
+
+After these, the battle acts on every effect a skill of the player uses (228 of 228). Still not followed: the skill
+linked to 253, 305 and 310 (a plain attack in the model, A17), what ends the arrows of Star Dust Arrow beyond their
+life (A28: the GameFAQs guide says interruption does not and the death of the Sniper does), how long Genjimaru stays
+(A18). Fixed on the way: the range of a doll's plain attack was read as text and never matched.
+
