@@ -9,7 +9,7 @@ of the program taken (Battle.expected_damage), within the TP the role allows its
 """
 from sim import formulas as f
 from sim.battle import (Action, AILMENTS, CURE_ORDER, ITEM_CURE_ONE, ITEM_CURE_ALL, RANDOM_MOVES, SONG_EFFECTS,
-                        DANCE_EFFECTS)
+                        DANCE_EFFECTS, AILMENT_RESIST)
 from sim.data import (Skill, SINGLE, RANDOM, ROW, PIERCE, ALL, ALLY, ALLY_ROW, ALLIES, SELF, NO_TARGET, EVERYONE)
 from sim.units import PARTY
 
@@ -362,6 +362,36 @@ def act_status(policy, battle, unit, arg):
     return None
 
 
+def act_ailment(policy, battle, unit, arg):
+    """Put one of the ailments named (arg: effect ids, '117;116', in order of preference) on an enemy that can take
+    it: not immune, not carrying it, and the chance of the roll (formulas.ailment_chance against its resistance) at
+    least ailment_min_chance of the settings. Shadow Sew (123) asks only for a target of lower level."""
+    floor = float(policy.setup.get('ailment_min_chance', 0.5)) * 100
+    best, best_key = None, None             # among the targets the roll can reach, the one of most max HP (the boss)
+    for effect in ailments_of(arg):
+        name = AILMENTS[effect]
+        for skill, level in options(battle, unit):
+            action = Action(unit, 'skill', skill, level)
+            value = next((v for e, kind, v in action.effects() if e == effect and kind != 2), None)
+            if value is None or action.target_code not in (SINGLE, RANDOM, ROW, PIERCE, ALL):
+                continue
+            for target in enemies_of(battle, unit):
+                if name in target.immune or effect in target.statuses or battle.nullified(target, effect):
+                    continue
+                if effect == 123:
+                    chance = value * 100 if unit.level > target.level else 0.0
+                else:
+                    index = AILMENT_RESIST.get(effect)
+                    chance = f.ailment_chance(value, target.resistance(index) if index is not None else 0)
+                key = (target.max_hp, chance)
+                if chance >= floor and (best_key is None or key > best_key):
+                    best, best_key = Action(unit, 'skill', skill, level), key
+                    best.target = target
+        if best is not None:
+            return best                     # the first ailment of the list that can land is preferred
+    return None
+
+
 def act_dispel(policy, battle, unit, arg):
     buffed = [t for t in enemies_of(battle, unit) if battle.dispellable(t)]
     if not buffed:
@@ -445,7 +475,7 @@ def act_skill(policy, battle, unit, arg):
 
 ACTIONS = {
     'damage': act_damage, 'heal': act_heal, 'revive': act_revive, 'status': act_status, 'dispel': act_dispel,
-    'doll': act_doll, 'tp': act_tp, 'cure': act_cure, 'item': act_item, 'skill': act_skill,
+    'doll': act_doll, 'tp': act_tp, 'cure': act_cure, 'ailment': act_ailment, 'item': act_item, 'skill': act_skill,
     'defend': lambda p, b, u, a: Action(u, 'defend'),
 }
 
