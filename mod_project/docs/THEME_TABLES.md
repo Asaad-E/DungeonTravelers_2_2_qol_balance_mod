@@ -165,3 +165,26 @@ audit of the simulator before relying on these figures; they are to be measured 
 
 Supports in an attacker slot, the Diva kept (wins C34 / C40 / P24): Papillon 100 / 80 / 60, Bishop 100 / 87 / 93,
 Etoile 100 / 80 / 100, second Maid 100 / 80 / 73, **Sage 100 / 7 / 47** (J23).
+
+## Milestone 3: T05 Classes, measured again after the audit of the simulator (2026-10-09)
+
+The audit (`docs/generated/SIM_AUDIT.md`) fixed faults that hid whole classes: the Kunoichi fought without a throwing
+weapon or a second blade (atwiki dt2-2 page 142), Trump Card was never used (the boss condition was never true), the
+random skills of the Trickster line scored nothing, buff rules took hit properties for statuses, the Sage had no rule
+for her party buffs, nobody cured petrification. Same measure as above.
+
+| Class | Share of party damage C34 / C40 / P24 | Wins C40 / P24 | Before the audit | Reading |
+|---|---|---|---|---|
+| Samurai, Sniper (the band) | 41 - 51% | 73 - 87% | 37 - 45% | reference |
+| Dark Lord | 55 / 66 / 62% | 80 / 100% | | top |
+| Kunoichi | 17 / 23 / 15% | 73 / 73% | 6 / 11 / 4% | still the lowest attacker (F04, J27, F88) |
+| Magical Princess | 27 / 33 / 31% | 87 / 60% | 24 / 30 / 24% | a little behind (F05, J25) |
+| Joker | 42 / 53 / 20% | 47 / 60% | 30 / 28 / 25% | strong early, falls late (F17, J32) |
+| Mistress | 36 / 41 / 19% | 100 / 93% | 29 / 37 / 17% | weak late in damage, wins |
+| Soul Summoner | 52 / 45 / 32% | 60 / 67% | 47 / 46 / 24% | fine; no sealbook modelled (Soul Seal) |
+| Papillon | 30 / 41 / 34% | 73 / 80% | 27 / 37 / 30% | on par |
+| Treasure Hunter | 32 / 30 / 53% | 20 / 73% | 31 / 29 / 46% | fine late, weak at C40 |
+| Witch (mage) | 69 / 51 / 40% | 53 / 87% | 67 / 49 / 42% | above early (T04) |
+
+Supports in the same slot (wins C34 / C40 / P24): Bishop 100 / 53 / 93, **Sage 100 / 67 / 80** (was 100 / 7 / 47; the
+C34 fight lasts 62 s against 37), Etoile 100 / 80 / 100, second Maid 100 / 73 / 87.
