@@ -242,6 +242,8 @@ class Group(list):
 def fixed_battle(data, floor, number):
     battle = next(b for b in data.fixed if b['floor'] == floor and b['number'] == number)
     group = Group(build_enemy(data, enemy, front) for enemy, front in battle['enemies'])
+    for unit, slot in zip(group, battle.get('slots', ())):
+        unit.slot = slot
     group.zone = battle_zone(data, floor, number)
     group.floor, group.number = floor, number
     return group

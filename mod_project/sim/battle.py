@@ -820,8 +820,12 @@ class Battle:
         built at the start of a battle (0x43def0). For the party it depends on how many stand in front (F) and behind
         (B), in party order: F = B, front i has back i; B = F + 1, back i and i + 1; B = F + 2, the middle one; and
         the other way round for a back member. Every case is the overlap of two rows centred on each other, which is
-        the rule used here. Enemies are linked by their place in the formation (0x43e185, not followed): the same
-        rule on the order of the formation (A10)."""
+        the rule used here. An enemy is numbered 1000 + its slot in front and 1024 + its slot behind (0x439e0e); a
+        front enemy n keeps n + 23, n + 24 and n + 25, a back one n - 25 to n - 23 (0x43e1ad - 0x43e476): the enemies
+        of the other row whose slot is within one of its own."""
+        if unit.side == ENEMIES and getattr(unit, 'slot', None) is not None:
+            return [u for u in self.units if u.side == ENEMIES and u.kind == 'enemy' and u.alive
+                    and u.front != unit.front and getattr(u, 'slot', None) is not None and abs(u.slot - unit.slot) <= 1]
         rows = {}
         for u in self.units:
             if u.side == unit.side and u.kind not in ('doll', 'summon', 'npc'):

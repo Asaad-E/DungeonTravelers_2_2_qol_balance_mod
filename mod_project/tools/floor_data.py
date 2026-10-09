@@ -74,7 +74,9 @@ def read_formation(blob, base):
     ids = struct.unpack_from(f'<{ENEMY_SLOTS}i', blob, base + 0x04)
     front = blob[base + 0x34:base + 0x34 + ENEMY_SLOTS]
     return {'number': number, 'chance': struct.unpack_from('<i', blob, base + 0x40)[0],
-            'enemies': [(enemy, bool(front[slot])) for slot, enemy in enumerate(ids) if enemy != -1]}
+            'enemies': [(enemy, bool(front[slot])) for slot, enemy in enumerate(ids) if enemy != -1],
+            # the slot of each enemy: the program numbers it 1000 + slot in front, 1024 + slot behind (0x439e0e)
+            'slots': [slot for slot, enemy in enumerate(ids) if enemy != -1]}
 
 
 def read_fixed(blob):
@@ -147,7 +149,8 @@ def fixed_battles(path=FLOOR_ZIP):
         for entry in sorted(archive.namelist()):
             dungeon, name = entry.split('/')
             for battle in read_fixed(archive.read(entry)):
-                found.append({'dungeon': dungeon, 'floor': name[:-4], 'number': battle['number'], 'enemies': battle['enemies']})
+                found.append({'dungeon': dungeon, 'floor': name[:-4], 'number': battle['number'], 'enemies': battle['enemies'],
+                              'slots': battle['slots']})
     return found
 
 
