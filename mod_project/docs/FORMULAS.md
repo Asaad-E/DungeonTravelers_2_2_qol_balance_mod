@@ -635,6 +635,10 @@ A counter is built by `_SetupCounter` (`0x425930`).
   `0x48bf90` returns the value of the passive it is asked for, and for songs (279) and dances (280) adds
   `min(0.05, 0.02 * pieces + 0.01 * mini pieces)`. So Maid Mastery 10 turns First Aid 25% into 35% and Cook 15% into
   25%, as the GameFAQs guide says.
+* Dispel (effect 74, `0x4226c4`): one roll of `value * 100`; on a success every status of the list the target gives
+  (`0x4fb1f0`, the statuses whose class answers yes at slot 0x64) is removed. Always: 27, 171, 325 - 329, 101, 102,
+  181, 189, 191, 193, 194; while their value is not negative (`0x479df0`): 21, 26, 28, 31, 41 - 46, 161 - 169,
+  172 - 174, 184 - 186. Nothing else: not songs, dances, ailments or effect 32 (`sim/battle.py` DISPEL_ALWAYS).
 * Recovery after a battle (`0x43d6a7 - 0x43d8b4`; `sim/progression.py`): over the living members, the values of
   effect 272 (HP) and 273 (TP) of Generous Heart are summed, each sum is capped at 0.30 (`0x6d9330`), and what
   `0x48bf90` adds for effect 353 (Maximum Maid) of each of them is added outside the cap. Every member then recovers

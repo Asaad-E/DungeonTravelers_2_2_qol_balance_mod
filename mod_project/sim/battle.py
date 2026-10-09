@@ -72,6 +72,11 @@ LULLABY, LULLABY_ACCURACY = 205, (278, 353)
 # the value of an effect of these classes is its figure plus the value of the user's passives of these effects (the
 # getters at slot 0x2c: 0x483a20 for 128, 129, 130, 168; 0x48a8f0 for 272, 273; each asks 0x48bf90, which returns the
 # passive's value): Maid Mastery and Maximum Maid raise First Aid, Cook, Self-Sacrifice, Clean and the like
+# what a dispel removes (0x4fb1f0; slot 0x64 of each status class, 0x4151e0 yes, else slot 0x54): always these, ...
+DISPEL_ALWAYS = (27, 171, 325, 326, 327, 328, 329, 101, 102, 181, 189, 191, 193, 194)
+# ... and these while their value is not negative (0x479df0: value >= 0), a buff and not a debuff
+DISPEL_IF_RAISED = (21, 26, 28, 31, 41, 42, 43, 44, 45, 46, 161, 162, 163, 164, 165, 166, 167, 168, 169, 172, 173,
+                    174, 184, 185, 186)
 VALUE_BONUS = {128: (278, 353), 129: (278, 353), 130: (278, 353), 168: (278, 353), 272: (278,), 273: (278,)}
 MAGIC_HIT_DIVISORS = (220, 223)
 AGE_ONLY = {149: False, 150: True}          # an action with 149 cannot hit an adult, one with 150 a minor (0x44affd)
@@ -1653,12 +1658,17 @@ class Battle:
             target.next_time, nxt.next_time = nxt.next_time, target.next_time
             self.record.add('denied', target, 0.0)
 
+    @staticmethod
+    def dispellable(target):
+        """The statuses a dispel (effect 74) removes: the list the unit gives at slot 0x94 (0x4fb1f0), every status
+        whose class answers yes at slot 0x64; for most classes that slot asks slot 0x54, which for the stat classes is
+        "value >= 0" (0x479df0). See DISPEL_ALWAYS and DISPEL_IF_RAISED."""
+        return [e for e, s in target.statuses.items()
+                if e in DISPEL_ALWAYS or (e in DISPEL_IF_RAISED and (s.value or 0) >= 0)]
+
     def dispel(self, target):
-        for e, s in list(target.statuses.items()):
-            if e in AILMENTS:
-                continue
-            if s.source is not None and s.source.side == target.side and s.kind != 'song':
-                target.statuses.pop(e)
+        for e in self.dispellable(target):
+            target.statuses.pop(e)
 
     def heal(self, action, target, effect, value):
         unit = action.actor

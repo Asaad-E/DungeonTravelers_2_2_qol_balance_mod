@@ -183,17 +183,13 @@ CONDITIONS = {
                                          if m.kind == 'member' and m is not u),
     'self_tp_below': lambda b, u, a: u.max_tp and u.tp_ratio < _fraction(a, 0.3),
     'self_hp_below': lambda b, u, a: u.hp_ratio < _fraction(a, 0.5),
-    'enemy_buffed': lambda b, u, a: any(_has_buff(t) for t in enemies_of(b, u)),
+    'enemy_buffed': lambda b, u, a: any(b.dispellable(t) for t in enemies_of(b, u)),
     'ally_ailing': lambda b, u, a: any(any(e in m.statuses for e in AILMENTS) for m in b.allies(u) if m.kind == 'member'),
     'turn_at_most': lambda b, u, a: u.turns_taken <= int(_fraction(a, 1)),
     'enemies_at_least': lambda b, u, a: len(enemies_of(b, u)) >= int(_fraction(a, 2)),
     'boss': lambda b, u, a: b.setup.get('boss', False),
     'no_doll': lambda b, u, a: not any(x.owner is u and x.alive and x.kind == 'doll' for x in b.units),
 }
-
-
-def _has_buff(unit):
-    return any(s.source is not None and s.source.side == unit.side and e not in AILMENTS for e, s in unit.statuses.items())
 
 
 # --- actions ----------------------------------------------------------------------------------------------------
@@ -333,7 +329,7 @@ def act_status(policy, battle, unit, arg):
 
 
 def act_dispel(policy, battle, unit, arg):
-    buffed = [t for t in enemies_of(battle, unit) if _has_buff(t)]
+    buffed = [t for t in enemies_of(battle, unit) if battle.dispellable(t)]
     if not buffed:
         return None
     for skill, level in options(battle, unit):
