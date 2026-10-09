@@ -1526,10 +1526,15 @@ class Battle:
                     and self.roll(target.value(249)) and target.alive:
                 self.counter(target, unit)
 
+    @staticmethod
+    def performance_slots(unit, dance=False):
+        """Songs (or dances) kept up at once: two with Self Session (287) or On Stage (284), else one."""
+        return 2 if unit.has(284 if dance else 287) else 1
+
     def perform_song(self, singer, action, target, effect, value, dance):
         bonus_effect, ench_up, ench_mini = (280, 302, 303) if dance else (279, 300, 301)
         bonus = singer.value(bonus_effect, 0.0) + min(0.05, 0.02 * singer.pieces(ench_up) + 0.01 * singer.pieces(ench_mini))
-        keep = 2 if singer.has(284 if dance else 287) else 1
+        keep = self.performance_slots(singer, dance)
         own = singer.dance if dance else singer.song
         name = action.source.name
         if name not in own:

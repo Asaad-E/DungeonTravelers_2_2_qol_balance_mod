@@ -188,18 +188,25 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0):
             u.front = False
     if not any(u.front for u in party) and party:
         max(party, key=lambda u: u.max_hp).front = True
+    # one bag for the whole party, as in the game: the items of the sheet Kit, kit_count of each times its share
+    count = int(setup.settings.get('kit_count', 0) or 0)
+    bag = {int(r['Item_ID']): int(round(count * float(r['Share'] or 1))) for r in setup.kit}
+    for u in party:
+        u.items = bag
     return party
 
 
 class Group(list):
     """The enemies of one battle, with the zone of the cell it is fought on (Battle's zone argument)."""
     zone = None
+    floor = number = None
 
 
 def fixed_battle(data, floor, number):
     battle = next(b for b in data.fixed if b['floor'] == floor and b['number'] == number)
     group = Group(build_enemy(data, enemy, front) for enemy, front in battle['enemies'])
     group.zone = battle_zone(data, floor, number)
+    group.floor, group.number = floor, number
     return group
 
 
@@ -276,6 +283,16 @@ def checkpoint_fight(data, setup, cid, level=None, crown=None):
     return party, groups
 
 
+def prepare(setup, party, enemies):
+    """The resistances a player raises for a battle the guides warn about (sheet Preparation): each member's
+    resistance is brought up to the value of the row, never lowered."""
+    for row in setup.preparation:
+        if row['Floor'] == getattr(enemies, 'floor', None) and int(row['Battle']) == getattr(enemies, 'number', None):
+            index, value = int(row['Resistance index']), int(row['Value'])
+            for unit in party:
+                unit.resist_base[index] = max(unit.resist_base[index], value)
+
+
 def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle_setup=None):
     """Plays runs battles; party_factory and enemy_factory build fresh units for each. Returns the results."""
     runs = int(runs if runs is not None else setup.settings['runs'])
@@ -294,6 +311,7 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
             for unit in party:                       # a battle that follows another: HP and TP carry over
                 unit.statuses, unit.chant, unit.song, unit.dance = {}, None, [], []
             party = [u for u in party if u.kind == 'member']
+            prepare(setup, party, enemies)
             battle = Battle(data, party, enemies, rng, choose_member=policy, setup=options,
                             zone=getattr(enemies, 'zone', None), max_time=float(setup.settings.get('max_time', 400)))
             part = battle.run()

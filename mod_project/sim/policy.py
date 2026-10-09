@@ -8,7 +8,7 @@ skill (or the plain attack) with the most expected damage per unit of time on th
 of the program taken (Battle.expected_damage), within the TP the role allows itself.
 """
 from sim import formulas as f
-from sim.battle import Action, AILMENTS
+from sim.battle import Action, AILMENTS, SONG_EFFECTS, DANCE_EFFECTS
 from sim.data import (Skill, SINGLE, RANDOM, ROW, PIERCE, ALL, ALLY, ALLY_ROW, ALLIES, SELF, NO_TARGET, EVERYONE)
 from sim.units import PARTY
 
@@ -276,14 +276,22 @@ def act_revive(policy, battle, unit, arg):
 def act_item(policy, battle, unit, arg, target=None):
     """Use an item the member carries: arg 'heal', 'tp' or 'revive' (item effect types 0/3, 1, 8)."""
     kinds = {'heal': (0, 3), 'tp': (1,), 'revive': (8,)}.get(arg, ())
+    hurt = sum(1 for m in battle.allies(unit) if m.kind == 'member' and m.alive and m.hp_ratio < 0.6)
+    usable = []
     for item_id, count in unit.items.items():
         item = battle.data.items.get(item_id)
         if count > 0 and item and any(k in kinds for k, _ in item['effects']):
-            if target is None:
-                members = [m for m in battle.allies(unit) if m.kind == 'member']
-                target = min(members, key=lambda m: m.hp_ratio if arg != 'tp' else m.tp_ratio)
-            return Action(unit, 'item', item=item_id, target=target)
-    return None
+            # a party item when two or more members are hurt, else the largest single one
+            party = any(k == 3 for k, _ in item['effects'])
+            size = max((v or 0) for k, v in item['effects'] if k in kinds)
+            usable.append(((party == (hurt >= 2)), size, item_id))
+    if not usable:
+        return None
+    item_id = max(usable)[2]
+    if target is None:
+        members = [m for m in battle.allies(unit) if m.kind == 'member']
+        target = min(members, key=lambda m: m.hp_ratio if arg != 'tp' else m.tp_ratio)
+    return Action(unit, 'item', item=item_id, target=target)
 
 
 def act_status(policy, battle, unit, arg):
@@ -293,6 +301,11 @@ def act_status(policy, battle, unit, arg):
         if not gives(skill, effect):
             continue
         action = Action(unit, 'skill', skill, level)
+        # a performer whose song or dance slots are full keeps what it performs instead of swapping one for another
+        dance = effect in DANCE_EFFECTS
+        if effect in SONG_EFFECTS + DANCE_EFFECTS and skill.name not in (unit.dance if dance else unit.song) and \
+                len(unit.dance if dance else unit.song) >= battle.performance_slots(unit, dance):
+            continue
         code = action.target_code
         if code in (SELF, NO_TARGET):
             if effect in unit.statuses:

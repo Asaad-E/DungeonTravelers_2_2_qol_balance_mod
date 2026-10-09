@@ -28,6 +28,8 @@ class Setup:
                       for r in _rows(wb, 'Joins')]
         self.assumptions = _rows(wb, 'Assumptions')
         self.calibration = _rows(wb, 'Calibration')
+        self.kit = _rows(wb, 'Kit') if 'Kit' in wb.sheetnames else []
+        self.preparation = _rows(wb, 'Preparation') if 'Preparation' in wb.sheetnames else []
         self.guide_levels = {r['Checkpoint']: r for r in _rows(wb, 'GuideLevels')}
 
     def checkpoint(self, cid):
