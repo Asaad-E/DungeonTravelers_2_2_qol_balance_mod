@@ -20,10 +20,10 @@
    "class": "Valkyrie"
   },
   "treasure hunter": {
-   "won": 0.875,
-   "time": 28.456127522841182,
-   "time_won": 29.31011541730109,
-   "share": 0.13106302217014604,
+   "won": 0.95,
+   "time": 23.57207592955839,
+   "time_won": 23.486425795065916,
+   "share": 0.2511432145106312,
    "character": "Souffle",
    "level": 64,
    "class": "Treasure Hunter"

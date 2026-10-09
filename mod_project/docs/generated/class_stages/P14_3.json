@@ -3,45 +3,45 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 9.2674212886875,
-   "time_won": 9.2674212886875,
-   "share": 0.16790349304922708,
+   "time": 9.10332440825,
+   "time_won": 9.10332440825,
+   "share": 0.15536758115047927,
    "character": "Mefmera",
    "level": 79,
    "class": "Papillon"
   },
   "valkyrie": {
    "won": 1.0,
-   "time": 8.892876994437499,
-   "time_won": 8.892876994437499,
-   "share": 0.07831900992180842,
+   "time": 8.865879561270834,
+   "time_won": 8.865879561270834,
+   "share": 0.09070237885943724,
    "character": "Grishna",
    "level": 79,
    "class": "Valkyrie"
   },
   "treasure hunter": {
    "won": 1.0,
-   "time": 9.968618314916668,
-   "time_won": 9.968618314916668,
-   "share": 0.12496426605892955,
+   "time": 7.671114408916668,
+   "time_won": 7.671114408916668,
+   "share": 0.335512217911398,
    "character": "Souffle",
    "level": 79,
    "class": "Treasure Hunter"
   },
   "soul summoner": {
-   "won": 0.85,
-   "time": 9.499823987500195,
-   "time_won": 9.331649122916666,
-   "share": 0.10944346020823403,
+   "won": 0.875,
+   "time": 9.284514278040195,
+   "time_won": 9.477355890166667,
+   "share": 0.11999341334087521,
    "character": "Lilian",
    "level": 79,
    "class": "Soul Summoner"
   },
   "magical princess": {
-   "won": 0.875,
-   "time": 8.387712357575897,
-   "time_won": 9.090403075738095,
-   "share": 0.13563911784494492,
+   "won": 0.85,
+   "time": 8.673995195689518,
+   "time_won": 9.429076235784313,
+   "share": 0.13816546953611214,
    "character": "Melvy",
    "level": 79,
    "class": "Magical Princess"
