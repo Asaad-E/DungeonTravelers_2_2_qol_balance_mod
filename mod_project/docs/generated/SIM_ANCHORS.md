@@ -10,5 +10,5 @@ Anchors met: **6 of 6**, 40 battles each, with the settings of the workbook (kit
 | N02 | C07 | 41 | 13 | 78% | 5% -  | yes | a comment won at level 13: a party at 13 can win (atwiki dt2-2 page 37 (Wind Tower, boss)) |
 | N03 | C18 | 43 | 27 | 100% | 60% -  | yes | can overwhelm even bard healing under about level 27: a party at 27 wins most (GameFAQs faqs/80834 (Hentaicheg), Rousset Royal Villa) |
 | N04 | C34 | 42+43 | 50 | 100% | 60% -  | yes | with the three supply devices destroyed the Queen is weakened and the strength of that point is enough: the party at the reference level of the checkpoint wins most (atwiki dt2-2 page 207 (Queen of Darkness)) |
-| N05 | C34 | 41 | 60 | 85% | 60% -  | yes | the Queen at full strength needs about level 55 to 60: a party at 60 wins most (atwiki dt2-2 page 207 (Queen of Darkness)) |
+| N05 | C34 | 41 | 60 | 82% | 60% -  | yes | the Queen at full strength needs about level 55 to 60: a party at 60 wins most (atwiki dt2-2 page 207 (Queen of Darkness)) |
 | N06 | C34 | 41 | 55 | 30% | 25% -  | yes | and a party at 55 wins some (atwiki dt2-2 page 207 (Queen of Darkness)) |

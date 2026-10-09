@@ -3,7 +3,7 @@ Audit of the simulator: does every rule it holds actually act? Generated: docs/g
 
     python mod_project/tools/sim_audit.py passives [k/n]   every passive skill, with and without, in the same fights
                                                           (k/n: the k-th of n slices, one process each)
-    python mod_project/tools/sim_audit.py usage         the skills of each role's plan it never uses in its fights
+    python mod_project/tools/sim_audit.py usage [k/n]   the skills of each role's plan it never uses, and why
     python mod_project/tools/sim_audit.py report        joins the parts written so far into SIM_AUDIT.md
 
 Each phase writes its part to docs/generated/sim_audit/<phase>.md and runs in its own process, so memory is freed
@@ -71,6 +71,13 @@ def fingerprint(results):
 
 
 def fights(data, setup, role, character, level, cid, extra):
+    party, enemies = factories(data, setup, role, character, level, cid, extra)
+    return scenario.play(data, setup, party, enemies, runs=SEEDS)
+
+
+def factories(data, setup, role, character, level, cid, extra):
+    """The builders of the party (the reference party of the checkpoint with the tested member in it) and of the
+    enemies of its fights."""
     cp = setup.checkpoint(cid)
     gear = scenario.checkpoint_gear(data, setup, cid)
     chars = {c['name']: c for c in data.characters}
@@ -93,7 +100,7 @@ def fights(data, setup, role, character, level, cid, extra):
     def enemies():
         return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
 
-    return scenario.play(data, setup, party, enemies, runs=SEEDS)
+    return party, enemies
 
 
 def passives(part='1/1'):
@@ -137,38 +144,82 @@ def passives(part='1/1'):
           f'with no role, of {len(rows)} passive skills')
 
 
-def usage():
-    from sim.policy import usable_in_battle
+def usage(part='1/1'):
+    """part 'k/n': the k-th of n slices of the roles (usage_k.md)."""
+    import random
+    from sim.battle import Battle, Action
+    from sim.policy import (usable_in_battle, options, weapon_allows, damage_value, puts, load_rules, Policy,
+                            EVERY_ROLE, RANDOM_MOVES)
+    from sim.data import SINGLE, RANDOM, ROW, PIERCE, ALL, EVERYONE
+    k, n = (int(x) for x in part.split('/'))
     data, setup = game_data(), setup_mod.load()
     chars = {c['name']: c for c in data.characters}
+    policy = Policy(load_rules(setup.policies), setup.settings)
+    roles = list(setup.roles.items())[(k - 1) * len(setup.roles) // n: k * len(setup.roles) // n]
     rows = []
-    for role, row in setup.roles.items():
-        character = [n.strip() for n in str(row['Characters (order of preference)']).split(';')][0]
+    for role, row in roles:
+        character = [x.strip() for x in str(row['Characters (order of preference)']).split(';')][0]
         if character not in chars:
             continue
+        rules = [r for r in setup.policies if r['Role'] in (role, EVERY_ROLE)]
+        status_rules = {int(str(r['Action']).split(':')[1]) for r in rules if str(r['Action']).startswith('status:')}
         for level, cid in [(lv, c) for _, lv, c in TIERS] + [LATE]:
             res = fights(data, setup, role, character, level, cid, None)
-            known = {}
             used = set()
             for r in res:
-                for part in r['parts']:
-                    for (u, name), n in part['record'].skill_uses.items():
+                for p in r['parts']:
+                    for (u, name), _ in p['record'].skill_uses.items():
                         if getattr(u, 'role', None) == role and u.name == character:
                             used.add(name)
-            member = scenario.build_role_member(data, setup, role, chars[character], level, 0)
+            party_fn, enemies_fn = factories(data, setup, role, character, level, cid, None)
+            party = party_fn()
+            member = next(u for u in party if getattr(u, 'role', None) == role and u.name == character)
+            b = Battle(data, party, enemies_fn()[0], random.Random(0), setup=setup.settings)
+            member.tp = member.max_tp
+            scores = {}
+            for skill, lv in [(None, 0)] + options(b, member):
+                act = Action(member, 'attack') if skill is None else Action(member, 'skill', skill, lv)
+                hits = act.target_code in (SINGLE, RANDOM, ROW, PIERCE, ALL, EVERYONE) and (
+                    act.physical or act.magic or b.special(act)) or any(act.has(e) for e in RANDOM_MOVES)
+                if skill is None or hits:
+                    total, _ = damage_value(b, act)
+                    scores[getattr(skill, 'name', 'Attack')] = total / policy.time_of(b, act) / policy.tp_penalty(member, act)
+            best_name = max(scores, key=scores.get) if scores else None
             for sid, lv in member.skills.items():
                 skill = data.skill_by_id.get(sid)
-                if skill is not None and usable_in_battle(skill):
-                    known[skill.name] = lv
-            unused = sorted(n for n in known if n not in used)
-            won = sum(r['won'] for r in res) / len(res)
-            rows.append((role, character, level, cid, won, len(known), unused))
-            print(role, level, cid, f'won {won:.0%}', 'unused:', unused, flush=True)
-    flagged = sum(1 for r in rows if r[-1])
-    write('usage', ['| Role | Level | Fight | Won | Skills | Never used |', '|---|---|---|---|---|---|'] +
-          [f'| {role} ({who}) | {lv} | {cid} | {won:.0%} | {n} | {", ".join(unused) or "-"} |'
-           for role, who, lv, cid, won, n, unused in rows],
-          f'{flagged} of {len(rows)} role and level rows leave a skill of their plan unused')
+                if skill is None or not usable_in_battle(skill) or skill.name in used:
+                    continue
+                effects = {e for e, _, _ in skill.effects}
+                if not weapon_allows(member, skill):
+                    why = 'not usable with the weapon of the role'
+                elif skill.name in scores:
+                    share = scores[skill.name] / scores[best_name] if scores.get(best_name) else 0.0
+                    why = f'dominated: {share:.0%} of the best ({best_name}) at the start of the fight'
+                elif effects & {104, 105}:
+                    why = 'situational: a revive'
+                elif effects & {103, 9, 128, 130, 131, 132, 133}:
+                    why = 'situational: a heal (another heal or the songs come first)'
+                elif effects & {106, 235}:
+                    why = 'situational: a cure'
+                elif effects & {129, 426}:
+                    why = 'situational: TP'
+                elif 74 in effects:
+                    why = 'situational: a dispel'
+                elif any(puts(skill, e) for e in effects):
+                    kept = sorted(e for e in effects if puts(skill, e) and e in status_rules)
+                    why = (f'a rule keeps effect {kept[0]} up: another skill gives it first' if kept
+                           else 'no rule of the role uses it')
+                else:
+                    why = 'other'
+                rows.append((role, character, level, cid, skill.name, why))
+            print(role, level, cid, 'unused', sum(1 for r in rows if r[:4] == (role, character, level, cid)), flush=True)
+    counts = {}
+    for r in rows:
+        key = r[-1].split(':')[0]
+        counts[key] = counts.get(key, 0) + 1
+    write('usage' if n == 1 else f'usage_{k}', ['| Role | Level | Fight | Skill never used | Why |', '|---|---|---|---|---|'] +
+          [f'| {role} ({who}) | {lv} | {cid} | {name} | {why} |' for role, who, lv, cid, name, why in rows],
+          f'{len(rows)} skills of a plan never used: ' + ', '.join(f'{v} {k}' for k, v in sorted(counts.items())))
 
 
 ACTIVES_ENEMY = 510          # Meta-Kindra (level 90, no passive): the dummy of the actives phase
@@ -301,12 +352,17 @@ def report():
         text.append(body)
         if p.startswith('passives'):
             flagged += [line.split('|')[1].strip() for line in body.splitlines() if line.endswith('| no effect seen |')]
+        if p.startswith('usage'):
+            for line in body.splitlines():
+                cells = [c.strip() for c in line.split('|')]
+                if len(cells) > 5 and (cells[5].startswith('no rule') or cells[5].startswith('not usable')):
+                    flagged.append(f"usage {cells[1].split(' (')[0]} | {cells[4]}")
         if p.startswith('actives'):
             flagged += [line.split('|')[1].strip() for line in body.splitlines()
                         if line.startswith('| ') and '| not seen' in line]
     readings = {str(r['ID']).strip(): r for r in setup_mod.load().audit_readings}
     unread = [x for x in flagged if x not in readings]
-    text[4:4] = [f'**Checklist: {len(flagged) - len(unread)} of {len(flagged)} passives and active skills seen doing nothing have a reading** '
+    text[4:4] = [f'**Checklist: {len(flagged) - len(unread)} of {len(flagged)} passives, active skills and skills never used have a reading** '
                  f'(sheet AuditReadings of data_tables/sim_setup.xlsx){": unread " + ", ".join(unread) if unread else ""}.', '',
                  '| Skill or point | Result | Reading |', '|---|---|---|'] + \
         [f'| {k} | {r["Result"]} | {r["Reading"]} |' for k, r in readings.items()] + ['']
