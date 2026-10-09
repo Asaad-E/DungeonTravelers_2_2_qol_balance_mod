@@ -188,3 +188,28 @@ for her party buffs, nobody cured petrification. Same measure as above.
 
 Supports in the same slot (wins C34 / C40 / P24): Bishop 100 / 53 / 93, **Sage 100 / 67 / 80** (was 100 / 7 / 47; the
 C34 fight lasts 62 s against 37), Etoile 100 / 80 / 100, second Maid 100 / 73 / 87.
+
+### T05 after the three checks of the simulator (2026-10-09, evening)
+
+After the checks the user asked for (the story bosses against the GameFAQs walkthrough: 38 of 40 within, 2 read;
+every active skill performed and checked; every unused skill classified) and their fixes (grand sealbook summon in
+the reference party, doll actions aimed at the party, the Samurai on a katana, Berserk / High Risk High Return /
+Parry / Cover rules, the party-striking random results). Same measure; share of damage C34 / C40 / P24, wins C40 / P24.
+
+| Class | Share | Wins | Reading |
+|---|---|---|---|
+| Samurai (attacker) | 42 / 49 / 59% | 87 / 100% | reference, stronger now with her katana skills |
+| Sniper (shooter) | 52 / 52 / 53% | 87 / 87% | reference |
+| Dark Lord | 54 / 74 / 64% | 100 / 100% | top |
+| Kunoichi | 15 / 25 / 11% | 93 / 80% | still the lowest attacker by far |
+| Magical Princess | 26 / 34 / 31% | 87 / 87% | behind |
+| Joker | 46 / 53 / 26% | 80 / 53% | strong mid game, weak late (her TP runs out under Trump Card) |
+| Mistress | 34 / 43 / 19% | 100 / 67% | weak late |
+| Soul Summoner | 52 / 48 / 30% | 100 / 80% | fine mid game, behind late |
+| Papillon | 29 / 44 / 42% | 87 / 80% | on par |
+| Treasure Hunter | 37 / 33 / 52% | 67 / 93% | fine |
+| Witch (mage) | 65 / 59 / 45% | 93 / 93% | above mid game |
+
+Supports in the slot (wins C34 / C40 / P24, time of C40): Bishop 100 / 87 / 93 (47 s), Sage 100 / 73 / 93 (60 s),
+Etoile 100 / 100 / 100 (33 s), second Maid 100 / 87 / 73 (33 s); the Papillon it replaces: 100 / 87 / 80 (29 s).
+Open in the model: no role casts ailments on enemies (theme T07).
