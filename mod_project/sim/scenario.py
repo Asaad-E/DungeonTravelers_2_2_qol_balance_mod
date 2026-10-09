@@ -9,7 +9,7 @@ import random
 from sim import progression
 from sim.battle import Battle
 from sim.policy import Policy, load_rules
-from sim.units import build_member, build_enemy
+from sim.units import build_member, build_enemy, DUAL_WIELD
 
 STAGES = ((30, 'Lv30 class'), (15, 'Lv15 class'), (1, 'Base class'))
 
@@ -157,7 +157,7 @@ def forge_open(setup, floor):
     return floor is not None and int(floor[2:4]) >= int(setup.settings.get('forge_from_dungeon', 99))
 
 
-def build_role_member(data, setup, role_name, character, level, upgrade, crown=0, forge=False):
+def build_role_member(data, setup, role_name, character, level, upgrade, crown=0, forge=False, extra_skills=None):
     role = setup.roles[role_name]
     cls, previous = class_path(data, role, level)
     equipment = []
@@ -170,6 +170,12 @@ def build_role_member(data, setup, role_name, character, level, upgrade, crown=0
                 continue
             equipment.append((slot, piece['id'], upgrade))
     skills = allocate_skills(data, role, level)
+    skills.update(extra_skills or {})                # skills given on top of the plan (tools/sim_audit.py);
+    skills = {k: v for k, v in skills.items() if v > 0}   # level 0 takes a skill away
+    # a weapon goes in the off hand only with Dual Wield (atwiki dt2-2 page 142: it takes the place of the shield)
+    dual = any(e == DUAL_WIELD for sid in skills for e, _, _ in getattr(data.skills.get(('Passive', sid)), 'effects', []))
+    equipment = [(slot, i, u) for slot, i, u in equipment
+                 if not (slot == 1 and data.equipment[i]['category'] == 0 and not dual)]
     forged = forge_enchants(data, setup, role_name, equipment) if forge else None
     unit = build_member(data, character, cls, level, previous, equipment, skills, crown_bonus=crown,
                         front=role['Row'] == 'front', forged=forged)
@@ -354,6 +360,7 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
             prepare(setup, party, enemies)
             battle = Battle(data, party, enemies, rng, choose_member=policy, setup=options,
                             zone=getattr(enemies, 'zone', None), max_time=float(setup.settings.get('max_time', 400)))
+            battle.fixed = getattr(enemies, 'number', None) is not None      # a fixed battle of the story
             part = battle.run()
             if result is None:
                 result = dict(part)

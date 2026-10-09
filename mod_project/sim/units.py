@@ -126,7 +126,7 @@ class Unit:
     def resistance(self, index):
         value = self.resist_base[index]
         if index >= 3:
-            value += sum(int(self.statuses[e].value) for e in ELEMENT_RESIST_BUFFS if e in self.statuses)
+            value += sum(int(self.value(e)) for e in ELEMENT_RESIST_BUFFS if self.has(e))   # a passive too (Adaptation)
         else:
             value += sum(int(s.value) for e, i in PHYSICAL_RESIST_BUFFS.items() if i == index
                          for s in [self.statuses.get(e)] if s)

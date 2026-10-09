@@ -8,7 +8,7 @@ skill (or the plain attack) with the most expected damage per unit of time on th
 of the program taken (Battle.expected_damage), within the TP the role allows itself.
 """
 from sim import formulas as f
-from sim.battle import Action, AILMENTS, SONG_EFFECTS, DANCE_EFFECTS
+from sim.battle import Action, AILMENTS, CURE_ORDER, ITEM_CURE_ONE, ITEM_CURE_ALL, SONG_EFFECTS, DANCE_EFFECTS
 from sim.data import (Skill, SINGLE, RANDOM, ROW, PIERCE, ALL, ALLY, ALLY_ROW, ALLIES, SELF, NO_TARGET, EVERYONE)
 from sim.units import PARTY
 
@@ -65,6 +65,14 @@ def gives(skill, effect):
     return any(e == effect for e, _, _ in skill.effects)
 
 
+def puts(skill, effect):
+    """The skill leaves the effect on its target (a status, kind 5, or a song or dance, kind 4), not as a property
+    of its own hit (kind 2: effect 26 is the power of an attack skill and the status of Berserk; FORMULAS.md 9.2)."""
+    return any(e == effect and kind != 2 for e, kind, _ in skill.effects)
+
+
+EVERY_ROLE = '*'           # rules of the sheet Policies under this role come before those of every role
+
 # --- choosing ------------------------------------------------------------------------------------------------------
 class Policy:
     def __init__(self, rules, setup):
@@ -72,7 +80,8 @@ class Policy:
         self.setup = setup
 
     def __call__(self, battle, unit):
-        for condition, c_arg, action, a_arg in self.rules.get(getattr(unit, 'role', 'attacker'), self.rules.get('attacker', [])):
+        rules = self.rules.get(EVERY_ROLE, []) + self.rules.get(getattr(unit, 'role', 'attacker'), self.rules.get('attacker', []))
+        for condition, c_arg, action, a_arg in rules:
             if not CONDITIONS[condition](battle, unit, c_arg):
                 continue
             chosen = ACTIONS[action](self, battle, unit, a_arg)
@@ -184,10 +193,10 @@ CONDITIONS = {
     'self_tp_below': lambda b, u, a: u.max_tp and u.tp_ratio < _fraction(a, 0.3),
     'self_hp_below': lambda b, u, a: u.hp_ratio < _fraction(a, 0.5),
     'enemy_buffed': lambda b, u, a: any(b.dispellable(t) for t in enemies_of(b, u)),
-    'ally_ailing': lambda b, u, a: any(any(e in m.statuses for e in AILMENTS) for m in b.allies(u) if m.kind == 'member'),
+    'ally_ailing': lambda b, u, a: bool(ailing_members(b, u, a)),
     'turn_at_most': lambda b, u, a: u.turns_taken <= int(_fraction(a, 1)),
     'enemies_at_least': lambda b, u, a: len(enemies_of(b, u)) >= int(_fraction(a, 2)),
-    'boss': lambda b, u, a: b.setup.get('boss', False),
+    'boss': lambda b, u, a: b.fixed or b.setup.get('boss', False),
     'no_doll': lambda b, u, a: not any(x.owner is u and x.alive and x.kind == 'doll' for x in b.units),
     # a doll slot is free: fewer living dolls of her own (arrows aside) than she can keep, two with Double Puppet (313)
     'doll_slot_free': lambda b, u, a: sum(1 for x in b.units if x.owner is u and x.alive and x.kind == 'doll'
@@ -274,7 +283,7 @@ def act_revive(policy, battle, unit, arg):
 
 def act_item(policy, battle, unit, arg, target=None):
     """Use an item the member carries: arg 'heal', 'tp' or 'revive' (item effect types 0/3, 1, 8)."""
-    kinds = {'heal': (0, 3), 'tp': (1,), 'revive': (8,)}.get(arg, ())
+    kinds = {'heal': (0, 3), 'tp': (1,), 'revive': (8,), 'cure': (ITEM_CURE_ALL, ITEM_CURE_ONE)}.get(arg, ())
     hurt = sum(1 for m in battle.allies(unit) if m.kind == 'member' and m.alive and m.hp_ratio < 0.6)
     usable = []
     for item_id, count in unit.items.items():
@@ -282,7 +291,7 @@ def act_item(policy, battle, unit, arg, target=None):
         if count > 0 and item and any(k in kinds for k, _ in item['effects']):
             # a party item when two or more members are hurt, else the largest single one
             party = any(k == 3 for k, _ in item['effects'])
-            size = max((v or 0) for k, v in item['effects'] if k in kinds)
+            size = max((v or 0) for k, v in item['effects'] if k in kinds) if arg != 'cure' else                 any(k == ITEM_CURE_ALL for k, _ in item['effects'])          # a cure of all before a cure of one
             usable.append(((party == (hurt >= 2)), size, item_id))
     if not usable:
         return None
@@ -297,7 +306,7 @@ def act_status(policy, battle, unit, arg):
     """Put a status of effect `arg` (a buff, a song, a dance, Provoke, Cover) where it is missing."""
     effect = int(arg)
     for skill, level in options(battle, unit):
-        if not gives(skill, effect):
+        if not puts(skill, effect):
             continue
         action = Action(unit, 'skill', skill, level)
         # a performer whose song or dance slots are full keeps what it performs instead of swapping one for another
@@ -372,13 +381,32 @@ def act_tp(policy, battle, unit, arg):
     return act_item(policy, battle, unit, 'tp', target)
 
 
+def ailments_of(arg):
+    """The ailments an argument names ('120;116', effect ids), all of them when it names none."""
+    return [int(x) for x in str(arg).split(';') if x.strip()] if arg not in (None, '') else list(AILMENTS)
+
+
+def ailing_members(battle, unit, arg):
+    wanted = ailments_of(arg)
+    return [m for m in battle.allies(unit) if m.kind == 'member' and any(e in m.statuses for e in wanted)]
+
+
 def act_cure(policy, battle, unit, arg):
-    ailing = [m for m in battle.allies(unit) if m.kind == 'member' and any(e in m.statuses for e in AILMENTS)]
+    """Cure the member who carries the most of the ailments named (arg, as ally_ailing), with a skill of effect 106
+    whose level reaches one of them (it walks the first int(value) entries of CURE_ORDER), else an item."""
+    wanted = ailments_of(arg)
+    ailing = ailing_members(battle, unit, arg)
     if not ailing:
         return None
+    target = max(ailing, key=lambda m: sum(e in m.statuses for e in wanted))
+    carried = [e for e in wanted if e in target.statuses]
     for skill, level in options(battle, unit):
-        if gives(skill, 106):
-            return Action(unit, 'skill', skill, level, target=ailing[0])
+        action = Action(unit, 'skill', skill, level)
+        if gives(skill, 106) and any(e in CURE_ORDER[:int(action.value(106) or 0)] for e in carried):
+            action.target = target if action.target_code == ALLY else None
+            return action
+    if unit.items:
+        return act_item(policy, battle, unit, 'cure', target)
     return None
 
 

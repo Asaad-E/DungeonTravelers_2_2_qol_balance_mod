@@ -49,6 +49,7 @@ AILMENTS = {113: 'poison', 114: 'freeze', 115: 'paralysis', 116: 'sleep', 117: '
 AILMENT_RESIST = {113: 4, 114: 4, 115: 7, 116: 5, 117: 5, 118: 3, 119: 6, 120: 6, 122: 6}
 # Statuses of the list Cures and Esarhaddon walk (table 0x6cc79c; Esarhaddon 0x6c9a7c stops at slow)
 CURE_ORDER = (113, 115, 117, 114, 116, 120, 122)
+ITEM_CURE_ONE, ITEM_CURE_ALL = 6, 7                # item effect types (docs/FORMULAS.md 15)
 CURE_ALL = 8                                   # 0x481b12: a value of exactly 8 also clears the second list (slot 0x90)
 ESARHADDON_ORDER = (113, 115, 117, 114, 116, 122)
 STAT_STATUSES = (41, 42, 43, 44, 45, 46, 189, 193, 194, 48, 172, 169, 184, 185, 186, 202, 248, 341)
@@ -320,6 +321,8 @@ class Battle:
         self.actions = 0
         self.log = None
         self.extra_turns = []
+        self.fixed = False        # a fixed battle of the story (the boss fights); set by scenario.play
+        self.spent = set()        # (unit, effect): a passive spent in this battle (a passive is a status, 12.15)
 
     # --- sides --------------------------------------------------------------------------------------------
     def side(self, side, alive=True):
@@ -960,8 +963,9 @@ class Battle:
         if target.has(PRETEND) and action.physical and self.roll(target.value(PRETEND)):
             self.counter(target, unit)      # 0x421db8: no damage; the bearer performs the skill linked to it (A17)
             return True
-        if 285 in target.statuses and (action.physical or action.magic):
-            target.statuses.pop(285)
+        if target.has(285) and (target, 285) not in self.spent and (action.physical or action.magic):
+            target.statuses.pop(285, None)
+            self.spent.add((target, 285))       # Elegant Dancing: the first damaging hit, then spent (12.12)
             return True
         if target.has(KNOCK_DOWN) and action.physical and action.reach == LONG and \
                 (unit.side == ENEMIES or unit.weapon is not None) and self.roll(target.value(KNOCK_DOWN)):
@@ -1814,9 +1818,14 @@ class Battle:
                 # 0x5101a4 - 0x5101ca: int(max HP * the value of the item / 100), at least 1
                 target.alive, target.hp = True, max(1, int(target.max_hp * value / 100.0))
                 target.next_time = self.time + self.wait(target)
-            elif kind == 6:
-                for e in CURE_ORDER:
-                    target.statuses.pop(e, None)
+            elif kind == ITEM_CURE_ONE:
+                # 0x50fb30: one of the ailments the target carries, picked at random (0x490790)
+                present = [e for e in AILMENTS if e in target.statuses]
+                if present:
+                    target.statuses.pop(self.rng.choice(present))
+            elif kind == ITEM_CURE_ALL:
+                for e in [e for e in AILMENTS if e in target.statuses]:     # 0x50fe20: every ailment
+                    target.statuses.pop(e)
             elif kind in self.data.item_skills:
                 skill = self.data.skill_by_id.get(self.data.item_skills[kind])
                 if skill:

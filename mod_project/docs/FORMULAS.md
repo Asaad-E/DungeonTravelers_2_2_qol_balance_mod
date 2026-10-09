@@ -777,6 +777,11 @@ An item has up to four (type, value) pairs. The program turns each into an objec
   Blast, 25 Brave, 27 Fleet Foot, 29 Accelerator, 32 War Cry, and so on (the generated map is in
   `docs/generated/BALANCE_BASELINE.md`). The figures of such an item are those of the skill file.
 * Type 0 heals HP by its value, plus `int(value * Item Mastery)` (`0x50e789`). Recycle may keep the item (12.11).
+* Type 6 cures **one** ailment of the target, picked at random among those it carries (`0x50fb30`: the list of the
+  unit, a random index by `0x490790`, then the removal at slot 0x64 of the unit; message 0x8d). Type 7 cures **every**
+  one (`0x50fe20`, the same list walked to its end; message 0x8e). The descriptions agree: Harunire Leaf "Cure one
+  status ailment", Fumirul Nectar "Cure all status ailments" (ItemData 24, 25). Read on 2026-10-09; the simulator
+  had type 6 curing all and type 7 doing nothing until then.
 * Types 53 and 54 deal `int(max HP of the target * value)`, never more than 100 (`0x511b78`).
 * Type 89 takes a twentieth of the party's gold, at least 1 (`0x51438a`); the value the item stores is not used.
 * Types 56, 57, 60 and 61 act only on some enemies (a list of 23 ids, or a race) and then create an ailment for 5
