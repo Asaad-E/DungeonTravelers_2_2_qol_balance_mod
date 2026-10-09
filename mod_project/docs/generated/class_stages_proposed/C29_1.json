@@ -1,0 +1,48 @@
+{
+ "base": {
+  "won": 0.4,
+  "time": 112.5179756965983,
+  "time_won": 27.15570496874999,
+  "share": 0.0,
+  "character": null,
+  "level": 44
+ },
+ "roles": {
+  "tank": {
+   "won": 0.3,
+   "time": 165.5952430690258,
+   "time_won": 43.028758506944435,
+   "share": 0.06668025628528805,
+   "character": "Luco",
+   "level": 44,
+   "class": "Valkyrie"
+  },
+  "attacker": {
+   "won": 0.925,
+   "time": 27.391636875291464,
+   "time_won": 23.944055395045044,
+   "share": 0.3688091564788736,
+   "character": "Grishna",
+   "level": 44,
+   "class": "Samurai"
+  },
+  "maid": {
+   "won": 0.9,
+   "time": 93.00409982099832,
+   "time_won": 79.9214540326389,
+   "share": 0.00047070677579772737,
+   "character": "Conette",
+   "level": 44,
+   "class": "Diva"
+  },
+  "healer": {
+   "won": 0.55,
+   "time": 170.8634667520427,
+   "time_won": 102.50660049772728,
+   "share": 0.00462486483757601,
+   "character": "Irena",
+   "level": 44,
+   "class": "Bishop"
+  }
+ }
+}

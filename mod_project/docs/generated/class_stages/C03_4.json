@@ -12,9 +12,9 @@
   },
   "kunoichi": {
    "won": 1.0,
-   "time": 4.760626875,
-   "time_won": 4.760626875,
-   "share": 0.08005208333333333,
+   "time": 4.7794346249999995,
+   "time_won": 4.7794346249999995,
+   "share": 0.08505208333333333,
    "character": "Monica",
    "level": 5,
    "class": "Scout"
@@ -39,9 +39,9 @@
   },
   "joker": {
    "won": 1.0,
-   "time": 5.058588374999999,
-   "time_won": 5.058588374999999,
-   "share": 0.029947916666666664,
+   "time": 4.65752925,
+   "time_won": 4.65752925,
+   "share": 0.10291666666666666,
    "character": "Lizerietta",
    "level": 5,
    "class": "Spieler"

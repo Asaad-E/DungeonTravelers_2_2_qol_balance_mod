@@ -164,10 +164,17 @@ def build_role_member(data, setup, role_name, character, level, upgrade, crown=0
     role.update(pieces or {})
     cls, previous = class_path(data, role, level)
     equipment = []
+    class_name = data.class_names.get(cls)
     for slot, column in ((0, 'Weapon'), (1, 'Off hand'), (2, 'Head'), (3, 'Body'), (4, 'Accessory')):
         if not role[column]:
             continue
-        piece = piece_by_name(data, role[column], cls)
+        # 'Dagger; Kunoichi=Darts': a piece for one class of the path, the plain entry for the others
+        entries = [e.strip() for e in str(role[column]).split(';') if e.strip()]
+        chosen = next((e.split('=', 1)[1] for e in entries if '=' in e and e.split('=', 1)[0].strip() == class_name),
+                      next((e for e in entries if '=' not in e), None))
+        if not chosen:
+            continue
+        piece = piece_by_name(data, chosen.strip(), cls)
         if piece is not None:
             if slot == 1 and equipment and data.equipment[equipment[0][1]]['two_handed']:
                 continue

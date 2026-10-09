@@ -1,0 +1,50 @@
+{
+ "base": null,
+ "roles": {
+  "mage": {
+   "won": 1.0,
+   "time": 3.3137658958333334,
+   "time_won": 3.3137658958333334,
+   "share": 0.5354020047742696,
+   "character": "Melvy",
+   "level": 9,
+   "class": "Magic User"
+  },
+  "shooter": {
+   "won": 1.0,
+   "time": 4.0730812499999995,
+   "time_won": 4.0730812499999995,
+   "share": 0.4756655447181757,
+   "character": "Monica",
+   "level": 9,
+   "class": "Scout"
+  },
+  "dolls": {
+   "won": 1.0,
+   "time": 6.520358770833333,
+   "time_won": 6.520358770833333,
+   "share": 0.08405564685175945,
+   "character": "Lizerietta",
+   "level": 9,
+   "class": "Spieler"
+  },
+  "diva": {
+   "won": 1.0,
+   "time": 6.78883675,
+   "time_won": 6.78883675,
+   "share": 0.01633734954974352,
+   "character": "Ist",
+   "level": 9,
+   "class": "Maid"
+  },
+  "dark lord": {
+   "won": 1.0,
+   "time": 3.8794646249999998,
+   "time_won": 3.8794646249999998,
+   "share": 0.4462606858842639,
+   "character": "Yae",
+   "level": 9,
+   "class": "Fighter"
+  }
+ }
+}

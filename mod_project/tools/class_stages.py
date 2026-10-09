@@ -21,8 +21,10 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'class_stages')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'CLASS_STAGES.md')
+# CLASS_STAGES_PROPOSED=1: the variant with the rows of balance_changes.xlsx still proposed, measured apart
+PROPOSED = os.environ.get('CLASS_STAGES_PROPOSED') == '1'
+OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'class_stages_proposed' if PROPOSED else 'class_stages')
+REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'CLASS_STAGES_PROPOSED.md' if PROPOSED else 'CLASS_STAGES.md')
 
 from sim import scenario                                # noqa: E402
 from sim import setup as setup_mod                      # noqa: E402
@@ -87,7 +89,11 @@ def run(cid, part='1/1'):
     """One checkpoint, or the k-th of n slices of its roles (part 'k/n')."""
     k, n = (int(x) for x in part.split('/'))
     data, setup = game_data(), setup_mod.load()
-    data = balance_data(data)
+    if PROPOSED:
+        from sim.variant import apply, rows
+        data = apply(data, rows(states=('decided', 'built', 'checked', 'proposed')))
+    else:
+        data = balance_data(data)
     runs = int(setup.settings['check_runs'])
     level = scenario.reference_levels(data, setup)[cid][0]
     out = {'base': play(data, setup, cid, None, runs) if k == 1 else None, 'roles': {}}

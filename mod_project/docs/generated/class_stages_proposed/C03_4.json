@@ -1,0 +1,50 @@
+{
+ "base": null,
+ "roles": {
+  "sage": {
+   "won": 1.0,
+   "time": 5.102168624999999,
+   "time_won": 5.102168624999999,
+   "share": 0.031093749999999996,
+   "character": "Fiora",
+   "level": 5,
+   "class": "Magic User"
+  },
+  "kunoichi": {
+   "won": 1.0,
+   "time": 4.7794346249999995,
+   "time_won": 4.7794346249999995,
+   "share": 0.08505208333333333,
+   "character": "Monica",
+   "level": 5,
+   "class": "Scout"
+  },
+  "mistress": {
+   "won": 1.0,
+   "time": 5.190954124999999,
+   "time_won": 5.190954124999999,
+   "share": 0.02973958333333333,
+   "character": "Conette",
+   "level": 5,
+   "class": "Maid"
+  },
+  "etoile": {
+   "won": 1.0,
+   "time": 4.792649312499999,
+   "time_won": 4.792649312499999,
+   "share": 0.02953125000000001,
+   "character": "Ist",
+   "level": 5,
+   "class": "Maid"
+  },
+  "joker": {
+   "won": 1.0,
+   "time": 4.65752925,
+   "time_won": 4.65752925,
+   "share": 0.10291666666666666,
+   "character": "Lizerietta",
+   "level": 5,
+   "class": "Spieler"
+  }
+ }
+}

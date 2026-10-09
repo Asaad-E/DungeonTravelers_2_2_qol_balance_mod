@@ -11,10 +11,10 @@
    "class": "Sage"
   },
   "kunoichi": {
-   "won": 0.55,
-   "time": 98.49532287367597,
-   "time_won": 44.528553224621206,
-   "share": 0.09958208433576911,
+   "won": 0.375,
+   "time": 99.10776005226252,
+   "time_won": 21.1437537,
+   "share": 0.07608176586189477,
    "character": "Tsurara",
    "level": 44,
    "class": "Kunoichi"

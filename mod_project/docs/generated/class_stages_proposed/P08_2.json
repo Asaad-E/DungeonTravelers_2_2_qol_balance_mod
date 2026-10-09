@@ -1,0 +1,50 @@
+{
+ "base": null,
+ "roles": {
+  "mage": {
+   "won": 1.0,
+   "time": 4.381815230925541,
+   "time_won": 4.381815230925541,
+   "share": 0.5168732142857142,
+   "character": "Melvy",
+   "level": 72,
+   "class": "Witch"
+  },
+  "shooter": {
+   "won": 1.0,
+   "time": 5.826209546565286,
+   "time_won": 5.826209546565286,
+   "share": 0.3470053571428571,
+   "character": "Monica",
+   "level": 72,
+   "class": "Sniper"
+  },
+  "dolls": {
+   "won": 1.0,
+   "time": 5.713259785004803,
+   "time_won": 5.713259785004803,
+   "share": 0.28159375000000003,
+   "character": "Lilian",
+   "level": 72,
+   "class": "Papillon"
+  },
+  "diva": {
+   "won": 1.0,
+   "time": 6.5336885757662175,
+   "time_won": 6.5336885757662175,
+   "share": 0.00042678571428571445,
+   "character": "Ist",
+   "level": 72,
+   "class": "Diva"
+  },
+  "dark lord": {
+   "won": 1.0,
+   "time": 4.838967147074376,
+   "time_won": 4.838967147074376,
+   "share": 0.2939678571428571,
+   "character": "Grishna",
+   "level": 72,
+   "class": "Dark Lord"
+  }
+ }
+}

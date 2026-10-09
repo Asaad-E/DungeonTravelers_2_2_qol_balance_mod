@@ -213,3 +213,28 @@ Parry / Cover rules, the party-striking random results). Same measure; share of 
 Supports in the slot (wins C34 / C40 / P24, time of C40): Bishop 100 / 87 / 93 (47 s), Sage 100 / 73 / 93 (60 s),
 Etoile 100 / 100 / 100 (33 s), second Maid 100 / 87 / 73 (33 s); the Papillon it replaces: 100 / 87 / 80 (29 s).
 Open in the model: no role casts ailments on enemies (theme T07).
+
+## T05 by stage (2026-10-09, night): every class at the stage where it is played
+
+Measure: `tools/class_stages.py` (docs/generated/CLASS_STAGES.md; with the proposals: CLASS_STAGES_PROPOSED.md). Stages:
+base C03, C05, C06; intermediate C10, C13, C18; advanced C22, C29, C34, C40; late P08, P14, P18, P24 (the postgame
+bosses the model reproduces; the rest of the postgame is a known limit until T08, the user's choice). Attackers are
+judged by the length of their won fights against the median attacker (slow above 1.15), supports and tanks by wins in
+the contested fights (weak 15 points below the median).
+
+Fixes of the model on the way (not balance changes): the Kunoichi fights with a dagger and the stings until she is a
+Kunoichi; the Joker with a dagger until she is a Joker (the Spieler and the Trickster cannot wear an axe).
+
+| Class (stage) | Before | Change | After | State |
+|---|---|---|---|---|
+| Assassin (intermediate) | 1.26 - 1.31 | stings x2.5 power (T001 - T030) | 1.12 | decided |
+| Spieler (base) | 1.23 | none: she had no weapon (model fix) | 1.03 | - |
+| Trickster (intermediate) | 1.16 - 1.20 | Checkmate x1.6 power (T031 - T040) | 1.12 - 1.18 | proposed |
+| Treasure Hunter (advanced) | 1.31 | Pursuit Stab -25% TP, x2 power (T041 - T050) | 1.01 (late 0.89) | proposed |
+| Kunoichi (advanced) | 1.19 | none more: the stings and the dagger before | 1.13 | - |
+| Mistress (advanced) | 1.16 - 1.18 | Enticing Love -25% TP, Hard Whipping x1.6 (T051 - T065) | 1.07 | proposed |
+| Sage (advanced) | wins -41% | Circle Brave and Circle Protect x1.6 (T066 - T075) | wins -28% | proposed |
+| Valkyrie, pure tank build | wins -31% | none: the class is within in its Valkyrie build | - | reading |
+| Treasure Hunter (intermediate) | 1.31 | none: the guide's plan takes no sting at that stage | - | reading |
+
+With every proposal applied: 69 of 76 role and stage rows within the band (66 before).
