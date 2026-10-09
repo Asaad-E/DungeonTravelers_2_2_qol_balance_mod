@@ -376,6 +376,19 @@ def prepare(setup, party, enemies):
             index, value = int(row['Resistance index']), int(row['Value'])
             for unit in party:
                 unit.resist_base[index] = max(unit.resist_base[index], value)
+    # the altar or shrine of the map a player uses before a boss the guides warn about (sheet ZoneChanges): a zone
+    # slot of the cell removed, or changed into another (an element slot 7 - 11)
+    for row in setup.zone_changes:
+        zone = getattr(enemies, 'zone', None)
+        if zone and row['Floor'] == getattr(enemies, 'floor', None) and int(row['Battle']) == getattr(enemies, 'number', None):
+            slots = list(zone['slots'])
+            if int(row['Slot']) in slots:
+                k = slots.index(int(row['Slot']))
+                if row['New slot'] in (None, ''):
+                    slots.pop(k)
+                else:
+                    slots[k] = int(row['New slot'])
+            enemies.zone = dict(zone, slots=tuple(slots))
 
 
 def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle_setup=None):

@@ -14,7 +14,7 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | C04 | Mad Catter x3 (miniboss) | easy | 5 | 100% | 80% | within |
 | C05 | Mad Catter | normal | 6 | 100% | 50% | within |
 | C06 | Ghast | normal | 9 | 100% | 50% | within |
-| C07 | Sorrowful Songstress | normal | 15 | 85% | 50% | within |
+| C07 | Sorrowful Songstress | normal | 15 | 100% | 50% | within |
 | C08 | Doll (miniboss) | easy | 15 | 100% | 80% | within |
 | C09 | Cupid | easy | 15 | 100% | 80% | within |
 | C10 | Countess of Vrachia | easy | 15 | 100% | 80% | within |
@@ -46,5 +46,5 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | C36 | Demon God Fried | easy | 53 | 90% | 80% | within |
 | C37 | Iron Maiden | normal | 55 | 100% | 50% | within |
 | C38 | Samael | easy | 62 | 60% | 80% | read: near the floor |
-| C39 | Melek Taus | normal | 62 | 75% | 50% | within |
+| C39 | Melek Taus | normal | 62 | 90% | 50% | within |
 | C40 | Demiurge, Atialuco | normal | 64 | 75% | 50% | within |
