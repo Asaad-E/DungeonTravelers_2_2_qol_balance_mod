@@ -64,3 +64,63 @@ row on one floor zone, HP and TP carried over and the recovery after each battle
 
 The changes decided are then written into `data_tables/balance_changes.xlsx`, each naming its rows, and checked with
 `sim/measures.py` `check_change` (phase 2, steps 3 and 4).
+
+---
+
+## Milestone 2: combat
+
+Figures of 2026-10-09. "Weapon band": the member at the level, gear and forge of a checkpoint, each basic weapon in
+turn, expected damage per unit of time of her best action against the boss of the checkpoint
+(`sim/measures.py` `weapon_band`; TP and survival not counted).
+
+### T02 Speed and weapons
+
+| Row | Complaint | Verdict | Figure (vanilla) | Proposal |
+|---|---|---|---|---|
+| J01 | A fast weapon acts 2 - 3 times per heavy one | partly true | Same character late: Kukri every 0.21, Heavy Axe every 0.40 (1.9 actions); but the heavy weapon gives the most damage per time everywhere (Kukri 29 - 41% of it) | No change; survival in the final pass |
+| J06 | Guns are dead | partly true | 3 of 13 bow skills accept a gun; 7 unique guns, ranks 1.4 to 2.9 | **To decide**: more bow skills for guns (L13, structural) or none |
+| F10 | A gun is not a bow | true | 10 of 13 bow skills refuse a gun | As J06 |
+| J07 | Two-handed axes and swords are dead | false | Two-handed weapons lead damage per time at C18, C34, P24; one-handed 47 - 84% of them | None for damage; survival in the final pass |
+| F08 | One-handed better at the end | false (basic pieces) | P24: Heavy Axe 100 / Hand Axe 84, Heavy Lance 100 / Lance 49, Tachi 100 / Tantou 48; unique pieces not modelled | Look again with unique pieces (T10) |
+| F09 | Whips are garbage | true | Mistress with a whip: 39% (C34), 12% (P24) of the Dark Lord | Whip stats and whip skills (L14, L12): Mistress at half the Dark Lord or more |
+| F11 | Basic attacks useless late | true | Plain attack 15 - 70% of the best action at C18, 0 - 27% at P24 | **To decide**: raise Double / Triple Attack and Barrage (L12), or accept |
+| J12 | Promotion to Berserker slows and kills | false | Fighter 14 Longsword to Berserker 15 Claymore: damage per time x2.3, wait +3% | None |
+| J28 | Lightning March mandatory for heavy weapons | false | The song adds 5 - 26%; the Heavy Axe is best with or without it | None |
+| F24 | Physical skills slower than in the first game | partly true | 73% of 64 damage techniques below speed 1 at top level (median 0.90); no first-game data to compare | Skill by skill in T06 |
+
+### T04 Magic
+
+| Row | Complaint | Verdict | Figure (vanilla) | Proposal |
+|---|---|---|---|---|
+| J02 | Casters far worse than physical burst late | false | Witch with top spells: 172 - 191% of the Dark Lord at C38, P24, P49 (resistances counted); 88 - 97% of chants completed | None as stated |
+| J11 | Magic spikes mid game, then plateaus | partly true | Mage over Dark Lord: 41% (C07), 98% (C13), 189% (C18), 333% (C25), 309% (C34), 191% (C38), 172% (P24, P49) | **To decide**: soften the peak (tier 1 - 2 power, L12) or keep it |
+| J14 | Bosses interrupt casters routinely | false | 85 - 98% of chants completed against 7 bosses; at most 0.7 broken per fight | None |
+| J33 | Top spells cost much for little | partly true | Tier 4 single: power x2.5, TP x2.6, chant 34% slower; power per TP about equal | **To decide**: faster chant for tier 4 (L12) |
+| F06 | Mage teams need one sealbook; anti-magic bosses | partly true | Anti-magic cells: C29a and P07, P13, P25, P47; no sealbook dependence in the model | None; items and dolls answer those fights |
+| F13 | Magic defence buffs barely matter | partly true | +25% magic defence cuts a spell by 11 - 15% | **To decide**: larger values (L12) |
+
+### T07 Ailments, debuffs and locks
+
+| Row | Complaint | Verdict | Figure (vanilla) | Proposal |
+|---|---|---|---|---|
+| J31 | Tinker Squash locks a boss or does nothing | true | 25 - 43% delay per hit, no resistance roll; immune: 14% of story bosses, 56% of postgame bosses | Immunity bits or lower chance on bosses (L26): no boss lockable |
+| F14 | Resistance 100 makes resistance skills useless | partly true | Model party: elemental resistance 60 at 90 - 99; 100 only with full end-game enchanting | **To decide** in T10 |
+| F15 | Ailments blocked by harder bosses | true | Postgame bosses immune: freeze 91%, stun 93%, paralysis 87%, sleep 65%; death and petrification 100% of all bosses | Open some bosses to slow, sleep, silence (L26, L02) |
+| F23 | Turn skipping stacks across the party | true | Magnificent Steps 0.07 and Warning Shot 0.06, no immunity: 13% of enemy turns per pair, 33% with three, 49% with five | Lower values or boss resistance (L12, L26) |
+| S05 | Ailments waste turns in common fights | true | A random battle lasts 2.6 - 3.3 actions per member | **To decide**: accept, or richer side effects |
+| S06 | Debuffs help only marginally | true | DEF -10 to -20% adds 2 - 5% damage | Larger debuff values (L12) |
+
+### T12 Common enemies and pace
+
+| Row | Complaint | Verdict | Figure (vanilla) | Proposal |
+|---|---|---|---|---|
+| S01 | Common fights too long for their EXP | partly true | Fights are short (2.6 - 3.3 actions per member); the length is 25 - 35 battles per level | Covered by the decided curve (15 - 19) |
+| S02 | Common enemies too resistant | partly true | Lowest physical resistance 50+: 0% early, 30% at 60 - 79, 77% at 80 - 99 | **To decide**: lower late physical resistances (L02) |
+| S03 | Enemy passives trigger too often | true | Enemy median above the party's top: Reprisal 0.25 / 0.18, Auto-Guard 0.30 / 0.12, Counter 0.15 / 0.12, Ecstasy 0.5 / 0.15 | Bring the four to the party's top (L08) |
+| F12 | Dark Aura punishes short range late | partly true | 21% of enemies of level 60+, 13 of 55 postgame bosses | **To decide**: fewer carriers or lower value |
+| S27 | Damage given and taken feels wrong | to measure | Too vague alone | Verdict from R03 and R08 in the final pass |
+
+### What the user decides for milestone 2
+
+The rows marked **To decide**, and whether to apply the proposals of the rows marked true. The rows found false (J07,
+F08, J12, J28, J02, J14) close without a change once confirmed.

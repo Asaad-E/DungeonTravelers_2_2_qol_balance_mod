@@ -122,6 +122,53 @@ def expedition(data, setup, floor, level, cid, roles=None, battles=None, runs=No
         setup.settings['kit_count'] = saved_kit
 
 
+def weapon_band(data, setup, cid, role_name, character, weapons, level=None, songs=()):
+    """For one member of a role at a checkpoint (its level, gear upgrade and forge), each weapon of the list worn in
+    turn: the expected damage per unit of time of her plain attack and of her best damage action against the first
+    boss of the checkpoint (Battle.expected_damage over Policy.time_of, hits, accuracy and critical rate at their
+    means; TP is not counted). songs: statuses (effect, value) put on the member first, as a song would. Returns
+    {weapon: {'plain', 'best', 'skill', 'wait', 'def'}}."""
+    import random
+    from sim.battle import Action, Battle
+    from sim.policy import Policy, load_rules, options
+    from sim.units import Status
+    cp = setup.checkpoint(cid)
+    level = level or scenario.reference_levels(data, setup)[cid][0]
+    gear = scenario.checkpoint_gear(data, setup, cid)
+    char = next(c for c in data.characters if c['name'] == character)
+    policy = Policy(load_rules(setup.policies), setup.settings)
+    boss = scenario.fixed_battle(data, cp['Floor'], scenario.battle_numbers(cp)[0])
+    saved = setup.roles[role_name]
+    out = {}
+    try:
+        for weapon in weapons:
+            role = dict(saved)
+            role['Weapon'] = weapon
+            setup.roles[role_name] = role
+            member = scenario.build_role_member(data, setup, role_name, char, level, gear, 0,
+                                                scenario.forge_open(setup, cp['Floor']))
+            if member.weapon is None or member.weapon['name'] != weapon:
+                continue                                    # the class cannot wear it
+            for effect, value in songs:
+                member.statuses[effect] = Status(effect, value, 0, member, 'song', 'song')
+            battle = Battle(data, [member], list(boss), random.Random(0))
+            target = max(boss, key=lambda e: e.max_hp)
+            plain = Action(member, 'attack', target=target)
+            rate = lambda a: battle.expected_damage(a, target) / policy.time_of(battle, a)
+            best, name = rate(plain), 'Attack'
+            for skill, lv in options(battle, member):
+                action = Action(member, 'skill', skill, lv, target=target)
+                if action.physical or action.magic:
+                    value = rate(action)
+                    if value > best:
+                        best, name = value, skill.name
+            out[weapon] = {'plain': rate(plain), 'best': best, 'skill': name,
+                           'wait': policy.time_of(battle, plain), 'def': member.stat('def')}
+    finally:
+        setup.roles[role_name] = saved
+    return out
+
+
 def check_change(data, setup, changes, checkpoints=None, runs=None):
     """[(checkpoint, vanilla figures, changed figures, [the windows it leaves])] for the checkpoints the change
     touches (or those given). changes: the list GameData.with_changes takes."""
