@@ -18,6 +18,18 @@ from sim.units import Unit, PARTY, build_enemy, build_summon
 STATS = ('atk', 'def', 'int', 'res', 'dex', 'agi')
 
 
+class ChantSpeed(unittest.TestCase):
+    def test_each_piece_shortens_the_chant_until_the_third(self):
+        """K02, atwiki dt2-2 page 105: the turns of a capped unit while another chants Resurrect Lv1 ten times fell
+        with each piece of chant speed UP (61, 51, 40, 31) and not with the fourth (31). The code (0x449f5e -
+        0x44a1d4) gives the same shape: 0.20 a piece, kept at 0.5, reached by the third. How much each piece gains
+        differs from the test (assumption A30, settled for the code); this checks the shape only."""
+        wait = [f.wait(84, 1.6, 50, bonus=f.speed_enchant_bonus(up=n, per_up=0.20, per_mini=0.10, per_down=0.20))
+                for n in range(5)]
+        self.assertTrue(all(a > b for a, b in zip(wait[:3], wait[1:4])))
+        self.assertAlmostEqual(wait[3], wait[4])
+
+
 class CriticalFactor(unittest.TestCase):
     def test_the_sealbook_test_fits_a_quarter_more(self):
         """K03, atwiki dt2-2 page 105 (Heqet sealbook): unarmed hits of Yae and Luco on Hola-Orange went from 170 to

@@ -76,31 +76,31 @@ Written by `tools/checkpoint_levels.py` from the game data and `data_tables/sim_
 | P30 | Casino superboss, weakened (Lolo and Tenerezza) | 90 | 74 |  | 95 | zone, held | -5 | +0 |
 | P31 | Matrix superboss, weakened (Magna Meretrix) | 93 | 79 |  | 95 | zone, held | -2 | +0 |
 | P32 | Aradia (8th fight), First Sealbook afterword | 99 | 90 |  | 95 | zone, held | +4 | +0 |
-| P33 | Final boss after the 8th Aradia (Panagia, then Radiant Being) | 99 | 35 |  | 95 | zone, held | +4 | +0 |
-| P34 | Casino VIP, 1st (Tama the Red) | 95 | 65 |  | 95 | zone, held | +0 | +0 |
-| P35 | Casino VIP, 2nd (Riko the Reclusive) | 95 | 65 |  | 95 | zone, held | +0 | +0 |
-| P36 | Casino VIP, 3rd (Rai the Sweltering) | 96 | 65 |  | 95 | zone, held | +1 | +0 |
-| P37 | Casino VIP, 4th (Mor the Drunken) | 96 | 65 |  | 95 | zone, held | +1 | +0 |
-| P38 | Casino VIP, 5th (Gam the Wise) | 96 | 65 |  | 95 | zone, held | +1 | +0 |
-| P39 | Casino VIP, 6th (Ruu the Woodsy) | 97 | 65 |  | 95 | zone, held | +2 | +0 |
-| P40 | Casino VIP, 7th (five bosses with Mandra Prince and Princess) | 99 | 65 |  | 95 | zone, held | +4 | +0 |
-| P41 | Wandering Brigade (Citlalinicue) | 96 | 68 |  | 95 | zone, held | +1 | +0 |
-| P42 | Wandering Brigade (Marduk) | 97 | 69 |  | 95 | zone, held | +2 | +0 |
-| P43 | Wandering Brigade (Arjuna) | 95 | 78 |  | 95 | zone, held | +0 | +0 |
-| P44 | Wandering Brigade (Yoshitsune) | 98 | 83 |  | 95 | zone, held | +3 | +0 |
-| P45 | Four Therian Kings (Zouchou Kuma) | 98 | 29 |  | 95 | zone, held | +3 | +0 |
-| P46 | Four Therian Kings (Jikoku Peggin) | 98 | 40 |  | 95 | zone, held | +3 | +0 |
-| P47 | Four Therian Kings (Koumoku Mary) | 98 | 75 |  | 95 | zone, held | +3 | +0 |
-| P48 | Four Therian Kings (Bishamon Peggy) | 99 | 52 |  | 95 | zone, held | +4 | +0 |
-| P49 | Hell's Hole superboss (Crom Cruach, two fights) | 99 | 67 |  | 95 | zone, held | +4 | +0 |
-| P50 | Casino superboss (Lolo and Tenerezza) | 99 | 74 |  | 95 | zone, held | +4 | +0 |
-| P51 | Matrix superboss (Adon, Magna Meretrix, Samson) | 99 | 79 |  | 95 | zone, held | +4 | +0 |
-| P52 | First Sealbook afterword (Bearerophon) | 94 | 90 |  | 95 | zone, held | -1 | +0 |
-| P53 | First Sealbook afterword (Magical Mary) | 95 | 90 |  | 95 | zone, held | +0 | +0 |
-| P54 | First Sealbook afterword (Beard Master) | 96 | 90 |  | 95 | zone, held | +1 | +0 |
-| P55 | First Sealbook afterword (Mul the Mechanical) | 98 | 90 |  | 95 | zone, held | +3 | +0 |
+| P33 | Final boss after the 8th Aradia (Panagia, then Radiant Being) | 99 | 35 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | +0 | +4 |
+| P34 | Casino VIP, 1st (Tama the Red) | 95 | 65 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -4 | +0 |
+| P35 | Casino VIP, 2nd (Riko the Reclusive) | 95 | 65 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -4 | +0 |
+| P36 | Casino VIP, 3rd (Rai the Sweltering) | 96 | 65 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -3 | +0 |
+| P37 | Casino VIP, 4th (Mor the Drunken) | 96 | 65 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -3 | +0 |
+| P38 | Casino VIP, 5th (Gam the Wise) | 96 | 65 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -3 | +0 |
+| P39 | Casino VIP, 6th (Ruu the Woodsy) | 97 | 65 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -2 | +0 |
+| P40 | Casino VIP, 7th (five bosses with Mandra Prince and Princess) | 99 | 65 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | +0 | +0 |
+| P41 | Wandering Brigade (Citlalinicue) | 96 | 68 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -3 | +0 |
+| P42 | Wandering Brigade (Marduk) | 97 | 69 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -2 | +0 |
+| P43 | Wandering Brigade (Arjuna) | 95 | 78 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -4 | +0 |
+| P44 | Wandering Brigade (Yoshitsune) | 98 | 83 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -1 | +0 |
+| P45 | Four Therian Kings (Zouchou Kuma) | 98 | 29 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -1 | +0 |
+| P46 | Four Therian Kings (Jikoku Peggin) | 98 | 40 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -1 | +0 |
+| P47 | Four Therian Kings (Koumoku Mary) | 98 | 75 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -1 | +0 |
+| P48 | Four Therian Kings (Bishamon Peggy) | 99 | 52 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | +0 | +0 |
+| P49 | Hell's Hole superboss (Crom Cruach, two fights) | 99 | 67 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | +0 | +0 |
+| P50 | Casino superboss (Lolo and Tenerezza) | 99 | 74 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | +0 | +0 |
+| P51 | Matrix superboss (Adon, Magna Meretrix, Samson) | 99 | 79 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | +0 | +0 |
+| P52 | First Sealbook afterword (Bearerophon) | 94 | 90 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -5 | +0 |
+| P53 | First Sealbook afterword (Magical Mary) | 95 | 90 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -4 | +0 |
+| P54 | First Sealbook afterword (Beard Master) | 96 | 90 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -3 | +0 |
+| P55 | First Sealbook afterword (Mul the Mechanical) | 98 | 90 | 90 - 99, uncrowned (GameFAQs faqs/80834 (Hentaicheg), EXP Grind/Crowning) | 99 | guide | -1 | +0 |
 
-## Jumps of vanilla (30)
+## Jumps of vanilla (19)
 
 A rise of 5 levels or more, or a boss 3 levels or more above its reference.
 
@@ -125,14 +125,3 @@ A rise of 5 levels or more, or a boss 3 levels or more above its reference.
 | P28 | Plains of Light map 11 (Hell's Angel) | +5 | -3 |
 | P29 | Plains of Light map 15, final boss weakened (Panagia) | +0 | +4 |
 | P32 | Aradia (8th fight), First Sealbook afterword | +0 | +4 |
-| P33 | Final boss after the 8th Aradia (Panagia, then Radiant Being) | +0 | +4 |
-| P40 | Casino VIP, 7th (five bosses with Mandra Prince and Princess) | +0 | +4 |
-| P44 | Wandering Brigade (Yoshitsune) | +0 | +3 |
-| P45 | Four Therian Kings (Zouchou Kuma) | +0 | +3 |
-| P46 | Four Therian Kings (Jikoku Peggin) | +0 | +3 |
-| P47 | Four Therian Kings (Koumoku Mary) | +0 | +3 |
-| P48 | Four Therian Kings (Bishamon Peggy) | +0 | +4 |
-| P49 | Hell's Hole superboss (Crom Cruach, two fights) | +0 | +4 |
-| P50 | Casino superboss (Lolo and Tenerezza) | +0 | +4 |
-| P51 | Matrix superboss (Adon, Magna Meretrix, Samson) | +0 | +4 |
-| P55 | First Sealbook afterword (Mul the Mechanical) | +0 | +3 |
