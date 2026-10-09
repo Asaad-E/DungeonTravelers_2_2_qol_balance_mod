@@ -15,6 +15,7 @@ nothing in wins is a row to read: dead, or useful where the fights of the audit 
 """
 import json
 import os
+import random
 import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_value')
 REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'SKILL_VALUE.md')
 
-from sim import scenario                                 # noqa: E402
+from sim import scenario, measures                       # noqa: E402
 from sim import setup as setup_mod                       # noqa: E402
 from sim import policy as P                              # noqa: E402
 from sim.battle import AILMENTS                          # noqa: E402
@@ -78,7 +79,8 @@ def candidates(data):
     return out
 
 
-def play(data, setup, role, cid, skill, use):
+def play(data, setup, role, cid, skill, use, chain=0):
+    """chain > 0: a row of that many random battles of the floor (HP and TP carried over) instead of the boss fights."""
     cp = setup.checkpoint(cid)
     level = scenario.reference_levels(data, setup)[cid][0]
     gear = scenario.checkpoint_gear(data, setup, cid)
@@ -97,7 +99,12 @@ def play(data, setup, role, cid, skill, use):
         tested.items = kept[0].items if kept else {}
         return kept + [tested] + [u for u in whole if u.kind != 'member']
 
+    zones = [z for z in data.floors if z['name'].split(' zone')[0] == cp['Floor'] and z['formations']] or         [z for z in data.floors if z['name'][:4] == cp['Floor'][:4] and z['formations']]
+    rng = random.Random(7)
+
     def enemies():
+        if chain and zones:
+            return [measures.random_group(data, rng.choice(zones), rng) for _ in range(chain)]
         return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
 
     saved = setup.policies
@@ -113,7 +120,8 @@ def play(data, setup, role, cid, skill, use):
     finally:
         setup.policies = saved
     won = [r for r in res if r['won']]
-    return {'won': len(won) / len(res), 'time_won': sum(r['time'] for r in won) / len(won) if won else None}
+    return {'won': len(won) / len(res), 'time_won': sum(r['time'] for r in won) / len(won) if won else None,
+            'hp_left': sum(r['hp_left'] for r in res) / len(res)}
 
 
 def run(part='1/1'):
@@ -142,6 +150,76 @@ def run(part='1/1'):
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, f'part_{k}.json'), 'w', encoding='utf-8') as f:
         json.dump(rows, f)
+
+
+def hostile_skills(data):
+    """The skills of theme T07: an ailment on enemies, or a status that lowers them (a negative value on a target of
+    the other side)."""
+    from sim.data import SINGLE, RANDOM, ROW, PIERCE, ALL
+    out = []
+    for s in candidates(data):
+        enemy = s.target in (SINGLE, RANDOM, ROW, PIERCE, ALL)
+        ailment = any(e in AILMENTS and k != 2 for e, k, _ in s.effects)
+        debuff = enemy and any(k == 5 and min(v) < 0 for e, k, v in s.effects)
+        if enemy and (ailment or debuff):
+            out.append(s)
+    return out
+
+
+def ailments(part='1/1'):
+    """T07: each hostile skill on the boss fights and on rows of random battles (ailment_chain) of the stage where it
+    is first played, with it (the rule of rule_for) and without."""
+    k, n = (int(x) for x in part.split('/'))
+    data, setup = balance_data(game_data()), setup_mod.load()
+    every = hostile_skills(data)
+    chain = int(setup.settings['ailment_chain'])
+    rows = []
+    for skill in every[(k - 1) * len(every) // n: k * len(every) // n]:
+        found = place(data, setup, skill)
+        if found is None:
+            continue
+        role, st = found
+        cells = []
+        for cid in [c.strip() for c in str(st['Checkpoints']).split(';')]:
+            for context, length in (('boss', 0), ('random', chain)):
+                cells.append({'checkpoint': cid, 'context': context,
+                              'without': play(data, setup, role, cid, skill, False, length),
+                              'with': play(data, setup, role, cid, skill, True, length)})
+        rows.append({'skill': skill.name, 'role': role, 'stage': st['Stage'], 'rule': ' / '.join(rule_for(skill)),
+                     'cells': cells})
+        print(skill.name, role, flush=True)
+    out = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_ailments')
+    os.makedirs(out, exist_ok=True)
+    with open(os.path.join(out, f'part_{k}.json'), 'w', encoding='utf-8') as f:
+        json.dump(rows, f)
+
+
+def ailments_report():
+    out = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_ailments')
+    rows = []
+    for name in sorted(os.listdir(out)) if os.path.isdir(out) else []:
+        with open(os.path.join(out, name), encoding='utf-8') as f:
+            rows += json.load(f)
+    lines = []
+    for r in sorted(rows, key=lambda r: r['skill']):
+        figs = []
+        for context in ('boss', 'random'):
+            cells = [c for c in r['cells'] if c['context'] == context]
+            wins = sum(c['with']['won'] - c['without']['won'] for c in cells) / max(1, len(cells))
+            gains = [1 - c['with']['time_won'] / c['without']['time_won'] for c in cells
+                     if c['with']['time_won'] and c['without']['time_won']]
+            hp = sum(c['with']['hp_left'] - c['without']['hp_left'] for c in cells) / max(1, len(cells))
+            figs.append(f"{wins:+.0%} / {(sum(gains) / len(gains) if gains else 0):+.0%} / {hp:+.0%}")
+        lines.append(f"| {r['skill']} | {r['role']} ({r['stage']}) | {r['rule']} | {figs[0]} | {figs[1]} |")
+    text = ['# Ailments and debuffs: what each adds (generated)', '',
+            'Generated by `tools/skill_value.py ailments`. Do not edit. Balance variant. Each hostile skill at the '
+            'stage where it is first played, used by its role before attacking where it can land, against the role '
+            'without it. Cells: wins / length of the won fights (shorter is +) / party HP left at the end. Boss: the '
+            'boss fights of the stage; random: rows of ailment_chain random battles of each floor, HP and TP carried.',
+            '', '| Skill | Played as | Rule | Boss | Random rows |', '|---|---|---|---|---|'] + lines
+    with open(os.path.join(BASE_DIR, 'docs', 'generated', 'SKILL_AILMENTS.md'), 'w', encoding='utf-8') as f:
+        f.write('\n'.join(text) + '\n')
+    print(len(rows), 'skills')
 
 
 def run_all(n=None):
@@ -190,4 +268,5 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'all': run_all, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'report': report, 'ailments': ailments,
+     'ailments_report': ailments_report}[sys.argv[1]](*sys.argv[2:])
