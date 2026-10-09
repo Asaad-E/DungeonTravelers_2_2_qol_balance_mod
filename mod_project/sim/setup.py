@@ -30,6 +30,8 @@ class Setup:
         self.calibration = _rows(wb, 'Calibration')
         self.kit = _rows(wb, 'Kit') if 'Kit' in wb.sheetnames else []
         self.preparation = _rows(wb, 'Preparation') if 'Preparation' in wb.sheetnames else []
+        self.enchant_plan = _rows(wb, 'EnchantPlan') if 'EnchantPlan' in wb.sheetnames else []
+        self.enchant_slots = _rows(wb, 'EnchantSlots') if 'EnchantSlots' in wb.sheetnames else []
         self.guide_levels = {r['Checkpoint']: r for r in _rows(wb, 'GuideLevels')}
         self.anchors = _rows(wb, 'Anchors') if 'Anchors' in wb.sheetnames else []
 

@@ -13,6 +13,9 @@ from sim.units import build_member, build_enemy
 STAGES = ((30, 'Lv30 class'), (15, 'Lv15 class'), (1, 'Base class'))
 
 
+ONE_PER_PIECE = (6, 9, 12, 15, 18, 21)       # ATK to AGI UP: one a piece (atwiki dt2-2 page 214)
+
+
 def class_id(data, name):
     return next(k for k, v in data.class_names.items() if v == name)
 
@@ -122,7 +125,38 @@ def checkpoint_gear(data, setup, cid):
     raise KeyError(cid)
 
 
-def build_role_member(data, setup, role_name, character, level, upgrade, crown=0):
+def enchant_slots(setup, upgrade):
+    """Enchantment slots of a piece at an upgrade level (sheet EnchantSlots)."""
+    return max((int(r['Slots']) for r in setup.enchant_slots if upgrade >= int(r['Least upgrade'])), default=0)
+
+
+def forge_enchants(data, setup, role_name, equipment):
+    """A31: the enchantments a reference member has forged onto her gear: enchant_fill of the slots of her pieces,
+    filled in the order of the sheet EnchantPlan for her role; a stat enchantment (ATK to AGI UP) at most once a
+    piece. Returns {enchantment id: pieces that carry it}."""
+    plan = sorted((r for r in setup.enchant_plan if r['Role'] == role_name), key=lambda r: r['Order'])
+    pieces = [{'kind': 'weapon' if data.equipment[i]['category'] == 0 else 'armour', 'upgrade': up,
+               'free': enchant_slots(setup, up), 'has': set()} for _, i, up in equipment]
+    budget = int(round(float(setup.settings.get('enchant_fill', 0) or 0) * sum(p['free'] for p in pieces)))
+    found = {}
+    for row in plan:
+        eid, placed = int(row['Enchant_ID']), 0
+        for piece in pieces:
+            while budget > 0 and placed < int(row['Most per member']) and piece['free'] > 0                     and row['Slot'] in ('any', piece['kind']) and piece['upgrade'] >= int(row['Least upgrade of the piece'] or 0)                     and not (eid in piece['has'] and eid in ONE_PER_PIECE):
+                piece['free'] -= 1
+                piece['has'].add(eid)
+                found[eid] = found.get(eid, 0) + 1
+                placed += 1
+                budget -= 1
+    return found
+
+
+def forge_open(setup, floor):
+    """Whether the blacksmith has been met by the dungeon of this floor (setting forge_from_dungeon)."""
+    return floor is not None and int(floor[2:4]) >= int(setup.settings.get('forge_from_dungeon', 99))
+
+
+def build_role_member(data, setup, role_name, character, level, upgrade, crown=0, forge=False):
     role = setup.roles[role_name]
     cls, previous = class_path(data, role, level)
     equipment = []
@@ -135,8 +169,9 @@ def build_role_member(data, setup, role_name, character, level, upgrade, crown=0
                 continue
             equipment.append((slot, piece['id'], upgrade))
     skills = allocate_skills(data, role, level)
+    forged = forge_enchants(data, setup, role_name, equipment) if forge else None
     unit = build_member(data, character, cls, level, previous, equipment, skills, crown_bonus=crown,
-                        front=role['Row'] == 'front')
+                        front=role['Row'] == 'front', forged=forged)
     unit.role = role_name
     unit.shield = any(slot == 1 and data.equipment[i]['category'] == 1 for slot, i, _ in equipment)
     return unit
@@ -151,7 +186,7 @@ def available(setup, chapter):
     return names
 
 
-def reference_party(data, setup, chapter, level, upgrade, crown=0):
+def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
     chars = {c['name']: c for c in data.characters}
     pool = available(setup, chapter)
     size = int(setup.settings.get('party_size', 5))
@@ -166,7 +201,8 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0):
             c = chars.get(name)
             if name in pool and name not in taken and c and c['base_class'] == base:
                 join_level = level_of_exp(data, c['start_exp'] or 0)
-                party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown))
+                party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown,
+                                                   forge_open(setup, floor)))
                 taken.add(name)
                 break
     # a role with nobody: any member left, in the role of her base class
@@ -179,7 +215,8 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0):
         for role_name, role in setup.roles.items():
             if class_id(data, role['Base class']) == c['base_class']:
                 join_level = level_of_exp(data, c['start_exp'] or 0)
-                party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown))
+                party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown,
+                                                   forge_open(setup, floor)))
                 taken.add(name)
                 break
     front = int(setup.settings.get('front_size', 3))
@@ -279,7 +316,7 @@ def checkpoint_fight(data, setup, cid, level=None, crown=None):
     groups = [fixed_battle(data, cp['Floor'], n) for n in battle_numbers(cp)]
     level = level if level is not None else reference_levels(data, setup)[cid][0]               # A15
     party = reference_party(data, setup, cp['Chapter'], level, checkpoint_gear(data, setup, cid),
-                            crown if crown is not None else int(cp['Crown bonus'] or 0))
+                            crown if crown is not None else int(cp['Crown bonus'] or 0), cp['Floor'])
     return party, groups
 
 

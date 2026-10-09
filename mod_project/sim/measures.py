@@ -62,7 +62,8 @@ def play_checkpoint(data, setup, cid, runs):
     gear = scenario.checkpoint_gear(data, setup, cid)
 
     def party():
-        return scenario.reference_party(data, setup, cp['Chapter'], level, gear, int(cp['Crown bonus'] or 0))
+        return scenario.reference_party(data, setup, cp['Chapter'], level, gear, int(cp['Crown bonus'] or 0),
+                                        cp['Floor'])
 
     def enemies():
         return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]

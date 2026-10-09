@@ -205,7 +205,7 @@ def unique_rank(level, crown_bonus):
 
 def build_member(data, character, class_id, level, previous=None, equipment=(), skills=None, passives=None,
                  crown_bonus=0, unique_level=None, name=None, front=True, items=None, sealbook=None,
-                 party_enchants=()):
+                 party_enchants=(), forged=None):
     """A party member. equipment: [(slot, equipment id, upgrade level)], slot 0 main hand, 1 off hand, 2-4 the rest.
     skills: {skill id: level}; passive skills among them are turned into passive effects."""
     import class_data
@@ -264,6 +264,9 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
             enchants[e] = enchants.get(e, 0) + 1
     for e in party_enchants:
         enchants[e] = enchants.get(e, 0) + 1
+    # enchantments forged onto the pieces (sim/scenario.py forge_enchants): {id: pieces that carry it}
+    for e, n in (forged or {}).items():
+        enchants[e] = enchants.get(e, 0) + n
     # The piece counter (0x4f5470) and the stat function (0x4f8311) count one piece only of an enchantment whose flag
     # bit 0 (EnchantData 0x20) is clear
     enchants = {e: (n if e in data.enchant_stacks else min(n, 1)) for e, n in enchants.items()}
