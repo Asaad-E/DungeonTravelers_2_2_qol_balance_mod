@@ -64,6 +64,13 @@ def apply(data, changes):
             elif field == 'weapon codes':
                 _check(row, ', '.join(str(w) for w in skill.weapons))
                 skill.weapons = [int(w) for w in str(new).split(',')]
+            elif field.startswith('added effect'):
+                # 'added effect 106 (kind 4)': an empty slot of the five a skill record holds (tools/extract_vanilla.py)
+                # filled with that effect; New lists its value at each level. Lever L13 (what a skill does).
+                eid, kind = int(field.split()[2]), int(field.split('kind')[1].strip(' )'))
+                if any(e == eid for e, _, _ in skill.effects) or len(skill.effects) >= 5:
+                    raise ValueError(f'{row["ID"]}: {record} has no empty slot for effect {eid}')
+                skill.effects.append((eid, kind, [float(v) for v in str(new).split(',')]))
             elif 'effect' in field:
                 eid = _effect_id(field)
                 values = next(v for e, _, v in skill.effects if e == eid)

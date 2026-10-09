@@ -49,6 +49,7 @@ AILMENTS = {113: 'poison', 114: 'freeze', 115: 'paralysis', 116: 'sleep', 117: '
 AILMENT_RESIST = {113: 4, 114: 4, 115: 7, 116: 5, 117: 5, 118: 3, 119: 6, 120: 6, 122: 6}
 # Statuses of the list Cures and Esarhaddon walk (table 0x6cc79c; Esarhaddon 0x6c9a7c stops at slow)
 CURE_ORDER = (113, 115, 117, 114, 116, 120, 122)
+ACTION_CAPS = (295, 296)                            # heal cap, damage cap: properties of the action, never statuses
 RANDOM_MOVES = (152, 153, 154, 155)                # a skill that performs one of a table of skills (Battle.random_move)
 ITEM_CURE_ONE, ITEM_CURE_ALL = 6, 7                # item effect types (docs/FORMULAS.md 15)
 CURE_ALL = 8                                   # 0x481b12: a value of exactly 8 also clears the second list (slot 0x90)
@@ -1569,6 +1570,8 @@ class Battle:
             if effect in (66, 80) and target.side == PARTY:
                 target.pep = max(70.0, min(130.0, target.pep + value)) if effect == 80 or target.pep < 100 else target.pep
                 continue
+            if effect in ACTION_CAPS:
+                continue                # the caps of a heal or a hit are read from the action (Battle.heal, damage)
             if kind in (4, 5) or effect in STATUS_EFFECTS:
                 if song or dance:
                     self.perform_song(unit, action, target, effect, value, dance)
