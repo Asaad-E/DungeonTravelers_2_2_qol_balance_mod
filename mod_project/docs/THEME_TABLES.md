@@ -124,3 +124,16 @@ turn, expected damage per unit of time of her best action against the boss of th
 
 The rows marked **To decide**, and whether to apply the proposals of the rows marked true. The rows found false (J07,
 F08, J12, J28, J02, J14) close without a change once confirmed.
+
+---
+
+## Milestone 3 (started): T11 Information
+
+The class rows of T05 and the skill rows of T06 rest on the combat rules of milestone 2 (BALANCE_PLAN.md section 3,
+phase 3), so their verdicts wait for the decisions of milestone 2. The two data rows of T11:
+
+| Row | Complaint | Verdict | Figure (vanilla) | Proposal |
+|---|---|---|---|---|
+| J34 | Berserk drops DEF to zero | false | DEF -11 to -25% for 4 - 8 turns, attack +20 to +50% | None |
+| J13 | Mercenaries act unpredictably, undocumented | partly true | Weighted random scripts of the enemy kind, 1 - 3 sets each; data, not shown | **To decide**: describe each mercenary in its in-game text (L20) |
+| S23 | Order of actions not shown | future idea | Not evaluated (the user, 2026-10-07) | None |
