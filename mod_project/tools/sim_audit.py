@@ -66,8 +66,9 @@ def fights(data, setup, role, character, level, cid, extra):
     def party():
         tested = scenario.build_role_member(data, setup, role, chars[character], level, gear, 0,
                                             scenario.forge_open(setup, cp['Floor']), extra)
-        members = [u for u in scenario.reference_party(data, setup, cp['Chapter'], level, gear, 0, cp['Floor'])
-                   if u.name != character]
+        whole = scenario.reference_party(data, setup, cp['Chapter'], level, gear, 0, cp['Floor'])
+        summons = [u for u in whole if u.kind != 'member']
+        members = [u for u in whole if u.kind == 'member' and u.name != character]
         same = next((k for k, u in enumerate(members) if u.role == role), None)
         if same is not None:
             members[same] = tested
@@ -75,7 +76,7 @@ def fights(data, setup, role, character, level, cid, extra):
             members = members[:int(setup.settings.get('party_size', 5)) - 1] + [tested]
         for u in members:
             u.items = members[0].items
-        return members
+        return members + summons
 
     def enemies():
         return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]

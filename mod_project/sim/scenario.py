@@ -9,7 +9,7 @@ import random
 from sim import progression
 from sim.battle import Battle
 from sim.policy import Policy, load_rules
-from sim.units import build_member, build_enemy, DUAL_WIELD
+from sim.units import build_member, build_enemy, build_summon, DUAL_WIELD
 
 STAGES = ((30, 'Lv30 class'), (15, 'Lv15 class'), (1, 'Base class'))
 
@@ -157,7 +157,8 @@ def forge_open(setup, floor):
     return floor is not None and int(floor[2:4]) >= int(setup.settings.get('forge_from_dungeon', 99))
 
 
-def build_role_member(data, setup, role_name, character, level, upgrade, crown=0, forge=False, extra_skills=None):
+def build_role_member(data, setup, role_name, character, level, upgrade, crown=0, forge=False, extra_skills=None,
+                      party_enchants=()):
     role = setup.roles[role_name]
     cls, previous = class_path(data, role, level)
     equipment = []
@@ -178,7 +179,7 @@ def build_role_member(data, setup, role_name, character, level, upgrade, crown=0
                  if not (slot == 1 and data.equipment[i]['category'] == 0 and not dual)]
     forged = forge_enchants(data, setup, role_name, equipment) if forge else None
     unit = build_member(data, character, cls, level, previous, equipment, skills, crown_bonus=crown,
-                        front=role['Row'] == 'front', forged=forged)
+                        front=role['Row'] == 'front', forged=forged, party_enchants=party_enchants)
     unit.role = role_name
     unit.shield = any(slot == 1 and data.equipment[i]['category'] == 1 for slot, i, _ in equipment)
     return unit
@@ -193,9 +194,42 @@ def available(setup, chapter):
     return names
 
 
+def grand_sealbook(setup, chapter, floor=None):
+    """The grand sealbook the party carries at a checkpoint (sheet GrandSealbooks: the last row whose checkpoint is not
+    after it), as the id of the enemy it seals; None before the first."""
+    order = [c['ID'] for c in setup.checkpoints]
+    here = [k for k, c in enumerate(setup.checkpoints) if c['Chapter'] == chapter and (floor is None or c['Floor'] == floor)]
+    if not here:
+        here = [k for k, c in enumerate(setup.checkpoints) if c['Chapter'] == chapter]
+    if not here:
+        return None
+    at = here[-1] if floor is None else here[0]
+    found = None
+    for r in setup.grand_sealbooks:
+        if r['From checkpoint'] in order and order.index(r['From checkpoint']) <= at:
+            found = int(r['Sealbook'])
+    return found
+
+
+def sealbook_summon(data, setup, sealbook, party):
+    """The summon of the grand sealbook (docs/FORMULAS.md 11): the last form of its family whose level is not above
+    the average level of the party."""
+    members = [u for u in party if u.kind == 'member']
+    average = sum(u.level for u in members) / max(1, len(members))
+    forms = sorted((f for f in data.summons if f['family'] == sealbook and f['level'] <= average), key=lambda f: f['level'])
+    if not forms:
+        return None
+    unit = build_summon(data, forms[-1], members, int(setup.settings['summon_hp']))
+    unit.level = forms[-1]['level']
+    return unit
+
+
 def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
     chars = {c['name']: c for c in data.characters}
     pool = available(setup, chapter)
+    sealbook = grand_sealbook(setup, chapter, floor)
+    book = data.sealbooks.get(sealbook) if sealbook is not None else None
+    party_enchants = tuple(book['enchants']) if book else ()
     size = int(setup.settings.get('party_size', 5))
     taken, party = set(), []
     for role_name in setup.composition:
@@ -209,7 +243,7 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
             if name in pool and name not in taken and c and c['base_class'] == base:
                 join_level = level_of_exp(data, c['start_exp'] or 0)
                 party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown,
-                                                   forge_open(setup, floor)))
+                                               forge_open(setup, floor), party_enchants=party_enchants))
                 taken.add(name)
                 break
     # a role with nobody: any member left, in the role of her base class
@@ -223,7 +257,7 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
             if class_id(data, role['Base class']) == c['base_class']:
                 join_level = level_of_exp(data, c['start_exp'] or 0)
                 party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown,
-                                                   forge_open(setup, floor)))
+                                               forge_open(setup, floor), party_enchants=party_enchants))
                 taken.add(name)
                 break
     front = int(setup.settings.get('front_size', 3))
@@ -237,6 +271,11 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
     bag = {int(r['Item_ID']): int(round(count * float(r['Share'] or 1))) for r in setup.kit}
     for u in party:
         u.items = bag
+    if sealbook is not None:            # the summon of the grand sealbook fights beside the party (not a member)
+        summon = sealbook_summon(data, setup, sealbook, party)
+        if summon is not None:
+            summon.items = {}
+            party.append(summon)
     return party
 
 
@@ -356,7 +395,7 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
         for enemies in groups:
             for unit in party:                       # a battle that follows another: HP and TP carry over
                 unit.statuses, unit.chant, unit.song, unit.dance = {}, None, [], []
-            party = [u for u in party if u.kind == 'member']
+            party = [u for u in party if u.kind in ('member', 'summon')]
             prepare(setup, party, enemies)
             battle = Battle(data, party, enemies, rng, choose_member=policy, setup=options,
                             zone=getattr(enemies, 'zone', None), max_time=float(setup.settings.get('max_time', 400)))

@@ -284,6 +284,7 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
     unit = Unit(name or (character['name'] if character else f'class {class_id}'), PARTY, level, hp, tp, totals,
                 resist=resist, weight=rank_delay, swing=weapon['swing'] if weapon else 0.0, kind='member')
     unit.passives = passive_values
+    unit.raw = dict(character_stats)         # the stats of level and class alone, what a summon scales from
     unit.enchants = enchants
     unit.sealbook = sealbook
     unit.weapon = weapon
@@ -335,7 +336,8 @@ def build_summon(data, form, party, hp):
     floor = summon_base_floor(data, form)
     stats = {}
     for s in STATS:
-        best = max((m.base[s] for m in party if m.kind == 'member'), default=0)
+        # the raw stat of each member, without equipment (GameFAQs faqs/80834, Grand Sealbooks)
+        best = max((getattr(m, 'raw', m.base)[s] for m in party if m.kind == 'member'), default=0)
         stats[s] = max(floor[s], int(f.single(best * form['factors'][s])))
     unit = Unit(form['name'], PARTY, form['level'], hp, 0, stats, weight=data.weapon_ranks.get(form['rank'], 2.0),
                 kind='summon')

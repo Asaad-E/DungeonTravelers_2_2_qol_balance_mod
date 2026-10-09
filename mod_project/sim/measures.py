@@ -42,7 +42,8 @@ def touched(data, setup, changes):
                 hit = any(key in data.enemies[e]['attacks'] or key in data.enemies[e]['passives'] for e in enemies)
             elif table in ('skills', 'equipment'):
                 if party is None:
-                    party = scenario.reference_party(data, setup, cp['Chapter'], levels[cid][0], 0)
+                    party = [u for u in scenario.reference_party(data, setup, cp['Chapter'], levels[cid][0], 0)
+                             if u.kind == 'member']
                 if table == 'skills':
                     hit = any(key[1] in scenario.allocate_skills(data, setup.roles[m.role], m.level) for m in party)
                 else:
