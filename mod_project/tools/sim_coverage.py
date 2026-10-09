@@ -11,6 +11,8 @@ section 3, approach of 2026-10-07) and the engine they rest on:
               something it does not run
     builds    the roles of the sheet Roles with a reference build of the guides (a skill plan or priority, and a source)
     tests     the calibration tests of the sheet Calibration that exist in tests/
+    anchors   the boss fights of the sheet Anchors the reference party wins as the guides say, as last written by
+              tools/sim_anchors.py (it plays battles, so it runs apart)
     check     the check of a change (sim/measures.py, function check_change)
     postgame  the checkpoints of the postgame and the superbosses (sheet Checkpoints, chapter "Postgame") against the
               bosses the postgame summary of the GameFAQs guide lists (sheet PostgameBosses)
@@ -46,6 +48,18 @@ def optional_rows(path, sheet):
     """The rows of a sheet that a later step of phase 1 creates; none while it does not exist."""
     wb = openpyxl.load_workbook(path, read_only=True)
     return rows(path, sheet) if sheet in wb.sheetnames else []
+
+
+def anchors_count():
+    """The count of anchors met that tools/sim_anchors.py wrote last, or None when it has not run."""
+    path = os.path.join(BASE_DIR, 'docs', 'generated', 'SIM_ANCHORS.md')
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            if line.startswith('Anchors met: **'):
+                return int(line.split('**')[1].split()[0])
+    return None
 
 
 def player_effects(data):
@@ -132,6 +146,8 @@ def main():
     calibration = rows(SETUP, 'Calibration')
     tests = test_names()
     calibrated = [r for r in calibration if r['Test in tests/'] in tests]
+    anchors_total = len(optional_rows(SETUP, 'Anchors'))
+    anchors_met = anchors_count()
     assumptions = rows(SETUP, 'Assumptions')
     open_rows = [r for r in assumptions if r['State'] not in ('read', 'read in a guide', 'choice')]
 
@@ -148,6 +164,8 @@ def main():
            f'| Enemy scripts that use nothing the runner lacks | {scripts - len(gap_scripts)} of {scripts} | all |',
            f'| Roles with a reference build of the guides (sheet `Roles`) | {len(with_build)} of {len(roles)} | all |',
            f'| Calibration tests written | {len(calibrated)} of {len(calibration)} | all |',
+           f'| Boss anchors met (`docs/generated/SIM_ANCHORS.md`, run `tools/sim_anchors.py`) | '
+           f'{"?" if anchors_met is None else anchors_met} of {anchors_total} | all |',
            f'| Check of a change (`sim/measures.py`, `check_change`) | {"yes" if has_check else "no"} | yes |',
            f'| Postgame and superboss checkpoints | {len(postgame)} of {len(postgame_bosses) or "?"} '
            f'(sheet `PostgameBosses`{"" if postgame_bosses else " not written yet"}) | all |',
@@ -172,6 +190,7 @@ def main():
           f'AI commands {len(commands & all_commands)}/{len(all_commands)}, sources {len(sources)}/{len(enemy_ai.SOURCES)}, '
           f'targets {len(targets)}/{len(enemy_ai.TARGETS)}, scripts {scripts - len(gap_scripts)}/{scripts}; '
           f'builds {len(with_build)}/{len(roles)}; calibration {len(calibrated)}/{len(calibration)}; '
+          f'anchors {"?" if anchors_met is None else anchors_met}/{anchors_total}; '
           f'check {"yes" if has_check else "no"}; postgame {len(postgame)}/{len(postgame_bosses) or "?"}; '
           f'assumptions open {len(open_rows)}/{len(assumptions)}')
     print(f'written {OUTPUT}')

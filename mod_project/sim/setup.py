@@ -31,6 +31,7 @@ class Setup:
         self.kit = _rows(wb, 'Kit') if 'Kit' in wb.sheetnames else []
         self.preparation = _rows(wb, 'Preparation') if 'Preparation' in wb.sheetnames else []
         self.guide_levels = {r['Checkpoint']: r for r in _rows(wb, 'GuideLevels')}
+        self.anchors = _rows(wb, 'Anchors') if 'Anchors' in wb.sheetnames else []
 
     def checkpoint(self, cid):
         return next(c for c in self.checkpoints if c['ID'] == cid)
