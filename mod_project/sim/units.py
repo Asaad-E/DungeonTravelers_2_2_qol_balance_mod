@@ -219,7 +219,9 @@ def build_member(data, character, class_id, level, previous=None, equipment=(), 
         skill = data.skills.get(('Passive', skill_id))
         if skill:
             for effect, _, values in skill.effects:
-                passive_values[effect] = max(passive_values.get(effect, 0.0), values[min(lv, len(values)) - 1])
+                # two skills of one effect: the larger figure; Imperial Guard (308) is a negative one, kept as it is
+                value = values[min(lv, len(values)) - 1]
+                passive_values[effect] = max(passive_values.get(effect, value), value, key=abs)
     unique = None
     rank = unique_rank(level, crown_bonus) if unique_level is None else unique_level
     if character is not None and character.get('unique_skill') is not None and rank > 0:

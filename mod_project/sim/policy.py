@@ -8,7 +8,8 @@ skill (or the plain attack) with the most expected damage per unit of time on th
 of the program taken (Battle.expected_damage), within the TP the role allows itself.
 """
 from sim import formulas as f
-from sim.battle import Action, AILMENTS, CURE_ORDER, ITEM_CURE_ONE, ITEM_CURE_ALL, SONG_EFFECTS, DANCE_EFFECTS
+from sim.battle import (Action, AILMENTS, CURE_ORDER, ITEM_CURE_ONE, ITEM_CURE_ALL, RANDOM_MOVES, SONG_EFFECTS,
+                        DANCE_EFFECTS)
 from sim.data import (Skill, SINGLE, RANDOM, ROW, PIERCE, ALL, ALLY, ALLY_ROW, ALLIES, SELF, NO_TARGET, EVERYONE)
 from sim.units import PARTY
 
@@ -147,8 +148,28 @@ def best_single_target(battle, unit, action):
     return min(foes, key=lambda t: t.hp / max(1.0, battle.expected_damage(action, t)))
 
 
+def random_move_value(battle, action):
+    """A skill that performs one skill of a table at random (Roulette, Magic Box, Showtime, Heaven or Hell): the mean
+    of the damage of each result, by the weights of the table (those of a Joker with Triple Joker, 315), as
+    Battle.random_move draws them. A result aimed at the party counts 0."""
+    effect = next(e for e in RANDOM_MOVES if action.has(e))
+    table = next((t for t in battle.data.random_moves if t['effect'] == effect), None)
+    if table is None:
+        return 0.0
+    key = 'joker_weight' if action.actor.has(315) else 'weight'
+    total = weight = 0.0
+    for r in table['results']:
+        skill = battle.data.skill_by_id.get(r['skill'])
+        weight += r[key]
+        if skill is not None and r['effects']:
+            total += r[key] * damage_value(battle, Action(action.actor, 'skill', skill, action.level))[0]
+    return total / weight if weight else 0.0
+
+
 def damage_value(battle, action):
     """Expected damage the action deals over its targets (each capped at the target's HP) and the target it is aimed at."""
+    if isinstance(action.source, Skill) and any(action.has(e) for e in RANDOM_MOVES):
+        return random_move_value(battle, action), None
     code = action.target_code
     foes = enemies_of(battle, action.actor)
     if not foes:
@@ -210,8 +231,9 @@ def act_damage(policy, battle, unit, arg):
     candidates = [Action(unit, 'attack')]
     for skill, level in options(battle, unit):
         action = Action(unit, 'skill', skill, level)
-        if action.target_code in (SINGLE, RANDOM, ROW, PIERCE, ALL, EVERYONE) and (action.physical or action.magic
-                                                                                    or battle.special(action)):
+        hits = action.target_code in (SINGLE, RANDOM, ROW, PIERCE, ALL, EVERYONE) and (
+            action.physical or action.magic or battle.special(action))
+        if hits or any(action.has(e) for e in RANDOM_MOVES):
             candidates.append(action)
     for action in candidates:
         if action.tp_cost > unit.tp * (1.0 - policy.setup.get('tp_reserve', 0.0)) and action.tp_cost > 0:

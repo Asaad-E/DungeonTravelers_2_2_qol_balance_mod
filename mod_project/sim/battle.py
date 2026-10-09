@@ -49,6 +49,7 @@ AILMENTS = {113: 'poison', 114: 'freeze', 115: 'paralysis', 116: 'sleep', 117: '
 AILMENT_RESIST = {113: 4, 114: 4, 115: 7, 116: 5, 117: 5, 118: 3, 119: 6, 120: 6, 122: 6}
 # Statuses of the list Cures and Esarhaddon walk (table 0x6cc79c; Esarhaddon 0x6c9a7c stops at slow)
 CURE_ORDER = (113, 115, 117, 114, 116, 120, 122)
+RANDOM_MOVES = (152, 153, 154, 155)                # a skill that performs one of a table of skills (Battle.random_move)
 ITEM_CURE_ONE, ITEM_CURE_ALL = 6, 7                # item effect types (docs/FORMULAS.md 15)
 CURE_ALL = 8                                   # 0x481b12: a value of exactly 8 also clears the second list (slot 0x90)
 ESARHADDON_ORDER = (113, 115, 117, 114, 116, 122)
@@ -711,7 +712,7 @@ class Battle:
         self.record.add('skill_uses', (unit, key))
         unit.last_skill = action.source
         unit.uses[key] = unit.uses.get(key, 0) + 1
-        for random_effect in (152, 153, 154, 155):
+        for random_effect in RANDOM_MOVES:
             if action.has(random_effect):
                 action = self.random_move(action, random_effect)
                 if action is None:

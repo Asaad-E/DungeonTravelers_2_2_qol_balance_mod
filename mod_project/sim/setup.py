@@ -28,6 +28,7 @@ class Setup:
                       for r in _rows(wb, 'Joins')]
         self.assumptions = _rows(wb, 'Assumptions')
         self.calibration = _rows(wb, 'Calibration')
+        self.audit_readings = _rows(wb, 'AuditReadings') if 'AuditReadings' in wb.sheetnames else []
         self.kit = _rows(wb, 'Kit') if 'Kit' in wb.sheetnames else []
         self.preparation = _rows(wb, 'Preparation') if 'Preparation' in wb.sheetnames else []
         self.enchant_plan = _rows(wb, 'EnchantPlan') if 'EnchantPlan' in wb.sheetnames else []
