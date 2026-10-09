@@ -189,6 +189,9 @@ CONDITIONS = {
     'enemies_at_least': lambda b, u, a: len(enemies_of(b, u)) >= int(_fraction(a, 2)),
     'boss': lambda b, u, a: b.setup.get('boss', False),
     'no_doll': lambda b, u, a: not any(x.owner is u and x.alive and x.kind == 'doll' for x in b.units),
+    # a doll slot is free: fewer living dolls of her own (arrows aside) than she can keep, two with Double Puppet (313)
+    'doll_slot_free': lambda b, u, a: sum(1 for x in b.units if x.owner is u and x.alive and x.kind == 'doll'
+                                          and not getattr(x, 'arrow', False)) < (2 if u.has(313) else 1),
 }
 
 

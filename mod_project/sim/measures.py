@@ -9,6 +9,7 @@ share, length) and R10 (lowest HP of the party, damage of the enemies per action
 against the windows of the sheet Settings. Whether the change solves its own row is the measure of that row.
 """
 from sim import scenario
+from sim.units import PARTY
 
 
 def summary(results):
@@ -167,6 +168,43 @@ def weapon_band(data, setup, cid, role_name, character, weapons, level=None, son
     finally:
         setup.roles[role_name] = saved
     return out
+
+
+def slot_share(data, setup, cid, slot_role, other_role, runs=None):
+    """The boss fights of a checkpoint played twice by the reference party, the role slot_role of the composition
+    replaced by other_role the second time: the share of the party's damage made by the member of that slot (her
+    dolls and arrows counted as hers), the win share and the mean length. Returns {role: figures} and the ratio of
+    the two shares (other over slot)."""
+    runs = int(runs or setup.settings['check_runs'])
+    cp = setup.checkpoint(cid)
+    level = scenario.reference_levels(data, setup)[cid][0]
+    gear = scenario.checkpoint_gear(data, setup, cid)
+    saved = setup.composition
+    out = {}
+    try:
+        for role in (slot_role, other_role):
+            swapped = list(saved)
+            if role == other_role:
+                swapped[saved.index(slot_role)] = other_role      # the first slot of that role only
+            setup.composition = swapped
+            res = scenario.play(data, setup,
+                                lambda: scenario.reference_party(data, setup, cp['Chapter'], level, gear, 0, cp['Floor']),
+                                lambda: [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)],
+                                runs=runs)
+            share = 0.0
+            for r in res:
+                for part in r['parts']:
+                    dmg = part['record'].damage
+                    total = sum(v for u, v in dmg.items() if u.side == PARTY) or 1
+                    mine = sum(v for u, v in dmg.items() if u.side == PARTY and
+                               getattr(getattr(u, 'owner', None) or u, 'role', None) == role)
+                    share += mine / total / len(r['parts'])
+            out[role] = {'share': share / runs, 'won': sum(r['won'] for r in res) / runs,
+                         'time': sum(r['time'] for r in res) / runs}
+    finally:
+        setup.composition = saved
+    ratio = out[other_role]['share'] / out[slot_role]['share'] if out[slot_role]['share'] else 0.0
+    return out, ratio
 
 
 def check_change(data, setup, changes, checkpoints=None, runs=None):
