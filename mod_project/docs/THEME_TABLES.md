@@ -6,6 +6,11 @@ full wording of each row, its figure and its source are in the sheet `Criticisms
 `data_tables/balance_criteria.xlsx` (columns `Verdict`, `Vanilla_Result`, `Proposal`); the count is
 `docs/generated/VERDICTS.md`.
 
+**Remeasured on 2026-10-09** after two fixes of the simulator (passive HP and TP regeneration now ticks; the forge
+share recalibrated to 0.5): the figures that moved (J05, F26, U02, J01, J07, F08, F09, F11, J12, J28, J02, J11, J14)
+are updated in the sheet `Criticisms`; no verdict changed. The cells below keep the first figures; the sheet is the
+reference. Decisions of the user are in its column `Decision` and the changes in `data_tables/balance_changes.xlsx`.
+
 Levers are those of the sheet `Levers` (benign first). Verdicts: **true** (the complaint holds, with its size),
 **partly true** (holds in part, or overstated), **false** (the data or the code say otherwise).
 

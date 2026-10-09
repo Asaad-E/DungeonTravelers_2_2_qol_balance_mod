@@ -658,7 +658,10 @@ The turn of a unit goes through numbered states. The ones read:
     16   **every status of the unit runs its per-turn method** (0x437b0c): regeneration, Carol, Chorale, poison,
          the damage of an enemy dance, natural recovery
 
-So regeneration and poison act **after** the action of their bearer, once per turn of that unit. On the map the same
+So regeneration and poison act **after** the action of their bearer, once per turn of that unit. A passive skill
+stands on its bearer as a status that never ends (the finder `0x47e340` reads passives and statuses from the same
+list), so Auto-Recovery and Auto-Refresh (246, 247) and the HP Regen of enemies tick in state 16 too; the simulator
+missed them until 2026-10-09. On the map the same
 methods run on every step for each party member (`0x4fb660`, called at `0x4b221f`), and every tenth step a piece of
 enchantment 216 acts.
 

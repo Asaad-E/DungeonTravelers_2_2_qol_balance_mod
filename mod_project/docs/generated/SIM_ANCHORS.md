@@ -10,9 +10,9 @@ Anchors met: **5 of 6**, 40 battles each, with the settings of the workbook (kit
 | N02 | C07 | 41 | 13 | 42% | 5% -  | yes | a comment won at level 13: a party at 13 can win (atwiki dt2-2 page 37 (Wind Tower, boss)) |
 | N03 | C18 | 43 | 27 | 100% | 60% -  | yes | can overwhelm even bard healing under about level 27: a party at 27 wins most (GameFAQs faqs/80834 (Hentaicheg), Rousset Royal Villa) |
 | N04 | C34 | 42+43 | 50 | 100% | 60% -  | yes | with the three supply devices destroyed the Queen is weakened and the strength of that point is enough: the party at the reference level of the checkpoint wins most (atwiki dt2-2 page 207 (Queen of Darkness)) |
-| N05 | C34 | 41 | 60 | 60% | 60% -  | yes | the Queen at full strength needs about level 55 to 60: a party at 60 wins most (atwiki dt2-2 page 207 (Queen of Darkness)) |
-| N06 | C34 | 41 | 55 | 2% | 25% -  | no | and a party at 55 wins some (atwiki dt2-2 page 207 (Queen of Darkness)) |
+| N05 | C34 | 41 | 60 | 78% | 60% -  | yes | the Queen at full strength needs about level 55 to 60: a party at 60 wins most (atwiki dt2-2 page 207 (Queen of Darkness)) |
+| N06 | C34 | 41 | 55 | 5% | 25% -  | no | and a party at 55 wins some (atwiki dt2-2 page 207 (Queen of Darkness)) |
 
 ## Known limits
 
-- **N06**: Not met by the model: 0 - 17% at level 55 whatever the share of forged enchantments, and 0 - 7.5% with the best meal of the ice cream and ramen shops in the best case (its buffs at the start of the fight, 40 battles, 2026-10-09). What a player at 55 adds beyond the model (unique pieces, character sealbooks, a party built for this fight) is not modelled. The fight is optional (the three supply devices weaken the Queen, N04, met). Closed as a known limit, for the user to confirm
+- **N06**: Not met by the model: 0 - 17% at level 55 whatever the share of forged enchantments, and 0 - 7.5% with the best meal of the ice cream and ramen shops in the best case (its buffs at the start of the fight, 40 battles, 2026-10-09). What a player at 55 adds beyond the model (unique pieces, character sealbooks, a party built for this fight) is not modelled. The fight is optional (the three supply devices weaken the Queen, N04, met). Closed as a known limit, confirmed by the user on 2026-10-09

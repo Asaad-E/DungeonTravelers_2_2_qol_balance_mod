@@ -621,6 +621,13 @@ class Battle:
                 unit.extra_turn = True
 
     def tick(self, unit):
+        # HP and TP regeneration of a passive (Auto-Recovery, Auto-Refresh; the HP Regen of enemies) act each turn of
+        # their bearer like the statuses of the same effect (docs/FORMULAS.md 12.15, state 16); a status, if any,
+        # takes its place
+        if 246 in unit.passives and 246 not in unit.statuses:
+            self.restore(unit, int(unit.max_hp * unit.passives[246]))
+        if 247 in unit.passives and 247 not in unit.statuses and unit.side == PARTY:
+            unit.tp = min(unit.max_tp, unit.tp + int(unit.passives[247]))
         for effect in list(unit.statuses):
             s = unit.statuses.get(effect)
             if s is None:
