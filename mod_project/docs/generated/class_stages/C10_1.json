@@ -1,0 +1,48 @@
+{
+ "base": {
+  "won": 1.0,
+  "time": 9.086697929166666,
+  "time_won": 9.086697929166666,
+  "share": 0.0,
+  "character": null,
+  "level": 15
+ },
+ "roles": {
+  "tank": {
+   "won": 1.0,
+   "time": 7.451604008333334,
+   "time_won": 7.451604008333334,
+   "share": 0.20148536641768477,
+   "character": "Alisia",
+   "level": 15,
+   "class": "Paladin"
+  },
+  "attacker": {
+   "won": 1.0,
+   "time": 5.615751257291667,
+   "time_won": 5.615751257291667,
+   "share": 0.4297424134954403,
+   "character": "Yae",
+   "level": 15,
+   "class": "Berserker"
+  },
+  "maid": {
+   "won": 1.0,
+   "time": 9.020892308333334,
+   "time_won": 9.020892308333334,
+   "share": 0.007683751118798435,
+   "character": "Conette",
+   "level": 15,
+   "class": "Bard"
+  },
+  "healer": {
+   "won": 1.0,
+   "time": 9.210786064583333,
+   "time_won": 9.210786064583333,
+   "share": 0.012375190285763542,
+   "character": "Irena",
+   "level": 15,
+   "class": "Priestess"
+  }
+ }
+}

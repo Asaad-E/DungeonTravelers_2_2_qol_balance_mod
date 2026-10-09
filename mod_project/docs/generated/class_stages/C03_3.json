@@ -1,0 +1,50 @@
+{
+ "base": null,
+ "roles": {
+  "papillon": {
+   "won": 1.0,
+   "time": 4.4510464375,
+   "time_won": 4.4510464375,
+   "share": 0.12776041666666668,
+   "character": "Lizerietta",
+   "level": 5,
+   "class": "Spieler"
+  },
+  "valkyrie": {
+   "won": 1.0,
+   "time": 3.4469680624999994,
+   "time_won": 3.4469680624999994,
+   "share": 0.22927083333333326,
+   "character": "Alisia",
+   "level": 5,
+   "class": "Fighter"
+  },
+  "treasure hunter": {
+   "won": 1.0,
+   "time": 4.6420319375,
+   "time_won": 4.6420319375,
+   "share": 0.11932291666666668,
+   "character": "Souffle",
+   "level": 5,
+   "class": "Scout"
+  },
+  "soul summoner": {
+   "won": 1.0,
+   "time": 4.4648650625,
+   "time_won": 4.4648650625,
+   "share": 0.10322916666666664,
+   "character": "Lizerietta",
+   "level": 5,
+   "class": "Spieler"
+  },
+  "magical princess": {
+   "won": 1.0,
+   "time": 3.242735775,
+   "time_won": 3.242735775,
+   "share": 0.4287500000000001,
+   "character": "Melvy",
+   "level": 5,
+   "class": "Magic User"
+  }
+ }
+}
