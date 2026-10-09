@@ -91,6 +91,8 @@ def apply(data, changes):
                 _check(row, hex(enemy['flags']))
                 enemy['flags'] = int(str(new), 16)
                 enemy['immune'] = [n for bit, n in enemy_data.IMMUNITY_BITS.items() if enemy['flags'] >> bit & 1]
+            elif field in ('hp', 'atk', 'def', 'int', 'res', 'dex', 'agi'):
+                _check(row, enemy[field]); enemy[field] = int(new)       # lever L01: a stat of the enemy record
             elif field.startswith('resistance '):
                 key = 'res_' + field.split()[1]
                 _check(row, enemy[key]); enemy[key] = new
