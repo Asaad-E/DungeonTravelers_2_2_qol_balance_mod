@@ -91,3 +91,21 @@ def steps_between_battles(zone_chance, alarm=0, pieces=(), grace=ENCOUNTER_GRACE
     """Mean number of steps from the end of a battle to the next random one: the grace, then one roll per step."""
     chance = encounter_chance(zone_chance, alarm, pieces)
     return float('inf') if chance == 0 else grace + 100 / chance
+
+
+# --- recovery after a battle (docs/FORMULAS.md 12.14; 0x43d6a7 - 0x43d8b4) ----------------------------------------
+RECOVERY_CAP = 0.30            # 0x6d9330: the sum of the Generous Heart values of the party stops here
+FULL_RECOVERY = 1.0            # 0x6d938c: a member with a piece of enchantment 193 (HP) recovers it all
+
+
+def after_battle_fraction(values, extras=()):
+    """Fraction of max HP (or TP) every member recovers after a battle. values: the value of effect 272 (HP) or 273
+    (TP) of each living member who has Generous Heart; extras: what 0x48bf90 adds for each of them with effect 353
+    (Maximum Maid), outside the cap."""
+    return min(RECOVERY_CAP, sum(values)) + sum(extras)
+
+
+def after_battle_recovery(maximum, fraction, full=False):
+    """What a member recovers: int(max * fraction), at least 1 when the fraction is above 0 (0x43d8a2 - 0x43d8b4)."""
+    fraction = FULL_RECOVERY if full else fraction
+    return max(1, int(maximum * fraction)) if fraction > 0 else 0

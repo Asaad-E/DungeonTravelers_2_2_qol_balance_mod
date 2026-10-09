@@ -69,6 +69,10 @@ CRIT_TERMS = (31, 174, 211)
 # magic hit (0x44d759 - 0x44da43): Maid Mastery (278) and effect 353 count only for skill 205, Lullaby (0x44d8ea);
 # the divisor is the value of the target's Nocturne (220), else of its Kotodama Blessing (223), else 1 (0x44d95f)
 LULLABY, LULLABY_ACCURACY = 205, (278, 353)
+# the value of an effect of these classes is its figure plus the value of the user's passives of these effects (the
+# getters at slot 0x2c: 0x483a20 for 128, 129, 130, 168; 0x48a8f0 for 272, 273; each asks 0x48bf90, which returns the
+# passive's value): Maid Mastery and Maximum Maid raise First Aid, Cook, Self-Sacrifice, Clean and the like
+VALUE_BONUS = {128: (278, 353), 129: (278, 353), 130: (278, 353), 168: (278, 353), 272: (278,), 273: (278,)}
 MAGIC_HIT_DIVISORS = (220, 223)
 AGE_ONLY = {149: False, 150: True}          # an action with 149 cannot hit an adult, one with 150 a minor (0x44affd)
 STAB_EVASION = 253                          # Flowing Water Stance: evasion against stab blows, then a counter (0x44b12a)
@@ -140,7 +144,9 @@ class Action:
         """[(effect id, kind, value)] at the level of the action."""
         s = self.source
         if isinstance(s, Skill):
-            return [(e, k, values[min(self.level, len(values)) - 1]) for e, k, values in s.effects]
+            return [(e, k, values[min(self.level, len(values)) - 1] +
+                     sum(self.actor.passives.get(b, 0.0) for b in VALUE_BONUS.get(e, ())))
+                    for e, k, values in s.effects]
         if isinstance(s, EnemyAttack):
             return list(s.effects)
         if self.kind == 'attack':

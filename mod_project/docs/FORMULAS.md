@@ -305,7 +305,7 @@ phase 1 models it; each is read when the work named beside it starts.
 | In the magic function, what the roll at `0x44ed8c` decides; what happens to a spell whose damage comes out at 0 or less | The rows about Limit Field and about magic against high RES |
 | Turn skipping (stun, paralysis): how many turns are lost | The rows about locks |
 | Zones: which side slots 3 and 5 stand for against 4 and 6; the map cells that carry each zone | The row about damage zones (F91) |
-| The recovery after a battle (effects 272 and 273); the source of the EXP bonus fraction and of effect 157 (6c) | The TP economy and the pace targets (phase 3) |
+| The source of the EXP bonus fraction and of effect 157 (6c) (the recovery after a battle is read: 12.14) | The TP economy and the pace targets (phase 3) |
 | Targeting: the code that returns the formation row (the eleven rows are read; which formation each stands for is taken from its figures); the names of the attack scopes | A check of 9.1 before the tank rows are closed |
 | In `_SetTime`, the branch for action kind 8 with the chant flag (`0x449e54`) | Enemies that chant |
 | The bonus per stat of a character at offsets 0xdc onwards (10) | Units of the simulator beyond growth, resets and equipment |
@@ -457,7 +457,9 @@ stat   = max(base, int(stat of a party member * factor of the form))        for 
 weight = the delay of the weapon rank the form names                        (order of turns, section 5)
 ```
 
-* base: the six stats of the enemy the summon comes from (the record names it; its three forms share it).
+* base: the six stats of the enemy the summon comes from: the EnemyData id at 0x14 of the record, shared by its three
+  forms (0x10 is the character model). The lowest stats the Japanese wiki measured (page 105) are those records:
+  Bigfoot 833, Ghast 913, Cupid 754.
 * Its attacks are records of `EnemyAttackData` and its behaviour a script in the format of the enemies (section 9).
 * A summon therefore scales with the best member of the party in each stat, not with its summoner.
 * **[open]** its HP (set after this function, `[vtable+0x108]`).
@@ -627,6 +629,17 @@ A counter is built by `_SetupCounter` (`0x425930`).
   buff and a DEX buff of its value.
 * Paean (`0x439380`): its value is the `bonus` of the EXP share (6c).
 * Solo Duet, On Stage, Double Puppet: two songs, dances or dolls at once instead of one; one more ends the oldest.
+* Values raised by passives (`0x483a20`, `0x48a8f0`, the getters at slot 0x2c of their classes): the value of
+  effects 128 (HP recovery), 129 (TP recovery), 130 (Pass All TP) and 168 (speed modifier) is the figure of the skill
+  plus the user's Maid Mastery (278) and Maximum Maid (353); the value of 272 and 273 is the figure plus Maid Mastery.
+  `0x48bf90` returns the value of the passive it is asked for, and for songs (279) and dances (280) adds
+  `min(0.05, 0.02 * pieces + 0.01 * mini pieces)`. So Maid Mastery 10 turns First Aid 25% into 35% and Cook 15% into
+  25%, as the GameFAQs guide says.
+* Recovery after a battle (`0x43d6a7 - 0x43d8b4`; `sim/progression.py`): over the living members, the values of
+  effect 272 (HP) and 273 (TP) of Generous Heart are summed, each sum is capped at 0.30 (`0x6d9330`), and what
+  `0x48bf90` adds for effect 353 (Maximum Maid) of each of them is added outside the cap. Every member then recovers
+  `int(max * fraction)`, at least 1; a member with a piece of enchantment 193 recovers all its HP (`0x6d938c`).
+  Two maids reach the cap, as the guides say (atwiki dt2-2 page 120; GameFAQs, Class Skill info - Maid).
 
 ### 12.15 When an effect that lasts acts (`Battle::CBattleBase::Update`, `0x4363bc`; states at `0x439820`)
 

@@ -9,7 +9,7 @@ section 3, approach of 2026-10-07) and the engine they rest on:
               (HANDLED), with an assumption of data_tables/sim_setup.xlsx (ASSUMED), or not at all
     AI        the commands, sources and target kinds of the enemy scripts sim/ai.py runs, and the scripts that use
               something it does not run
-    builds    the roles of the sheet Roles with a reference build of the guides (sheet Builds, its rows naming a source)
+    builds    the roles of the sheet Roles with a reference build of the guides (a skill plan or priority, and a source)
     tests     the calibration tests of the sheet Calibration that exist in tests/
     check     the check of a change (sim/measures.py, function check_change)
     postgame  the checkpoints of the postgame and the superbosses (sheet Checkpoints, chapter "Postgame") against the
@@ -123,9 +123,7 @@ def main():
     scripts = sum(1 for e in data.enemies.values() if e['ai'])
 
     roles = rows(SETUP, 'Roles')
-    builds = optional_rows(SETUP, 'Builds')
-    built_roles = {r['Role'] for r in builds if r.get('Role') and r.get('Source')}
-    with_build = [r for r in roles if r['Role'] in built_roles]
+    with_build = [r for r in roles if (r.get('Skill plan') or r.get('Skill priority')) and r.get('Source')]
     has_check = hasattr(measures, 'check_change')
     checkpoints = rows(SETUP, 'Checkpoints')
     postgame = [r for r in checkpoints if str(r.get('Chapter') or '').startswith('Postgame')]
@@ -148,7 +146,7 @@ def main():
            f'| AI sources read | {len(sources)} of {len(enemy_ai.SOURCES)} | all |',
            f'| AI target kinds | {len(targets)} of {len(enemy_ai.TARGETS)} | all |',
            f'| Enemy scripts that use nothing the runner lacks | {scripts - len(gap_scripts)} of {scripts} | all |',
-           f'| Roles with a reference build of the guides (sheet `Builds`) | {len(with_build)} of {len(roles)} | all |',
+           f'| Roles with a reference build of the guides (sheet `Roles`) | {len(with_build)} of {len(roles)} | all |',
            f'| Calibration tests written | {len(calibrated)} of {len(calibration)} | all |',
            f'| Check of a change (`sim/measures.py`, `check_change`) | {"yes" if has_check else "no"} | yes |',
            f'| Postgame and superboss checkpoints | {len(postgame)} of {len(postgame_bosses) or "?"} '

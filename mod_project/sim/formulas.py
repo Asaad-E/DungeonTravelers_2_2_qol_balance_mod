@@ -5,6 +5,7 @@ Every constant here is one the code uses; the comment gives the address. Nothing
 Parts of the code that are not read yet are not guessed: they are arguments with a neutral default
 (a factor of 1, a bonus of 0) so that a caller must supply them once they are known.
 """
+import struct
 
 # --- constants of the code (address where each is used) -------------------------------------------
 HIT_SCALE = 0.885              # 0x44aac1
@@ -117,6 +118,12 @@ AILING_TARGET_BONUS = (280, 0.15)     # 0x44cd5a, 0x44f009: damage + int(damage 
 
 def clamp(value, low, high):
     return max(low, min(high, value))
+
+
+def single(value):
+    """value rounded to a 32-bit float, as the code stores a product of floats (summon stats: 0x4ffc90; the summon
+    measurements of atwiki dt2-2 page 105 need it, e.g. 25 * 2.04 gives 51, not 50)."""
+    return struct.unpack('<f', struct.pack('<f', value))[0]
 
 
 # --- order of turns --------------------------------------------------------------------------------

@@ -9,7 +9,8 @@ Summon.pck holds one archive per form of a summon, with:
 
 SummonData (little endian), read by 0x4ffc90 (docs/FORMULAS.md 11):
     0x00 id of the form            0x10 character id (the model)
-    0x14 family: the forms of one summon share it and follow each other by id
+    0x14 the enemy the summon is (EnemyData id): the base figure of its stats; the forms of one summon share it
+         (atwiki dt2-2 page 105 measures the lowest stats of Bigfoot, Ghast and Cupid: enemies 833, 913 and 754)
     0x18 level of the form: the form used is the last of the family whose level is not above the average
          level of the party
     0x20 weapon rank index: its weight in the order of turns comes from WeaponRankData, like a weapon
@@ -39,7 +40,8 @@ def read_summon(blob):
     strings = [t.decode('utf-8', 'replace') for t in b[0x40 + 8 * 12:].split(b'\x00') if t]
     printable = [t for t in strings if len(t) > 2 and all(32 <= ord(c) < 0x3000 for c in t)]
     return {'id': struct.unpack_from('<i', b, 0x00)[0], 'character': struct.unpack_from('<i', b, 0x10)[0],
-            'family': struct.unpack_from('<i', b, 0x14)[0], 'level': struct.unpack_from('<i', b, 0x18)[0],
+            'family': struct.unpack_from('<i', b, 0x14)[0], 'enemy': struct.unpack_from('<i', b, 0x14)[0],
+            'level': struct.unpack_from('<i', b, 0x18)[0],
             'rank': struct.unpack_from('<i', b, 0x20)[0],
             'factors': dict(zip(STATS, struct.unpack_from('<6f', b, 0x24))),
             'attacks': [struct.unpack_from('<i', b, 0x40 + 8 * k)[0] for k in range(max(count, 0))],

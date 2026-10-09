@@ -331,7 +331,7 @@ def build_summon(data, form, party, hp):
     stats = {}
     for s in STATS:
         best = max((m.base[s] for m in party if m.kind == 'member'), default=0)
-        stats[s] = max(floor[s], int(best * form['factors'][s]))
+        stats[s] = max(floor[s], int(f.single(best * form['factors'][s])))
     unit = Unit(form['name'], PARTY, form['level'], hp, 0, stats, weight=data.weapon_ranks.get(form['rank'], 2.0),
                 kind='summon')
     unit.attacks = list(form['attacks'])
@@ -343,8 +343,8 @@ def build_summon(data, form, party, hp):
 
 
 def summon_base_floor(data, form):
-    """The base figure a summoned stat never falls below: the stats of the enemy the summon is (its character id)."""
-    enemy = data.enemies.get(form['character'])
+    """The base figure a summoned stat never falls below: the stats of the enemy the summon is (SummonData 0x14)."""
+    enemy = data.enemies.get(form['enemy'])
     return {s: enemy[s] for s in STATS} if enemy else {s: 0 for s in STATS}
 
 
