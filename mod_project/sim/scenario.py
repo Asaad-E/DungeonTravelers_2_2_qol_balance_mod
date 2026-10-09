@@ -158,8 +158,10 @@ def forge_open(setup, floor):
 
 
 def build_role_member(data, setup, role_name, character, level, upgrade, crown=0, forge=False, extra_skills=None,
-                      party_enchants=()):
-    role = setup.roles[role_name]
+                      party_enchants=(), pieces=None, sealbook=None):
+    """pieces: {column of the sheet Roles: piece name} that take the place of the role's own (sheet UniqueGear)."""
+    role = dict(setup.roles[role_name])
+    role.update(pieces or {})
     cls, previous = class_path(data, role, level)
     equipment = []
     for slot, column in ((0, 'Weapon'), (1, 'Off hand'), (2, 'Head'), (3, 'Body'), (4, 'Accessory')):
@@ -179,7 +181,7 @@ def build_role_member(data, setup, role_name, character, level, upgrade, crown=0
                  if not (slot == 1 and data.equipment[i]['category'] == 0 and not dual)]
     forged = forge_enchants(data, setup, role_name, equipment) if forge else None
     unit = build_member(data, character, cls, level, previous, equipment, skills, crown_bonus=crown,
-                        front=role['Row'] == 'front', forged=forged, party_enchants=party_enchants)
+                        front=role['Row'] == 'front', forged=forged, party_enchants=party_enchants, sealbook=sealbook)
     unit.role = role_name
     unit.shield = any(slot == 1 and data.equipment[i]['category'] == 1 for slot, i, _ in equipment)
     return unit
@@ -194,16 +196,49 @@ def available(setup, chapter):
     return names
 
 
-def grand_sealbook(setup, chapter, floor=None):
-    """The grand sealbook the party carries at a checkpoint (sheet GrandSealbooks: the last row whose checkpoint is not
-    after it), as the id of the enemy it seals; None before the first."""
-    order = [c['ID'] for c in setup.checkpoints]
+def checkpoint_index(setup, chapter, floor=None):
+    """The place in the sheet Checkpoints of the checkpoint a chapter and floor stand for; None if none."""
     here = [k for k, c in enumerate(setup.checkpoints) if c['Chapter'] == chapter and (floor is None or c['Floor'] == floor)]
     if not here:
         here = [k for k, c in enumerate(setup.checkpoints) if c['Chapter'] == chapter]
     if not here:
         return None
-    at = here[-1] if floor is None else here[0]
+    return here[-1] if floor is None else here[0]
+
+
+def unique_pieces(setup, role, chapter, floor=None):
+    """{column: piece} of the unique gear the role wears at a checkpoint (sheet UniqueGear: the last row of each slot
+    whose checkpoint is not after it)."""
+    order = [c['ID'] for c in setup.checkpoints]
+    at = checkpoint_index(setup, chapter, floor)
+    found = {}
+    if at is None:
+        return found
+    for r in setup.unique_gear:
+        if r['Role'] == role and r['From checkpoint'] in order and order.index(r['From checkpoint']) <= at:
+            found[r['Slot']] = r['Piece']
+    return found
+
+
+def personal_sealbook(setup, role, chapter, floor=None):
+    """The sealbook a member of the role carries at a checkpoint (sheet PersonalSealbooks), as the id of the enemy it
+    seals; None before the first row of the role."""
+    order = [c['ID'] for c in setup.checkpoints]
+    at = checkpoint_index(setup, chapter, floor)
+    found = None
+    for r in setup.personal_sealbooks:
+        if at is not None and r['Role'] == role and r['From checkpoint'] in order and order.index(r['From checkpoint']) <= at:
+            found = int(r['Sealbook'])
+    return found
+
+
+def grand_sealbook(setup, chapter, floor=None):
+    """The grand sealbook the party carries at a checkpoint (sheet GrandSealbooks: the last row whose checkpoint is not
+    after it), as the id of the enemy it seals; None before the first."""
+    order = [c['ID'] for c in setup.checkpoints]
+    at = checkpoint_index(setup, chapter, floor)
+    if at is None:
+        return None
     found = None
     for r in setup.grand_sealbooks:
         if r['From checkpoint'] in order and order.index(r['From checkpoint']) <= at:
@@ -243,7 +278,9 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
             if name in pool and name not in taken and c and c['base_class'] == base:
                 join_level = level_of_exp(data, c['start_exp'] or 0)
                 party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown,
-                                               forge_open(setup, floor), party_enchants=party_enchants))
+                                               forge_open(setup, floor), party_enchants=party_enchants,
+                                               pieces=unique_pieces(setup, role_name, chapter, floor),
+                                               sealbook=personal_sealbook(setup, role_name, chapter, floor)))
                 taken.add(name)
                 break
     # a role with nobody: any member left, in the role of her base class
@@ -257,7 +294,9 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
             if class_id(data, role['Base class']) == c['base_class']:
                 join_level = level_of_exp(data, c['start_exp'] or 0)
                 party.append(build_role_member(data, setup, role_name, c, max(level, join_level), upgrade, crown,
-                                               forge_open(setup, floor), party_enchants=party_enchants))
+                                               forge_open(setup, floor), party_enchants=party_enchants,
+                                               pieces=unique_pieces(setup, role_name, chapter, floor),
+                                               sealbook=personal_sealbook(setup, role_name, chapter, floor)))
                 taken.add(name)
                 break
     front = int(setup.settings.get('front_size', 3))
