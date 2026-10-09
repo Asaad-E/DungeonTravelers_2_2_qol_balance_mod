@@ -207,11 +207,12 @@ def slot_share(data, setup, cid, slot_role, other_role, runs=None):
     return out, ratio
 
 
-def check_change(data, setup, changes, checkpoints=None, runs=None):
+def check_change(data, setup, changes, checkpoints=None, runs=None, changed=None):
     """[(checkpoint, vanilla figures, changed figures, [the windows it leaves])] for the checkpoints the change
-    touches (or those given). changes: the list GameData.with_changes takes."""
+    touches (or those given). changes: the list GameData.with_changes takes; or changed, data already changed (the
+    whole variant, sim/variant.py), with the checkpoints given."""
     runs = int(runs or setup.settings['check_runs'])
-    changed = data.with_changes(changes)
+    changed = changed if changed is not None else data.with_changes(changes)
     windows = {key: float(setup.settings[f'check_{key}_window']) for key in ('won', 'time', 'lowest_hp', 'pressure')}
     rows = []
     for cid in checkpoints or touched(data, setup, changes):
