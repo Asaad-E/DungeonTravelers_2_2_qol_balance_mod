@@ -346,11 +346,16 @@ def act_dispel(policy, battle, unit, arg):
 
 
 def act_doll(policy, battle, unit, arg):
-    """Call the doll named by arg (its skill name) or, with no arg, the doll skill of highest level."""
+    """Call a doll: arg is an order of preference, doll skill names joined by | (the first the member knows is called),
+    or with no arg the doll skill of highest level."""
     dolls = [(s, lv) for s, lv in options(battle, unit) if any(gives(s, e) for e in DOLL_EFFECTS)]
-    if arg:
-        dolls = [(s, lv) for s, lv in dolls if s.name == arg]
     if not dolls:
+        return None
+    if arg:
+        for name in str(arg).split('|'):
+            found = [(s, lv) for s, lv in dolls if s.name == name.strip()]
+            if found:
+                return Action(unit, 'skill', *found[0])
         return None
     skill, level = max(dolls, key=lambda x: x[1])
     return Action(unit, 'skill', skill, level)
