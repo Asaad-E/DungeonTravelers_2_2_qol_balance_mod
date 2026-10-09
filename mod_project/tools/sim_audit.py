@@ -21,6 +21,18 @@ there. Passives that act outside battle (the list handles('outside battle') of s
 Usage: each role of the sheet Roles, at the top of each tier and late (LATE), in the same fights as above: the skills
 of its plan that can be used in battle and that it never used in any seed. A skill never used is a row to read: the
 policy of the role may lack a rule for it, or the fight may give it no use (a revive when nobody falls).
+
+Actives (python mod_project/tools/sim_audit.py actives [k/n]): every technique and spell that can be used in battle,
+at its top level, performed by a member of a class that learns it (role and character of that class at level 90, or
+a member of the reference party wearing it) into a prepared battle: the reference party of P24 at 90 with every
+member at half HP and TP, one fallen, one poisoned and asleep; two enemies of level 90 (ACTIVES_ENEMY) with no
+immunity and no resistance, carrying a buff. The skill is performed ACTIVE_TRIES times, each on a fresh battle and
+seed, and what changed is compared with what its effects say it does:
+    damage      an effect 0 or 1 of kind 4, or a fixed or special damage: a unit loses HP
+    ailment     an effect of the ailment list: a unit gets it (stun: its next turn is pushed back; death: it falls)
+    status      an effect of kind 5: some unit gets a status of that effect
+    anything    the rest: some figure of some unit changes (HP, TP, a status, a unit made or gone, the order of turns)
+A skill whose expectation is never met is a row to read.
 """
 import os
 import sys
@@ -159,6 +171,118 @@ def usage():
           f'{flagged} of {len(rows)} role and level rows leave a skill of their plan unused')
 
 
+ACTIVES_ENEMY = 510          # Meta-Kindra (level 90, no passive): the dummy of the actives phase
+ACTIVE_TRIES = 30           # a 12% roll is missed 30 times in a row about 2 times in a hundred
+ACTIVES_FALLBACK = 'papillon'   # the role that performs a hidden skill of no class
+
+
+def snapshot(battle):
+    return [(id(u), u.alive, u.hp, u.tp, tuple(sorted(u.statuses)), round(u.next_time, 6), len(getattr(u, 'items', {}) or {}),
+             getattr(u, 'stolen', False)) for u in battle.units]
+
+
+def actives(part='1/1'):
+    import random
+    from sim.battle import Battle, Action, AILMENTS, Status
+    from sim.policy import usable_in_battle
+    from sim.units import build_enemy
+    from sim.data import ALLY, ALLY_ROW
+    k, n = (int(x) for x in part.split('/'))
+    data, setup = game_data(), setup_mod.load()
+    chars = {c['name']: c for c in data.characters}
+    cp = setup.checkpoint(LATE[1])
+    gear = scenario.checkpoint_gear(data, setup, LATE[1])
+    every = sorted((s for (cat, _), s in data.skills.items() if cat in ('Technique', 'Magic') and usable_in_battle(s)),
+                   key=lambda s: s.id)
+    mine = every[(k - 1) * len(every) // n: k * len(every) // n]
+
+    def user_for(skill):
+        for class_id in skill.classes or []:
+            found = role_for(setup, data, class_id)
+            if found:
+                role = found[0]
+                who = [x.strip() for x in str(setup.roles[role]['Characters (order of preference)']).split(';')][0]
+                return scenario.build_role_member(data, setup, role, chars[who], LATE[0], gear, 0, False)
+        # a hidden skill (the action of a doll, a result of a random skill) belongs to no class: any member performs it
+        who = [x.strip() for x in str(setup.roles[ACTIVES_FALLBACK]['Characters (order of preference)']).split(';')][0]
+        return scenario.build_role_member(data, setup, ACTIVES_FALLBACK, chars[who], LATE[0], gear, 0, False)
+
+    def battle_for(user, seed):
+        party = [u for u in scenario.reference_party(data, setup, cp['Chapter'], LATE[0], gear, 0, cp['Floor'])
+                 if u.kind == 'member' and u.name != user.name][:4] + [user]
+        for u in party:
+            u.hp, u.tp = max(1, u.max_hp // 2), max(u.tp // 2, 0)
+        user.max_tp, user.tp = 9999, 4999
+        party[0].alive, party[0].hp = False, 0
+        party[1].statuses[113] = Status(113, 0, 3)
+        party[1].statuses[116] = Status(116, 0, 3)
+        foes = [build_enemy(data, ACTIVES_ENEMY, True), build_enemy(data, ACTIVES_ENEMY, False)]
+        for f in foes:
+            f.immune, f.resist_base = set(), [0] * 8
+            f.statuses[161] = Status(161, 0.2, 3, f)
+        b = Battle(data, party, foes, random.Random(seed), setup=setup.settings)
+        for u in b.units:
+            u.next_time = 0.5           # so that a stun (gauge to 0, next turn at time + 1) shows as a change
+        return b, foes
+
+    rows = []
+    for skill in mine:
+        user = user_for(skill)
+        if user is None:
+            rows.append((skill, '-', 'no role learns it'))
+            continue
+        level = skill.levels or 1
+        kinds = {(e, kind) for e, kind, _ in skill.effects}
+        expect = {}
+        if any((e in (0, 1) and kind == 4) or e in (8, 12, 138, 140, 141, 142, 434, 435) for e, kind in kinds):
+            expect['damage'] = False
+        for e, kind in kinds:
+            if kind == 4 and e in AILMENTS:
+                expect[f'ailment {e}'] = False
+            if kind == 5:
+                expect[f'status {e}'] = False
+        if not expect:
+            expect['anything'] = False
+        for seed in range(ACTIVE_TRIES):
+            b, foes = battle_for(user, seed)
+            before = snapshot(b)
+            hp_before = {id(u): u.hp for u in b.units}
+            action = Action(user, 'skill', skill, level)
+            if action.target_code in (ALLY, ALLY_ROW):
+                action.target = b.units[2]                # a living member at half HP and TP
+            try:
+                b.perform(action)
+            except Exception as ex:                                      # noqa: BLE001 - a crash is a finding
+                expect = {f'crash {type(ex).__name__}: {ex}': False}
+                break
+            if 'damage' in expect and any(u.hp < hp_before.get(id(u), u.hp) for u in b.units):
+                expect['damage'] = True
+            for key in expect:
+                if key.startswith('ailment '):
+                    e = int(key.split()[1])
+                    # stun is no status: the gauge goes to 0 (Battle.stun); instant death leaves no status either
+                    others = [u for u in b.units if u is not b.units[0]]          # the fallen member aside
+                    seen = (any(e in u.statuses for u in others) or (e == 118 and any(u.next_time > 0.5 for u in others))
+                            or (e == 119 and any(not u.alive and hp_before.get(id(u)) for u in others)))
+                    expect[key] = expect[key] or seen
+                elif key.startswith('status '):
+                    e = int(key.split()[1])
+                    expect[key] = expect[key] or any(e in u.statuses for u in b.units)
+            user.tp += action.tp_cost                     # the cost paid is no effect of the skill
+            if 'anything' in expect and snapshot(b) != before:
+                expect['anything'] = True
+            if all(expect.values()):
+                break
+        missed = [key for key, ok in expect.items() if not ok]
+        rows.append((skill, user.role, 'acts' if not missed else 'not seen: ' + ', '.join(missed)))
+        print(skill.id, skill.name, rows[-1][-1], flush=True)
+    flagged = sum(1 for r in rows if r[-1] != 'acts')
+    write('actives' if n == 1 else f'actives_{k}', ['| Skill | Effects | Performed by | Result |', '|---|---|---|---|'] +
+          [f'| {s.id} {s.name} | {", ".join(f"{e}/{kd}" for e, kd, _ in s.effects)} | {role} | {res} |'
+           for s, role, res in rows],
+          f'{len(rows) - flagged} act as their effects say, {flagged} to read, of {len(rows)} active skills')
+
+
 def write(phase, lines, summary):
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, phase + '.md'), 'w', encoding='utf-8') as f:
@@ -177,11 +301,14 @@ def report():
         text.append(body)
         if p.startswith('passives'):
             flagged += [line.split('|')[1].strip() for line in body.splitlines() if line.endswith('| no effect seen |')]
+        if p.startswith('actives'):
+            flagged += [line.split('|')[1].strip() for line in body.splitlines()
+                        if line.startswith('| ') and '| not seen' in line]
     readings = {str(r['ID']).strip(): r for r in setup_mod.load().audit_readings}
     unread = [x for x in flagged if x not in readings]
-    text[4:4] = [f'**Checklist: {len(flagged) - len(unread)} of {len(flagged)} passives seen doing nothing have a reading** '
+    text[4:4] = [f'**Checklist: {len(flagged) - len(unread)} of {len(flagged)} passives and active skills seen doing nothing have a reading** '
                  f'(sheet AuditReadings of data_tables/sim_setup.xlsx){": unread " + ", ".join(unread) if unread else ""}.', '',
-                 '| Passive | Result | Reading |', '|---|---|---|'] + \
+                 '| Skill or point | Result | Reading |', '|---|---|---|'] + \
         [f'| {k} | {r["Result"]} | {r["Reading"]} |' for k, r in readings.items()] + ['']
     with open(REPORT, 'w', encoding='utf-8') as f:
         f.write('\n'.join(text) + '\n')
@@ -190,4 +317,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'passives': passives, 'usage': usage, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'passives': passives, 'usage': usage, 'actives': actives, 'report': report}[sys.argv[1]](*sys.argv[2:])

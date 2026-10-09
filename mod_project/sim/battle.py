@@ -913,6 +913,15 @@ class Battle:
         return picks[-1]
 
     # --- one hit ----------------------------------------------------------------------------------------------
+    @staticmethod
+    def aimed(action, target):
+        """The hit and the ailments of an action land on an opponent, and on a unit of the user's own side only when the
+        action is aimed at that side or at everyone: the results of the random skills that strike the party (Magic
+        Box's punch on the user and its instant death, Showtime's stun, sleep and half HP on every ally; atwiki dt2-2
+        pages 132 and 148)."""
+        return target.side != action.actor.side or action.target_code in OWN_SIDE or \
+            action.target_code in (EVERYONE, ANYONE)
+
     def resolve(self, action, target, index, damage_by_target):
         unit = action.actor
         hostile = target.side != unit.side
@@ -926,7 +935,7 @@ class Battle:
             if self.voided(action, target):
                 return None
         dealt = 0
-        if hostile and not action.has(25) and (action.physical or action.magic):
+        if self.aimed(action, target) and not action.has(25) and (action.physical or action.magic):
             dealt = self.damage(action, target, index)
             if dealt is None:
                 return None
@@ -1458,10 +1467,11 @@ class Battle:
             any(action.has(e) for e in SONG_EFFECTS)
         dance = any(action.has(e) for e in DANCE_EFFECTS)
         for effect, kind, value in action.effects():
-            if effect in (PLAIN_HIT, MAGIC_POWER, 25) or kind == 2:
+            # an ailment is applied whatever the kind of its slot: Magic Box's instant death on the user is kind 2
+            if effect in (PLAIN_HIT, MAGIC_POWER, 25) or (kind == 2 and effect not in AILMENTS):
                 continue
             if effect in AILMENTS:
-                if hostile or effect == 123:
+                if self.aimed(action, target) or effect == 123:
                     if effect == 123:
                         if hostile and unit.level > target.level and 'shadow sew' not in target.immune \
                                 and not target.pieces(f.ENCHANT_NULLIFY_ALL) \
@@ -1697,6 +1707,10 @@ class Battle:
             amount = int(fixed) if fixed else f.heal(unit.stat('res'), coefficient, unit.passives.get(245, 0.0),
                                                       cap, unit.passives.get(317, 0.0), self.rng.choice(f.HEAL_RANDOM))
             self.record.add('healing', unit, self.restore(target, amount))
+        elif effect == 9 and not action.has(103):
+            # beside 103 it is read there as the fixed amount; alone it is a fixed heal (Magic Box: HP 200 to the
+            # whole party, atwiki dt2-2 page 132)
+            self.record.add('healing', unit, self.restore(target, int(value)))
         elif effect == 104:
             self.record.add('healing', unit, self.restore(target, target.max_hp))
         elif effect == 105:
@@ -1777,7 +1791,18 @@ class Battle:
         skill = self.data.skills.get(('Magic' if doll.doll['skill'] == 100 else 'Technique', chosen['skill']))
         if skill is None:
             return None
-        return Action(doll, 'skill', skill, doll.doll_level)
+        action = Action(doll, 'skill', skill, doll.doll_level)
+        # A doll's action aimed at the party serves the members, not the doll (the targets of its hidden skill read
+        # for itself would be the doll; the code of that pick is not read): Catalina heals the member lowest in HP,
+        # Perdurabo cures the ailments of doll_cure_targets members (GameFAQs faqs/80834, Class Skill info - Spieler;
+        # atwiki dt2-2 page 146).
+        members = [u for u in self.allies(doll) if u.kind == 'member']
+        if members and action.target_code == ALLY:
+            action.target = min(members, key=lambda u: u.hp_ratio)
+        elif members and action.target_code == NO_TARGET and action.has(235):
+            ailing = sorted(members, key=lambda u: -sum(e in u.statuses for e in AILMENTS))
+            action.fixed_targets = ailing[:int(self.setup.get('doll_cure_targets', 2))]
+        return action
 
     def random_move(self, action, effect):
         table = next((t for t in self.data.random_moves if t['effect'] == effect), None)
