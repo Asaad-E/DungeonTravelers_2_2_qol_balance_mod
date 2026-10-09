@@ -6,6 +6,7 @@ enemies of a fixed battle or of a random formation.
 """
 import random
 
+from sim import progression
 from sim.battle import Battle
 from sim.policy import Policy, load_rules
 from sim.units import build_member, build_enemy
@@ -355,7 +356,7 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
                             zone=getattr(enemies, 'zone', None), max_time=float(setup.settings.get('max_time', 400)))
             part = battle.run()
             if result is None:
-                result = part
+                result = dict(part)
                 result['parts'] = [part]
             else:
                 result['parts'].append(part)
@@ -367,5 +368,21 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
                                'tp_left': part['tp_left'], 'alive': part['alive']})
             if not part['won']:
                 break
+            recover_after_battle(party)
         results.append(result)
     return results
+
+
+def recover_after_battle(party):
+    """docs/FORMULAS.md 12.14 (0x43d6a7 - 0x43d8b4): the living members with Generous Heart (272 HP, 273 TP; each
+    value raised by the member's Maid Mastery, getter 0x48a8f0) give the party a share capped at 0.30, plus Maximum
+    Maid (353) outside the cap; every living member recovers int(max * share), all its HP with a piece of 193."""
+    living = [u for u in party if u.alive and u.kind == 'member']
+    for effect, attr, top in ((272, 'hp', 'max_hp'), (273, 'tp', 'max_tp')):
+        givers = [u for u in living if u.passives.get(effect)]
+        share = progression.after_battle_fraction([u.passives[effect] + u.passives.get(278, 0.0) for u in givers],
+                                                  [u.passives.get(353, 0.0) for u in givers])
+        for u in living:
+            full = effect == 272 and u.pieces(193) > 0
+            gain = progression.after_battle_recovery(getattr(u, top), share, full)
+            setattr(u, attr, min(getattr(u, top), getattr(u, attr) + gain))

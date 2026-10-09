@@ -71,6 +71,57 @@ def play_checkpoint(data, setup, cid, runs):
     return level, summary(scenario.play(data, setup, party, enemies, runs=runs))
 
 
+def random_group(data, zone, rng):
+    """One random battle of a floor zone: a formation drawn by its chance (docs/FORMULAS.md 14), on a plain cell."""
+    formations = [f for f in zone['formations'] if all(e in data.enemies for e, _ in f['enemies'])]
+    pick = rng.choices(formations, weights=[max(1, f['chance']) for f in formations])[0]
+    group = scenario.Group(scenario.build_enemy(data, e, front) for e, front in pick['enemies'])
+    for unit, slot in zip(group, pick.get('slots', ())):
+        unit.slot = slot
+    return group
+
+
+def expedition(data, setup, floor, level, cid, roles=None, battles=None, runs=None, kit=None):
+    """Random battles in a row on one floor zone (its 'floor' name as in data.floors), HP and TP carried over and the
+    recovery after each battle applied, until the party falls or the limit of battles. The party has the gear and the
+    forged enchantments of checkpoint cid and its chapter. roles: the composition to use
+    instead of the sheet Composition; kit: the item count of the bag (setting kit_count when None). Returns the mean
+    battles won, the share of runs that reached the limit, and the mean TP share left after each of the first
+    battles."""
+    import random
+    zone = next(z for z in data.floors if z['name'] == floor)
+    cp = setup.checkpoint(cid)
+    gear = scenario.checkpoint_gear(data, setup, cid)
+    battles = int(battles or setup.settings['expedition_battles'])
+    runs = int(runs or setup.settings['expedition_runs'])
+    saved_comp, saved_kit = setup.composition, setup.settings.get('kit_count')
+    if roles is not None:
+        setup.composition = list(roles)
+    if kit is not None:
+        setup.settings['kit_count'] = kit
+    try:
+        won, full, tp_curve = [], 0, [0.0] * battles
+        for k in range(runs):
+            rng = random.Random(int(setup.settings['seed']) + k)
+            result = scenario.play(data, setup,
+                                   lambda: scenario.reference_party(data, setup, cp['Chapter'], level, gear, 0,
+                                                                    cp['Floor']),
+                                   lambda: [random_group(data, zone, rng) for _ in range(battles)],
+                                   runs=1, seed=int(setup.settings['seed']) + k,
+                                   battle_setup={'random_battle': True})[0]
+            parts = result['parts']
+            n = sum(1 for p in parts if p['won'])
+            won.append(n)
+            full += n == battles
+            for i, p in enumerate(parts):
+                tp_curve[i] += p['tp_left'] / runs
+        return {'won': sum(won) / runs, 'reached_limit': full / runs,
+                'tp_after': [round(x, 2) for x in tp_curve[:min(battles, 8)]]}
+    finally:
+        setup.composition = saved_comp
+        setup.settings['kit_count'] = saved_kit
+
+
 def check_change(data, setup, changes, checkpoints=None, runs=None):
     """[(checkpoint, vanilla figures, changed figures, [the windows it leaves])] for the checkpoints the change
     touches (or those given). changes: the list GameData.with_changes takes."""
