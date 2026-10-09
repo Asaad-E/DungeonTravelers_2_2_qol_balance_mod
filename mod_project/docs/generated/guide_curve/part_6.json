@@ -1,0 +1,86 @@
+[
+ {
+  "id": "P19",
+  "level": 84,
+  "won": 0.0,
+  "time": null,
+  "lowest_hp": 0.0
+ },
+ {
+  "id": "P20",
+  "level": 84,
+  "won": 0.0,
+  "time": null,
+  "lowest_hp": 0.0
+ },
+ {
+  "id": "P21",
+  "level": 84,
+  "won": 0.725,
+  "time": 10.660881360075338,
+  "lowest_hp": 0.3726585247492721
+ },
+ {
+  "id": "P22",
+  "level": 84,
+  "won": 0.0,
+  "time": null,
+  "lowest_hp": 0.0
+ },
+ {
+  "id": "P23",
+  "level": 84,
+  "won": 0.0,
+  "time": null,
+  "lowest_hp": 0.0
+ },
+ {
+  "id": "P24",
+  "level": 90,
+  "won": 0.925,
+  "time": 11.030766512387387,
+  "lowest_hp": 0.5485707838122461
+ },
+ {
+  "id": "P25",
+  "level": 90,
+  "won": 0.125,
+  "time": 8.036325000000001,
+  "lowest_hp": 0.0453174364374906
+ },
+ {
+  "id": "P26",
+  "level": 90,
+  "won": 0.075,
+  "time": 15.513894768233419,
+  "lowest_hp": 0.031382578606890324
+ },
+ {
+  "id": "P27",
+  "level": 90,
+  "won": 0.0,
+  "time": null,
+  "lowest_hp": 0.0
+ },
+ {
+  "id": "P28",
+  "level": 95,
+  "won": 0.075,
+  "time": 6.468085525000002,
+  "lowest_hp": 0.03160531552018192
+ },
+ {
+  "id": "P29",
+  "level": 95,
+  "won": 0.0,
+  "time": null,
+  "lowest_hp": 0.0
+ },
+ {
+  "id": "P30",
+  "level": 95,
+  "won": 0.0,
+  "time": null,
+  "lowest_hp": 0.0
+ }
+]
