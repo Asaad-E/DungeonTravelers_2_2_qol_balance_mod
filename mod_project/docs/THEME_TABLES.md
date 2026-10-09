@@ -142,3 +142,26 @@ phase 3), so their verdicts wait for the decisions of milestone 2. The two data 
 | J34 | Berserk drops DEF to zero | false | DEF -11 to -25% for 4 - 8 turns, attack +20 to +50% | None |
 | J13 | Mercenaries act unpredictably, undocumented | partly true | Weighted random scripts of the enemy kind, 1 - 3 sets each; data, not shown | **To decide**: describe each mercenary in its in-game text (L20) |
 | S23 | Order of actions not shown | future idea | Not evaluated (the user, 2026-10-07) | None |
+
+---
+
+## Milestone 3: T05 Classes, first measures (2026-10-09, before the audit of the simulator)
+
+On the Balance variant (milestones 1 and 2 decided), each advanced class in the first Papillon slot of the reference
+party (`sim/measures.py` `slot_share`, 15 battles; bosses C34 at 50, C40 at 64, P24 at 90). The user asked for an
+audit of the simulator before relying on these figures; they are to be measured again after it.
+
+| Class | Share of party damage C34 / C40 / P24 | Wins C40 / P24 | Reading |
+|---|---|---|---|
+| Samurai, Sniper (the band) | 37 - 45% | 67 - 87% | reference |
+| Kunoichi | 6 / 11 / 4% | 53 / 67% | far behind (F04, J27, F88) |
+| Magical Princess | 24 / 30 / 24% | 67 / 73% | behind (F05, J25) |
+| Joker | 30 / 28 / 25% | 13 / 40% | weak, dies under Trump Card (F17, J32) |
+| Mistress | 29 / 37 / 17% | 87 / 80% | weak late |
+| Soul Summoner | 47 / 46 / 24% | 67 / 60% | weak late |
+| Papillon | 27 / 37 / 30% | 80 / 60% | a little behind, wins on par |
+| Treasure Hunter | 31 / 29 / 46% | 53 / 60% | fine |
+| Witch | 67 / 49 / 42% | 40 / 73% | above (T04) |
+
+Supports in an attacker slot, the Diva kept (wins C34 / C40 / P24): Papillon 100 / 80 / 60, Bishop 100 / 87 / 93,
+Etoile 100 / 80 / 100, second Maid 100 / 80 / 73, **Sage 100 / 7 / 47** (J23).
