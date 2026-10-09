@@ -14,8 +14,8 @@ section 3, approach of 2026-10-07) and the engine they rest on:
     anchors   the boss fights of the sheet Anchors the reference party wins as the guides say, as last written by
               tools/sim_anchors.py (it plays battles, so it runs apart)
     check     the check of a change (sim/measures.py, function check_change)
-    postgame  the checkpoints of the postgame and the superbosses (sheet Checkpoints, chapter "Postgame") against the
-              bosses the postgame summary of the GameFAQs guide lists (sheet PostgameBosses)
+    postgame  the checkpoints of the postgame and the superbosses (rows of the sheet Checkpoints) against the bosses the
+              postgame pages of the GameFAQs guide list (sheet PostgameBosses)
     assumptions  the rows of the sheet Assumptions still open
 Phase 1 is closed when every count of the table "To close" is at its target. The verdicts of the rows of Criticisms
 are the checklist of phase 2, written by tools/verdicts.py.
@@ -140,8 +140,8 @@ def main():
     with_build = [r for r in roles if (r.get('Skill plan') or r.get('Skill priority')) and r.get('Source')]
     has_check = hasattr(measures, 'check_change')
     checkpoints = rows(SETUP, 'Checkpoints')
-    postgame = [r for r in checkpoints if str(r.get('Chapter') or '').startswith('Postgame')]
     postgame_bosses = optional_rows(SETUP, 'PostgameBosses')
+    postgame = [r for r in checkpoints if r['ID'] in {b['ID'] for b in postgame_bosses}]
 
     calibration = rows(SETUP, 'Calibration')
     tests = test_names()
