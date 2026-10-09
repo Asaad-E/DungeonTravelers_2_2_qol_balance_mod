@@ -3,6 +3,7 @@
 Each class is one row of the sheet; its docstring names the row and the page the figures come from. The figures are
 the players' own and are copied here only as the expected results of a test."""
 import math
+import random
 import sys
 import unittest
 
@@ -11,8 +12,8 @@ sys.path.insert(0, _paths.PROJECT_DIR)
 from sim import formulas as f
 from sim import progression
 from sim.data import game_data
-from sim.battle import Action
-from sim.units import Unit, PARTY, build_summon
+from sim.battle import Action, Battle
+from sim.units import Unit, PARTY, build_enemy, build_summon
 
 STATS = ('atk', 'def', 'int', 'res', 'dex', 'agi')
 
@@ -27,6 +28,76 @@ class CriticalFactor(unittest.TestCase):
             high = min(normal + 1, (critical + 1) / f.CRIT_FACTOR)
             with self.subTest(normal=normal):
                 self.assertLess(low, high)
+
+
+class DaedalusAttack(unittest.TestCase):
+    """K04, atwiki dt2-2 page 105: one hit of Daedalus Attack Lv10 by crowned Yae, level 99, with Lance Mastery Lv10,
+    against Hola-Orange (DEF 10, stab resistance -20), with the ATK of the status screen. Every measured hit must
+    fall inside the range the formula gives over the swing of the weapon, within 2%: the Gabas Ring worn with the
+    Lance is not identified among the records, and the lowest critical hit with it (970) is 1.8% under the model.
+    The Heavy Lance is one of the weapons 183 - 199 that effect 111 of the skill rewards (0x44b44d - 0x44b475)."""
+    CASES = (('Lance', 251, (790, 841), (970, 1062)), ('Heavy Lance', 251, (901, 1001), (1097, 1245)),
+             ('Don Quixote', 262, (826, 896), (1056, 1120)))
+
+    def test_every_measured_hit_falls_in_the_range_of_the_formula(self):
+        data = game_data()
+        skill = next(s for s in data.skills.values() if s.name == 'Daedalus Attack')
+        enemy_id = next(i for i, e in data.enemies.items() if e['name'] == 'Hola-Orange')
+        for name, atk, normal, critical in self.CASES:
+            weapon = next(p for p in data.equipment.values() if p['name'] == name)
+            member = Unit('Yae', PARTY, 99, 1, 0, {s: 1 for s in STATS}, swing=weapon['swing'])
+            member.base['atk'], member.weapon = atk, weapon
+            member.attack_range, member.attack_attr = weapon['range'], weapon['attr']
+            target = build_enemy(data, enemy_id)
+            battle = Battle(data, [member], [target], random.Random(0))
+            action = Action(member, 'skill', skill, 10)
+            for measured, crit in ((normal, False), (critical, True)):
+                ends = []
+                for swing in (-weapon['swing'], weapon['swing']):
+                    battle.swing = lambda unit, s=swing: s
+                    ends.append(battle.physical_damage(action, target, 0, crit))
+                low, high = ends
+                with self.subTest(weapon=name, critical=crit):
+                    self.assertGreaterEqual(min(measured), low * 0.98)
+                    self.assertLessEqual(max(measured), high * 1.02)
+
+
+class ChantStat(unittest.TestCase):
+    """K06, atwiki dt2-2 page 105 (version 1.03): the stat each spell of the player is chanted with, by class. The
+    Japanese name of the page, the English name of the game, the stat of the page."""
+    TABLE = (
+        ('ヒール', 'Heal', 'res'), ('エンラージブラッド', 'Blood Rage', 'int'), ('サークルヒール', 'Circle Heal', 'res'),
+        ('プロテクション', 'Protect', 'res'), ('ムーンカーテン', 'Moon Curtain', 'res'), ('ライフブリング', 'Life Bring', 'int'),
+        ('ブレイブ', 'Brave', 'res'), ('ファイアボール', 'Fireball', 'int'), ('アイスエッジ', 'Ice Edge', 'int'),
+        ('エアカッター', 'Air Cutter', 'int'), ('ストーンハンマー', 'Stone Hammer', 'int'), ('サンダーボルト', 'Thunderbolt', 'int'),
+        ('ポイズン', 'Poison', 'int'), ('ファイアブラスト', 'Fire Blast', 'int'), ('ブラッドドレイン', 'Blood Absorb', 'int'),
+        ('ミニサークルナース', 'Mini Circle Nurse', 'res'), ('スタン', 'Stun', 'int'), ('フリーズ', 'Freeze', 'int'),
+        ('サイレンス', 'Silence', 'int'), ('パラリシス', 'Paralyze', 'int'), ('エンチャントファイア', 'Fire Enchant', 'res'),
+        ('サークルブレイブ', 'Circle Brave', 'res'), ('サークルプロテクト', 'Circle Protect', 'res'),
+        ('ディバインシールド', 'Divine Shield', 'res'), ('ナース', 'Nurse', 'res'), ('リザレクション', 'Resurrect', 'res'),
+        ('スロウ', 'Slow', 'int'), ('インフェルノ', 'Inferno', 'int'), ('クリムゾンフレア', 'Crimson Flare', 'int'),
+        ('ソウルドレイン', 'Soul Absorb', 'int'), ('レインボーフラッシュ', 'Rainbow Flash', 'int'),
+        ('アクセラレーター', 'Accelerator', 'res'), ('イリュージョン', 'Illusion', 'res'), ('プリズムドーン', 'Prism Dawn', 'res'),
+        ('テラー', 'Terrorize', 'int'), ('スリープ', 'Sleep', 'int'), ('デス', 'Death', 'int'), ('ペトリファクション', 'Petrify', 'int'),
+        ('ディスペル', 'Dispel', 'int'), ('スタブプロテクト', 'Stab Guard', 'res'), ('カットプロテクト', 'Slash Guard', 'res'),
+        ('ブロウプロテクト', 'Bash Guard', 'res'), ('アンプリケイション', 'Amplify', 'res'), ('サンベール', 'Sun Veil', 'res'),
+        ('シャインクルス', 'Shine Curse', 'int'), ('フルヒール', 'Full Heal', 'res'), ('サークルナース', 'Circle Nurse', 'res'),
+        ('インシュランス', 'Insurance', 'res'), ('忍術：影分身', 'Shadow Clone', 'agi'), ('忍術：影縫い', 'Shadow Sew', 'int'),
+        ('忍術：日遁', 'Light Scroll', 'int'), ('忍術：火遁', 'Fire Scroll', 'int'), ('忍術：水遁', 'Water Scroll', 'int'),
+        ('忍術：雷遁', 'Lightning Scroll', 'int'), ('忍術：風遁', 'Wind Scroll', 'int'), ('忍術：土遁', 'Earth Scroll', 'int'),
+        ('子守唄', 'Lullaby', 'res'), ('精霊賛辞ファンタジア', 'Spiritual Fantasia', 'int'), ('神聖礼拝ヒムヌス', 'Sacred Hymn', 'int'),
+        ('充実キャロル', 'Replenishing Carol', 'int'), ('至福コラール', 'Blissful Chorale', 'int'),
+        ('経験促進ピーアン', 'Experience Paean', 'int'), ('パニックボイス', 'Panic Voice', 'int'), ('連撃必倒ロンド', 'Barrage Rondo', 'int'),
+        ('会心集中プレリュード', 'Concentration Prelude', 'int'), ('信仰速読レクイエム', 'Reading Requiem', 'int'),
+        ('魔導的中バラード', 'Sorcerous Ballad', 'int'), ('疾風迅雷マーチ', 'Lightning March', 'int'),
+        ('褒美と躾', 'Carrot and Stick', 'int'), ('プリマヴェール', 'Primevil', 'agi'), ('ソウルイーター', 'Soul Eater', 'int'),
+        ('リミットフィールド', 'Limit Field', 'res'), ('ヘブン・オア・ヘル', 'Heaven or Hell', 'agi'))
+
+    def test_every_spell_of_the_table_chants_with_the_stat_the_players_found(self):
+        spells = {s.name: s for s in game_data().skills.values() if s.category == 'Magic'}
+        for japanese, english, stat in self.TABLE:
+            with self.subTest(spell=english, page=japanese):
+                self.assertEqual(spells[english].chant_stat, stat)
 
 
 class SummonStats(unittest.TestCase):
