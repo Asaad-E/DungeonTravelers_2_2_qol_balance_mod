@@ -92,6 +92,7 @@ AILMENT_ENDS = {114: ('dance', 'doll'), 116: ('chant', 'song', 'dance', 'doll'),
                 123: ('chant', 'song', 'dance', 'doll')}
 MATERIAL_GUARD = 179
 GENJIMARU, GENJIMARU_ACTION = 427, 107       # 0x48b1f0; the hidden skill of the unit it creates
+GENJIMARU_LIFE = 3                           # 0x48b325: the life the doll constructor is given (push 3)
 SACRIFICE, MAX_HP_DRAIN, EXTRA_TARGETS = 77, 133, 137
 SPECIAL_SLEEP = (143, 10.0, 5)               # 0x484150: a sleep command of value 10.0 (0x4841da), recovery 5 (0x484201)
 MURDER, DARK_QUEST, KNOCK_DOWN, PRETEND, DEMON_WALL, ENEMIES_FLEE = 258, 263, 305, 310, 356, 432
@@ -1741,12 +1742,12 @@ class Battle:
 
     def make_genjimaru(self, action):
         """Effect 427 (0x48b1f0): unless one is already in the battle, a unit built like a doll (constructor 0x4fd840,
-        9,999 HP) that performs hidden skill 107 on its turns. How long it stays is not read: until the battle ends
-        (A18)."""
+        9,999 HP) that performs hidden skill 107 on its turns for GENJIMARU_LIFE turns (the constructor's life
+        argument, where a doll skill passes its effect 147)."""
         if any(u.alive and getattr(u, 'genjimaru', False) for u in self.units):
             return
         record = {'skill': GENJIMARU_ACTION, 'name': 'Genjimaru', 'effect': GENJIMARU, 'range': None,
-                  'turns': [int(self.max_time) + 1], 'actions': [{'skill': GENJIMARU_ACTION}]}
+                  'turns': [GENJIMARU_LIFE] * 10, 'actions': [{'skill': GENJIMARU_ACTION}]}
         unit = build_doll(action.actor, record, action.level, self.data)
         unit.genjimaru = True
         unit.position = len(self.units)
