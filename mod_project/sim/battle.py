@@ -413,16 +413,28 @@ class Battle:
     # --- the battle -----------------------------------------------------------------------------------------
     def run(self):
         self.start()
+        self.lowest_hp = self.party_hp_share()
         while not self.over() and self.time < self.max_time and self.actions < self.max_actions:
             unit = min((u for u in self.units if u.alive), key=lambda u: (u.next_time, u.position))
             self.time = unit.next_time
             self.turn(unit)
+            self.lowest_hp = min(self.lowest_hp, self.party_hp_share())
         return self.result()
+
+    def party_hp_share(self):
+        members = self.members()
+        return sum(u.hp for u in members if u.alive) / max(1, sum(u.max_hp for u in members))
 
     def result(self):
         members = self.members()
+        enemies = [u for u in self.units if u.side == ENEMIES]
         return {'won': not self.side(ENEMIES), 'lost': not any(u.alive for u in members), 'time': self.time,
                 'actions': self.actions, 'record': self.record,
+                # the measures of the back and forth of a fight (Regression R10)
+                'lowest_hp': getattr(self, 'lowest_hp', self.party_hp_share()),
+                'enemy_damage': sum(self.record.damage.get(u, 0) for u in enemies),
+                'enemy_actions': sum(self.record.actions.get(u, 0) for u in enemies),
+                'party_max_hp': sum(u.max_hp for u in members),
                 'hp_left': sum(u.hp for u in members) / max(1, sum(u.max_hp for u in members)),
                 'tp_left': sum(u.tp for u in members) / max(1, sum(u.max_tp for u in members)),
                 'alive': sum(1 for u in members if u.alive)}

@@ -322,6 +322,9 @@ def play(data, setup, party_factory, enemy_factory, runs=None, seed=None, battle
                 result['parts'].append(part)
                 result.update({'won': part['won'], 'lost': part['lost'], 'time': result['time'] + part['time'],
                                'actions': result['actions'] + part['actions'], 'hp_left': part['hp_left'],
+                               'lowest_hp': min(result['lowest_hp'], part['lowest_hp']),
+                               'enemy_damage': result['enemy_damage'] + part['enemy_damage'],
+                               'enemy_actions': result['enemy_actions'] + part['enemy_actions'],
                                'tp_left': part['tp_left'], 'alive': part['alive']})
             if not part['won']:
                 break
