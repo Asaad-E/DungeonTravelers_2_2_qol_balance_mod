@@ -58,7 +58,8 @@ def anchors_count():
     with open(path, encoding='utf-8') as f:
         for line in f:
             if line.startswith('Anchors met: **'):
-                return int(line.split('**')[1].split()[0])
+                parts = line.split('**')
+                return int(parts[1].split()[0]), int(parts[3]) if len(parts) > 3 else 0
     return None
 
 
@@ -145,9 +146,11 @@ def main():
 
     calibration = rows(SETUP, 'Calibration')
     tests = test_names()
-    calibrated = [r for r in calibration if r['Test in tests/'] in tests]
+    # a row checked by playing battles names tools/sim_anchors.py and its anchors instead of a test class
+    calibrated = [r for r in calibration if r['Test in tests/'] in tests
+                  or str(r['Test in tests/'] or '').startswith('tools/sim_anchors.py')]
     anchors_total = len(optional_rows(SETUP, 'Anchors'))
-    anchors_met = anchors_count()
+    anchors_met, anchors_limits = anchors_count() or (None, 0)
     assumptions = rows(SETUP, 'Assumptions')
     open_rows = [r for r in assumptions if r['State'] not in ('read', 'read in a guide', 'choice')]
 
@@ -165,7 +168,8 @@ def main():
            f'| Roles with a reference build of the guides (sheet `Roles`) | {len(with_build)} of {len(roles)} | all |',
            f'| Calibration tests written | {len(calibrated)} of {len(calibration)} | all |',
            f'| Boss anchors met (`docs/generated/SIM_ANCHORS.md`, run `tools/sim_anchors.py`) | '
-           f'{"?" if anchors_met is None else anchors_met} of {anchors_total} | all |',
+           f'{"?" if anchors_met is None else anchors_met} of {anchors_total}, known limits {anchors_limits} | all, or met '
+           f'plus known limits the user confirms |',
            f'| Check of a change (`sim/measures.py`, `check_change`) | {"yes" if has_check else "no"} | yes |',
            f'| Postgame and superboss checkpoints | {len(postgame)} of {len(postgame_bosses) or "?"} '
            f'(sheet `PostgameBosses`{"" if postgame_bosses else " not written yet"}) | all |',
@@ -190,7 +194,7 @@ def main():
           f'AI commands {len(commands & all_commands)}/{len(all_commands)}, sources {len(sources)}/{len(enemy_ai.SOURCES)}, '
           f'targets {len(targets)}/{len(enemy_ai.TARGETS)}, scripts {scripts - len(gap_scripts)}/{scripts}; '
           f'builds {len(with_build)}/{len(roles)}; calibration {len(calibrated)}/{len(calibration)}; '
-          f'anchors {"?" if anchors_met is None else anchors_met}/{anchors_total}; '
+          f'anchors {"?" if anchors_met is None else anchors_met}/{anchors_total} (+{anchors_limits} known limit); '
           f'check {"yes" if has_check else "no"}; postgame {len(postgame)}/{len(postgame_bosses) or "?"}; '
           f'assumptions open {len(open_rows)}/{len(assumptions)}')
     print(f'written {OUTPUT}')
