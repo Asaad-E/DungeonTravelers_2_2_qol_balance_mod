@@ -93,6 +93,7 @@ AILMENT_ENDS = {114: ('dance', 'doll'), 116: ('chant', 'song', 'dance', 'doll'),
 MATERIAL_GUARD = 179
 GENJIMARU, GENJIMARU_ACTION = 427, 107       # 0x48b1f0; the hidden skill of the unit it creates
 GENJIMARU_LIFE = 3                           # 0x48b325: the life the doll constructor is given (push 3)
+SHADOW_LIFE = 3                              # 0x437a2e: the life the shadow of Shadow Heart is given (push 3)
 SACRIFICE, MAX_HP_DRAIN, EXTRA_TARGETS = 77, 133, 137
 SPECIAL_SLEEP = (143, 10.0, 5)               # 0x484150: a sleep command of value 10.0 (0x4841da), recovery 5 (0x484201)
 MURDER, DARK_QUEST, KNOCK_DOWN, PRETEND, DEMON_WALL, ENEMIES_FLEE = 258, 263, 305, 310, 356, 432
@@ -219,12 +220,12 @@ class Action:
 
     @property
     def spell(self):
-        """What an anti-magic zone stops. The program tests a flag of the record (EnemyAttackData +0x40 bit 2,
-        0x41a483; +0x50 bit 5 of another table, 0x41c184) that the extracted files do not map yet (assumption A21):
-        a skill of the magic file, a chanted enemy attack or an action with a magic power."""
+        """What an anti-magic zone stops: a skill of the magic file (0x41e04f, the record is in the spell table
+        0x738a58) and an enemy attack whose record has bit 2 of the word at file 0x28 (+0x40 in memory, 0x41a483).
+        Techniques are not stopped, nor enemy attacks with a magic power but without the bit. The third test
+        (0x41c184, +0x50 bit 5 of table 0x738a54) is of the joint skills, which the model leaves out."""
         s = self.source
-        return self.has(MAGIC_POWER) or (isinstance(s, Skill) and s.category == 'Magic') or \
-            (isinstance(s, EnemyAttack) and s.chanted)
+        return (isinstance(s, Skill) and s.category == 'Magic') or (isinstance(s, EnemyAttack) and bool(s.spell))
 
     @property
     def reach(self):
@@ -498,9 +499,11 @@ class Battle:
                 self.add_shadow(unit)
 
     def add_shadow(self, owner):
-        """Shadow Heart: a unit of her own joins to attack. Built like a doll, a copy of its owner (A20: how long it
-        stays and what it does beyond a plain attack are not read)."""
-        unit = build_doll(owner, {'name': owner.name + "'s shadow", 'turns': [1], 'range': None, 'actions': []}, 1)
+        """Shadow Heart (0x4379fb - 0x437a44): a copy of its owner (constructor 0x4fe2e0, which passes on to the doll
+        constructor) with a life of SHADOW_LIFE turns and no action of its own, so it makes plain attacks; one at a
+        time for each owner (0x43793b - 0x4379f5)."""
+        unit = build_doll(owner, {'name': owner.name + "'s shadow", 'turns': [SHADOW_LIFE], 'range': None,
+                                  'actions': []}, 1)
         unit.shadow_of = owner
         unit.position = len(self.units)
         unit.next_time = self.time + self.wait(unit)

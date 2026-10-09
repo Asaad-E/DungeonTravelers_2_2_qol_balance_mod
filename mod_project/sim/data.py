@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.join(PROJECT_DIR, 'tools')
 WORKBOOK = os.path.join(PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx')
 CRITERIA = os.path.join(PROJECT_DIR, 'data_tables', 'balance_criteria.xlsx')
 CACHE = os.path.join(SIM_DIR, '__pycache__', 'game_data.pkl')
-CACHE_VERSION = 8
+CACHE_VERSION = 9
 LEVELS = [f'Lv{k}' for k in range(1, 11)]
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)
@@ -89,7 +89,7 @@ class Skill:
 class EnemyAttack:
     """An EnemyAttackData record: also the attacks of summons and guest allies, and the passives of enemies."""
     __slots__ = ('id', 'name', 'target', 'attr', 'chant_speed', 'accuracy', 'power', 'turns', 'speed', 'effects',
-                 'range', 'passive', 'chant_stat')
+                 'range', 'passive', 'chant_stat', 'spell')
 
     def __init__(self, **kw):
         for k in self.__slots__:
@@ -219,7 +219,9 @@ def _load_attacks(wb, data):
             chant_speed=r['Chant_Speed'] or 0, accuracy=r['Accuracy'] or 0, power=r['Power'] or 0,
             turns=int(r['Turns'] or 0), speed=r['Speed'] if r['Speed'] else 1.0, effects=effects, range=reach,
             passive='Passive Skill' in str(r['Vanilla_Desc'] or ''),
-            chant_stat=_enemy_chant_stat(r['Anim_0x28'] or 0))
+            chant_stat=_enemy_chant_stat(r['Anim_0x28'] or 0),
+            # bit 2 of the word at file 0x28 (+0x40 in memory): a spell, which an anti-magic zone stops (0x41a483)
+            spell=bool((r['Anim_0x28'] or 0) >> 2 & 1))
 
 
 def _enemy_chant_stat(word):
