@@ -1,12 +1,12 @@
 """
-Comprehensive Party Battery Simulation across 17 Story Bosses.
+Full Party Battery Matrix Simulation (Clean & Complete).
 
-Fix for C29:
-  - Calliope HP set to 9,000 (+20% over Vanilla 7,500).
-  - Silencing counterplay applied to Calliope every 8 turns (duration 3 turns).
-  - Fresh enemy instances generated on every simulation run.
-
-Outputs a clean boss-per-row matrix showing Win Rate (%) and Average Party Rounds for each party.
+All 17 Story Bosses across all 5 Parties.
+Includes:
+  - Full gear, unique pieces, personal sealbooks, Grand Sealbook enchants, shared item bag (Kit).
+  - Grand Sealbook summon (Eros, etc.).
+  - Fresh enemy instances on every run.
+  - C29 Calliope fix: 9,000 HP (+20%) and Silence applied every 8 turns.
 """
 import os
 import sys
@@ -91,7 +91,7 @@ class SilencingBattle(Battle):
         super().turn(unit)
 
 
-def build_party(data_source, setup, role_names, cid):
+def build_party_complete(data_source, setup, role_names, cid):
     cp = setup.checkpoint(cid)
     chapter, floor = cp['Chapter'], cp['Floor']
     level = scenario.reference_levels(data_source, setup)[cid][0]
@@ -109,9 +109,9 @@ def build_party(data_source, setup, role_names, cid):
     for rname in role_names:
         if len(party) >= size:
             break
-        if rname not in setup.roles:
+        role = setup.roles.get(rname)
+        if not role:
             continue
-        role = setup.roles[rname]
         base = scenario.class_id(data_source, role['Base class'])
         for name in str(role['Characters (order of preference)']).split(';'):
             name = name.strip()
@@ -132,22 +132,34 @@ def build_party(data_source, setup, role_names, cid):
         if name in taken or not c:
             continue
         for rname in role_names:
-            if rname in setup.roles:
-                role = setup.roles[rname]
-                if scenario.class_id(data_source, role['Base class']) == c['base_class']:
-                    j_lvl = scenario.level_of_exp(data_source, c['start_exp'] or 0)
-                    party.append(scenario.build_role_member(data_source, setup, rname, c, max(level, j_lvl), upgrade, crown,
-                                                   scenario.forge_open(setup, floor), party_enchants=party_enchants,
-                                                   pieces=scenario.unique_pieces(setup, rname, chapter, floor),
-                                                   sealbook=scenario.personal_sealbook(setup, rname, chapter, floor)))
-                    taken.add(name)
-                    break
+            role = setup.roles.get(rname)
+            if role and scenario.class_id(data_source, role['Base class']) == c['base_class']:
+                j_lvl = scenario.level_of_exp(data_source, c['start_exp'] or 0)
+                party.append(scenario.build_role_member(data_source, setup, rname, c, max(level, j_lvl), upgrade, crown,
+                                               scenario.forge_open(setup, floor), party_enchants=party_enchants,
+                                               pieces=scenario.unique_pieces(setup, rname, chapter, floor),
+                                               sealbook=scenario.personal_sealbook(setup, rname, chapter, floor)))
+                taken.add(name)
+                break
 
     front = int(setup.settings.get('front_size', 3))
     if sum(u.front for u in party) > front:
-        for u in reversed(party):
-            if u.front and sum(x.front for x in party) > front:
-                u.front = False
+        for u in sorted((u for u in party if u.front), key=lambda u: u.max_hp)[:sum(u.front for u in party) - front]:
+            u.front = False
+    if not any(u.front for u in party) and party:
+        max(party, key=lambda u: u.max_hp).front = True
+        
+    count = int(setup.settings.get('kit_count', 0) or 0)
+    bag = {int(r['Item_ID']): int(round(count * float(r['Share'] or 1))) for r in setup.kit}
+    for u in party:
+        u.items = dict(bag)
+        
+    if sealbook is not None:
+        summon = scenario.sealbook_summon(data_source, setup, sealbook, party)
+        if summon is not None:
+            summon.items = {}
+            party.append(summon)
+            
     return party
 
 
@@ -160,7 +172,7 @@ def run_battery(runs=12):
     variant.enemies[785]['hp'] = 9000
     
     results = {}
-    print(f"=== Starting Full Party Battery ({runs} runs across {len(CHECKPOINTS)} bosses) ===\n")
+    print(f"=== Starting Complete Party Battery ({runs} runs across {len(CHECKPOINTS)} bosses) ===\n")
     
     for p_name, p_info in PARTIES.items():
         results[p_name] = {'opt': p_info['opt'], 'checkpoints': {}}
@@ -177,26 +189,21 @@ def run_battery(runs=12):
                 scenario.Battle = SilencingBattle
                 
             try:
-                # Vanilla factories (always fresh)
                 def party_factory_vanilla():
-                    return build_party(data, setup, p_info['roles'], cid)
+                    return build_party_complete(data, setup, p_info['roles'], cid)
                 def enemy_factory_vanilla():
                     return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
-                    
                 res_v = scenario.play(data, setup, party_factory_vanilla, enemy_factory_vanilla, runs=runs)
                 
-                # Variant factories (always fresh)
                 def party_factory_variant():
-                    return build_party(variant, setup, p_info['roles'], cid)
+                    return build_party_complete(variant, setup, p_info['roles'], cid)
                 def enemy_factory_variant():
                     return [scenario.fixed_battle(variant, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
-                    
                 res_m = scenario.play(variant, setup, party_factory_variant, enemy_factory_variant, runs=runs)
                 
             finally:
                 scenario.Battle = old_battle
                 
-            # Process metrics
             wins_v = [r for r in res_v if r['won']]
             losses_v = [r for r in res_v if not r['won']]
             win_pct_v = len(wins_v) / len(res_v) * 100
@@ -231,12 +238,12 @@ def run_battery(runs=12):
 
 def format_report_markdown(results):
     md = []
-    md.append("# Matriz Completa de Rendimiento: 17 Jefes de Historia (Con Fix en C29)\n")
-    md.append("Evaluación exhaustiva de los 5 arquetipos de equipo a lo largo de toda la campaña.")
-    md.append("- **C29 (Calliope):** Evaluado con el fix de **+20% HP (9,000 HP)** y **Silencio aplicado cada 8 turnos**.")
-    md.append("- **Formato de celda:** `Victoria% (Rondas de equipo promedio)`. Si no gana, indica `0% (cae tras Xr)`.\n")
+    md.append("# Matriz Completa y Rigurosa: 17 Jefes de Historia (Con Gear Completo, Kit y Summon)\n")
+    md.append("Evaluación con equipamiento completo, bolsa de objetos de la tienda, sellos personales, gran sello e invocación.\n")
+    md.append("- **C29 (Calliope):** Evaluado con **+20% HP (9,000 HP)** y **Silencio cada 8 turnos**.")
+    md.append("- **Formato de celda:** `Victoria% (Rondas promedio)`. Si no gana, indica `0% (cae tras Xr)`.\n")
     
-    # Tabla para el Mod (Balance Variant)
+    # 1. Tabla para el Mod (Balance Variant)
     md.append("## 1. Tabla de la Variante Balance (Mod Actual con Fix C29)\n")
     md.append("| Checkpoint | Jefe | Nivel | Meta (100%) | Dual-Support (85%) | Mage-Heavy (65%) | Juggernaut (65%) | Anti-Meta (25%) |")
     md.append("|---|---|:---:|:---:|:---:|:---:|:---:|:---:|")
@@ -254,7 +261,7 @@ def format_report_markdown(results):
             row.append(cell)
         md.append("| " + " | ".join(row) + " |")
         
-    # Tabla Comparativa Vanilla vs Mod
+    # 2. Comparativa Directa
     md.append("\n## 2. Comparativa Directa: Vanilla → Mod [Victoria% y Rondas]\n")
     md.append("| Checkpoint | Jefe | Meta (100%) | Dual-Support (85%) | Mage-Heavy (65%) | Juggernaut (65%) | Anti-Meta (25%) |")
     md.append("|---|---|:---:|:---:|:---:|:---:|:---:|")
@@ -265,7 +272,6 @@ def format_report_markdown(results):
         for p_name in PARTIES.keys():
             v = results[p_name]['checkpoints'][cid]['vanilla']
             m = results[p_name]['checkpoints'][cid]['variant']
-            
             v_str = f"{v['win_pct']:.0f}% ({v['rounds']:.1f}r)" if v['won'] else "0%"
             m_str = f"**{m['win_pct']:.0f}%** ({m['rounds']:.1f}r)" if m['won'] else "0%"
             row.append(f"{v_str} → {m_str}")
