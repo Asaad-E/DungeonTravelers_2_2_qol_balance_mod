@@ -2,7 +2,7 @@
 Party Battery Simulation.
 
 Tests a battery of 5 parties with different degrees of optimization (based on the GameFAQs guide)
-against key boss checkpoints in both Vanilla and the Balance Variant.
+across 17 key boss checkpoints throughout the entire story in both Vanilla and the Balance Variant.
 
 Parties:
   1. Meta / Golden Party: Diva, Dark Lord, Papillon, Valkyrie, Treasure Hunter (100% Optimization)
@@ -51,7 +51,27 @@ PARTIES = {
     }
 }
 
-CHECKPOINTS = ['C18', 'C26', 'C29', 'C34', 'C40']
+BOSS_NAMES = {
+    'C06': 'Ghast',
+    'C10': 'Vrachia Lord',
+    'C13': 'Eros',
+    'C17': 'Agent M',
+    'C18': 'True King Eltricia',
+    'C19': 'Siesta',
+    'C21': 'Trafficker Twinny',
+    'C24': 'Afanc',
+    'C26': 'Michelle & Beatrice',
+    'C28': 'Spirit of Mag Mell',
+    'C29': 'Calliope (Heal Wall)',
+    'C30': 'Heartless Avenger',
+    'C32': 'Moby Dick',
+    'C34': 'Queen of Darkness',
+    'C36': 'Demon God Fried',
+    'C38': 'Samael',
+    'C40': 'Demiurge & Atialuco (Final)'
+}
+
+CHECKPOINTS = list(BOSS_NAMES.keys())
 
 
 def build_party(data_source, setup, role_names, cid):
@@ -115,20 +135,21 @@ def build_party(data_source, setup, role_names, cid):
     return party
 
 
-def run_battery(runs=15):
+def run_battery(runs=12):
     data = game_data()
     setup = setup_mod.load()
     variant = balance_data(data)
     
     results = {}
     
-    print(f"=== Starting Party Battery Simulation ({runs} runs per checkpoint) ===\n")
+    print(f"=== Starting Expanded Party Battery Simulation ({runs} runs across {len(CHECKPOINTS)} bosses) ===\n")
     
     for p_name, p_info in PARTIES.items():
         results[p_name] = {'opt': p_info['opt'], 'checkpoints': {}}
         print(f"--- Testing Party: {p_name} [{p_info['opt']}] ---")
         
         for cid in CHECKPOINTS:
+            bname = BOSS_NAMES[cid]
             cp = setup.checkpoint(cid)
             level = scenario.reference_levels(data, setup)[cid][0]
             groups_vanilla = [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
@@ -149,6 +170,7 @@ def run_battery(runs=15):
             s_variant = measures.summary(res_variant)
             
             results[p_name]['checkpoints'][cid] = {
+                'boss': bname,
                 'level': level,
                 'vanilla': s_vanilla,
                 'variant': s_variant
@@ -156,9 +178,7 @@ def run_battery(runs=15):
             
             v_win = int(s_vanilla['won'] * 100)
             m_win = int(s_variant['won'] * 100)
-            v_time = f"{s_vanilla['time']:.1f}" if s_vanilla['time'] is not None else "-"
-            m_time = f"{s_variant['time']:.1f}" if s_variant['time'] is not None else "-"
-            print(f"  {cid} (Lv{level:2d}): Vanilla {v_win:3d}% (turns {v_time})  -->  Variant {m_win:3d}% (turns {m_time})")
+            print(f"  {cid:3s} ({bname:25s} Lv{level:2d}): Vanilla {v_win:3d}%  -->  Variant {m_win:3d}%")
             
         print()
         
@@ -167,43 +187,39 @@ def run_battery(runs=15):
 
 def print_comparison_markdown(results):
     md = []
-    md.append("# Resultados de la Batería de Parties (Vanilla vs. Balance Variant)\n")
-    md.append("Evaluación de 5 arquetipos de equipo con distintos grados de optimización basados en la guía de GameFAQs.\n")
+    md.append("# Resultados Expandidos de la Batería de Parties (17 Jefes de Historia)\n")
+    md.append("Evaluación de 5 arquetipos de equipo a lo largo de toda la campaña (Vanilla vs. Balance Variant).\n")
+    
+    # 1. Summary Matrix: Win rate by boss
+    md.append("## Matriz General: Tasa de Victoria por Jefe (Vanilla → Mod)\n")
+    md.append("| Checkpoint | Jefe | Nivel | Meta (100%) | Dual-Support (85%) | Mage-Heavy (65%) | Juggernaut (65%) | Anti-Meta (25%) |")
+    md.append("|---|---|---|---|---|---|---|---|")
     
     for cid in CHECKPOINTS:
+        bname = BOSS_NAMES[cid]
         level = results[list(results.keys())[0]]['checkpoints'][cid]['level']
-        md.append(f"\n### Checkpoint {cid} (Nivel {level})\n")
-        md.append("| Party | Optimización | Victoria (Vanilla) | Turnos (Vanilla) | Victoria (Variant) | Turnos (Variant) | Δ Rendimiento |")
-        md.append("|---|---|---|---|---|---|---|")
         
-        for p_name, p_data in results.items():
-            opt = p_data['opt']
-            c_data = p_data['checkpoints'][cid]
-            v = c_data['vanilla']
-            m = c_data['variant']
+        cells = []
+        for p_name in PARTIES.keys():
+            c_data = results[p_name]['checkpoints'][cid]
+            v_win = int(c_data['vanilla']['won'] * 100)
+            m_win = int(c_data['variant']['won'] * 100)
+            cells.append(f"{v_win}% → **{m_win}%**")
             
-            v_win = f"{int(v['won']*100)}%"
-            v_time = f"{v['time']:.1f}" if v['time'] is not None else "-"
-            m_win = f"{int(m['won']*100)}%"
-            m_time = f"{m['time']:.1f}" if m['time'] is not None else "-"
-            
-            diff_win = int(m['won']*100) - int(v['won']*100)
-            diff_str = f"{diff_win:+d}%" if diff_win != 0 else "="
-            
-            md.append(f"| **{p_name}** | {opt} | {v_win} | {v_time} | {m_win} | {m_time} | {diff_str} |")
-            
+        md.append(f"| **{cid}** | {bname} | {level} | {cells[0]} | {cells[1]} | {cells[2]} | {cells[3]} | {cells[4]} |")
+        
     return "\n".join(md)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--runs', type=int, default=15, help='Number of simulation runs per fight')
+    parser.add_argument('--runs', type=int, default=12, help='Number of simulation runs per fight')
     args = parser.parse_args()
     
     res = run_battery(runs=args.runs)
     report_md = print_comparison_markdown(res)
     
-    out_path = os.path.join(BASE_DIR, 'docs', 'generated', 'PARTY_BATTERY_RESULTS.md')
+    out_path = os.path.join(BASE_DIR, 'docs', 'generated', 'PARTY_BATTERY_EXPANDED.md')
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, 'w', encoding='utf-8') as f:
         f.write(report_md)
