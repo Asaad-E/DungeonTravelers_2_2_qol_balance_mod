@@ -163,13 +163,19 @@ def build_party_complete(data_source, setup, role_names, cid):
     return party
 
 
-def run_battery(runs=12):
+def run_battery(runs=12, no_boss_hp_buffs=False):
     data = game_data()
     setup = setup_mod.load()
     
-    # Balance variant with C29 fix: 9,000 HP (+20%)
     variant = balance_data(data)
-    variant.enemies[785]['hp'] = 9000
+    if no_boss_hp_buffs:
+        for eid in data.enemies:
+            if eid in variant.enemies:
+                variant.enemies[eid]['hp'] = data.enemies[eid]['hp']
+        print(">>> Aumentos de vida en jefes DESACTIVADOS (HP de jefes al 100% Vanilla) <<<")
+    else:
+        # Balance variant with C29 fix: 9,000 HP (+20%)
+        variant.enemies[785]['hp'] = 9000
     
     results = {}
     print(f"=== Starting Complete Party Battery ({runs} runs across {len(CHECKPOINTS)} bosses) ===\n")
@@ -236,15 +242,23 @@ def run_battery(runs=12):
     return results
 
 
-def format_report_markdown(results):
+def format_report_markdown(results, no_boss_hp_buffs=False):
     md = []
-    md.append("# Matriz Completa y Rigurosa: 17 Jefes de Historia (Con Gear Completo, Kit y Summon)\n")
-    md.append("Evaluación con equipamiento completo, bolsa de objetos de la tienda, sellos personales, gran sello e invocación.\n")
-    md.append("- **C29 (Calliope):** Evaluado con **+20% HP (9,000 HP)** y **Silencio cada 8 turnos**.")
+    if no_boss_hp_buffs:
+        md.append("# Matriz de Simulación: 17 Jefes de Historia SIN Aumento de HP en Jefes\n")
+        md.append("Evaluación con equipamiento completo, bolsa de objetos de la tienda, sellos personales, gran sello e invocación.\n")
+        md.append("- **Jefes:** HP al 100% Vanilla (sin aumentos de vida del mod).")
+        md.append("- **C29 (Calliope):** HP Vanilla (7,500 HP) con **Silencio cada 8 turnos**.")
+        md.append("- **Héroes / Clases:** Todas las mejoras y rebalances del Mod activos.")
+    else:
+        md.append("# Matriz Completa y Rigurosa: 17 Jefes de Historia (Con Gear Completo, Kit y Summon)\n")
+        md.append("Evaluación con equipamiento completo, bolsa de objetos de la tienda, sellos personales, gran sello e invocación.\n")
+        md.append("- **C29 (Calliope):** Evaluado con **+20% HP (9,000 HP)** y **Silencio cada 8 turnos**.")
     md.append("- **Formato de celda:** `Victoria% (Rondas promedio)`. Si no gana, indica `0% (cae tras Xr)`.\n")
     
     # 1. Tabla para el Mod (Balance Variant)
-    md.append("## 1. Tabla de la Variante Balance (Mod Actual con Fix C29)\n")
+    title_suffix = " (Sin Aumentos de HP en Jefes)" if no_boss_hp_buffs else " (Mod Actual con Fix C29)"
+    md.append(f"## 1. Tabla de la Variante Balance{title_suffix}\n")
     md.append("| Checkpoint | Jefe | Nivel | Meta (100%) | Dual-Support (85%) | Mage-Heavy (65%) | Juggernaut (65%) | Anti-Meta (25%) |")
     md.append("|---|---|:---:|:---:|:---:|:---:|:---:|:---:|")
     
@@ -283,12 +297,14 @@ def format_report_markdown(results):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--runs', type=int, default=12)
+    parser.add_argument('--no-boss-hp-buffs', action='store_true', help='Revert all enemy HP increases to Vanilla HP')
     args = parser.parse_args()
     
-    res = run_battery(runs=args.runs)
-    report = format_report_markdown(res)
+    res = run_battery(runs=args.runs, no_boss_hp_buffs=args.no_boss_hp_buffs)
+    report = format_report_markdown(res, no_boss_hp_buffs=args.no_boss_hp_buffs)
     
-    out_path = os.path.join(BASE_DIR, 'docs', 'generated', 'FULL_PARTY_BATTERY_MATRIX.md')
+    filename = 'FULL_PARTY_BATTERY_NO_BOSS_HP_BUFFS.md' if args.no_boss_hp_buffs else 'FULL_PARTY_BATTERY_MATRIX.md'
+    out_path = os.path.join(BASE_DIR, 'docs', 'generated', filename)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, 'w', encoding='utf-8') as f:
         f.write(report)
