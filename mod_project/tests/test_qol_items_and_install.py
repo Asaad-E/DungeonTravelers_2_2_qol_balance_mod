@@ -274,7 +274,7 @@ class PartySkills(unittest.TestCase):
         self.assertEqual(by_name['Full of Guts']['effect'], 'Max HP increased (up to +100).')
         self.assertEqual(by_name['Sales Experience']['effect'],
                          'Up to wind resistance +20 and AGI +10.')
-        self.assertEqual(by_name['Celebrities']['effect'], 'Lightning resistance increased.')    # no guide gives it
+        self.assertEqual(by_name['Celebrities']['effect'], 'Lightning resistance increased (up to +50).')
 
     def test_every_bound_belongs_to_an_effect_of_the_pack(self):
         from text_checks import PARTY_BOUNDS
