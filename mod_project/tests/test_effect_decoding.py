@@ -219,6 +219,9 @@ class LevelUpLinesAfterDecoding(unittest.TestCase):
         for name, piece in expected.items():
             with self.subTest(skill=name):
                 self.assertIn(piece, self.rows[name]['QoL_LvUp'])
+        self.assertIn('Turns: 3 (Lv1-3) -> 4 (Lv4-6)', self.rows['Spartan']['QoL_LvUp'])
+        self.assertIn('Turns: 3 (Lv1-2) -> 4 (Lv3-4)', self.rows['Catalina']['QoL_LvUp'])
+        self.assertIn('Turns: 4', self.rows['Musiy']['QoL_LvUp'])
 
 
 if __name__ == '__main__':

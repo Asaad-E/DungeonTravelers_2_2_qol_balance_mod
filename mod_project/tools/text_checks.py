@@ -113,6 +113,9 @@ def series_fits(shown, table):
         return all(close(shown[0], v) for v in table)
     if len(shown) == len(table) and all(close(s, v) for s, v in zip(shown, table)):
         return True
+    distinct = [v for k, v in enumerate(table) if k == 0 or not close(v, table[k-1])]
+    if len(shown) == len(distinct) and all(close(s, d) for s, d in zip(shown, distinct)):
+        return True
     return len(shown) == 2 and close(shown[0], table[0]) and close(shown[1], table[-1])
 
 
@@ -137,7 +140,13 @@ def expected_tables(label, category, tables):
     if label == 'TP Cost':
         return [tables.get('tp')]
     if label == 'Turns':
-        return [tables.get('turns')]
+        t = tables.get('turns')
+        if t and any(t):
+            return [t]
+        st = [v for i, _, v in slots if i == 147]
+        if st:
+            return st
+        return [t]
     if label == 'Speed':
         return [tables.get('speed')]
     if label == 'Chant':
