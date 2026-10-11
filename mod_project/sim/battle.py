@@ -1115,12 +1115,10 @@ class Battle:
         defending = target.defending or target in getattr(self, 'guarding', ())
         resist_index = RESIST_INDEX.get(action.attr)
         resistance = target.resistance(resist_index) if resist_index is not None else 0
-        race = 1.0
-        if action.has(88) and target.race in (5, 7, 8):
-            race += action.value(88)
+        race_bonus = action.value(88) if (action.has(88) and target.race in (5, 7, 8)) else 0.0
         if action.has(87) and target.race == 5:
             return 0
-        race *= self.race_factor(unit, target) * self.element_factor(unit, target, action.attr)
+        race = (self.race_factor(unit, target) + race_bonus) * self.element_factor(unit, target, action.attr)
         # 0x44c723 - 0x44c75f: Limit Field of the target, Power Charge of the user
         other = target.value(190) + unit.status_value(191) + self.full_hp_bonus(unit)
         guard = target.statuses.get(MATERIAL_GUARD)
@@ -1220,8 +1218,8 @@ class Battle:
             divisor = next((target.value(e) for e in MAGIC_HIT_DIVISORS if target.has(e)), 1.0) or 1.0
             chance = f.magic_hit(acc, unit.stat('int'), target.stat('res'),
                                  loose_spirit=self.first(action, unit, 30),
-                                 enchant=3 * unit.pieces(39) + 2 * unit.pieces(40),
-                                 target_enchant=3 * target.pieces(43) + 2 * target.pieces(44),
+                                 enchant=min(50, 3 * unit.pieces(39) + 2 * unit.pieces(40)),
+                                 target_enchant=min(50, 3 * target.pieces(43) + 2 * target.pieces(44)),
                                  buffs=buffs, target_evasion=sum(target.value(e) for e in MAGIC_EVASION_BUFFS),
                                  divisor=divisor)
         else:
@@ -1239,10 +1237,10 @@ class Battle:
             chance = action.value(55) * 100
         elif action.has(72):
             chance = action.value(72) * 100
+        elif roll == 'physical':
+            chance = f.clamp(chance, f.HIT_MIN, f.HIT_MAX)
         if 116 in target.statuses:
             chance = 100.0
-        if roll == 'physical':
-            chance = f.clamp(chance, f.HIT_MIN, f.HIT_MAX)
         for effect, adult in AGE_ONLY.items():
             if action.has(effect) and target.adult == adult:
                 chance = 0.0

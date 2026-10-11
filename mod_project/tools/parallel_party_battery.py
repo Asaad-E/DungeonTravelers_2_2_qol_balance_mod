@@ -51,22 +51,6 @@ PARTIES = {
     }
 }
 
-class SilencingBattle(Battle):
-    """Battle for C29 where Calliope is silenced every 8 turns."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.calliope_turn_count = 0
-
-    def turn(self, unit):
-        if getattr(unit, 'name', '') == 'Calliope' and unit.alive:
-            self.calliope_turn_count += 1
-            if (self.calliope_turn_count - 1) % 8 == 0:
-                unit.statuses[117] = Status(117, 1.0, turns=3, kind=5)
-                unit.chanting = None
-                unit.song = None
-                if getattr(self, 'record', None):
-                    self.record.add('denied', unit, 1)
-        super().turn(unit)
 
 def build_party_complete(data_source, setup, role_names, cid):
     cp = setup.checkpoint(cid)
@@ -167,17 +151,11 @@ def run_single_task(args):
     res_v = scenario.play(data, setup, party_factory_v, enemy_factory_v, runs=runs, seed=seed)
     
     # Mod simulation
-    old_battle = scenario.Battle
-    if cid == 'C29':
-        scenario.Battle = SilencingBattle
-    try:
-        def party_factory_m():
-            return build_party_complete(variant, setup, roles, cid)
-        def enemy_factory_m():
-            return [scenario.fixed_battle(variant, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
-        res_m = scenario.play(variant, setup, party_factory_m, enemy_factory_m, runs=runs, seed=seed)
-    finally:
-        scenario.Battle = old_battle
+    def party_factory_m():
+        return build_party_complete(variant, setup, roles, cid)
+    def enemy_factory_m():
+        return [scenario.fixed_battle(variant, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
+    res_m = scenario.play(variant, setup, party_factory_m, enemy_factory_m, runs=runs, seed=seed)
 
     # Process metrics
     wins_v = [r for r in res_v if r['won']]
