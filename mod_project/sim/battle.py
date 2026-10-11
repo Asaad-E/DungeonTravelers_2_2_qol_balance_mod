@@ -1276,6 +1276,8 @@ class Battle:
             return 0.0
         hits = self.mean_hits(action)
         chance = self.hit_chance(action, target)
+        if action.has(139) and 116 in target.statuses and 'instant death' not in target.immune:
+            return chance * target.hp
         if self.special(action):
             return chance * min(target.hp, self.special_damage(action, target))
         if action.magic:
@@ -1288,6 +1290,19 @@ class Battle:
                                    target_enchant=-f.critical_enchant(target.pieces(47), target.pieces(48)),
                                    floor_268=bool(unit.pieces(268)), fixed=action.value(70))
             per_hit = self.physical_damage(action, target, 0, f.expected_critical_factor(rate), expect=True)
+        if 116 in target.statuses and not self.special(action):
+            per_hit = per_hit * f.SLEEP_DAMAGE[0] / f.SLEEP_DAMAGE[1]
+        if not self.special(action):
+            wall = next((u for u in self.allies(target) if u.has(DEMON_WALL)), None)
+            if wall is not None:
+                per_hit = max(0.0, per_hit + per_hit * wall.value(DEMON_WALL))
+        enchant, share = f.AILING_TARGET_BONUS
+        if not self.special(action) and action.actor.pieces(enchant) and any(e in target.statuses for e in AILMENTS):
+            per_hit += per_hit * share
+        if action.magic:
+            cap = action.value(296)
+            if cap is not None:
+                per_hit = min(per_hit, float(cap))
         return chance * hits * per_hit
 
     @staticmethod

@@ -144,8 +144,32 @@ def best_single_target(battle, unit, action):
     foes = enemies_of(battle, unit)
     if not foes:
         return None
-    # the foe this action can bring down soonest: least HP left per expected damage
-    return min(foes, key=lambda t: t.hp / max(1.0, battle.expected_damage(action, t)))
+
+    def target_key(t):
+        dmg = battle.expected_damage(action, t)
+        if dmg <= 0:
+            return (3, 999999.0, 0)
+        kills = dmg >= t.hp
+        chanting = t.chant is not None
+        asleep = 116 in t.statuses
+
+        # Sleeping enemies: keep asleep unless lethal or execute (139)
+        if asleep and not kills and not action.has(139):
+            other_awake = any(f is not t and 116 not in f.statuses for f in foes)
+            if other_awake:
+                return (2, t.hp / max(1.0, dmg), 0)
+
+        ratio = t.hp / max(1.0, dmg)
+        if kills:
+            threat = (2.0 if chanting else 1.0) * (1.5 if (battle.fixed and t.max_hp > 3000) else 1.0) * max(1.0, t.stat('atk'))
+            return (0, ratio, -threat)
+
+        if chanting:
+            ratio /= 2.5
+
+        return (1, ratio, -t.stat('atk'))
+
+    return min(foes, key=target_key)
 
 
 def random_move_value(battle, action):
@@ -235,13 +259,48 @@ def act_damage(policy, battle, unit, arg):
             action.physical or action.magic or battle.special(action))
         if hits or any(action.has(e) for e in RANDOM_MOVES):
             candidates.append(action)
+
+    plain_attack = Action(unit, 'attack')
+    plain_total, plain_target = damage_value(battle, plain_attack)
+    plain_kills = plain_target is not None and plain_total >= plain_target.hp
+
     for action in candidates:
         if action.tp_cost > unit.tp * (1.0 - policy.setup.get('tp_reserve', 0.0)) and action.tp_cost > 0:
             continue
         total, target = damage_value(battle, action)
         if total <= 0:
             continue
-        score = total / policy.time_of(battle, action) / policy.tp_penalty(unit, action)
+
+        wait_time = policy.time_of(battle, action)
+        penalty = policy.tp_penalty(unit, action)
+
+        # 1. Anti-overkill when plain attack already kills
+        if action.tp_cost > 0 and plain_kills and target is plain_target:
+            penalty *= 1.0 + 3.0 * (action.tp_cost / max(1, unit.max_tp))
+
+        # 2. General overkill penalty on wasted damage
+        if action.tp_cost > 0 and target is not None and target.hp > 0:
+            raw_dmg = battle.expected_damage(action, target) if action.target_code in (SINGLE, PIERCE) else total
+            if raw_dmg > total * 1.5:
+                waste_ratio = raw_dmg / max(1.0, total)
+                penalty *= 1.0 + min(2.0, (waste_ratio - 1.0) * 0.5)
+
+        # 3. Kill bonus (tempo & action economy)
+        kill_mult = 1.0
+        if target is not None and total >= target.hp:
+            kill_mult = 1.35
+        elif action.target_code in (ALL, EVERYONE, ROW, RANDOM):
+            foes = enemies_of(battle, unit)
+            kills = sum(1 for f in foes if battle.expected_damage(action, f) >= f.hp)
+            if kills > 0:
+                kill_mult = 1.0 + 0.25 * kills
+
+        # 4. Chant interruption bonus
+        chant_mult = 1.0
+        if target is not None and target.chant is not None:
+            chant_mult = 1.25
+
+        score = (total * kill_mult * chant_mult) / wait_time / penalty
         if score > best_score:
             best, best_score = action, score
             best.target = target
@@ -263,10 +322,13 @@ def act_heal(policy, battle, unit, arg):
         if action.target_code == ALLY:
             target = min(hurt, key=lambda m: m.hp_ratio)
             restored = min(target.max_hp - target.hp, expected_heal(battle, action, target))
+            if target.hp_ratio < 0.25:
+                restored *= 1.3
         elif action.target_code in (ALLIES, ALLY_ROW, SELF):
             group = battle.allies(unit) if action.target_code != SELF else [unit]
             target = None
-            restored = sum(min(m.max_hp - m.hp, expected_heal(battle, action, m)) for m in group if m.kind == 'member')
+            restored = sum(min(m.max_hp - m.hp, expected_heal(battle, action, m)) * (1.3 if m.hp_ratio < 0.25 else 1.0)
+                           for m in group if m.kind == 'member')
         else:
             continue
         score = restored / policy.time_of(battle, action) / policy.tp_penalty(unit, action)
@@ -340,13 +402,30 @@ def act_status(policy, battle, unit, arg):
         if code in (SELF, NO_TARGET):
             if effect in unit.statuses:
                 continue
+            # Tactical Safety Check: Berserk (26) lowers DEF by 25%.
+            # A smart player never casts Berserk when HP is critical (< 35%),
+            # or when the fight is already virtually over (only 1 low-HP mob).
+            if effect == 26:
+                if unit.hp_ratio < 0.35:
+                    continue
+                foes = enemies_of(battle, unit)
+                if len(foes) == 1 and foes[0].hp < max(100.0, unit.stat('atk') * 1.5):
+                    continue
             return action
         if code == ALLY:
             lacking = [m for m in battle.allies(unit) if m.kind == 'member' and effect not in m.statuses]
             if not lacking:
                 continue
-            action.target = max(lacking, key=lambda m: m.stat('atk') if effect == 161 else -m.stat('def')
-                                if effect == 162 else m.stat('int') if effect in (27, 173) else 0)
+            # Cover (171): prioritize chanting allies, critical HP allies, or frailest members
+            if effect == 171:
+                action.target = min(lacking, key=lambda m: (
+                    0 if m.chant is not None else 1,
+                    0 if m.hp_ratio < 0.4 else 1,
+                    m.stat('def')
+                ))
+            else:
+                action.target = max(lacking, key=lambda m: m.stat('atk') if effect == 161 else -m.stat('def')
+                                    if effect == 162 else m.stat('int') if effect in (27, 173) else 0)
             return action
         if code in (ALLIES, ALLY_ROW):
             if all(effect in m.statuses for m in battle.allies(unit) if m.kind == 'member'):
@@ -357,7 +436,12 @@ def act_status(policy, battle, unit, arg):
                     (effect == 170 and unit not in t.provoked_by)) and not battle.visibly_voided(action, t)]
             if not foes:
                 continue
-            action.target = max(foes, key=lambda t: t.stat('atk'))
+            # Provoke (170) or offensive debuff: prioritize highest threat enemy (chanting, boss, highest ATK)
+            action.target = max(foes, key=lambda t: (
+                1 if t.chant is not None else 0,
+                1 if (battle.fixed and t.max_hp > 3000) else 0,
+                t.stat('atk')
+            ))
             return action
     return None
 
@@ -401,7 +485,12 @@ def act_dispel(policy, battle, unit, arg):
             action = Action(unit, 'skill', skill, level)
             reachable = [t for t in buffed if not battle.visibly_voided(action, t)]
             if reachable:
-                action.target = reachable[0]
+                def dispel_priority(t):
+                    has_barrier = t.has(192) or t.has(182)
+                    is_boss = battle.fixed and t.max_hp > 3000
+                    has_atk_buff = 161 in t.statuses or 26 in t.statuses
+                    return (1 if has_barrier else 0, 1 if has_atk_buff else 0, 1 if is_boss else 0, t.stat('atk'))
+                action.target = max(reachable, key=dispel_priority)
                 return action
     return None
 
@@ -426,7 +515,12 @@ def act_tp(policy, battle, unit, arg):
     low = [m for m in battle.allies(unit) if m.kind == 'member' and m.max_tp and m.tp_ratio < _fraction(arg, 0.5)]
     if not low:
         return None
-    target = min(low, key=lambda m: m.tp_ratio)
+    # Smart TP battery triage: prioritize high TP consumers (nukers, casters, healers) over low-cost units
+    def tp_need_key(m):
+        heavy_roles = ('attacker', 'mage', 'healer', 'valkyrie', 'dark lord', 'magical princess', 'sage')
+        role_prio = 0 if getattr(m, 'role', '') in heavy_roles else 1
+        return (role_prio, m.tp_ratio)
+    target = min(low, key=tp_need_key)
     for skill, level in options(battle, unit):
         if gives(skill, 129) or gives(skill, 426):
             return Action(unit, 'skill', skill, level, target=target)
