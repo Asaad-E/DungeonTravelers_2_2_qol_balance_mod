@@ -758,8 +758,10 @@ class Battle:
                 break
         damage_by_target = {}
         self.covered = {}                   # unit with Cover -> hits it took in place of another (0x42497a)
-        # Auto-Guard (0x417309 - 0x417362): before a physical action each target that has it rolls once
-        self.guarding = {t for t in set(targets) if action.physical and t.side != unit.side and t.has(255)
+        # Auto-Guard (0x417309 - 0x417362): before a physical action each target that has it rolls once, in the order
+        # of the targets (not of a set: its order follows memory addresses, and the rolls of two bearers would swap
+        # from one run to the next)
+        self.guarding = {t for t in dict.fromkeys(targets) if action.physical and t.side != unit.side and t.has(255)
                          and self.roll(t.value(255))}
         index = 0                           # the hit record of the action (effect 136, effect 125)
         for target in targets:
@@ -1640,8 +1642,10 @@ class Battle:
             return False
         index = AILMENT_RESIST.get(effect)
         resistance = target.resistance(index) if index is not None else 0
-        flat_penalty = 15.0 if (target.pieces(269) > 0 and index == 4) else 0.0
-        chance = int(f.ailment_chance(value, resistance, flat_penalty=flat_penalty))
+        # the roll is against the chance cut to an integer (0x48201d). The 15 points of enchantment 269 and the block
+        # of 138 (0x481ff3 - 0x48200d) are not of a battle: they are "Less likely to trigger traps" and "Nullify gas
+        # traps", read only when the source of the command is of kind 4, a trap
+        chance = f.ailment_threshold(value, resistance)
         if chance <= 0 or self.rng.randrange(100) >= chance:
             return False
         for effect_count in (101, 102, 181):

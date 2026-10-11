@@ -287,6 +287,15 @@ def ailment_chance(base, resistance, flat_penalty=0.0):
     return chance - steps * chance / 10.0 - flat_penalty
 
 
+def ailment_threshold(base, resistance):
+    """The integer the roll of an ailment is compared with (0x481fa9 - 0x48201d; sleep 0x4828a9 - 0x48291d): the
+    figure of ailment_chance worked out in single precision, as the code does, and cut to an integer. A number below
+    100 under it lands the ailment."""
+    chance = single(single(base) * 100.0)
+    steps = int(resistance / 10)
+    return int(single(chance - single(single(steps * chance) / 10.0)))
+
+
 # --- who an enemy aims at (0x43f450, weights set by 0x44a630) ----------------------------------------
 # Share of each party position by formation, table at 0x6517a0 (five ints per row, each row adds up to 100).
 # The row is chosen by a formation number the party object returns; which formation each row stands for is

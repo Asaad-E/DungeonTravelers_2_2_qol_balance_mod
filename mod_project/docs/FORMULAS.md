@@ -36,6 +36,7 @@ final is kept between 5 and 100                                                 
 * Accuracy buffs read: effects 166, 197, 337. Evasion buffs read: 164, 198, 338; 253 against a stab blow (16.7).
 * Enchantments: each piece counts 4, the mini version 2, the sum capped at 50 (`0x44ad3d`, `0x44ad5b`): accuracy UP is +4 points per piece, MiniUP +2, at most +50; the same for evasion.
 * Later changes of the final value, each with its own message: fixed accuracy (effect 55), a direct accuracy value (effect 72), sleep, and two effects that work only on adults or only on minors.
+* After the fixed value and sleep the chance of a blow is kept between 5 and 100 **a second time** (`0x44afbe - 0x44aff8`), before the two effects of age: a fixed accuracy below 0.05 hits 5% of the time. The spell function has no second limit (`0x44da2b - 0x44dab1`): there a fixed value passes 25 and 95. Read on 2026-10-11.
 
 ### 2.2 Attack value **[message + code]**
 
@@ -125,7 +126,7 @@ final     = damage C * (1 + other bonuses) * critical
 ```
 
 * A spell adds its **power** to `INT * 2` before the multipliers; defence is `RES * 1.5`, also subtracted.
-* Read in the code (`0x44d370`): the hit chance is kept between 25 and 95 (`0x44da2b`, `0x44da37`); magic accuracy enchantments count 3 per piece, capped at 50 (`0x44d67b`, `0x44d699`); attack A is `INT * (2 + swing)` (`0x44dc97`); the power of the spell is effect 1; the enchantments that boost the magic of one element add 0.20 per piece (`0x44e070` and the five blocks after it, effects 325 to 329).
+* Read in the code (`0x44d370`): the hit chance is kept between 25 and 95 (`0x44da2b`, `0x44da37`); magic accuracy enchantments count 3 per piece, capped at 50 (`0x44d67b`, `0x44d699`), and their MiniUP versions (40, and 44 for magic evasion) 1 per piece: the count is added as it is (`0x44d6a3 - 0x44d6bd`, `0x44d722 - 0x44d742`); attack A is `INT * (2 + swing)` (`0x44dc97`); the power of the spell is effect 1; the enchantments that boost the magic of one element add 0.20 per piece (`0x44e070` and the five blocks after it, effects 325 to 329).
 * **Critical Magic** (`0x44ed9e - 0x44edfa`): when the caster has effect 301 active, a number below 100 under 20 makes the
   spell critical, and the factor is 1.25. Neither figure comes from the skill. A critical spell breaks a chant with the
   same second roll of 33 in 100 as a critical blow (`0x44f13f`).
@@ -199,7 +200,8 @@ the ailment lands if a random number below 100 is below the chance      (0x48201
 * **resistance** is the target's resistance to the element the ailment belongs to, read as a stat (`call [vtable+0x34]` with index 10 for poison: water). The indices 6 to 13 are the eight resistances in the order of the enemy record: slash, stab, bash, fire, water, wind, earth, lightning.
 * **Resistance works in steps of ten points**: 0 to 9 change nothing, 50 halves the chance, 100 removes it (the "Block" the game announces). A negative resistance raises the chance.
 * When nothing can land (chance at or below 0) the result is "block"; otherwise a failed roll is a "miss".
-* In one context (the command comes from a source of kind 4) enchantment 269 on the target takes a flat 15 points off, and enchantment 138 blocks.
+* In one context (the command comes from a source of kind 4) enchantment 269 on the target takes a flat 15 points off, and enchantment 138 blocks. Those two are "Less likely to trigger traps" and "Nullify gas traps": the context is a trap, and neither acts on an ailment of a battle.
+* The chance is worked out in single precision and cut to an integer before the roll (`0x48201d`; `sim/formulas.py` ailment_threshold). Sleep is the same code with wind resistance (`0x4828a9 - 0x482928`, read on 2026-10-11).
 * **[open]** turn delay (effect 54) and the skills that skip a turn (Warning Shot, Magnificent Steps): their rolls are separate code.
 
 ## 5c. Turn delay (effect 54, `0x423a41`) and the immunity flags of an enemy **[code]**

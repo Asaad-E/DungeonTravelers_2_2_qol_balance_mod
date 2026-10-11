@@ -205,20 +205,58 @@ class Encounters(unittest.TestCase):
 
 
 class EngineParityFixes(unittest.TestCase):
-    def test_magic_hit_enchant_cap_50(self):
-        """FORMULAS 3 (0x44d67b): magic accuracy enchants count 3/1 per piece, capped at 50 in engine."""
+    @staticmethod
+    def _magic_hit(pieces, accuracy):
+        """Hit chance of a spell of this accuracy cast by a member with these enchantment pieces, INT equal to RES."""
         from sim.battle import Battle, Action
         from sim.data import Skill
         from sim.units import Unit, PARTY, ENEMIES
         import random
         member = Unit('Mage', PARTY, 50, 1, 0, {s: 100 for s in ('atk', 'def', 'int', 'res', 'dex', 'agi')})
-        member.enchants = {39: 30}  # 30 * 3 = 90, clamped to 50
+        member.enchants = dict(pieces)
         target = Unit('Target', ENEMIES, 50, 1, 0, {s: 100 for s in ('atk', 'def', 'int', 'res', 'dex', 'agi')})
         battle = Battle(None, [member], [target], random.Random(0))
-        skill = Skill(id=998, name='TestSpell', accuracy=[0.5], effects=[(1, 2, [1.0])])
-        action = Action(member, 'skill', skill, 1)
-        chance = battle.hit_chance(action, target)
-        self.assertAlmostEqual(chance, 0.95)
+        skill = Skill(id=998, name='TestSpell', accuracy=[accuracy], effects=[(1, 2, [1.0])])
+        return battle.hit_chance(Action(member, 'skill', skill, 1), target)
+
+    def test_magic_hit_enchant_cap_50(self):
+        """0x44d699: the sum of magic accuracy enchantments stops at 50. 30 pieces of 39 are 90 points: with the cap
+        an accuracy of 0.30 gives 80%, without it the 95% of the upper limit."""
+        self.assertAlmostEqual(self._magic_hit({39: 30}, 0.30), 0.80)
+        self.assertAlmostEqual(self._magic_hit({39: 5}, 0.30), 0.45)
+
+    def test_magic_hit_mini_up_counts_one(self):
+        """0x44d6a3 - 0x44d6bd: a piece of Magic accuracy MiniUP (40) adds 1 point, a piece of UP (39) adds 3."""
+        self.assertAlmostEqual(self._magic_hit({40: 10}, 0.30), 0.40)
+        self.assertAlmostEqual(self._magic_hit({39: 10}, 0.30), 0.60)
+
+    def test_ailment_threshold_is_an_integer_in_single_precision(self):
+        """0x481fa9 - 0x48201d: value * 100 in single precision, less a tenth for every ten points of resistance,
+        cut to an integer. 0.29 * 100 is 29 in single precision (28.999... in double); 0.88 against 30 is 61.6."""
+        self.assertEqual(f.ailment_threshold(0.29, 0), 29)
+        self.assertEqual(f.ailment_threshold(0.88, 30), 61)
+        self.assertEqual(f.ailment_threshold(0.90, 30), 63)
+        self.assertEqual(f.ailment_threshold(0.30, 100), 0)
+        self.assertEqual(f.ailment_threshold(0.30, -20), 36)
+
+    def test_trap_enchantment_does_not_touch_a_battle_ailment(self):
+        """Enchantment 269 ("Less likely to trigger traps") takes 15 points only from a trap (0x481ff3); an ailment
+        of a battle lands on its bearer at the same chance."""
+        from sim.battle import Battle
+        from sim.units import Unit, PARTY, ENEMIES
+        import random
+        stats = {s: 100 for s in ('atk', 'def', 'int', 'res', 'dex', 'agi')}
+
+        def landed(pieces):
+            count = 0
+            for seed in range(400):
+                target = Unit('Target', PARTY, 50, 100, 0, dict(stats))
+                target.enchants = dict(pieces)
+                enemy = Unit('Enemy', ENEMIES, 50, 100, 0, dict(stats))
+                battle = Battle(None, [target], [enemy], random.Random(seed))
+                count += bool(battle.apply_ailment(enemy, target, 113, 0.5, None))
+            return count
+        self.assertEqual(landed({269: 1}), landed({}))
 
     def test_fixed_accuracy_physical_floor_preserved(self):
         """FORMULAS 16.5 (0x44afbe): physical blows clamp fixed accuracy (55/72) to 5..100 floor."""
