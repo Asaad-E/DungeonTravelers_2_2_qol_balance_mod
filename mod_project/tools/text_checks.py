@@ -39,6 +39,42 @@ UNIQUE_LABELS = set(rules.pairs('UniqueSkillLabels', 'Skill', 'Label').values())
 TOLERANCE = 0.006
 
 
+_DOLL_ACTION_PCKS = None
+
+DOLL_ACTIONS = {
+    49: ('Technique', ['TechniqueSkillData_0106.bin']),
+    95: ('Technique', ['TechniqueSkillData_0101.bin']),
+    96: ('Technique', ['TechniqueSkillData_0102.bin']),
+    97: ('Technique', ['TechniqueSkillData_0104.bin']),
+    98: ('Technique', ['TechniqueSkillData_0103.bin']),
+    100: ('Magic', ['MagicSkillData_0235.bin']),
+}
+
+
+def _get_doll_action_slots(skill_id, levels):
+    global _DOLL_ACTION_PCKS
+    if skill_id not in DOLL_ACTIONS:
+        return []
+    if _DOLL_ACTION_PCKS is None:
+        import os
+        from pck_handler import PckArchive
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        backup_dir = os.path.join(base_dir, 'backups')
+        _DOLL_ACTION_PCKS = {
+            'Technique': dict(PckArchive(os.path.join(backup_dir, 'TechniqueSkillData.pck')).files),
+            'Magic': dict(PckArchive(os.path.join(backup_dir, 'MagicSkillData.pck')).files),
+        }
+    cat, filenames = DOLL_ACTIONS[skill_id]
+    lay = SKILL_LAYOUTS[cat]
+    slots = []
+    for fn in filenames:
+        b = _DOLL_ACTION_PCKS[cat][fn]
+        for k in range(i32(b, lay['count'])):
+            off = lay['slots'] + k * SLOT_SIZE
+            slots.append((i32(b, off), i32(b, off + 4 + 4 * LEVELS), read_array(b, off + 4)[0][:levels]))
+    return slots
+
+
 def skill_tables(category, b):
     """Per-level tables of one skill entry, cut to its number of levels."""
     if category == 'Unique':
@@ -55,6 +91,9 @@ def skill_tables(category, b):
     for k in range(i32(b, lay['count'])):
         off = lay['slots'] + k * SLOT_SIZE
         tables['slots'].append((i32(b, off), i32(b, off + 4 + 4 * LEVELS), read_array(b, off + 4)[0][:levels]))
+    if category == 'Technique':
+        sid = i32(b, 0)
+        tables['slots'].extend(_get_doll_action_slots(sid, levels))
     return tables
 
 

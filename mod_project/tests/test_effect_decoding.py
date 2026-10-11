@@ -206,10 +206,19 @@ class LevelUpLinesAfterDecoding(unittest.TestCase):
             with self.subTest(skill=name):
                 self.assertEqual(dropped, [])
 
-    def test_summon_parameters_are_not_guessed(self):
-        for name in ('Spartan', 'Oracles', 'Mercidarian'):
+    def test_summon_parameters_are_decoded(self):
+        """Dolls now show their verified hidden action power rather than vague ATK UP."""
+        expected = {
+            'Spartan': 'ATK: 144% -> 147',
+            'Oracles': 'ATK: 126% (+2-5%/Lv) -> 157%',
+            'Mercidarian': 'ATK: 100% -> 104',
+            'Catalina': 'Heal Power: 4 -> 6',
+            'Musiy': 'Pwr: 180 -> 240',
+            'Star Dust Arrow': 'ATK: 100% -> 102',
+        }
+        for name, piece in expected.items():
             with self.subTest(skill=name):
-                self.assertIn('ATK UP', self.rows[name]['QoL_LvUp'])
+                self.assertIn(piece, self.rows[name]['QoL_LvUp'])
 
 
 if __name__ == '__main__':

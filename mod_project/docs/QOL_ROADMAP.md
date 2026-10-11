@@ -237,7 +237,7 @@ Still open:
 
 ## Found after the QoL variant was closed (2026-10-05)
 
-* **Doll skills.** Their boxes keep the vague words of the game ("ATK UP") because the value of the doll effect could not be read as a figure. The Balance reading shows why: a doll performs a hidden action skill, and the real power, ailment chance, heal power and spell power are the figures of that skill (`tools/doll_data.py`, `docs/FORMULAS.md` 11.1). The boxes of Spartan, Oracles, Mercidarian, Catalina and Musiy can show them exactly. Not done: the variant is closed and accepted; it is a candidate for its next revision.
+* **Doll skills.** Decoded and implemented on 2026-10-11: Spartan, Oracles, Catalina, Mercidarian, Musiy and Star Dust Arrow now display their verified hidden action power, heal power and magic power directly on their LvUp lines within engine limits (<= 85 chars, 3 lines), replacing all vague vanilla terms ("ATK UP", "Paralysis rate UP", "HP recovery UP", "Doll magic damage UP"). Verified by `text_checks.py` against child action binaries and unit tests.
 
 ## Found during Balance phase 0 (2026-10-05) and applied to the QoL build the same day
 
