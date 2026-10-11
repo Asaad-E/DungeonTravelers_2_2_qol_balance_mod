@@ -15,47 +15,48 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | Kept + B | gap | Kept curve; factors by gap unchanged down to 4 levels below the enemy, then 2, 4 from 10 below, 8 from 20 below |
 | Kept + B2 | gap | Kept curve; unchanged down to 4 below, then 3, 5 and 10 |
 | Kept + B3 | gap | Kept curve; as B, and 1.25 already from 1 level below the enemy |
+| B4 | gap | What is installed since 2026-10-11: the factors by gap of B4 in the program, the EXP of a level as in vanilla |
 | Kept + B4 | gap | Kept curve; as B2, and 1.25 already from 1 level below the enemy |
 | Kept + D | gap | Kept curve; 1.5 from 1 level below the enemy, then 3, 5 and 10 |
 
 ## A member 10 levels behind: battles until it is within 4 levels of the party
 
-| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | Kept + B4 | Kept + D |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 20 | St05_0010 zone 2 | 48 | 47 | 48 | 24 | 27 | 20 | 26 | 19 | 18 |
-| 30 | St08_0010 zone 3 | 70 | 60 | 58 | 35 | 27 | 20 | 27 | 20 | 20 |
-| 40 | St09_0015 zone 2 | 121 | 95 | 103 | 60 | 50 | 34 | 50 | 34 | 34 |
-| 50 | St13_0150 | 122 | 94 | 102 | 61 | 43 | 31 | 43 | 31 | 31 |
-| 60 | St15_1130 | 139 | 103 | 117 | 70 | 48 | 36 | 47 | 35 | 35 |
-| 70 | St22_1010 zone 1 | 144 | 103 | 119 | 72 | 45 | 33 | 45 | 33 | 33 |
-| 80 | St23_0050 | 99 | 68 | 82 | 49 | 31 | 23 | 31 | 23 | 22 |
-| 90 | St23_0130 | 79 | 51 | 63 | 39 | 21 | 16 | 21 | 16 | 16 |
+| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | B4 | Kept + B4 | Kept + D |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 20 | St05_0010 zone 2 | 48 | 47 | 48 | 24 | 27 | 20 | 26 | 20 | 19 | 18 |
+| 30 | St08_0010 zone 3 | 70 | 60 | 58 | 35 | 27 | 20 | 27 | 23 | 20 | 20 |
+| 40 | St09_0015 zone 2 | 121 | 95 | 103 | 60 | 50 | 34 | 50 | 42 | 34 | 34 |
+| 50 | St13_0150 | 122 | 94 | 102 | 61 | 43 | 31 | 43 | 41 | 31 | 31 |
+| 60 | St15_1130 | 139 | 103 | 117 | 70 | 48 | 36 | 47 | 47 | 35 | 35 |
+| 70 | St22_1010 zone 1 | 144 | 103 | 119 | 72 | 45 | 33 | 45 | 46 | 33 | 33 |
+| 80 | St23_0050 | 99 | 68 | 82 | 49 | 31 | 23 | 31 | 33 | 23 | 22 |
+| 90 | St23_0130 | 79 | 51 | 63 | 39 | 21 | 16 | 21 | 24 | 16 | 16 |
 
 ## A member 20 levels behind: battles until it is within 4 levels of the party
 
-| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | Kept + B4 | Kept + D |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 33 | 33 | 24 | 32 | 23 | 23 |
-| 30 | St08_0010 zone 3 | 116 | 104 | 93 | 58 | 39 | 29 | 39 | 29 | 29 |
-| 40 | St09_0015 zone 2 | 217 | 176 | 172 | 108 | 74 | 53 | 74 | 53 | 53 |
-| 50 | St13_0150 | 240 | 186 | 184 | 120 | 69 | 52 | 69 | 52 | 52 |
-| 60 | St15_1130 | 286 | 215 | 218 | 143 | 79 | 60 | 78 | 60 | 59 |
-| 70 | St22_1010 zone 1 | 311 | 226 | 233 | 156 | 78 | 59 | 78 | 59 | 59 |
-| 80 | St23_0050 | 216 | 151 | 163 | 108 | 54 | 41 | 54 | 41 | 41 |
-| 90 | St23_0130 | 175 | 117 | 127 | 87 | 37 | 29 | 36 | 29 | 28 |
+| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | B4 | Kept + B4 | Kept + D |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 33 | 33 | 24 | 32 | 24 | 23 | 23 |
+| 30 | St08_0010 zone 3 | 116 | 104 | 93 | 58 | 39 | 29 | 39 | 33 | 29 | 29 |
+| 40 | St09_0015 zone 2 | 217 | 176 | 172 | 108 | 74 | 53 | 74 | 66 | 53 | 53 |
+| 50 | St13_0150 | 240 | 186 | 184 | 120 | 69 | 52 | 69 | 67 | 52 | 52 |
+| 60 | St15_1130 | 286 | 215 | 218 | 143 | 79 | 60 | 78 | 80 | 60 | 59 |
+| 70 | St22_1010 zone 1 | 311 | 226 | 233 | 156 | 78 | 59 | 78 | 82 | 59 | 59 |
+| 80 | St23_0050 | 216 | 151 | 163 | 108 | 54 | 41 | 54 | 59 | 41 | 41 |
+| 90 | St23_0130 | 175 | 117 | 127 | 87 | 37 | 29 | 36 | 43 | 29 | 28 |
 
 ## A member at level 1: battles until it is within 4 levels of the party
 
-| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | Kept + B4 | Kept + D |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 33 | 33 | 24 | 32 | 23 | 23 |
-| 30 | St08_0010 zone 3 | 124 | 112 | 99 | 62 | 40 | 30 | 40 | 30 | 30 |
-| 40 | St09_0015 zone 2 | 257 | 215 | 197 | 129 | 80 | 58 | 80 | 58 | 58 |
-| 50 | St13_0150 | 319 | 255 | 225 | 160 | 80 | 61 | 80 | 61 | 60 |
-| 60 | St15_1130 | 426 | 329 | 287 | 213 | 97 | 75 | 96 | 74 | 74 |
-| 70 | St22_1010 zone 1 | 519 | 390 | 327 | 259 | 104 | 80 | 104 | 79 | 79 |
-| 80 | St23_0050 | 401 | 292 | 244 | 200 | 76 | 59 | 76 | 59 | 59 |
-| 90 | St23_0130 | 355 | 251 | 200 | 178 | 58 | 46 | 58 | 46 | 45 |
+| Party level | Zone | Vanilla | Kept curve | Steep 2.5% | Double EXP piece | Kept + B | Kept + B2 | Kept + B3 | B4 | Kept + B4 | Kept + D |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 20 | St05_0010 zone 2 | 65 | 64 | 65 | 33 | 33 | 24 | 32 | 24 | 23 | 23 |
+| 30 | St08_0010 zone 3 | 124 | 112 | 99 | 62 | 40 | 30 | 40 | 34 | 30 | 30 |
+| 40 | St09_0015 zone 2 | 257 | 215 | 197 | 129 | 80 | 58 | 80 | 71 | 58 | 58 |
+| 50 | St13_0150 | 319 | 255 | 225 | 160 | 80 | 61 | 80 | 77 | 61 | 60 |
+| 60 | St15_1130 | 426 | 329 | 287 | 213 | 97 | 75 | 96 | 98 | 74 | 74 |
+| 70 | St22_1010 zone 1 | 519 | 390 | 327 | 259 | 104 | 80 | 104 | 107 | 79 | 79 |
+| 80 | St23_0050 | 401 | 292 | 244 | 200 | 76 | 59 | 76 | 82 | 59 | 59 |
+| 90 | St23_0130 | 355 | 251 | 200 | 178 | 58 | 46 | 58 | 66 | 46 | 45 |
 
 ## What each option does to a party that is on level
 
@@ -70,6 +71,7 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | Kept + B | 19 | 23 | 21 | 9 | 2.59 | 4.14 | 2,053,328 | 600,000 | no |
 | Kept + B2 | 18 | 21 | 19 | 7 | 3.73 | 5.18 | 2,053,328 | 600,000 | no |
 | Kept + B3 | 16 | 21 | 19 | 8 | 2.60 | 4.14 | 2,053,328 | 600,000 | no |
+| B4 | 19 | 26 | 25 | 11 | 2.88 | 4.00 | 3,042,158 | 600,000 | no |
 | Kept + B4 | 15 | 19 | 17 | 7 | 3.73 | 5.18 | 2,053,328 | 600,000 | no |
 | Kept + D | 14 | 18 | 16 | 6 | 3.74 | 5.18 | 2,053,328 | 600,000 | no |
 
@@ -101,6 +103,7 @@ A crown is the full bonus of the level resets (`docs/FORMULAS.md` 10). One membe
 | Kept + B | 545 (25 from 70) | 321 (25 from 60) | 371 (17 from 70) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
 | Kept + B2 | 436 (25 from 70) | 257 (25 from 60) | 296 (17 from 70) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
 | Kept + B3 | 545 (25 from 70) | 321 (25 from 60) | 371 (17 from 70) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
+| B4 | 588 (25 from 70) | 336 (25 from 60) | 400 (17 from 70) | 336 (25 from 60) | 186 (25 from 50) | 306 (13 from 70) |
 | Kept + B4 | 436 (25 from 70) | 257 (25 from 60) | 296 (17 from 70) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
 | Kept + D | 436 (25 from 70) | 257 (25 from 60) | 296 (17 from 70) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
 
