@@ -39,6 +39,12 @@ class Setup:
         self.enchant_slots = _rows(wb, 'EnchantSlots') if 'EnchantSlots' in wb.sheetnames else []
         self.guide_levels = {r['Checkpoint']: r for r in _rows(wb, 'GuideLevels')}
         self.anchors = _rows(wb, 'Anchors') if 'Anchors' in wb.sheetnames else []
+        # the class the guide gives each boss (easy, normal, hard): its floor of wins is Settings guide_<class>_min_won
+        self.guide_difficulty = {r['Checkpoint']: r['Class'] for r in
+                                 (_rows(wb, 'GuideDifficulty') if 'GuideDifficulty' in wb.sheetnames else [])}
+        # the parties of the battery: {party: (archetype, [roles])} (tools/party_battery.py, tools/boss_fit.py gentle)
+        self.battery = {r['Party']: (r['Archetype'], [x.strip() for x in str(r[next(k for k in r if str(k).startswith('Roles'))]).split(';')])
+                        for r in (_rows(wb, 'BatteryParties') if 'BatteryParties' in wb.sheetnames else [])}
 
     def checkpoint(self, cid):
         return next(c for c in self.checkpoints if c['ID'] == cid)

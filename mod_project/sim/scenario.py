@@ -325,6 +325,29 @@ def reference_party(data, setup, chapter, level, upgrade, crown=0, floor=None):
     return party
 
 
+def party_of_roles(data, setup, cid, roles, level=None):
+    """The party of another composition than the sheet Composition at a checkpoint (the parties of the sheet
+    BatteryParties): reference_party with these roles, at the reference level, the gear and the crown bonus of the
+    checkpoint. As there, a place nobody can fill goes to a member who has joined, in the role of her base class, so
+    the party is full whenever five characters have joined, and the whole party shares one bag."""
+    cp = setup.checkpoint(cid)
+    level = level if level is not None else reference_levels(data, setup)[cid][0]
+    saved = setup.composition
+    setup.composition = list(roles)
+    try:
+        return reference_party(data, setup, cp['Chapter'], level, checkpoint_gear(data, setup, cid),
+                               int(cp['Crown bonus'] or 0), cp['Floor'])
+    finally:
+        setup.composition = saved
+
+
+def play_party(data, setup, cid, roles, runs, seed=None):
+    """The fights of a checkpoint played by the party of these roles: the results of play."""
+    cp = setup.checkpoint(cid)
+    return play(data, setup, lambda: party_of_roles(data, setup, cid, roles),
+                lambda: [fixed_battle(data, cp['Floor'], n) for n in battle_numbers(cp)], runs=runs, seed=seed)
+
+
 class Group(list):
     """The enemies of one battle, with the zone of the cell it is fought on (Battle's zone argument)."""
     zone = None
