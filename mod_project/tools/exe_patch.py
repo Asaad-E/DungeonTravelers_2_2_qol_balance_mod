@@ -102,7 +102,11 @@ def write_checked(path, data):
         if f.read() != data:
             os.remove(temporary)
             raise SystemExit('Nothing installed: the file read back differs from what was written.')
-    os.replace(temporary, path)
+    try:
+        os.replace(temporary, path)
+    except PermissionError:
+        os.remove(temporary)
+        raise SystemExit(f'Nothing written into {path}: the file is in use. Close the game and run this again.')
 
 
 def keep_vanilla_copy(game_file, copy, every_row):
@@ -162,7 +166,10 @@ def install(patch_set, targets=TARGETS, rows=None, every_row=None):
         raise SystemExit('Nothing written.' + LINE_END + LINE_END.join(found))
     done = []
     for (label, game_file, copy), data in zip(targets, images):
-        write_checked(game_file, data)
+        with open(game_file, 'rb') as f:
+            installed = f.read()
+        if installed != data:                          # a file that already carries the set is left alone: the
+            write_checked(game_file, data)             # game may be running, and a running program cannot be replaced
         with open(game_file, 'rb') as f:
             installed = f.read()
         if installed != data or problems(Exe(game_file), rows, expect='new'):

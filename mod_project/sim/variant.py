@@ -112,6 +112,15 @@ def apply(data, changes):
                 if int(row['Vanilla']) not in enemy['passives']:
                     raise ValueError(f'{row["ID"]}: {record} carries no passive {row["Vanilla"]}')
                 enemy['passives'] = [int(new) if p == int(row['Vanilla']) else p for p in enemy['passives']]
+            elif field.startswith('equipment slot '):
+                # 'equipment slot 1 weight (piece 339)': no battle of the simulator reads it; the record follows the
+                # row so that the build can be compared with it (tools/enemy_data.py: three words a slot from 0x84)
+                k = int(field.split()[2]) - 1
+                _check(row, enemy['raw_68'][9 + 3 * k])
+                enemy['raw_68'][9 + 3 * k] = int(new)
+                enemy['equipment_slots'][k] = enemy['equipment_slots'][k][:2] + (int(new),)
+                if k == 0 and enemy['steal'] is not None:
+                    enemy['steal'] = (enemy['steal'][0], int(new))
             elif field in ('equipment drop rate', 'steal rate'):
                 continue
             elif field.startswith('AI set '):

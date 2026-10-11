@@ -27,11 +27,11 @@ row on one floor zone, HP and TP carried over and the recovery after each battle
 
 | Row | Complaint | Verdict | Figure (vanilla) | Proposal |
 |---|---|---|---|---|
-| U01 | A member who is behind takes too long to catch up | true | 10 levels behind: 70 - 144 battles (party 30 - 70); 20 behind: 116 - 311 | **Decided 2026-10-05**: kept curve + B4 (L11, L25): 19 - 36 and 23 - 60; joining level may rise (L31) |
-| J37 | The crown takes hundreds of hours | true | One crown: 4,393 battles | **Decided**: B4 + one more point per reset (L27): 257 battles |
+| U01 | A member who is behind takes too long to catch up | true | 10 levels behind: 70 - 144 battles (party 30 - 70); 20 behind: 116 - 311 | **Decided 2026-10-05, B4 alone since 2026-10-11** (L25; the kept curve not built): 20 - 47 and 24 - 82; joining level may rise (L31) |
+| J37 | The crown takes hundreds of hours | true | One crown: 4,393 battles | **Decided**: B4 + one more point on the four upper steps of the reset (L27): 400 battles |
 | F25 | Crown harsher than in the first game | true | Reset bonus 1 - 5; 4,393 battles | **Decided**: as J37 |
 | F93 | Level 75 for every sub event | true | Level 1 to 70: 645 battles | **Decided**: B4 gives 79 |
-| S11 | No growth after level 70 | partly true | Growth per level is the same after 70 (99 - 100%); the EXP of a level is 2.2 times higher | Nothing more: the kept curve answers it |
+| S11 | No growth after level 70 | partly true | Growth per level is the same after 70 (99 - 100%); the EXP of a level is 2.2 times higher | Nothing more: the factors B4 answer it for whoever is below the enemies (the kept curve is not built) |
 | S12 | Skill points too scarce | partly true | 139 points at 50, 295 at 70, 685 at 99; the guide's plans cost 246 - 440 (reached at 66 - 81) | **To decide**: more points per level from 30 to 70 (L11), or nothing |
 
 ### T09 Early game

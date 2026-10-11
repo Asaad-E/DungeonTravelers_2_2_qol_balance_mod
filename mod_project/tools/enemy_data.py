@@ -72,7 +72,9 @@ def read_status(b):
     enemy['raw_68'] = list(struct.unpack_from('<17i', b, 0x68))
     raw = enemy['raw_68']
     enemy['drops'] = [(raw[1 + 2 * k], raw[2 + 2 * k]) for k in range(max(0, min(raw[0], 2))) if raw[1 + 2 * k] != -1]
-    enemy['equipment_drop'] = (raw[5], raw[6])        # chance in percent, what it is drawn with
+    enemy['equipment_drop'] = (raw[5], raw[6])        # chance in percent, how many slots it is drawn among
+    # the slots (0x558517 - 0x5586fa): (0 a fixed piece | 1 the table of the zone, piece id | kind of the table, weight)
+    enemy['equipment_slots'] = [tuple(raw[7 + 3 * k:10 + 3 * k]) for k in range(max(0, min(raw[6], 3)))]
     enemy['steal'] = (raw[8], raw[9]) if raw[9] not in (-1, 0) else None
     enemy['snack_item'] = raw[16] if raw[16] != -1 else None
     enemy['raw_f0'] = list(struct.unpack_from('<6i', b, 0xF0))

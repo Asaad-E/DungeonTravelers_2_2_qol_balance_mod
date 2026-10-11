@@ -180,6 +180,30 @@ class BalanceQuests(unittest.TestCase):
                              balance_values.QUEST_GOLD)
 
 
+class BalanceDrops(unittest.TestCase):
+    def test_a_slot_weight_is_written_only_into_the_fixed_piece_the_row_names(self):
+        rows = [r for r in balance_values.live_rows() if str(r['Field']).startswith('equipment slot ')]
+        self.assertEqual(len(rows), 7)
+        packs, written, refused = balance_values.apply(rows)
+        self.assertEqual(refused, [])
+        import enemy_data
+        vanilla = {e['id']: e for e in enemy_data.enemies()}
+        for row in rows:
+            enemy = vanilla[int(str(row['Record']).split()[0])]
+            weights = [int(r['New']) if r is not None else w for (_, _, w), r in
+                       ((slot, next((x for x in rows if x['Record'] == row['Record']
+                                     and int(str(x['Field']).split()[2]) == k + 1), None))
+                        for k, slot in enumerate(enemy['equipment_slots']))]
+            k = int(str(row['Field']).split()[2]) - 1
+            before = enemy['equipment_drop'][0] * enemy['equipment_slots'][k][2] / sum(w for _, _, w in enemy['equipment_slots'])
+            after = enemy['equipment_drop'][0] * weights[k] / sum(weights)
+            self.assertLess(before, 2)
+            self.assertGreaterEqual(after, 2)
+            self.assertLess(after, 2.5)
+        wrong = dict(rows[0], Field='equipment slot 2 weight (piece 339)')              # Garasha: slot 2 is the zone table
+        self.assertEqual(len(balance_values.apply([wrong])[2]), 1)
+
+
 class BalanceValueFormats(unittest.TestCase):
     def test_a_whole_number_field_refuses_a_fraction(self):
         row = {'ID': 'T3', 'Table': 'sp_curve', 'Record': 'LvExpSkptData', 'Field': 'skill points gained at the level',

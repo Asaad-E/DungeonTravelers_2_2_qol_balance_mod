@@ -53,6 +53,7 @@ STATUS, AI = 'EnemyStatusData.bin', 'EnemyAIData.bin'
 FLOAT_TOLERANCE = 5e-5                    # the workbook holds floats rounded to four decimals
 ENEMY_STATS = dict(enemy_data.STATS)
 ENEMY_FLAGS, ENEMY_EQUIPMENT_DROP, ENEMY_PASSIVE_COUNT, ENEMY_PASSIVES = 0x3C, 0x7C, 0xF0, 0xF4
+ENEMY_EQUIPMENT_SLOTS, ENEMY_EQUIPMENT_SLOT = 0x80, 12     # a count, then (zone table or fixed piece, id or kind, weight)
 ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = 0x48, 0x4C, 12
 EQUIPMENT = {'ATK (base)': (0x24, 'i'), 'upgrade rate': (0x3C, 'f'), 'class bitmask': (0x40, 'I')}
 EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = 0x5C, 0x60, 4
@@ -265,6 +266,20 @@ def enemy_row(packs, row):
         packs.write(row, where(ENEMY_PASSIVES + 4 * ids.index(int(row['Vanilla']))), 'i', row['New'])
     elif field == 'equipment drop rate':
         packs.write(row, where(ENEMY_EQUIPMENT_DROP), 'i', row['New'])
+    elif field.startswith('equipment slot '):
+        # 'equipment slot 1 weight (piece 339)': the weight a fixed piece is drawn with once the drop is an equipment
+        # (0x558570 - 0x5585a8: one weighted roll over the slots the enemy holds). Only a slot that names a piece.
+        slot = int(field.split()[2]) - 1
+        buf = packs.entry(ENEMY_PCK, name, STATUS)
+        count = struct.unpack_from('<i', buf, ENEMY_EQUIPMENT_SLOTS)[0]
+        at = ENEMY_EQUIPMENT_SLOTS + 4 + ENEMY_EQUIPMENT_SLOT * slot
+        zone, piece = struct.unpack_from('<2i', buf, at) if 0 <= slot < count else (None, None)
+        named = re.search(r'piece (\d+)', field)
+        if zone != 0 or named is None or int(named.group(1)) != piece:
+            raise Refused(f'slot {slot + 1} of the enemy is not the fixed piece the row names')
+        if not 0 < int(row['New']) <= 100:
+            raise Refused('a weight outside 1 to 100, what the game holds')
+        packs.write(row, where(at + 8), 'i', row['New'])
     elif field.startswith('AI set '):
         number_of_set = int(field.split()[2])
         old_slot, new_slot = (int(re.search(r'slot\s+(\d+)', str(row[c])).group(1)) for c in ('Vanilla', 'New'))
