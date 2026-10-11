@@ -40,14 +40,15 @@ class EnchantValues(unittest.TestCase):
         self.assertEqual(enchant_values.qol_name(71, 'Received damage MiniDOWN'), 'Received damage -4%')
         # Resistance is written as the status screen writes it: a plain number, no percent sign.
         self.assertEqual(enchant_values.qol_name(93, 'Water resistance DOWN'), 'Water resistance -20')
-        # The game says Enmity; the name keeps the game's word.
-        self.assertEqual(enchant_values.qol_name(50, 'Enmity DOWN'), 'Enmity -5%')
-        # Known only from the first game's guide: shown by decision of the user, and labelled as such.
-        self.assertEqual(enchant_values.proposal(78, 'Fire magic buff')[:2], ('Fire magic +20%', 'dt2-wiki'))
+        # The game says Enmity; the name keeps the game's word (flat points).
+        self.assertEqual(enchant_values.qol_name(50, 'Enmity DOWN'), 'Enmity -5')
+        # Decompiled directly from the DT2-2 x86 executable:
+        self.assertEqual(enchant_values.proposal(78, 'Fire magic buff')[:2], ('Fire magic +20%', 'exe-verified'))
         self.assertEqual(enchant_values.qol_name(78, 'Fire magic buff'), 'Fire magic +20%')
-        # No guide gives a figure: the vanilla name stays.
-        self.assertIsNone(enchant_values.proposal(32, 'Physical accuracy MiniUP'))
-        self.assertEqual(enchant_values.qol_name(32, 'Physical accuracy MiniUP'), 'Physical accuracy MiniUP')
+        self.assertEqual(enchant_values.qol_name(32, 'Physical accuracy MiniUP'), 'Physical accuracy +2%')
+        # No figure known (or boolean flag): the vanilla name stays.
+        self.assertIsNone(enchant_values.proposal(120, 'Nullify slash attacks'))
+        self.assertEqual(enchant_values.qol_name(120, 'Nullify slash attacks'), 'Nullify slash attacks')
 
     def test_a_source_that_is_not_trusted_is_not_shown(self):
         shown = enchant_values.SHOWN_SOURCES
