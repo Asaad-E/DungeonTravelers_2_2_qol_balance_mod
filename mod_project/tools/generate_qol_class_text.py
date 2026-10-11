@@ -1,7 +1,7 @@
 """
 Generates data_tables/qol_class_text.xlsx from backups/ClassData.pck.
-Applies surgical QoL improvements to the 7 key classes (Paladin, Berserker, Sniper,
-Kunoichi, Diva, Mistress, Etoile) while keeping all other 42 classes untouched.
+Applies surgical QoL improvements to 9 key classes (Paladin, Berserker, Valkyrie, Sniper,
+Kunoichi, Diva, Mistress, Etoile, Papillon) while keeping all other 40 classes untouched.
 """
 import os
 import sys
@@ -27,6 +27,12 @@ EDITED_CLASSES = {
         "Short-range battle experts who excel at using two-handed swords and axes.\n"
         "They trade shields and turn speed for crushing physical blows that can cleave\n"
         "foes in a single strike. Devastating power tempered by heavy weapon recovery delay."
+    ),
+    # 3: Valkyrie
+    'ClassData_03.bin': (
+        "They have no superior when it comes to short-range fortitude. Wielding spears\n"
+        "and swords, these war angels guard the front line with Circle Protection, shielding\n"
+        "the entire party from physical assaults while executing swift counterattacks."
     ),
     # 9: Sniper
     'ClassData_09.bin': (
@@ -57,6 +63,12 @@ EDITED_CLASSES = {
         "Admired by all as they soar across the battlefield. Even enemies are captivated\n"
         "by their ravishing dances. Once initiated, their continuous dances cripple enemy\n"
         "attack, speed, and accuracy, shifting the tempo of battle in your favor."
+    ),
+    # 30: Papillon
+    'ClassData_30.bin': (
+        "Using hand-fans proficiently as weapons, they are skilled in both short and long\n"
+        "distance combat. Masters of turn delay, they boast unique skills, not least of which\n"
+        "is an ultimate skill that turns a weakened enemy into... food?"
     ),
 }
 
