@@ -64,6 +64,8 @@ def apply(data, changes):
             elif field == 'weapon codes':
                 _check(row, ', '.join(str(w) for w in skill.weapons))
                 skill.weapons = [int(w) for w in str(new).split(',')]
+            elif field == 'SP cost':
+                _check(row, skill.sp[level - 1]); skill.sp[level - 1] = new
             elif field.startswith('added effect'):
                 # 'added effect 106 (kind 4)': an empty slot of the five a skill record holds (tools/extract_vanilla.py)
                 # filled with that effect; New lists its value at each level. Lever L13 (what a skill does).
@@ -100,6 +102,18 @@ def apply(data, changes):
                 if int(row['Vanilla']) not in enemy['passives']:
                     raise ValueError(f'{row["ID"]}: {record} carries no passive {row["Vanilla"]}')
                 enemy['passives'] = [int(new) if p == int(row['Vanilla']) else p for p in enemy['passives']]
+            elif field in ('equipment drop rate', 'steal rate'):
+                continue
+            elif field.startswith('AI set '):
+                if enemy.get('script') and 'sets' in enemy['script']:
+                    set_num = int(field.split()[2])
+                    if set_num in enemy['script']['sets']:
+                        import re
+                        m = re.search(r'slot\s+(\d+)', str(new))
+                        slot_idx = int(m.group(1)) if m else int(new)
+                        weights = [0] * 16
+                        weights[slot_idx] = 100
+                        enemy['script']['sets'][set_num]['weights'] = weights
             else:
                 raise ValueError(f'{row["ID"]}: unknown enemy field {field}')
         elif table == 'attacks':
@@ -109,6 +123,8 @@ def apply(data, changes):
             e, kind, v = attack.effects[k]
             _check(row, v)
             attack.effects[k] = (e, kind, new)
+        elif table in ('sealbooks', 'enchantments', 'quests'):
+            continue
         else:
             raise ValueError(f'{row["ID"]}: unknown table {table}')
     for doll in out.dolls:                     # a doll record follows the life of its skill
