@@ -695,6 +695,55 @@ def build_weapon_ranks(out_dir):
 # ---------------------------------------------------------------------------
 # Step 3: verify what was written to disk
 # ---------------------------------------------------------------------------
+def verify_changes_are_shown(built_table, source_table, overrides, problems):
+    """A variant that changes values must say what it changes. Checking each figure of a text against the packs does
+    not see what the text leaves out, so:
+      * a row that adds an effect to a skill is worded by hand for the variant (the generator has no sentence for an
+        effect the game never gave that skill), and the box of a skill whose weapons a row changes names each weapon;
+      * a table the generator could show in the QoL box and can no longer fit in the box of the variant stops the build,
+        unless the box is worded by hand (there the wording is the choice of who wrote it).
+    Returns how many rows and boxes were looked at."""
+    import balance_values
+    from extract_vanilla import WEAPON_NAMES
+
+    def load(path):
+        it = openpyxl.load_workbook(path, read_only=True)['Skills'].iter_rows(values_only=True)
+        head = next(it)
+        return {(r[head.index('Category')], r[head.index('Filename')]): dict(zip(head, r)) for r in it if r and r[0]}
+
+    built, source = load(built_table), load(source_table)
+    worded = set(load(overrides)) if os.path.exists(overrides) else set()
+    looked = 0
+    for row in balance_values.live_rows():
+        field = str(row['Field'])
+        if row['Table'] != 'skills' or not (field.startswith('added effect') or field == 'weapon codes'):
+            continue
+        looked += 1
+        category, sid = str(row['Record']).split()[0], int(str(row['Record']).split()[1])
+        key = (category, f'{category}SkillData_{sid:04d}.bin')
+        label = f"row {row['ID']} ({row['Record']}, {field})"
+        if key not in worded and field != 'weapon codes':
+            problems.append(f"{label}: the box of the skill is not worded for the variant (balance_skill_text.xlsx), so "
+                            f"nothing on screen says what the row adds")
+            continue
+        if field == 'weapon codes':
+            desc = str(built[key]['QoL_Desc'] or '').lower()
+            for code in str(row['New']).split(','):
+                word = WEAPON_NAMES.get(int(code), '').split()[0].lower()
+                if word and word not in desc:
+                    problems.append(f"{label}: the box does not name the weapon \"{word}\"")
+    for key, row in built.items():
+        looked += 1
+        before = source.get(key, {})
+        for column in ('Tables_Not_Shown', 'Left_Out'):
+            new = {x.strip() for x in str(row.get(column) or '').split(',') if x.strip()}
+            old = {x.strip() for x in str(before.get(column) or '').split(',') if x.strip()}
+            if new - old and key not in worded and str(row.get('Edited') or '').strip().lower() != 'yes':
+                problems.append(f"{key[1]} ({row['Skill_Name']}): the box of the variant no longer shows "
+                                f"{', '.join(sorted(new - old))} ({column}); word it in balance_skill_text.xlsx")
+    return looked
+
+
 def verify_skills(out_dir, table, variant, problems):
     counts, untraced = collections.Counter(), []
     for category, (pck, header_size, pointers) in SKILL_PCKS.items():
@@ -728,7 +777,10 @@ def verify_skills(out_dir, table, variant, problems):
                         problems.append(f"{label}: line 1 has {len(desc)} characters, the battle bar holds {BATTLE_LINE}")
                     if len(desc) > MAX_LINE or desc.count('\n') != row['vanilla_desc'].count('\n'):
                         problems.append(f"{label}: line 1 must keep its line count and stay within {MAX_LINE} chars")
-                    if sorted(re.findall(r'\d+', magnitude_words.strip_chances(desc, row['vanilla_desc']))) != sorted(re.findall(r'\d+', row['vanilla_desc'])):
+                    # a figure of the game's sentence may go (Illusion says "2 afterimages" and the Balance variant gives
+                    # 3 to 5 by level); none may come in
+                    shown = collections.Counter(re.findall(r'\d+', magnitude_words.strip_chances(desc, row['vanilla_desc'])))
+                    if shown - collections.Counter(re.findall(r'\d+', row['vanilla_desc'])):
                         problems.append(f"{label}: line 1 carries a figure the vanilla sentence does not have")
                 tables = skill_tables(category, new)
                 found, verified = magnitude_words.check_line1(
@@ -880,8 +932,8 @@ def verify_weapon_ranks(out_dir, variant, problems):
 # The values of a variant that changes them (balance): steps 0a, 0b and 0c
 # ---------------------------------------------------------------------------
 def apply_skill_text_overrides(target, overrides):
-    """The boxes of data_tables/balance_skill_text.xlsx put into a copy of the QoL skill table as rows edited by hand,
-    so that the generator keeps them. Returns how many."""
+    """The boxes of data_tables/balance_skill_text.xlsx put into the skill table generated for the variant, as rows
+    edited by hand. An empty cell keeps what the generator wrote from the built values. Returns how many."""
     if not os.path.exists(overrides):
         return 0
     rows = openpyxl.load_workbook(overrides, read_only=True)['Skills'].iter_rows(values_only=True)
@@ -914,8 +966,6 @@ def regenerate_text(module, source_table, target, paths, overrides=None):
     variant, applied to the copy. paths: {attribute of the generator: path to use}."""
     import shutil
     shutil.copyfile(source_table, target)
-    if overrides:
-        apply_skill_text_overrides(target, overrides)
     saved = {name: getattr(module, name) for name in paths}
     for name, path in paths.items():
         setattr(module, name, path)
@@ -927,6 +977,8 @@ def regenerate_text(module, source_table, target, paths, overrides=None):
     finally:
         for name, path in saved.items():
             setattr(module, name, path)
+    if overrides:                # after the generator: an empty cell of the workbook keeps the generated text
+        apply_skill_text_overrides(target, overrides)
     return None
 
 
@@ -1129,6 +1181,11 @@ def main():
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:
             counts, untraced = verify_skills(out_dir, table, variant, problems)
+            if variant.get('values'):
+                looked = verify_changes_are_shown(table_path, os.path.join(TABLES_DIR, variant['skill_text']),
+                                                  os.path.join(TABLES_DIR, 'balance_skill_text.xlsx'), problems)
+                print(f"    {looked} rows and boxes looked at: every effect or weapon a row adds is worded, and no table "
+                      f"the QoL box showed is missing from the box of the variant")
             print(f"[3] Verified {counts['entries']} skill entries read back from disk:")
             print(f"    numeric data identical to the original in all of them")
             print(f"    {counts['modified']} modified boxes within {MAX_BOX_LINES} lines / {MAX_LINE} chars")
