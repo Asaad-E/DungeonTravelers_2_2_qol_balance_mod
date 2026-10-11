@@ -91,6 +91,10 @@ def apply(data, changes):
             elif field in ('class bitmask', 'classes', 'mask_0x40'):
                 _check(row, hex(piece['classes']))
                 piece['classes'] = int(str(new), 16) if isinstance(new, str) else int(new)
+            elif field.startswith('Enchant'):
+                idx = int(field.split()[1]) - 1
+                _check(row, piece['enchants'][idx])
+                piece['enchants'][idx] = int(new)
             else:
                 raise ValueError(f'{row["ID"]}: unknown equipment field {field}')
         elif table == 'enemies':

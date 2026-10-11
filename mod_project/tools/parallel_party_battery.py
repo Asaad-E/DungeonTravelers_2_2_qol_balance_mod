@@ -48,6 +48,16 @@ PARTIES = {
         'desc': 'Anti-Meta Experimental (Magical Princess, Mistress, Soul Summoner, Joker, Dolls)',
         'roles': ['magical princess', 'mistress', 'soul summoner', 'joker', 'dolls'],
         'opt': '25% (Blacklist)'
+    },
+    'Juggernaut-Plus': {
+        'desc': 'Physical Juggernaut + Diva (Paladin, Berserker, Dark Lord, Kunoichi, Diva)',
+        'roles': ['tank', 'attacker', 'dark lord', 'kunoichi', 'diva'],
+        'opt': '80% (Juggernaut+)'
+    },
+    'Anti-Meta-Plus': {
+        'desc': 'Anti-Meta + Diva (Magical Princess, Mistress, Soul Summoner, Dolls, Diva)',
+        'roles': ['magical princess', 'mistress', 'soul summoner', 'dolls', 'diva'],
+        'opt': '60% (Anti-Meta+)'
     }
 }
 

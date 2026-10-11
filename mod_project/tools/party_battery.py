@@ -48,6 +48,16 @@ PARTIES = {
         'desc': 'Classes GameFAQs says "AVOID": Mistress (whips), Kunoichi, Magical Princess, Soul Summoner, Valkyrie',
         'opt': '25% (Blacklist)',
         'roles': ['mistress', 'kunoichi', 'magical princess', 'soul summoner', 'valkyrie', 'tank']
+    },
+    'Juggernaut-Plus': {
+        'desc': 'Physical Juggernaut + Diva (Paladin, Berserker, Dark Lord, Kunoichi, Diva)',
+        'opt': '80% (Juggernaut+)',
+        'roles': ['tank', 'attacker', 'dark lord', 'kunoichi', 'diva']
+    },
+    'Anti-Meta-Plus': {
+        'desc': 'Anti-Meta + Diva (Magical Princess, Mistress, Soul Summoner, Dolls, Diva)',
+        'opt': '60% (Anti-Meta+)',
+        'roles': ['magical princess', 'mistress', 'soul summoner', 'dolls', 'diva']
     }
 }
 

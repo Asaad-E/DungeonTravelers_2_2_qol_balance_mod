@@ -1218,8 +1218,8 @@ class Battle:
             divisor = next((target.value(e) for e in MAGIC_HIT_DIVISORS if target.has(e)), 1.0) or 1.0
             chance = f.magic_hit(acc, unit.stat('int'), target.stat('res'),
                                  loose_spirit=self.first(action, unit, 30),
-                                 enchant=min(50, 3 * unit.pieces(39) + 2 * unit.pieces(40)),
-                                 target_enchant=min(50, 3 * target.pieces(43) + 2 * target.pieces(44)),
+                                 enchant=min(50, 3 * unit.pieces(39) + unit.pieces(40)),
+                                 target_enchant=min(50, 3 * target.pieces(43) + target.pieces(44)),
                                  buffs=buffs, target_evasion=sum(target.value(e) for e in MAGIC_EVASION_BUFFS),
                                  divisor=divisor)
         else:
@@ -1237,7 +1237,7 @@ class Battle:
             chance = action.value(55) * 100
         elif action.has(72):
             chance = action.value(72) * 100
-        elif roll == 'physical':
+        if roll == 'physical':
             chance = f.clamp(chance, f.HIT_MIN, f.HIT_MAX)
         if 116 in target.statuses:
             chance = 100.0
@@ -1640,7 +1640,8 @@ class Battle:
             return False
         index = AILMENT_RESIST.get(effect)
         resistance = target.resistance(index) if index is not None else 0
-        chance = f.ailment_chance(value, resistance)
+        flat_penalty = 15.0 if (target.pieces(269) > 0 and index == 4) else 0.0
+        chance = int(f.ailment_chance(value, resistance, flat_penalty=flat_penalty))
         if chance <= 0 or self.rng.randrange(100) >= chance:
             return False
         for effect_count in (101, 102, 181):
