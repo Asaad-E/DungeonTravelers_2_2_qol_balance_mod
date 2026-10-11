@@ -51,6 +51,16 @@ DOLL_ACTIONS = {
 }
 
 
+_ORIGINALS_DIR = None
+
+
+def use_originals(folder):
+    """The folder the action skills of the dolls are read from: backups/ unless a variant builds on other values
+    (tools/build_variant.py balance), where the text of a doll skill must state the power of the built action."""
+    global _ORIGINALS_DIR, _DOLL_ACTION_PCKS
+    _ORIGINALS_DIR, _DOLL_ACTION_PCKS = folder, None
+
+
 def _get_doll_action_slots(skill_id, levels):
     global _DOLL_ACTION_PCKS
     if skill_id not in DOLL_ACTIONS:
@@ -59,7 +69,7 @@ def _get_doll_action_slots(skill_id, levels):
         import os
         from pck_handler import PckArchive
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        backup_dir = os.path.join(base_dir, 'backups')
+        backup_dir = _ORIGINALS_DIR or os.path.join(base_dir, 'backups')
         _DOLL_ACTION_PCKS = {
             'Technique': dict(PckArchive(os.path.join(backup_dir, 'TechniqueSkillData.pck')).files),
             'Magic': dict(PckArchive(os.path.join(backup_dir, 'MagicSkillData.pck')).files),

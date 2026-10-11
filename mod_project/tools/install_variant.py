@@ -26,6 +26,7 @@ BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 GAME_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG')
 GAME_SUBDIRS = ('Parameter', 'Script')
+VALUE_SUBDIRS = ('Enemy',)       # Data/ENG/Enemy/Enemy.pck: only a variant that changes values builds it (balance)
 BUILT_SUBDIR = os.path.join('Data', 'ENG', 'Parameter')
 
 
@@ -45,7 +46,7 @@ def game_location(name, game_dir=GAME_DIR):
 def backup_files(backup_dir=BACKUP_DIR):
     """(key, path, fixed game subfolder or None) of every original. key is 'Name.pck' or 'Script/Name.pck'."""
     found = [(f, os.path.join(backup_dir, f), None) for f in sorted(os.listdir(backup_dir)) if f.endswith('.pck')]
-    for sub in GAME_SUBDIRS:
+    for sub in GAME_SUBDIRS + VALUE_SUBDIRS:
         folder = os.path.join(backup_dir, sub)
         if os.path.isdir(folder):
             found += [(f'{sub}/{f}', os.path.join(folder, f), sub) for f in sorted(os.listdir(folder)) if f.endswith('.pck')]

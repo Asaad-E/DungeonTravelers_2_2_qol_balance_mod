@@ -133,8 +133,22 @@ def apply(data, changes):
             e, kind, v = attack.effects[k]
             _check(row, v)
             attack.effects[k] = (e, kind, new)
-        elif table in ('sealbooks', 'enchantments', 'quests'):
-            continue
+        elif table == 'sealbooks':
+            # 'ench_cnt=2 (222 Front line ATK, 268 Critical UP)': the enchantments of the sealbook, in order
+            import re
+            book = out.sealbooks[int(re.search(r'\((\d+)\)\s*$', record).group(1))]
+            listed = {c: [int(x) for x in re.findall(r'[(,]\s*(\d+)\b', str(row[c]))] for c in ('Vanilla', 'New')}
+            if listed['Vanilla'] != book['enchants']:
+                raise ValueError(f'{row["ID"]}: {record} holds the enchantments {book["enchants"]}, not {listed["Vanilla"]}')
+            book['enchants'] = listed['New']
+        elif table == 'enchantments':
+            # 'stacking flag (0x20 bit 0)': every piece of the enchantment counts once the bit is set (FORMULAS 16.7)
+            import re
+            eid = int(re.search(r'EnchantData_(\d+)', record).group(1))
+            if int(new) & 1:
+                out.enchant_stacks.add(eid)
+            else:
+                out.enchant_stacks.discard(eid)
         else:
             raise ValueError(f'{row["ID"]}: unknown table {table}')
     for doll in out.dolls:                     # a doll record follows the life of its skill

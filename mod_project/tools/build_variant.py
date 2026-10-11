@@ -17,6 +17,19 @@ Variants
           EnemyAttackData.pck      from data_tables/qol_enemy_attack_text.xlsx (exact effects on the data line;
                                    a figure of the prose that the data does not hold is corrected)
           WeaponRankData.pck       rank names generated from the delay multiplier of each rank
+  balance   The values of data_tables/balance_changes.xlsx and the same texts over them. Never installed by the
+            build: python mod_project/tools/install_variant.py balance, when the user says so.
+              [0a] tools/balance_values.py writes every live row into copies of the originals
+                   (build/balance/base/) and reads the result byte by byte against the originals;
+              [0b] tools/balance_readback.py reads that folder with the readers of the project and sets it
+                   against the variant of the simulator: the game files and the model must say the same;
+              [0c] the two text tables that state a changed figure (skills, enemy attacks) are generated again
+                   from the built values (build/balance/tables/); the rows edited by hand are kept, and a
+                   figure of theirs that no longer matches stops the build in step 3;
+              then the steps of the qol build, with build/balance/base/ in the place of the originals, so
+              "no numeric field differs from the original" means "from the values just checked";
+              the packs only values change (Enemy.pck, LvExpSkptData, EquipmentData, SealScrollData) are copied in;
+              the rows written move to the state "built" and docs/generated/BALANCE_BUILD.md counts them.
 
 The build fails (exit code 1) when
   * the PCK writers no longer reproduce the original files byte for byte,
@@ -95,7 +108,19 @@ VARIANTS = {
             'joint_skill_text': 'qol_joint_skill_text.xlsx',
             'class_text': 'qol_class_text.xlsx',
             'numeric_changes_allowed': False},
+    # values: the rows of balance_changes.xlsx are written first and take the place of the originals for every step
+    # after; regenerated: the text tables generated again from those values (the others state no changed figure)
+    'balance': {'skill_text': 'qol_skill_text.xlsx', 'enchant_text': 'qol_enchant_text.xlsx',
+                'item_text': 'qol_item_text.xlsx', 'enemy_attack_text': 'qol_enemy_attack_text.xlsx',
+                'food_text': 'qol_food_text.xlsx', 'party_skill_text': 'qol_party_skill_text.xlsx',
+                'joint_skill_text': 'qol_joint_skill_text.xlsx',
+                'class_text': 'qol_class_text.xlsx',
+                'numeric_changes_allowed': False, 'values': True,
+                'regenerated': ('skill_text', 'enemy_attack_text')},
 }
+VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'),
+                   ('SealScrollData.pck', 'Parameter'), (os.path.join('Enemy', 'Enemy.pck'), 'Enemy'))
+BALANCE_REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'BALANCE_BUILD.md')
 
 
 # ---------------------------------------------------------------------------
@@ -754,6 +779,168 @@ def verify_weapon_ranks(out_dir, variant, problems):
 
 
 # ---------------------------------------------------------------------------
+# The values of a variant that changes them (balance): steps 0a, 0b and 0c
+# ---------------------------------------------------------------------------
+def apply_skill_text_overrides(target, overrides):
+    """The boxes of data_tables/balance_skill_text.xlsx put into a copy of the QoL skill table as rows edited by hand,
+    so that the generator keeps them. Returns how many."""
+    if not os.path.exists(overrides):
+        return 0
+    rows = openpyxl.load_workbook(overrides, read_only=True)['Skills'].iter_rows(values_only=True)
+    head = next(rows)
+    wanted = {(r[head.index('Category')], r[head.index('Filename')]): (r[head.index('Balance_Desc')], r[head.index('Balance_LvUp')])
+              for r in rows if r and r[0]}
+    wb = openpyxl.load_workbook(target)
+    ws = wb['Skills']
+    col = {c.value: k for k, c in enumerate(ws[1])}
+    done = 0
+    for row in ws.iter_rows(min_row=2):
+        key = (row[col['Category']].value, row[col['Filename']].value)
+        if key in wanted:
+            desc, lvup = wanted[key]
+            if desc:
+                row[col['QoL_Desc']].value = desc
+            if lvup:
+                row[col['QoL_LvUp']].value = lvup
+            row[col['Edited']].value = 'yes'
+            done += 1
+    if done != len(wanted):
+        raise SystemExit(f'{os.path.basename(overrides)}: {len(wanted) - done} of its rows name no entry of the skill table')
+    wb.save(target)
+    return done
+
+
+def regenerate_text(module, source_table, target, paths, overrides=None):
+    """A text table generated again by its own generator from other sources. The table of the QoL variant is copied
+    first, so the rows edited by hand keep their wording; overrides: the workbook of boxes worded by hand for this
+    variant, applied to the copy. paths: {attribute of the generator: path to use}."""
+    import shutil
+    shutil.copyfile(source_table, target)
+    if overrides:
+        apply_skill_text_overrides(target, overrides)
+    saved = {name: getattr(module, name) for name in paths}
+    for name, path in paths.items():
+        setattr(module, name, path)
+    try:
+        module.main()
+    except SystemExit as stop:
+        if stop.code not in (None, 0):
+            return f'{os.path.basename(target)}: its generator stopped: {stop.code}'
+    finally:
+        for name, path in saved.items():
+            setattr(module, name, path)
+    return None
+
+
+def prepare_values(name, variant, problems):
+    """Steps 0a to 0c. Returns ({text table key: path of the regenerated table}, counts for the report) and leaves
+    BACKUP_DIR on the folder of the built values."""
+    global BACKUP_DIR
+    import balance_values
+    import balance_readback
+    import generate_qol_skill_text
+    import generate_qol_enemy_attack_text
+    from sim import data as sim_data
+    from sim.variant import balance_data
+    base = os.path.join(BUILD_DIR, name, 'base')
+    tables = os.path.join(BUILD_DIR, name, 'tables')
+    rows = balance_values.live_rows()
+    written, refused, bad, counts = balance_values.build(base, rows=rows)
+    print(f"[0a] Values: {len(rows)} live rows of balance_changes.xlsx; written "
+          + ', '.join(f'{t} {n}' for t, n in sorted(written.items())))
+    for rid, reason in refused:
+        problems.append(f'row {rid} cannot be written: {reason}')
+    problems.extend(bad)
+    if problems:
+        return {}, {}
+    print(f"     {counts['fields']} fields in {counts['changed']} of {counts['packs']} packs; {counts['bytes']} bytes differ "
+          f"from the originals, every one inside a field a row wrote")
+    os.makedirs(tables, exist_ok=True)
+    problems.extend(f'extraction of the built values: {p}' for p in balance_readback.extract(base, os.path.join(tables, 'source_of_truth.xlsx')))
+    differences, compared = balance_readback.compare(
+        balance_readback.built_data(base, os.path.join(tables, 'source_of_truth.xlsx')), balance_data(sim_data.game_data()))
+    problems.extend(f'the build and the simulator differ: {d}' for d in differences)
+    if problems:
+        return {}, {}
+    print('[0b] Read back: the built packs hold what the simulator plays (' + ', '.join(f'{n} {k}' for k, n in compared.items()) + ')')
+    paths = {'skill_text': os.path.join(tables, 'skill_text.xlsx'),
+             'enemy_attack_text': os.path.join(tables, 'enemy_attack_text.xlsx')}
+    for key, module, sources in (
+            ('skill_text', generate_qol_skill_text, {'SOURCE_PATH': os.path.join(tables, 'source_of_truth.xlsx')}),
+            ('enemy_attack_text', generate_qol_enemy_attack_text, {'BACKUP_PATH': os.path.join(base, ENEMY_PCK)})):
+        stopped = regenerate_text(module, os.path.join(TABLES_DIR, variant[key]), paths[key],
+                                  dict(sources, OUTPUT_PATH=paths[key]),
+                                  os.path.join(TABLES_DIR, 'balance_skill_text.xlsx') if key == 'skill_text' else None)
+        if stopped:
+            problems.append(stopped)
+    print(f"[0c] Text tables generated again from the built values: {', '.join(os.path.basename(p) for p in paths.values())}")
+    BACKUP_DIR = base
+    import text_checks
+    text_checks.use_originals(base)          # the text of a doll skill is checked against the built action skill
+    return paths, {'rows': len(rows), 'written': written, 'fields': counts['fields'], 'packs': counts['changed'],
+                   'bytes': counts['bytes'], 'compared': compared}
+
+
+def copy_value_only_packs(name, problems):
+    """The packs no text step builds, taken as the values step left them."""
+    import shutil
+    base, copied = os.path.join(BUILD_DIR, name, 'base'), []
+    for pack, sub in VALUE_ONLY_PCKS:
+        target_dir = os.path.join(BUILD_DIR, name, 'Data', 'ENG', sub)
+        os.makedirs(target_dir, exist_ok=True)
+        source = os.path.join(base, pack)
+        if not os.path.exists(source):
+            problems.append(f'{pack}: not in the folder of the built values')
+            continue
+        shutil.copyfile(source, os.path.join(target_dir, os.path.basename(pack)))
+        copied.append(os.path.join(sub, os.path.basename(pack)))
+    return copied
+
+
+def mark_built(report):
+    """The live rows move to the state "built"; the checklist of the build is written."""
+    import balance_values
+    wb = openpyxl.load_workbook(balance_values.CHANGES)
+    ws = wb['Changes']
+    head = [c.value for c in ws[1]]
+    state, table, rid, why = (head.index(n) for n in ('State', 'Table', 'ID', 'Why'))
+    by_state, blocked, moved = collections.Counter(), [], 0
+    for row in ws.iter_rows(min_row=2):
+        if row[rid].value is None:
+            continue
+        if row[state].value == 'decided':
+            row[state].value = 'built'
+            moved += 1
+        by_state[(row[table].value, row[state].value)] += 1
+        if row[state].value == 'blocked':
+            blocked.append((row[rid].value, str(row[why].value).split('. Was:')[0]))
+    if moved:
+        wb.save(balance_values.CHANGES)
+    tables = sorted({t for t, _ in by_state})
+    states = ('built', 'checked', 'decided', 'blocked', 'dropped')
+    lines = ['# The build of the Balance variant (generated)', '',
+             'Generated by `tools/build_variant.py balance`. Do not edit. Rows of `data_tables/balance_changes.xlsx` by '
+             'table and state after the build: a live row is built once its value is in the packs of '
+             '`build/balance/`, read back and equal to what the simulator plays.', '',
+             f"**{sum(n for (_, s), n in by_state.items() if s in ('built', 'checked'))} of "
+             f"{sum(n for (_, s), n in by_state.items() if s in ('built', 'checked', 'decided'))} live rows built; "
+             f"{len(blocked)} blocked, waiting for a decision.**", '',
+             '| Table | ' + ' | '.join(states) + ' |', '|---|' + '---|' * len(states)]
+    for t in tables:
+        lines.append(f'| {t} | ' + ' | '.join(str(by_state[(t, s)]) for s in states) + ' |')
+    lines += ['', f"Values: {report['fields']} fields in {report['packs']} packs, {report['bytes']} bytes that differ from "
+              'the originals, every one inside a field a row wrote. Compared with the simulator: '
+              + ', '.join(f'{n} {k}' for k, n in report['compared'].items()) + '.', '',
+              'Packs: ' + ', '.join(f'`{p}`' for p in report['files']) + '.', '',
+              'Not installed: `python mod_project/tools/install_variant.py balance` puts it into the game folder.']
+    if blocked:
+        lines += ['', '## Blocked rows', '', '| Row | Why it cannot be written |', '|---|---|']
+        lines += [f'| {r} | {w} |' for r, w in blocked]
+    with open(BALANCE_REPORT, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines) + '\n')
+    return moved, lines[4]
+
+
 def main():
     parser = argparse.ArgumentParser(description='Build one variant of the mod into mod_project/build/<variant>/.')
     parser.add_argument('variant', choices=sorted(VARIANTS))
@@ -761,17 +948,27 @@ def main():
     args = parser.parse_args()
     variant = VARIANTS[args.variant]
     out_dir = os.path.join(BUILD_DIR, args.variant, PARAM_SUBDIR)
-    table_path = os.path.join(TABLES_DIR, variant['skill_text'])
-    enchant_path = os.path.join(TABLES_DIR, variant['enchant_text'])
-    item_path = os.path.join(TABLES_DIR, variant['item_text'])
-    enemy_path = os.path.join(TABLES_DIR, variant['enemy_attack_text'])
     built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, PARTY_PCK, JOINT_PCK, CLASS_PCK, RANK_PCK]
-    food_path = os.path.join(TABLES_DIR, variant['food_text'])
-    party_path = os.path.join(TABLES_DIR, variant['party_skill_text'])
-    joint_path = os.path.join(TABLES_DIR, variant['joint_skill_text'])
-    class_path = os.path.join(TABLES_DIR, variant['class_text'])
-
     print(f"=== Building variant '{args.variant}' ===")
+    regenerated, value_report = {}, {}
+    if variant.get('values'):
+        early = []
+        regenerated, value_report = prepare_values(args.variant, variant, early)
+        if early:
+            print(f"\n[FAIL] {len(early)} problem(s) in the values; no text was built:")
+            for p in early[:60]:
+                print(f"    {p}")
+            sys.exit(1)
+    table_of = lambda key: regenerated.get(key) or os.path.join(TABLES_DIR, variant[key])       # noqa: E731
+    table_path = table_of('skill_text')
+    enchant_path = table_of('enchant_text')
+    item_path = table_of('item_text')
+    enemy_path = table_of('enemy_attack_text')
+    food_path = table_of('food_text')
+    party_path = table_of('party_skill_text')
+    joint_path = table_of('joint_skill_text')
+    class_path = table_of('class_text')
+
     for path, generator in ((table_path, 'generate_qol_skill_text.py'), (enchant_path, 'generate_qol_enchant_text.py'),
                             (item_path, 'generate_qol_item_text.py'),
                             (enemy_path, 'generate_qol_enemy_attack_text.py'),
@@ -873,10 +1070,42 @@ def main():
         if len(problems) > 40:
             print(f"    ... and {len(problems) - 40} more")
         sys.exit(1)
+    copied = []
+    if variant.get('values'):
+        copied = copy_value_only_packs(args.variant, problems)
+        if problems:
+            print(f"\n[FAIL] {len(problems)} problem(s):")
+            for p in problems:
+                print(f"    {p}")
+            sys.exit(1)
+        # the last check, on the packs that would be installed: read back with their texts, they still hold what the
+        # simulator plays
+        import balance_readback
+        from sim import data as sim_data
+        from sim.variant import balance_data
+        base, tables = os.path.join(BUILD_DIR, args.variant, 'base'), os.path.join(BUILD_DIR, args.variant, 'tables')
+        final_source = os.path.join(tables, 'final_source_of_truth.xlsx')
+        problems.extend(f'extraction of the delivered packs: {p}' for p in balance_readback.extract_final(base, out_dir, final_source))
+        delivered = balance_readback.built_data(os.path.join(BUILD_DIR, args.variant, 'Data', 'ENG'), final_source)
+        differences, compared = balance_readback.compare(delivered, balance_data(sim_data.game_data()))
+        problems.extend(f'the delivered packs and the simulator differ: {d}' for d in differences)
+        if problems:
+            print(f"\n[FAIL] {len(problems)} problem(s):")
+            for p in problems[:40]:
+                print(f"    {p}")
+            sys.exit(1)
+        print('[4] Delivered packs read back: they hold what the simulator plays (' + ', '.join(f'{n} {k}' for k, n in compared.items()) + ')')
+        value_report['files'] = sorted(['Parameter/' + p for p in built_pcks] + [c.replace(os.sep, '/') for c in copied])
+        moved, headline = mark_built(value_report)
+        print(f"[5] {moved} row(s) moved to the state built; {os.path.relpath(BALANCE_REPORT, BASE_DIR)}: {headline.strip('*')}")
     print(f"\n[OK] Variant '{args.variant}' built in: {os.path.join(BUILD_DIR, args.variant)}")
     for pck in built_pcks:
         print(f"    {os.path.join(PARAM_SUBDIR, pck)}  ({os.path.getsize(os.path.join(out_dir, pck)):,} bytes)")
-    if not args.no_install:
+    for pck in copied:
+        print(f"    {os.path.join('Data', 'ENG', pck)}  (values only)")
+    if variant.get('values'):
+        print(f"    Not installed. When the user says so: python mod_project/tools/install_variant.py {args.variant}")
+    elif not args.no_install:
         result = install_variant.install(args.variant)
         install_variant.report(args.variant, *result)
         if result[2]:
