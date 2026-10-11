@@ -3,6 +3,7 @@ The battery of parties: each party of the sheet BatteryParties of data_tables/si
 Settings battery_checkpoints, in vanilla and on the Balance variant. Generated: docs/generated/PARTY_BATTERY.md.
 
     python mod_project/tools/party_battery.py all [processes]      every party at every boss
+    python mod_project/tools/party_battery.py only C26;C30 [processes]     again, the bosses a change touched
     python mod_project/tools/party_battery.py report
 
 Same parties, same seeds and same policy on both sides (docs/SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md), Settings
@@ -60,12 +61,13 @@ def cell(source, setup, cid, roles, runs):
             'members': [f'{u.name} ({u.role})' for u in party]}
 
 
-def run(part='1/1'):
+def run(part='1/1', only=None):
     k, n = (int(x) for x in part.split('/'))
     data, setup = game_data(), setup_mod.load()
     variant = balance_data(data)
     runs = int(setup.settings['battery_runs'])
-    tasks = [(cid, name) for cid in checkpoints(setup) for name in setup.battery]
+    wanted = [c.strip() for c in only.split(';')] if only else checkpoints(setup)
+    tasks = [(cid, name) for cid in wanted for name in setup.battery]
     rows = []
     for cid, name in tasks[k - 1::n]:
         roles = setup.battery[name][1]
@@ -73,21 +75,27 @@ def run(part='1/1'):
                      'variant': cell(variant, setup, cid, roles, runs)})
         print(cid, name, flush=True)
     os.makedirs(OUT_DIR, exist_ok=True)
-    with open(os.path.join(OUT_DIR, f'part_{k}.json'), 'w', encoding='utf-8') as f:
+    # a part of "only" is read after the parts of "all" (load sorts the names) and takes the place of their cells
+    with open(os.path.join(OUT_DIR, f"{'update' if only else 'part'}_{k}.json"), 'w', encoding='utf-8') as f:
         json.dump(rows, f)
 
 
-def run_all(processes=None):
+def run_all(processes=None, only=None):
     setup = setup_mod.load()
     n = int(processes or setup.settings.get('parallel_workers', 1))
     for name in os.listdir(OUT_DIR) if os.path.isdir(OUT_DIR) else []:
-        os.remove(os.path.join(OUT_DIR, name))
+        if name.startswith('update_') or not only:
+            os.remove(os.path.join(OUT_DIR, name))
     started = time.time()
-    procs = [subprocess.Popen([sys.executable, os.path.abspath(__file__), 'run', f'{k}/{n}'], stdout=subprocess.DEVNULL)
-             for k in range(1, n + 1)]
+    procs = [subprocess.Popen([sys.executable, os.path.abspath(__file__), 'run', f'{k}/{n}'] + ([only] if only else []),
+                              stdout=subprocess.DEVNULL) for k in range(1, n + 1)]
     for p in procs:
         p.wait()
     print(f'{n} parts in {time.time() - started:.0f} s')
+
+
+def run_only(only, processes=None):
+    run_all(processes, only)
 
 
 def load():
@@ -185,4 +193,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'all': run_all, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'only': run_only, 'report': report}[sys.argv[1]](*sys.argv[2:])

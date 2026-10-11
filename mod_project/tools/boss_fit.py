@@ -12,6 +12,7 @@ keeps the first pair whose fights, played by the reference party at the referenc
 vanilla (Settings check_*_window) for wins, length and lowest HP. Lever L01 (enemy stats): benign.
 
     python mod_project/tools/boss_fit.py gentle [processes]     the same with a condition on the other parties
+    python mod_project/tools/boss_fit.py gentle 6 C26;C30       again, the checkpoints a change touched
     python mod_project/tools/boss_fit.py gentle-report
 
 gentle (the user, 2026-10-11: "a little harder to make up for it, as long as the five parties stay inside their share"):
@@ -155,12 +156,14 @@ def gaps(setup, vanilla, fig):
     return out
 
 
-def gentle_run(part='1/1'):
+def gentle_run(part='1/1', only=None):
     k, n = (int(x) for x in part.split('/'))
     data, setup = game_data(), setup_mod.load()
     variant = balance_data(data)
     runs, party_runs = int(setup.settings['check_runs']), int(setup.settings['boss_fit_party_runs'])
-    tasks = [(row, pair) for row in gentle_todo(setup) for pair in gentle_pairs(setup)]
+    wanted = {c.strip() for c in only.split(';')} if only else None
+    tasks = [(row, pair) for row in gentle_todo(setup) for pair in gentle_pairs(setup)
+             if wanted is None or row['id'] in wanted]
     out = []
     for row, (hp, attack) in tasks[k - 1::n]:
         cid = row['id']
@@ -174,18 +177,19 @@ def gentle_run(part='1/1'):
         out.append({'id': cid, 'hp': hp, 'attack': attack, 'enemies': ids, 'figures': fig, 'parties': parties})
         print(cid, hp, attack, flush=True)
     os.makedirs(OUT_DIR, exist_ok=True)
-    with open(os.path.join(OUT_DIR, f'gentle_{k}.json'), 'w', encoding='utf-8') as f:
+    # a part of one checkpoint played again is read after the parts of a whole run and takes their place
+    with open(os.path.join(OUT_DIR, f"gentle_{'update_' if only else ''}{k}.json"), 'w', encoding='utf-8') as f:
         json.dump(out, f)
 
 
-def gentle_all(processes=None):
+def gentle_all(processes=None, only=None):
     setup = setup_mod.load()
     n = int(processes or setup.settings.get('parallel_workers', 1))
     for name in os.listdir(OUT_DIR) if os.path.isdir(OUT_DIR) else []:
-        if name.startswith('gentle_'):
+        if name.startswith('gentle_update_') or (name.startswith('gentle_') and not only):
             os.remove(os.path.join(OUT_DIR, name))
     started = time.time()
-    procs = [subprocess.Popen([sys.executable, os.path.abspath(__file__), 'gentle-run', f'{k}/{n}'],
+    procs = [subprocess.Popen([sys.executable, os.path.abspath(__file__), 'gentle-run', f'{k}/{n}'] + ([only] if only else []),
                               stdout=subprocess.DEVNULL) for k in range(1, n + 1)]
     for p in procs:
         p.wait()
@@ -205,10 +209,17 @@ def gentle_choice(setup=None, data=None):
     archetypes = {}
     for name, (archetype, _) in setup.battery.items():
         archetypes.setdefault(archetype, []).append(name)
+    # every checkpoint the parts hold, not those the curve marks today: once the rows of a kept pair are in the
+    # workbook the curve no longer marks that boss, and its line here is still the fit that decided them. The vanilla
+    # figures of the curve do not depend on the variant
+    curve = {}
+    for name in sorted(os.listdir(CURVE_DIR)):
+        with open(os.path.join(CURVE_DIR, name), encoding='utf-8') as f:
+            curve.update({r['id']: r for r in json.load(f)})
     found = []
-    for row in gentle_todo(setup):
-        cid = row['id']
-        tried = sorted((r for r in rows if r['id'] == cid), key=lambda r: order[(r['hp'], r['attack'])])
+    for cid, row in curve.items():
+        latest = {(r['hp'], r['attack']): r for r in rows if r['id'] == cid}       # a part read later wins
+        tried = sorted(latest.values(), key=lambda r: order[(r['hp'], r['attack'])])
         if not tried:
             continue
         floor = float(setup.settings[f"guide_{setup.guide_difficulty.get(cid, 'normal')}_min_won"])
