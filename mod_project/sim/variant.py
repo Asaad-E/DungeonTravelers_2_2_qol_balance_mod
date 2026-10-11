@@ -29,7 +29,10 @@ def _same(a, b):
     try:
         return abs(float(a) - float(b)) < 1e-6
     except (TypeError, ValueError):
-        return str(a).strip() == str(b).strip()
+        try:
+            return int(str(a), 16) == int(str(b), 16)
+        except (TypeError, ValueError):
+            return str(a).strip() == str(b).strip()
 
 
 def _check(row, current):
@@ -85,6 +88,9 @@ def apply(data, changes):
                 _check(row, piece['stats']['atk']); piece['stats']['atk'] = new
             elif field == 'upgrade rate':
                 _check(row, piece['rate']); piece['rate'] = new
+            elif field in ('class bitmask', 'classes', 'mask_0x40'):
+                _check(row, hex(piece['classes']))
+                piece['classes'] = int(str(new), 16) if isinstance(new, str) else int(new)
             else:
                 raise ValueError(f'{row["ID"]}: unknown equipment field {field}')
         elif table == 'enemies':

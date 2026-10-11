@@ -1510,7 +1510,7 @@ class Battle:
                 if 'turn delay' not in target.immune and self.rng.randrange(100) < int(value * 100):
                     self.delay(target)
                 continue
-            if effect in (103, 9, 104, 105, 128, 129, 130, 131, 132, 133, 426):
+            if effect in (103, 9, 104, 105, 128, 129, 130, 131, 132, 426):
                 self.heal(action, target, effect, value)
                 continue
             if effect == 106 or effect == 235:
