@@ -133,6 +133,8 @@ def apply(data, changes):
             e, kind, v = attack.effects[k]
             _check(row, v)
             attack.effects[k] = (e, kind, new)
+        elif table == 'quests':
+            continue                    # the simulator has no quests; tools/balance_values.py writes and checks the row
         elif table == 'sealbooks':
             # 'ench_cnt=2 (222 Front line ATK, 268 Critical UP)': the enchantments of the sealbook, in order
             import re

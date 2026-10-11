@@ -17,6 +17,7 @@ A row is one value of one record. Each kind of row has its address here, with th
     equipment     EquipmentData: ATK 0x24, upgrade rate 0x3C, class mask 0x40, innate enchantments 0x5C (count), 0x60
     sealbooks     SealScrollData: number of enchantments 0x1C and their ids 0x20
     enchantments  EnchantData: the flags word 0x20
+    quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
 
 Rules of the step (docs/philosophy.md 2.5, BALANCE_PLAN.md phase 4):
   * before a value is written, what the original holds there is compared with the column Vanilla of the row; a
@@ -58,6 +59,9 @@ EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = 0x5C, 0x6
 SEAL_COUNT, SEAL_ENCHANTS, SEAL_SLOTS = 0x1C, 0x20, 4
 ENCHANT_FLAGS = 0x20
 SP_LEVEL, SP_POINTS = 0x00, 0x08
+# QuestData: the kind of the reward (0x55e210 - 0x55e2a0 test it against 0, 1, 2, 3) and its amount (0x55e300);
+# kind 3 hands the amount to the party at once (0x5959ac - 0x5959ce): gold. Kind 2 is experience (window 0x448c60)
+QUEST_KIND, QUEST_AMOUNT, QUEST_GOLD = 0x38, 0x40, 3
 SKILL_ARRAYS = {'TP cost': 'tp', 'SP cost': 'sp', 'speed factor': 'speed', 'chant speed factor': 'cast'}
 
 
@@ -343,8 +347,20 @@ def enchantment_row(packs, row):
     packs.write(row, ('EnchantData.pck', found.group(1) + '.bin', None, ENCHANT_FLAGS), 'I', row['New'])
 
 
+def quest_row(packs, row):
+    found = re.match(r'(QuestData_\d+)', str(row['Record']))
+    if not found or str(row['Field']) != 'gold reward':
+        raise Refused('only the gold of a quest has an address here')
+    pack, name = 'QuestData.pck', found.group(1) + '.bin'
+    kind = struct.unpack_from('<i', packs.entry(pack, name), QUEST_KIND)[0]
+    if kind != QUEST_GOLD:
+        raise Refused(f'the reward of the quest is of kind {kind}, not gold: 0 an item, 1 a piece of equipment, 2 '
+                      f'experience, 3 gold (0x55e210 - 0x55e2a0)')
+    packs.write(row, (pack, name, None, QUEST_AMOUNT), 'i', row['New'])
+
+
 WRITERS = {'skills': skill_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
-           'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row}
+           'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row}
 
 
 def apply(rows=None, backup_dir=BACKUP_DIR):

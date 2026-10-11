@@ -116,10 +116,12 @@ VARIANTS = {
                 'joint_skill_text': 'qol_joint_skill_text.xlsx',
                 'class_text': 'qol_class_text.xlsx',
                 'numeric_changes_allowed': False, 'values': True,
-                'regenerated': ('skill_text', 'enemy_attack_text')},
+                'regenerated': ('skill_text', 'enemy_attack_text'),
+                'tutorial_text': 'balance_tutorial_text.xlsx'},
 }
 VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'),
-                   ('SealScrollData.pck', 'Parameter'), (os.path.join('Enemy', 'Enemy.pck'), 'Enemy'))
+                   ('SealScrollData.pck', 'Parameter'), ('QuestData.pck', 'Parameter'),
+                   (os.path.join('Enemy', 'Enemy.pck'), 'Enemy'))
 BALANCE_REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'BALANCE_BUILD.md')
 
 
@@ -586,6 +588,102 @@ def build_script_fixes(out_dir, problems):
     return fixed, sorted(by_pack)
 
 
+SCRIPT_TEXT = re.compile(rb'[\x20-\x7e\n]{6,}\x00')
+
+
+def script_tokens(data):
+    """An entry of a script cut into [(is text, bytes)]: the strings it shows or names, and what lies between."""
+    tokens, at = [], 0
+    for found in SCRIPT_TEXT.finditer(data):
+        tokens.append((False, data[at:found.start()]))
+        tokens.append((True, found.group()))
+        at = found.end()
+    tokens.append((False, data[at:]))
+    return tokens
+
+
+def build_tutorials(out_dir, path, problems):
+    """Boxes of the lessons of Euthys and of the library rewritten whole: the rows in the state "checked" of the sheet
+    Tutorials of the variant's tutorial workbook. An entry of these packs is a stream of commands with named labels
+    and strings that end in a zero; no word of it points at a byte (audit of 2026-10-11, 35 entries), so a box may
+    change length. The result is read back: only the entries of the rows (and of the sheet ScriptFixes) differ from
+    the originals, and in them only the boxes of the rows; every byte between the strings is the original."""
+    wb = openpyxl.load_workbook(path, read_only=True)
+    limits = {r[0]: r[1] for r in wb['Settings'].iter_rows(min_row=2, values_only=True) if r and r[0]}
+    it = wb['Tutorials'].iter_rows(values_only=True)
+    head = next(it)
+    rows = [dict(zip(head, r)) for r in it if r and r[0]]
+    script_dir = os.path.join(os.path.dirname(out_dir), 'Script')
+    os.makedirs(script_dir, exist_ok=True)
+    fixes = collections.defaultdict(list)
+    for fix in rules.rows('ScriptFixes'):
+        fixes[(fix['Pack'], fix['Entry'])].append((fix['Original'], fix['Replacement']))
+    stats, by_pack = collections.Counter(), collections.defaultdict(list)
+    for row in rows:
+        by_pack[row['Pack']].append(row)
+    for pck, pack_rows in by_pack.items():
+        built = os.path.join(script_dir, pck)
+        archive = PckArchive(built if os.path.exists(built) else backup_path(pck))
+        names = [fn for fn, _ in archive.files]
+        wanted = collections.defaultdict(dict)                 # entry -> {original box: new box}, as bytes
+        for row in pack_rows:
+            label = f"{pck}/{row['Entry']}"
+            if row['State'] != 'checked':
+                stats[row['State']] += 1
+                continue
+            text, old_box = row['Text'] or '', row['Original box'] or ''
+            lines = text.strip('"').split('\n')
+            if len(lines) > int(limits['max_lines']) or max(len(x) for x in lines) > int(limits['max_width']):
+                problems.append(f"{label}: {len(lines)} lines, widest {max(len(x) for x in lines)}: over the limits of the sheet Settings")
+                continue
+            if '~' in text or out_of_game_words(text, old_box):
+                problems.append(f"{label}: a tilde, or a word that speaks from outside the game: {out_of_game_words(text, old_box)}")
+                continue
+            try:
+                new = text.encode('latin-1') + bytes(1)
+            except UnicodeEncodeError:
+                problems.append(f"{label}: a character the game font does not hold")
+                continue
+            if row['Entry'] not in names:
+                problems.append(f"{label}: no such entry")
+                continue
+            i = names.index(row['Entry'])
+            data = bytes(archive.files[i][1])
+            candidates = [old_box] + [old_box.replace(a, b) for a, b in fixes.get((pck, row['Entry']), ())]
+            needle = next((c.encode('latin-1') + bytes(1) for c in candidates if data.count(c.encode('latin-1') + bytes(1)) == 1), None)
+            if needle is None:
+                problems.append(f"{label}: the original box is not in the entry exactly once")
+                continue
+            archive.files[i] = (row['Entry'], bytearray(data.replace(needle, new)))
+            wanted[row['Entry']][old_box.encode('latin-1') + bytes(1)] = new
+            stats['written'] += 1
+            stats['voiced'] += bool(row['Voiced'])
+        archive.save(built)
+        fixed = {entry for (pack, entry) in fixes if pack == pck}
+        for (fn, before), (_, after) in zip(PckArchive(backup_path(pck)).files, PckArchive(built).files):
+            before, after = bytes(before), bytes(after)
+            if before == after:
+                if fn in wanted:
+                    problems.append(f"{pck}/{fn}: a row was written and the entry is the original")
+                continue
+            if fn not in wanted:
+                if fn not in fixed:
+                    problems.append(f"{pck}/{fn}: changed and no row names it")
+                continue
+            old_tokens, new_tokens = script_tokens(before), script_tokens(after)
+            if len(old_tokens) != len(new_tokens):
+                problems.append(f"{pck}/{fn}: the strings of the entry are not the same in number")
+                continue
+            for (is_text, a), (_, b) in zip(old_tokens, new_tokens):
+                if a == b:
+                    continue
+                if not is_text:
+                    problems.append(f"{pck}/{fn}: bytes between two strings changed")
+                elif wanted[fn].get(a) != b and fn not in fixed:
+                    problems.append(f"{pck}/{fn}: a string no row names changed: {a[:40]!r}")
+    return stats, sorted(by_pack)
+
+
 def build_weapon_ranks(out_dir):
     """Rank names are generated from the multiplier of each entry; the multipliers are not touched."""
     archive = PckArchive(os.path.join(BACKUP_DIR, RANK_PCK))
@@ -1023,6 +1121,10 @@ def main():
         print(f"    Voice of the game: {voiced} modified texts hold no word that speaks from outside it")
         fixed, script_pcks = build_script_fixes(out_dir, problems)
         print(f"    Built {', '.join(script_pcks) or 'no script'}: {fixed} sentence(s) corrected, same length, nothing else touched")
+        if variant.get('tutorial_text'):
+            stats, tutorial_pcks = build_tutorials(out_dir, os.path.join(TABLES_DIR, variant['tutorial_text']), problems)
+            print(f"    Built {', '.join(tutorial_pcks)}: {stats['written']} boxes of the lessons and the library rewritten "
+                  f"({stats['voiced']} of them voiced), {stats['held']} held as the original; nothing else touched")
         build_weapon_ranks(out_dir)
         print(f"    Built {RANK_PCK}: rank names generated from their multiplier")
         if not problems:

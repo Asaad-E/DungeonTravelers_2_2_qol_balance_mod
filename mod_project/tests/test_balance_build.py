@@ -108,6 +108,78 @@ class BalanceValues(unittest.TestCase):
         self.assertIn('hp', differences[0])
 
 
+class BalanceTutorials(unittest.TestCase):
+    """The lessons and the library of the Balance variant (data_tables/balance_tutorial_text.xlsx)."""
+
+    @classmethod
+    def setUpClass(cls):
+        import build_variant
+        import openpyxl
+        cls.build_variant = build_variant
+        cls.folder = tempfile.mkdtemp(prefix='dt22_tutorials_')
+        cls.out_dir = os.path.join(cls.folder, 'Data', 'ENG', 'Parameter')
+        os.makedirs(cls.out_dir)
+        cls.workbook = os.path.join(_paths.TABLES_DIR, 'balance_tutorial_text.xlsx')
+        it = openpyxl.load_workbook(cls.workbook, read_only=True)['Tutorials'].iter_rows(values_only=True)
+        head = next(it)
+        cls.rows = [dict(zip(head, r)) for r in it if r and r[0]]
+        cls.problems = []
+        cls.stats, cls.packs = build_variant.build_tutorials(cls.out_dir, cls.workbook, cls.problems)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.folder, ignore_errors=True)
+
+    def test_every_checked_box_is_written_and_nothing_else(self):
+        self.assertEqual(self.problems, [])
+        checked = [r for r in self.rows if r['State'] == 'checked']
+        self.assertEqual(self.stats['written'], len(checked))
+        self.assertGreater(len(checked), 25)
+        for pack in self.packs:
+            built = dict(PckArchive(os.path.join(self.folder, 'Data', 'ENG', 'Script', pack)).files)
+            original = dict(PckArchive(self.build_variant.backup_path(pack)).files)
+            self.assertEqual(list(built), list(original))
+            changed = {fn for fn in original if bytes(built[fn]) != bytes(original[fn])}
+            self.assertEqual(changed, {r['Entry'] for r in checked if r['Pack'] == pack})
+
+    def test_a_built_box_is_in_its_entry_and_the_original_one_is_gone(self):
+        for row in self.rows:
+            if row['State'] != 'checked':
+                continue
+            built = dict(PckArchive(os.path.join(self.folder, 'Data', 'ENG', 'Script', row['Pack'])).files)[row['Entry']]
+            self.assertEqual(bytes(built).count(row['Text'].encode('latin-1') + bytes(1)), 1, row['Entry'])
+            self.assertEqual(bytes(built).count(row['Original box'].encode('latin-1') + bytes(1)), 0, row['Entry'])
+
+    def test_a_row_that_is_not_checked_keeps_the_original_box(self):
+        held = [r for r in self.rows if r['State'] != 'checked']
+        self.assertTrue(held)
+        for row in held:
+            built = dict(PckArchive(os.path.join(self.folder, 'Data', 'ENG', 'Script', row['Pack'])).files)[row['Entry']]
+            self.assertEqual(bytes(built).count(row['Original box'].encode('latin-1') + bytes(1)), 1, row['Entry'])
+
+    def test_no_box_passes_the_limits_of_its_workbook(self):
+        import openpyxl
+        limits = {r[0]: r[1] for r in openpyxl.load_workbook(self.workbook, read_only=True)['Settings']
+                  .iter_rows(min_row=2, values_only=True)}
+        for row in self.rows:
+            if row['State'] == 'checked':
+                lines = row['Text'].strip('"').split('\n')
+                self.assertLessEqual(len(lines), limits['max_lines'], row['Entry'])
+                self.assertLessEqual(max(len(x) for x in lines), limits['max_width'], row['Entry'])
+
+
+class BalanceQuests(unittest.TestCase):
+    def test_a_gold_row_is_written_only_into_a_quest_that_pays_gold(self):
+        rows = [r for r in balance_values.live_rows() if r['Table'] == 'quests']
+        self.assertGreater(len(rows), 30)
+        packs, written, refused = balance_values.apply(rows)
+        self.assertEqual(refused, [])
+        for pack, name, _, offset, _, _, _ in packs.ledger:
+            self.assertEqual(offset, balance_values.QUEST_AMOUNT)
+            self.assertEqual(struct.unpack_from('<i', packs.entry(pack, name), balance_values.QUEST_KIND)[0],
+                             balance_values.QUEST_GOLD)
+
+
 class BalanceValueFormats(unittest.TestCase):
     def test_a_whole_number_field_refuses_a_fraction(self):
         row = {'ID': 'T3', 'Table': 'sp_curve', 'Record': 'LvExpSkptData', 'Field': 'skill points gained at the level',
