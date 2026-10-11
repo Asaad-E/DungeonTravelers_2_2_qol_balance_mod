@@ -341,19 +341,20 @@ class JointSkills(unittest.TestCase):
         self.assertEqual(self.by_name['Divine Punishment!'][1]['vanilla'],
                          'Deal physical damage to an enemy row. High chance of instakill.')
         self.assertEqual(self.by_name['Divine Punishment!'][1]['desc'],
-                         'Deal physical damage to an enemy row. 85% chance of instakill.')
+                         'Physical damage to an enemy row. 85% instakill. [1/4 TP, 7 Pep]')
         self.assertEqual(self.by_name['Bunker Buster'][1]['desc'],
-                         'Deal damage through to the back row. Physical attack/defense -25%.')
+                         'Damage to back row. Phys attack/defense -25%. [1/4 TP, 7 Pep]')
         for name, (_, row) in self.by_name.items():       # the battle bar holds 70 characters
             if name != "Genocide Rain's Action":
                 self.assertLessEqual(len(row['desc']), 70, row['desc'])
-        self.assertEqual(self.by_name['Rush Zanber'][1]['desc'], self.by_name['Rush Zanber'][1]['vanilla'])
+        self.assertEqual(self.by_name['Rush Zanber'][1]['desc'],
+                         'Physical damage to an enemy row. [1/7 TP, 10 Pep]')
 
     def test_clean_build_and_a_wrong_value(self):
         for mutate, clean in ((False, True), (True, False)):
             table, problems = copy.deepcopy(self.table), []
             if mutate:
-                fn = next(f for f, r in table.items() if '85% chance of instakill' in r['desc'])
+                fn = next(f for f, r in table.items() if '85% instakill' in r['desc'])
                 table[fn]['desc'] = table[fn]['desc'].replace('85%', '95%')
             with tempfile.TemporaryDirectory() as out:
                 bv.build_joint_skills(out, table, problems)
