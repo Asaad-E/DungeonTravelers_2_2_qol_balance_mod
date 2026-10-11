@@ -117,7 +117,8 @@ VARIANTS = {
                 'class_text': 'qol_class_text.xlsx',
                 'numeric_changes_allowed': False, 'values': True,
                 'regenerated': ('skill_text', 'enemy_attack_text'),
-                'tutorial_text': 'balance_tutorial_text.xlsx'},
+                'tutorial_text': 'balance_tutorial_text.xlsx',
+                'enchant_overrides': 'balance_enchant_text.xlsx'},
 }
 VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'),
                    ('SealScrollData.pck', 'Parameter'), ('QuestData.pck', 'Parameter'),
@@ -168,6 +169,33 @@ def load_enchant_text(path):
     return {r[col['Filename']]: {'vanilla_name': r[col['Vanilla_Name']] or '', 'name': r[col['QoL_Name']] or '',
                                  'edited': str(r[col['Edited']] or '').strip().lower() == 'yes'}
             for r in ws.iter_rows(min_row=2, values_only=True)}
+
+
+def apply_enchant_overrides(table, path, problems):
+    """The names of data_tables/balance_enchant_text.xlsx put into the enchant table, as names worded by hand. A row
+    must name the QoL name it replaces, and the rows of the program patch it states must be in the sheet ExePatches
+    under the set of the variant. Returns how many."""
+    import exe_patch
+    rows = openpyxl.load_workbook(path, read_only=True)['Enchants'].iter_rows(values_only=True)
+    head = next(rows)
+    patch_ids = {p['id'] for p in exe_patch.patches('balance')}
+    done = 0
+    for r in rows:
+        d = dict(zip(head, r))
+        if not d.get('Filename'):
+            continue
+        row = table.get(d['Filename'])
+        if row is None or row['name'] != d['QoL_Name']:
+            problems.append(f"{os.path.basename(path)}: {d['Filename']} does not replace the name the QoL table holds")
+            continue
+        first, _, last = [x.strip() for x in str(d['Depends_On']).partition('-')]
+        if first not in patch_ids or (last and last not in patch_ids):
+            problems.append(f"{os.path.basename(path)}: {d['Filename']} states rows {d['Depends_On']}, which the set "
+                            f"balance of ExePatches does not hold")
+            continue
+        row['name'], row['edited'] = d['Balance_Name'], True
+        done += 1
+    return done
 
 
 def load_item_text(path):
@@ -1139,6 +1167,9 @@ def main():
     else:
         table, enchants, items = load_skill_text(table_path), load_enchant_text(enchant_path), load_item_text(item_path)
         enemy_attacks = load_enemy_attack_text(enemy_path)
+        if variant.get('enchant_overrides'):
+            worded = apply_enchant_overrides(enchants, os.path.join(TABLES_DIR, variant['enchant_overrides']), problems)
+            print(f"    {worded} enchantment name(s) worded for the variant ({variant['enchant_overrides']})")
         stats = build_skills(out_dir, table, problems)
         print(f"[2] Built {len(SKILL_PCKS)} skill PCKs: {stats['rewritten']} entries with new text, "
               f"{stats['kept']} kept byte-identical")
@@ -1267,6 +1298,8 @@ def main():
     elif not args.no_install:
         result = install_variant.install(args.variant)
         install_variant.report(args.variant, *result)
+        for line in install_variant.install_program(args.variant):
+            print(line)
         if result[2]:
             sys.exit(1)
 

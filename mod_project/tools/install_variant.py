@@ -10,7 +10,8 @@ Parameter first) and in mod_project/backups/Script/ (always the game's Script fo
 exists in both). After it runs, every game file that has an original is in the state of the
 variant: the file the variant built, or the untouched original when the variant does not
 build that file. Nothing of any other build is left behind, so what is on screen is the variant
-and nothing else.
+and nothing else. Run from the command line, it puts the two program files in the same state: the rows of
+the sheet ExePatches of the variant (tools/exe_patch.py), or the vanilla files.
 
 Every file it replaces is first copied to mod_project/build/installed_backup/<date-time>/, in
 the same Parameter/ or Script/ subfolder. To undo an install, copy that folder back over
@@ -115,12 +116,28 @@ def report(variant, changes, kept, problems, saved_dir):
         print(f"    PROBLEM {p}")
 
 
+def install_program(variant):
+    """The program files of the game in the state of the variant: the rows of the sheet ExePatches whose set carries
+    the name of the variant written into both files (tools/exe_patch.py), or both vanilla files put back when the
+    variant has no such rows. Returns the lines to print."""
+    import exe_patch
+    rows = exe_patch.patches(variant)
+    if rows:
+        done = exe_patch.install(variant)
+        return [f"    Program: {len(rows)} rows of the set '{variant}' in the {label} ({changed} bytes differ from vanilla)"
+                for label, _, changed in done]
+    done = exe_patch.restore()
+    return [f"    Program: vanilla ({', '.join(done)})" if done else '    Program: vanilla, never patched']
+
+
 def main():
     if len(sys.argv) != 2:
         print(__doc__)
         return 1
     result = install(sys.argv[1])
     report(sys.argv[1], *result)
+    for line in install_program(sys.argv[1]):
+        print(line)
     return 1 if result[2] else 0
 
 

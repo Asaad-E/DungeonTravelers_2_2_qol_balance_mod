@@ -19,11 +19,18 @@ import functools
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXE_PATH = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'DT22_en_unwrapped.exe')
+# the copy tools/exe_patch.py keeps before it writes into the game file: once it exists, formulas are read from it
+VANILLA_PATH = os.path.join(BASE_DIR, 'backups', 'exe', 'DT22_en_unwrapped.vanilla.exe')
+
+
+def reading_path():
+    """The unwrapped executable as the game shipped it, whatever the game folder holds now."""
+    return VANILLA_PATH if os.path.exists(VANILLA_PATH) else EXE_PATH
 
 
 class Exe:
-    def __init__(self, path=EXE_PATH):
-        with open(path, 'rb') as f:
+    def __init__(self, path=None):
+        with open(path or reading_path(), 'rb') as f:
             self.data = f.read()
         d = self.data
         pe = struct.unpack_from('<I', d, 0x3C)[0]

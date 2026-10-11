@@ -391,12 +391,49 @@ class ExePatches(unittest.TestCase):
     def test_the_patched_copy_differs_only_where_the_rows_say(self):
         from exe_reader import Exe
         exe = Exe()
-        rows = exe_patch.patches('test1')
+        rows = exe_patch.patches('balance')
         after = exe_patch.patched(exe, rows)
         changed = [k for k in range(len(after)) if after[k] != exe.data[k]]
         allowed = {exe.offset(p['va']) + k for p in rows for k in range(len(p['new']))}
         self.assertTrue(set(changed) <= allowed)
         self.assertEqual(len(after), len(exe.data))
+
+    def test_the_set_is_written_into_both_program_files_and_taken_back(self):
+        """On copies of the two program files: the set goes into both, the vanilla copies are kept and stay vanilla,
+        restore puts both back byte for byte, and a file changed outside the rows stops the install of both."""
+        import shutil
+        import tempfile
+        from exe_reader import Exe, reading_path
+        folder = tempfile.mkdtemp(prefix='dt22_exe_')
+        try:
+            vanilla = {'game file': exe_patch.VANILLA_COPY if os.path.exists(exe_patch.VANILLA_COPY) else exe_patch.GAME_EXE,
+                       'unwrapped file': reading_path()}
+            targets = []
+            for label, source in vanilla.items():
+                name = label.replace(' ', '_')
+                shutil.copy2(source, os.path.join(folder, name + '.exe'))
+                targets.append((label, os.path.join(folder, name + '.exe'), os.path.join(folder, 'kept', name + '.vanilla.exe')))
+            rows = exe_patch.patches('balance')
+            done = exe_patch.install('balance', targets)
+            self.assertEqual([d[2] for d in done], [17, 17])
+            for label, path, copy in targets:
+                self.assertEqual(exe_patch.sha(copy), exe_patch.sha(vanilla[label]))
+                self.assertEqual(exe_patch.problems(Exe(path), rows, expect='new'), [])
+            self.assertEqual(exe_patch.install('balance', targets), done)              # a second install changes nothing
+            self.assertEqual(set(exe_patch.installed_set(targets)['game file'].values()), {'patched'})
+            self.assertEqual(exe_patch.restore(targets), ['game file', 'unwrapped file'])
+            for label, path, _ in targets:
+                self.assertEqual(exe_patch.sha(path), exe_patch.sha(vanilla[label]))
+            with open(targets[1][1], 'r+b') as f:                                       # one byte nobody asked to move
+                f.seek(0x1000)
+                byte = f.read(1)
+                f.seek(0x1000)
+                f.write(bytes([byte[0] ^ 1]))
+            with self.assertRaises(SystemExit):
+                exe_patch.install('balance', targets)
+            self.assertEqual(exe_patch.sha(targets[0][1]), exe_patch.sha(vanilla['game file']))
+        finally:
+            shutil.rmtree(folder, ignore_errors=True)
 
 
 class Dolls(unittest.TestCase):

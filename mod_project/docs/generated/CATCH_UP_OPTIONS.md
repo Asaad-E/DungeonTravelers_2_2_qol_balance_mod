@@ -85,22 +85,23 @@ A crown is the full bonus of the level resets (`docs/FORMULAS.md` 10). One membe
 |---|---|---|---|
 | Vanilla | 98+: 5, 89+: 4, 79+: 3, 69+: 2, 59+: 1 | 50 | The rule of the program |
 | One more point | 98+: 6, 89+: 5, 79+: 4, 69+: 3, 59+: 2 | 50 | Every step gives one point more (five bytes) |
+| One more point, lowest step kept | 98+: 6, 89+: 5, 79+: 4, 69+: 3, 59+: 1 | 50 | What the set balance of ExePatches writes: four bytes; the step of 59 levels is an "inc" and keeps its point |
 | Ten levels sooner | 88+: 5, 79+: 4, 69+: 3, 59+: 2, 49+: 1 | 50 | Every step asks for ten levels fewer (five bytes) |
 | Both | 88+: 6, 79+: 5, 69+: 4, 59+: 3, 49+: 2 | 50 | One point more and ten levels sooner (ten bytes) |
 | Double points | 98+: 10, 89+: 8, 79+: 6, 69+: 4, 59+: 2 | 50 | Every step gives twice the points (five bytes) |
 
 ### Battles for one crown
 
-| Option | Vanilla | One more point | Ten levels sooner | Both | Double points |
-|---|---|---|---|---|---|
-| Vanilla | 4,393 (25 from 70) | 2,684 (25 from 60) | 2,684 (25 from 60) | 1,489 (25 from 50) | 2,284 (13 from 70) |
-| Kept curve | 3,268 (25 from 70) | 2,054 (25 from 60) | 2,054 (25 from 60) | 1,175 (25 from 50) | 1,700 (13 from 70) |
-| Steep 2.5% | 2,042 (25 from 70) | 1,023 (25 from 60) | 931 (50 from 50) | 465 (25 from 50) | 1,023 (25 from 60) |
-| Double EXP piece | 2,197 (25 from 70) | 1,342 (25 from 60) | 1,342 (25 from 60) | 745 (25 from 50) | 1,142 (13 from 70) |
-| Kept + B | 545 (25 from 70) | 321 (25 from 60) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
-| Kept + B2 | 436 (25 from 70) | 257 (25 from 60) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
-| Kept + B3 | 545 (25 from 70) | 321 (25 from 60) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
-| Kept + B4 | 436 (25 from 70) | 257 (25 from 60) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
-| Kept + D | 436 (25 from 70) | 257 (25 from 60) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
+| Option | Vanilla | One more point | One more point, lowest step kept | Ten levels sooner | Both | Double points |
+|---|---|---|---|---|---|---|
+| Vanilla | 4,393 (25 from 70) | 2,684 (25 from 60) | 2,987 (17 from 70) | 2,684 (25 from 60) | 1,489 (25 from 50) | 2,284 (13 from 70) |
+| Kept curve | 3,268 (25 from 70) | 2,054 (25 from 60) | 2,222 (17 from 70) | 2,054 (25 from 60) | 1,175 (25 from 50) | 1,700 (13 from 70) |
+| Steep 2.5% | 2,042 (25 from 70) | 1,023 (25 from 60) | 1,389 (17 from 70) | 931 (50 from 50) | 465 (25 from 50) | 1,023 (25 from 60) |
+| Double EXP piece | 2,197 (25 from 70) | 1,342 (25 from 60) | 1,494 (17 from 70) | 1,342 (25 from 60) | 745 (25 from 50) | 1,142 (13 from 70) |
+| Kept + B | 545 (25 from 70) | 321 (25 from 60) | 371 (17 from 70) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
+| Kept + B2 | 436 (25 from 70) | 257 (25 from 60) | 296 (17 from 70) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
+| Kept + B3 | 545 (25 from 70) | 321 (25 from 60) | 371 (17 from 70) | 321 (25 from 60) | 184 (25 from 50) | 283 (13 from 70) |
+| Kept + B4 | 436 (25 from 70) | 257 (25 from 60) | 296 (17 from 70) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
+| Kept + D | 436 (25 from 70) | 257 (25 from 60) | 296 (17 from 70) | 257 (25 from 60) | 147 (25 from 50) | 227 (13 from 70) |
 
 The rules of the crown are in the program (lever L27): every rule but the first is a patch of single bytes.
