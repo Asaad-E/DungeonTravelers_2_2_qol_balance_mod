@@ -40,7 +40,7 @@ import argparse
 import collections
 import openpyxl
 from pck_handler import (PckArchive, SkillHelper, EnchantHelper, WeaponRankHelper, ItemHelper, EnemyAttackHelper,
-                         FoodMenuHelper, PartySkillHelper, JoinSkillHelper)
+                         FoodMenuHelper, PartySkillHelper, JoinSkillHelper, ClassDataHelper)
 from extract_vanilla import SKILL_LAYOUTS
 from text_checks import (check_skill_text, check_item_text, check_enemy_attack_text, check_food_text,
                          check_party_skill_text, check_joint_skill_text, skill_tables, out_of_game_words)
@@ -84,12 +84,16 @@ JOINT_PCK = 'JoinSkillData.pck'
 ENEMY_PCK = 'EnemyAttackData.pck'
 ENEMY_HEADER = 0xA0
 ENEMY_POINTERS = (8, 16, 24, 32)
+CLASS_PCK = 'ClassData.pck'
+CLASS_HEADER = 0x28
+CLASS_POINTERS = (8, 16, 24)
 
 VARIANTS = {
     'qol': {'skill_text': 'qol_skill_text.xlsx', 'enchant_text': 'qol_enchant_text.xlsx',
             'item_text': 'qol_item_text.xlsx', 'enemy_attack_text': 'qol_enemy_attack_text.xlsx',
             'food_text': 'qol_food_text.xlsx', 'party_skill_text': 'qol_party_skill_text.xlsx',
             'joint_skill_text': 'qol_joint_skill_text.xlsx',
+            'class_text': 'qol_class_text.xlsx',
             'numeric_changes_allowed': False},
 }
 
@@ -175,6 +179,8 @@ def self_test_writers(problems):
                          (JOINT_PCK, lambda b: JoinSkillHelper.write_joint(b, JoinSkillHelper.read_joint(b)['desc'])),
                          (PARTY_PCK, lambda b: PartySkillHelper.write_party_skill(
                              b, PartySkillHelper.read_party_skill(b)['effect'])),
+                         (CLASS_PCK, lambda b: ClassDataHelper.write_class(
+                             b, ClassDataHelper.read_class(b)['desc'])),
                          (ENEMY_PCK, lambda b: EnemyAttackHelper.write_enemy_attack(
                              b, EnemyAttackHelper.read_enemy_attack(b)['desc']))):
         archive, raw = read_archive(pck)
@@ -435,6 +441,63 @@ def verify_joint_skills(out_dir, table, variant, problems):
         found, verified = check_joint_skill_text(new, was['name'], now['desc'], was['desc'])
         problems.extend(f"{label}: {p}" for p in found)
         counts['numbers'] += verified
+    return counts
+
+
+def load_class_text(path):
+    ws = openpyxl.load_workbook(path)['Classes']
+    header = [c.value for c in ws[1]]
+    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
+    return {r[col['Filename']]: {'vanilla': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
+            for r in ws.iter_rows(min_row=2, values_only=True)}
+
+
+def build_classes(out_dir, table, problems):
+    """Classes: surgical clarifications of weapons and roles for 7 classes; 42 kept byte-identical."""
+    stats = collections.Counter()
+    archive = PckArchive(os.path.join(BACKUP_DIR, CLASS_PCK))
+    for i, (fn, b) in enumerate(archive.files):
+        cls_data, row = ClassDataHelper.read_class(b), table.get(fn)
+        if row is None or row['vanilla'] != cls_data['desc']:
+            problems.append(f"{CLASS_PCK}/{fn}: no row in class text table, or table is stale")
+            continue
+        if row['desc'] == cls_data['desc']:
+            stats['kept'] += 1
+            continue
+        archive.files[i] = (fn, ClassDataHelper.write_class(b, row['desc']))
+        stats['rewritten'] += 1
+    archive.save(os.path.join(out_dir, CLASS_PCK))
+    return stats
+
+
+def verify_classes(out_dir, table, variant, problems):
+    counts = collections.Counter()
+    original = PckArchive(os.path.join(BACKUP_DIR, CLASS_PCK)).files
+    built = PckArchive(os.path.join(out_dir, CLASS_PCK)).files
+    for (fn, old), (_, new) in zip(original, built):
+        was, now = ClassDataHelper.read_class(old), ClassDataHelper.read_class(new)
+        label = f"{CLASS_PCK}/{fn} ({was['name']})"
+        counts['entries'] += 1
+        if not variant['numeric_changes_allowed'] and (
+                numeric_part(new, CLASS_HEADER, CLASS_POINTERS) != numeric_part(old, CLASS_HEADER, CLASS_POINTERS)):
+            problems.append(f"{label}: numeric data differs from the original")
+        if (now['name'], now['code']) != (was['name'], was['code']):
+            problems.append(f"{label}: name or class code changed")
+        if now['desc'] != table[fn]['desc']:
+            problems.append(f"{label}: built text differs from the class table")
+        lines = now['desc'].split('\n')
+        if len(lines) > MAX_BOX_LINES:
+            problems.append(f"{label}: {len(lines)} lines exceeds limit of {MAX_BOX_LINES}")
+        if now['desc'] != was['desc']:
+            counts['modified'] += 1
+            for l in lines:
+                if len(l) > MAX_LINE + 2:
+                    problems.append(f"{label}: line length {len(l)} exceeds box limit")
+            if '~' in now['desc']:
+                problems.append(f"{label}: contains tilde")
+        else:
+            if bytes(new) != bytes(old):
+                problems.append(f"{label}: entry with unchanged text is not byte-identical to the original")
     return counts
 
 
@@ -702,10 +765,11 @@ def main():
     enchant_path = os.path.join(TABLES_DIR, variant['enchant_text'])
     item_path = os.path.join(TABLES_DIR, variant['item_text'])
     enemy_path = os.path.join(TABLES_DIR, variant['enemy_attack_text'])
-    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, PARTY_PCK, JOINT_PCK, RANK_PCK]
+    built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, PARTY_PCK, JOINT_PCK, CLASS_PCK, RANK_PCK]
     food_path = os.path.join(TABLES_DIR, variant['food_text'])
     party_path = os.path.join(TABLES_DIR, variant['party_skill_text'])
     joint_path = os.path.join(TABLES_DIR, variant['joint_skill_text'])
+    class_path = os.path.join(TABLES_DIR, variant['class_text'])
 
     print(f"=== Building variant '{args.variant}' ===")
     for path, generator in ((table_path, 'generate_qol_skill_text.py'), (enchant_path, 'generate_qol_enchant_text.py'),
@@ -713,7 +777,8 @@ def main():
                             (enemy_path, 'generate_qol_enemy_attack_text.py'),
                             (food_path, 'generate_qol_food_text.py'),
                             (party_path, 'generate_qol_party_skill_text.py'),
-                            (joint_path, 'generate_qol_joint_skill_text.py')):
+                            (joint_path, 'generate_qol_joint_skill_text.py'),
+                            (class_path, 'generate_qol_class_text.py')):
         if not os.path.exists(path):
             print(f"Error: {path} not found. Run tools/{generator} first.")
             sys.exit(1)
@@ -745,6 +810,9 @@ def main():
         joint = load_joint_skill_text(joint_path)
         stats = build_joint_skills(out_dir, joint, problems)
         print(f"    Built {JOINT_PCK}: {stats['rewritten']} sentences with their stored values, {stats['kept']} kept byte-identical")
+        classes = load_class_text(class_path)
+        stats = build_classes(out_dir, classes, problems)
+        print(f"    Built {CLASS_PCK}: {stats['rewritten']} descriptions with role/weapon notes, {stats['kept']} kept byte-identical")
         voiced = check_game_voice([
             ('skills', [(k, r['vanilla_desc'] + ' ' + r['vanilla_lvup'], r['desc'] + ' ' + r['lvup']) for k, r in table.items()]),
             ('enchants', [(k, r['vanilla_name'], r['name']) for k, r in enchants.items()]),
@@ -753,6 +821,7 @@ def main():
             ('meals', [(k, r['vanilla'], r['effect']) for k, r in meals.items()]),
             ('party skills', [(k, r['vanilla'], r['effect']) for k, r in party.items()]),
             ('joint skills', [(k, r['vanilla'], r['desc']) for k, r in joint.items()]),
+            ('classes', [(k, r['vanilla'], r['desc']) for k, r in classes.items()]),
         ], problems)
         print(f"    Voice of the game: {voiced} modified texts hold no word that speaks from outside it")
         fixed, script_pcks = build_script_fixes(out_dir, problems)
@@ -789,6 +858,9 @@ def main():
             counts = verify_joint_skills(out_dir, joint, variant, problems)
             print(f"    Verified {counts['entries']} joint skills: values, names and messages identical; "
                   f"{counts['numbers']} values in the text checked against the built binary")
+            counts = verify_classes(out_dir, classes, variant, problems)
+            print(f"    Verified {counts['entries']} classes: code, name and numeric data identical; "
+                  f"{counts['modified']} descriptions clarified")
             labels = verify_weapon_ranks(out_dir, variant, problems)
             print(f"    Verified {len(labels)} weapon ranks: multipliers identical to the original, "
                   f"each label shows its own multiplier")
