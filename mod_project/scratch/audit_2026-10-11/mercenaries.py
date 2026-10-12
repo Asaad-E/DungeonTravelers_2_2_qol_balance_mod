@@ -17,12 +17,38 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, PROJECT)
 sys.path.insert(0, os.path.join(PROJECT, 'tools'))
-from sim import scenario, setup as setup_mod              # noqa: E402
+from sim import battle as battle_mod, scenario, setup as setup_mod      # noqa: E402
 from sim.data import game_data                            # noqa: E402
 from sim.units import Unit, STATS, PARTY                  # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
 PLACES = ('C36', 'C40', 'P24')
+DOLL_EFFECTS = (228, 229, 230, 231, 232, 233)
+DOLL_LEVEL = [None]         # None: the lowest level at which the doll skill of a member gives the same life; else that level
+_make_doll = battle_mod.Battle.make_doll
+
+
+def guest_doll(self, action):
+    """The doll of a guest: her attack names the doll by its effect (228 - 233) and its life (147), not by the id of
+    the skill of the Doll Master, which is how the model finds a doll. What level its hidden action is read at is not
+    read in the program: DOLL_LEVEL says the assumption."""
+    owner = action.actor
+    doll = next((d for d in self.data.dolls if d['effect'] is not None and action.has(d['effect'])), None)
+    if owner.kind == 'member' or doll is None or doll['effect'] not in DOLL_EFFECTS:
+        return _make_doll(self, action)
+    life = int(action.value(147, 3))
+    level = DOLL_LEVEL[0] or next((k + 1 for k, t in enumerate(doll['turns']) if t >= life), len(doll['turns']))
+    for u in [u for u in self.units if u.owner is owner and u.kind == 'doll' and u.alive]:
+        self.remove_doll(u)
+    unit = battle_mod.build_doll(owner, doll, level, self.data)
+    unit.arrow = False
+    unit.life = life
+    unit.position = len(self.units)
+    unit.next_time = self.time + self.wait(unit)
+    self.units.append(unit)
+
+
+battle_mod.Battle.make_doll = guest_doll
 
 
 def build(data, record):
