@@ -415,7 +415,7 @@ class ExePatches(unittest.TestCase):
                 targets.append((label, os.path.join(folder, name + '.exe'), os.path.join(folder, 'kept', name + '.vanilla.exe')))
             rows = exe_patch.patches('balance')
             done = exe_patch.install('balance', targets)
-            self.assertEqual([d[2] for d in done], [18, 18])
+            self.assertEqual([d[2] for d in done], [19, 19])
             for label, path, copy in targets:
                 self.assertEqual(exe_patch.sha(copy), exe_patch.sha(vanilla[label]))
                 self.assertEqual(exe_patch.problems(Exe(path), rows, expect='new'), [])

@@ -90,8 +90,10 @@ rate   = rate A - enchantments                                           kept be
   (`0x44cfad`). Read again on 2026-10-12: the debug message writes `HPMAX * 1.5 * (1 + modifier)`, but the code adds
   the two terms (`0x44d02b` adds 1 to the modifier, `0x44d03a` multiplies max HP by 1.5, `0x44d042` is `addss`, bytes
   `f3 0f 58 c1`). With values of 0.1 to 0.5 against a max HP in the hundreds, **Concentrate changes the rate by less
-  than a thousandth: in the game as shipped it does nothing**. One byte (`58` to `59` at file address of `0x44d044`)
-  would make it the product the message tells; not patched.
+  than a thousandth: in the game as shipped it does nothing**. One byte (`58` to `59` at `0x44d044`)
+  makes it the product the message tells: row X14 of the sheet `ExePatches` (lever L45), in the Balance variant only
+  (the user, 2026-10-12, for every unit that has the passive). The QoL variant keeps the text of the game for the
+  passive, with no figure.
 * Enchantments subtract 0.10, 0.06 or 0.03 per piece according to their kind; one adds.
 * The roll is a number below 100 against the rate cut to an integer percent (`0x44d1f3`). Only the physical function rolls it; a spell breaks a chant only through the second roll of a critical (16.7). **A critical hit rolls a second time**: a number below 100 under 33 also breaks the chant, whatever the damage (`0x44d228 - 0x44d246`). This is the "1 in 3" of the lessons.
 

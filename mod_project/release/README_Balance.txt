@@ -35,8 +35,8 @@ Install
 2. Copy the folder "Data" of this archive over the folder "Data" of the game
    (the one beside the game's .exe). Accept replacing the files.
 3. Copy "Patch_Program.bat" and "Program_Patch.ps1" into the folder of the game, beside its .exe,
-   and run "Patch_Program.bat". It changes 18 bytes of the program (the EXP by level gap, the
-   Crown and the chance of Arcane Shield) and keeps a copy of the file as "<name>.exe.original" first. It writes nothing if the
+   and run "Patch_Program.bat". It changes 19 bytes of the program (the EXP by level gap, the
+   Crown, the chance of Arcane Shield and the passive Concentrate, which the game left without effect) and keeps a copy of the file as "<name>.exe.original" first. It writes nothing if the
    program is not the version the mod was made for.
 
 Uninstall

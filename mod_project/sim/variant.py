@@ -199,7 +199,15 @@ def apply(data, changes):
 def balance_data(data, path=CHANGES):
     out = apply(data, rows(path))
     out.arcane_chance = arcane_chance()
+    out.interrupt_product = interrupt_product()
     return out
+
+
+def interrupt_product():
+    """Whether the set balance of the sheet ExePatches mends the interruption rate (lever L45): Concentrate then
+    divides it, as the message of the program tells (docs/FORMULAS.md 2.5)."""
+    import exe_patch
+    return any(p['lever'] == 'L45' for p in exe_patch.patches('balance'))
 
 
 def arcane_chance():

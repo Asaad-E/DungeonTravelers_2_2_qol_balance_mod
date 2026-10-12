@@ -223,7 +223,7 @@ def magic_damage(intel, power, target_res, mastery=0.0, modifiers=0.0, enchant=0
 
 
 # --- chant interruption and critical hits -----------------------------------------------------------
-def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0, critical=False, physical=True):
+def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0, critical=False, physical=True, product=False):
     """Chance that a hit of this damage breaks the chant of a unit with this max HP.
     modifier: effect 264 (Concentrate); enchant: the sum the code subtracts. The rate is 0 to 0.95 and is rolled
     as an integer percent; a critical hit rolls again at INTERRUPT_CRITICAL in a hundred, whatever the damage.
@@ -232,7 +232,9 @@ def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0, critical=Fals
     if physical:
         # 0x44d02b - 0x44d042: the program ADDS (1 + modifier) to max HP * 1.5 (addss, bytes f3 0f 58 c1) where its
         # own debug message writes a product: Concentrate moves the rate by next to nothing
-        a = clamp(damage / (max_hp * INTERRUPT_HP_FACTOR + (1 + modifier)), 0.0, INTERRUPT_MAX)
+        # product: the program patched by row X14 of the sheet ExePatches (mulss), the product the message tells
+        divisor = max_hp * INTERRUPT_HP_FACTOR * (1 + modifier) if product else max_hp * INTERRUPT_HP_FACTOR + (1 + modifier)
+        a = clamp(damage / divisor, 0.0, INTERRUPT_MAX)
         rate = int(clamp(a - enchant, 0.0, INTERRUPT_MAX) * 100) / 100.0
     if critical:
         rate = 1 - (1 - rate) * (1 - INTERRUPT_CRITICAL / 100.0)

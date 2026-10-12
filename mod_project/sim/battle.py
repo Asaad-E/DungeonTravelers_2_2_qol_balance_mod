@@ -1481,7 +1481,8 @@ class Battle:
 
     def interrupt(self, target, amount, critical, physical=True):
         enchant = 0.10 * target.pieces(57) + 0.06 * target.pieces(58) + 0.03 * target.pieces(59)
-        chance = f.interruption_chance(amount, target.max_hp, target.value(264), enchant, critical, physical)
+        chance = f.interruption_chance(amount, target.max_hp, target.value(264), enchant, critical, physical,
+                                       getattr(self.data, 'interrupt_product', False))
         if self.rng.random() < chance:
             # 0x47ea83 - 0x47eabb: the flag of the hit ends the chant, the songs, the dances and the dolls of the target
             if target.chant is not None:

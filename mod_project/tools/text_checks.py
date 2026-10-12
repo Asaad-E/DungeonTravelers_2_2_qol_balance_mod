@@ -38,6 +38,8 @@ UNIQUE_VALUES = 0x1C
 # (sheet ExePatches of balance_criteria.xlsx), worded in balance_skill_text.xlsx
 UNIQUE_NOTE_LINES = {line for column in ('Line', 'Balance_Line')
                      for line in rules.pairs('UniqueSkillNotes', 'Skill', column).values() if line}
+# a line whose figure is worked out from what the entry stores (sheet DerivedLines): Concentrate on the Balance variant
+DERIVED_LINES = {r['Line'] for r in rules.rows('DerivedLines') if r.get('Line')}
 UNIQUE_LABELS = set(rules.pairs('UniqueSkillLabels', 'Skill', 'Label').values())   # in place of 'Lv1-9'
 TOLERANCE = 0.006
 
@@ -185,6 +187,7 @@ def check_skill_text(category, b, text):
     """Returns (problems, verified claims, numbers that could not be tied to any table)."""
     if category == 'Unique':     # a line of the sheet UniqueSkillNotes holds a figure the entry does not store
         text = chr(10).join(line for line in text.split(chr(10)) if line not in UNIQUE_NOTE_LINES)
+    text = chr(10).join(line for line in text.split(chr(10)) if line not in DERIVED_LINES)
     tables = skill_tables(category, b)
     everything = [v for k, v in tables.items() if k not in ('levels', 'slots') and v] + [v for _, _, v in tables['slots']]
     problems, verified, loose = [], 0, []
