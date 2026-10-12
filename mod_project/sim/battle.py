@@ -125,7 +125,11 @@ handles('Battle.after_hit (12.9)', 74, 75, 76, 2, 54, 60, 61, 84, 106, 235, 262,
         80, 79, 168, 249)
 handles('Battle.voided (12.12)', 171, 101, 102, 181, 182, 192, 285, 250, 303, 307, 180, 349, 346, 260)
 handles('Battle.heal (6b, 6d)', 103, 9, 245, 295, 317, 104, 105, 128, 129, 130, 131, 132, 426)
-handles('Battle.tick and end_of_turn (12.15)', 246, 247, 215, 216, 199, 339, 288, 289, 354, 311, 147, 297)
+handles('Battle.tick and end_of_turn (12.15)', 246, 247, 215, 216, 199, 200, 204, 339, 288, 289, 354, 311, 147, 297)
+handles('Battle.resolve (2.4, the changes of the final value; 0x44cda2)', 86)
+# Breath Attack: no place of the program asks for effect 3 (sheet EffectRules); the attacks that carry it deal their
+# damage through their effect 1, which Battle.magic_damage plays
+handles('nothing reads it: the damage of a breath is its effect 1', 3)
 handles('Battle.take_damage (12.7)', 257, 188, 254, 312, 447)
 handles('Battle.turn and lost_turn (12.4, 12.19)', 259, 283, 203, 345)
 handles('Battle.perform', 10, 425, 358, 152, 153, 154, 155, 315, 228, 229, 230, 231, 232, 233, 266, 279, 280, 287, 284,
@@ -678,6 +682,9 @@ class Battle:
                 if s.data is not None:
                     amount = min(amount, int(s.data))
                 unit.tp = max(0, unit.tp - amount)
+            elif effect == 204 and unit.side == PARTY:
+                # Weird Dance (0x42bbc7 - 0x42bc75): each time it ticks the Pep of the member changes by its value
+                unit.pep = max(70.0, min(130.0, unit.pep + s.value))
             if effect in AILMENTS and effect in unit.statuses and effect not in (119, 123):
                 # 0x48d211 - 0x48d228: a number below 100 under the recovery chance ends the ailment; otherwise the
                 # chance rises by 10. It starts at the turns figure of the action that caused it (0x47bc03: the third
@@ -1072,6 +1079,8 @@ class Battle:
         enchant, share = f.AILING_TARGET_BONUS
         if not self.special(action) and action.actor.pieces(enchant) and any(e in target.statuses for e in AILMENTS):
             amount += int(amount * share)               # 0x44cd5a, 0x44f009
+        if action.has(86) and target.kind == 'member' and target.class_id in f.MAGIC_USER_LINE:
+            amount += amount                            # 0x44cdf1: Witch Test and the like
         if action.magic:
             cap = action.value(296)
             if cap is not None:
@@ -1299,6 +1308,8 @@ class Battle:
         enchant, share = f.AILING_TARGET_BONUS
         if not self.special(action) and action.actor.pieces(enchant) and any(e in target.statuses for e in AILMENTS):
             per_hit += per_hit * share
+        if action.has(86) and target.kind == 'member' and target.class_id in f.MAGIC_USER_LINE:
+            per_hit += per_hit
         if action.magic:
             cap = action.value(296)
             if cap is not None:

@@ -113,6 +113,9 @@ RACE_GUARD_SHARE = (0.05, 0.10)
 BOTH_SIDES_ELEMENT = {4: 251, 5: 252, 6: 253, 7: 254, 8: 255}
 ELEMENT_ENCHANT_SHARE = 0.2
 FULL_HP_BONUS = (271, 0.1)            # 0x44c9af, 0x44ec6f: at full HP each piece adds 0.1 to the other bonus
+# 0x44cda2 - 0x44cdf9: an action with effect 86 deals twice its damage to a member whose class is of the Magic User
+# line (class ids 12 to 19: Magic User, Sorceress, Enchantress, Priestess, Witch, Magical Princess, Sage, Bishop)
+MAGIC_USER_LINE = range(12, 20)
 AILING_TARGET_BONUS = (280, 0.15)     # 0x44cd5a, 0x44f009: damage + int(damage * 0.15) against a target with an ailment
 
 
