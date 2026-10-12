@@ -3,8 +3,8 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 5.262955562500001,
-   "time_won": 5.262955562500001,
+   "time": 5.2629555625,
+   "time_won": 5.2629555625,
    "share": 0.15766738683753115,
    "character": "Lizerietta",
    "level": 9,
@@ -30,8 +30,8 @@
   },
   "soul summoner": {
    "won": 1.0,
-   "time": 5.5323448854166655,
-   "time_won": 5.5323448854166655,
+   "time": 5.532344885416666,
+   "time_won": 5.532344885416666,
    "share": 0.12398237535369239,
    "character": "Lizerietta",
    "level": 9,

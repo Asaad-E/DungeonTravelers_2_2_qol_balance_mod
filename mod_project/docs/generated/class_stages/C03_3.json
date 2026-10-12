@@ -3,8 +3,8 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 3.5497283749999995,
-   "time_won": 3.5497283749999995,
+   "time": 3.549728375,
+   "time_won": 3.549728375,
    "share": 0.16536458333333331,
    "character": "Lizerietta",
    "level": 5,
@@ -12,8 +12,8 @@
   },
   "valkyrie": {
    "won": 1.0,
-   "time": 3.0793646875000005,
-   "time_won": 3.0793646875000005,
+   "time": 3.0793646875,
+   "time_won": 3.0793646875,
    "share": 0.20510416666666664,
    "character": "Alisia",
    "level": 5,
@@ -30,8 +30,8 @@
   },
   "soul summoner": {
    "won": 1.0,
-   "time": 3.476605124999999,
-   "time_won": 3.476605124999999,
+   "time": 3.4766051250000003,
+   "time_won": 3.4766051250000003,
    "share": 0.15781249999999997,
    "character": "Lizerietta",
    "level": 5,
