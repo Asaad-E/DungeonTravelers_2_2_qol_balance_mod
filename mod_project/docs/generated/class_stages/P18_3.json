@@ -3,9 +3,9 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 3.9024108519791683,
-   "time_won": 3.9024108519791683,
-   "share": 0.23792725137003196,
+   "time": 3.8998823339583346,
+   "time_won": 3.8998823339583346,
+   "share": 0.23672601927262904,
    "character": "Mefmera",
    "level": 84,
    "class": "Papillon"
@@ -21,9 +21,9 @@
   },
   "treasure hunter": {
    "won": 1.0,
-   "time": 4.685935762083334,
-   "time_won": 4.685935762083334,
-   "share": 0.05883886292112885,
+   "time": 4.693454545729168,
+   "time_won": 4.693454545729168,
+   "share": 0.058840666456057324,
    "character": "Souffle",
    "level": 84,
    "class": "Treasure Hunter"

@@ -16,9 +16,8 @@ from sim.variant import balance_data                      # noqa: E402
 
 FRUIT = 20                       # Fairy Apple, TP 50 to one member
 # label -> (fruit in the bag, share of TP under which a member is fed, TP a fruit gives)
-TRIALS = {'8 fruit, fed under 15% (the sheets)': (8, 0.15, 50), '16 fruit': (16, 0.15, 50), '24 fruit': (24, 0.15, 50),
-          '24 fruit, fed under 35%': (24, 0.35, 50), '8 fruit of 100 TP': (8, 0.15, 100),
-          '16 fruit of 100 TP, fed under 35%': (16, 0.35, 100), '99 fruit, fed under 50%': (99, 0.5, 50)}
+TRIALS = {'8 fruit of 60 TP (the build, the bag of the sheets)': (8, 0.15, 60), '16 fruit of 60 TP': (16, 0.15, 60),
+          '24 fruit of 60 TP': (24, 0.15, 60), '24 fruit of 50 TP (before the raise)': (24, 0.15, 50)}
 
 
 def main():
