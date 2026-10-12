@@ -13,7 +13,8 @@ EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 
     0x28 RES           0x2C DEX                 0x30 AGI   0x34 EXP   0x38 gold
     0x3C flags: one bit per ailment the enemy cannot receive (IMMUNITY_BITS; each ailment command tests its bit,
                        for example poison at 0x5580c0); bit 13 marks an adult (actions with effect 149 or
-                       150, 0x44b047); bit 14 allows snackification; bits 0, 1, 15 not decoded
+                       150, 0x44b047); bit 14 allows snackification; bit 15 allows Item
+                      Steal (0x4503c5: without it "You can't steal from this monster!"); bits 0, 1 not decoded
                        0x40 swing: spread of its damage (docs/FORMULAS.md 2.2)
                        0x44 weight: its term in the order of turns (docs/FORMULAS.md 5)
     0x48 eight resistances: slash, stab, bash, fire, water, wind, earth, lightning
@@ -23,7 +24,9 @@ EnemyStatusData (little endian; evidence: the enemy screen of Medic and Selene, 
     0x7C chance in percent of its third drop, the one enchantment 276 (Equipment drop rate UP) adds 20 to per piece,
          and 0x80 the number that drop is drawn with (0x558517). One weighted roll (0x558180) picks among the
          two items, this drop and nothing; Treasure Hunt adds to every chance above 0 (docs/FORMULAS.md 12.11)
-    0x84 what can be stolen from it: a flag, an id at 0x88, a chance in percent at 0x8C (the steal code reads 0x84)
+    0x84 the slots of that drop, three words each: 0 a fixed piece or 1 the table of the zone, the id of the piece or
+         the kind of the table, a weight (0x558517 - 0x5586fa). Nothing else is "what can be stolen": a steal that
+         succeeds runs the same draw without its "nothing" (docs/FORMULAS.md 12.16)
     0x90..0xA4 two more groups of flag, id, chance; not identified
     0xA8 the item it becomes when turned into a snack (0x48151f)
     0xAC number of attacks, 0xB0 attack ids (EnemyAttackData), -1 where unused
@@ -46,6 +49,7 @@ ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = 0xAC, 0xB0, 16
 RACES = {0: 'Fruit', 2: 'Beasts', 4: 'Humans', 5: 'Undead', 6: 'Magic Beings', 7: 'Apparitions', 8: 'Demons', 9: 'Dragons'}
 IMMUNITY_BITS = {2: 'stun', 3: 'sleep', 4: 'silence', 5: 'petrification', 6: 'instant death', 7: 'freeze', 8: 'poison',
                  9: 'paralysis', 10: 'shadow sew', 11: 'slow', 12: 'turn delay'}
+STEAL_BIT = 15          # set when Item Steal works on the enemy (0x4503c5)
 SNACK_BIT = 14          # set when the enemy can be turned into a snack (0x481488: the other way round)
 
 
@@ -75,7 +79,7 @@ def read_status(b):
     enemy['equipment_drop'] = (raw[5], raw[6])        # chance in percent, how many slots it is drawn among
     # the slots (0x558517 - 0x5586fa): (0 a fixed piece | 1 the table of the zone, piece id | kind of the table, weight)
     enemy['equipment_slots'] = [tuple(raw[7 + 3 * k:10 + 3 * k]) for k in range(max(0, min(raw[6], 3)))]
-    enemy['steal'] = (raw[8], raw[9]) if raw[9] not in (-1, 0) else None
+    enemy['can_steal'] = bool(enemy['flags'] >> STEAL_BIT & 1)
     enemy['snack_item'] = raw[16] if raw[16] != -1 else None
     enemy['raw_f0'] = list(struct.unpack_from('<6i', b, 0xF0))
     enemy['passives'] = [a for a in enemy['raw_f0'][1:1 + max(0, min(enemy['raw_f0'][0], 5))] if a != -1]

@@ -667,13 +667,21 @@ missed them until 2026-10-09. On the map the same
 methods run on every step for each party member (`0x4fb660`, called at `0x4b221f`), and every tenth step a piece of
 enchantment 216 acts.
 
-### 12.16 Steal (`Battle::CBattle::_Steal`, `0x44fd60`)
+### 12.16 Steal (`Battle::CBattle::_Steal`, `0x44fde0`)
 
-    chance = 0.5 * (DEX of the thief + 50) / (AGI of the target + 50) * (value of effect 60 + value of effect 61)
+    chance = 0.5 * (DEX of the thief + 50) / (AGI of the target + 50) * value of the effect of the action
+             effect 60 steals gold, effect 61 an item: two branches, an action holds one of them
     kept between 0.05 and 0.95; a number below 100 under chance * 100
     gold:  int(gold of the enemy record * factor)      factor = value of effect 62 when the action has it, else 1
            once per enemy (a byte of the enemy, 0x155)
-    item:  the item of the steal fields of the enemy record; once per enemy (0x154)
+    item:  only from an enemy with bit 15 of its flags (0x4503c5; 381 of the 516 have it: every enemy of the random
+           battles but Odin, Myrddin, Asmodeus and Carmilla, and 26 of the 157 that only stand in fixed battles);
+           once per enemy (0x154), the byte set only when the steal succeeds, so a failed one can be tried again.
+           What is taken: the draw of the drops (0x558180, 12.11) called with its steal flag (0x4504ac). The flag
+           leaves out Treasure Hunt and enchantment 276 (0x5581f1) and the "nothing" of the draw (0x558388 -
+           0x558392): one weighted roll among the items and the equipment drop with their chances as weights, then,
+           for the equipment, the roll among its slots by their weights, as for a drop. No field says "what can be
+           stolen"; the drop when the enemy falls does not look at 0x154, so a robbed enemy still drops.
     an enemy thief takes int(gold of the party * value of 62) and carries it; it comes back when that enemy falls
 
 ### 12.17 Weapons in the stats of a character (`_CalculateParameterEquipment`, `0x4f6500`)

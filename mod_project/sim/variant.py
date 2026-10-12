@@ -121,8 +121,6 @@ def apply(data, changes):
                 _check(row, enemy['raw_68'][9 + 3 * k])
                 enemy['raw_68'][9 + 3 * k] = int(new)
                 enemy['equipment_slots'][k] = enemy['equipment_slots'][k][:2] + (int(new),)
-                if k == 0 and enemy['steal'] is not None:
-                    enemy['steal'] = (enemy['steal'][0], int(new))
             elif field in ('equipment drop rate', 'steal rate'):
                 continue
             elif field.startswith('AI set '):
