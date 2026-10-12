@@ -3,8 +3,8 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 5.2273535625,
-   "time_won": 5.2273535625,
+   "time": 5.2273535624999985,
+   "time_won": 5.2273535624999985,
    "share": 0.1526276276276276,
    "character": "Lizerietta",
    "level": 6,
@@ -21,8 +21,8 @@
   },
   "treasure hunter": {
    "won": 1.0,
-   "time": 4.909121416666666,
-   "time_won": 4.909121416666666,
+   "time": 4.9091214166666655,
+   "time_won": 4.9091214166666655,
    "share": 0.17169669669669665,
    "character": "Souffle",
    "level": 6,

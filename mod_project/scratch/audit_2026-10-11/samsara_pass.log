@@ -1,0 +1,72 @@
+6 parts in 79 s
+6 parts in 61 s
+curve cpython 80 s, pypy 64 s
+Files mod_project/docs/generated/difficulty_curve/part_1.json and C:/Users/user/AppData/Local/Temp/claude/C--Users-user-Personal-Physics-DungeonTraveler2-2/da50d7d1-b576-49b0-942b-cf35662424b0/scratchpad/curve_cpython/part_1.json differ
+Files mod_project/docs/generated/difficulty_curve/part_2.json and C:/Users/user/AppData/Local/Temp/claude/C--Users-user-Personal-Physics-DungeonTraveler2-2/da50d7d1-b576-49b0-942b-cf35662424b0/scratchpad/curve_cpython/part_2.json differ
+Files mod_project/docs/generated/difficulty_curve/part_3.json and C:/Users/user/AppData/Local/Temp/claude/C--Users-user-Personal-Physics-DungeonTraveler2-2/da50d7d1-b576-49b0-942b-cf35662424b0/scratchpad/curve_cpython/part_3.json differ
+Files mod_project/docs/generated/difficulty_curve/part_4.json and C:/Users/user/AppData/Local/Temp/claude/C--Users-user-Personal-Physics-DungeonTraveler2-2/da50d7d1-b576-49b0-942b-cf35662424b0/scratchpad/curve_cpython/part_4.json differ
+Files mod_project/docs/generated/difficulty_curve/part_5.json and C:/Users/user/AppData/Local/Temp/claude/C--Users-user-Personal-Physics-DungeonTraveler2-2/da50d7d1-b576-49b0-942b-cf35662424b0/scratchpad/curve_cpython/part_5.json differ
+Files mod_project/docs/generated/difficulty_curve/part_6.json and C:/Users/user/AppData/Local/Temp/claude/C--Users-user-Personal-Physics-DungeonTraveler2-2/da50d7d1-b576-49b0-942b-cf35662424b0/scratchpad/curve_cpython/part_6.json differ
+**37 of 44 checkpoints within the windows of vanilla; 7 easier, 0 harder.**
+12 parts in 305 s
+battery pypy 307 s
+**Archetype and boss pairs at or above the floor: 64 of 85 in vanilla, 75 of 85 on the variant.**
+C03 1/4 done (1, 9 s)
+C03 2/4 done (2, 9 s)
+C03 3/4 done (3, 9 s)
+C03 4/4 done (4, 10 s)
+C05 1/4 done (5, 10 s)
+C05 2/4 done (6, 11 s)
+C05 3/4 done (7, 20 s)
+C05 4/4 done (8, 21 s)
+C06 1/4 done (9, 21 s)
+C06 2/4 done (10, 21 s)
+C06 3/4 done (11, 22 s)
+C06 4/4 done (12, 22 s)
+C10 1/4 done (13, 36 s)
+C10 2/4 done (14, 36 s)
+C10 3/4 done (15, 37 s)
+C10 4/4 done (16, 38 s)
+C13 2/4 done (17, 40 s)
+C13 1/4 done (18, 42 s)
+C13 3/4 done (19, 55 s)
+C18 2/4 done (20, 56 s)
+C13 4/4 done (21, 57 s)
+C18 1/4 done (22, 58 s)
+C18 3/4 done (23, 61 s)
+C18 4/4 done (24, 65 s)
+C22 2/4 done (25, 79 s)
+C22 1/4 done (26, 83 s)
+C22 4/4 done (27, 83 s)
+C22 3/4 done (28, 85 s)
+C30 1/4 done (29, 94 s)
+C30 2/4 done (30, 96 s)
+C30 3/4 done (31, 116 s)
+C34 1/4 done (32, 118 s)
+C30 4/4 done (33, 119 s)
+C34 2/4 done (34, 123 s)
+C34 3/4 done (35, 132 s)
+C34 4/4 done (36, 134 s)
+P08 1/4 done (37, 153 s)
+C40 2/4 failed: ZeroDivisionError: float division by zero (38, 156 s)
+P08 2/4 done (39, 157 s)
+C40 1/4 done (40, 158 s)
+C40 3/4 done (41, 162 s)
+C40 4/4 done (42, 164 s)
+P08 3/4 done (43, 173 s)
+P08 4/4 done (44, 176 s)
+P14 1/4 done (45, 184 s)
+P14 2/4 done (46, 184 s)
+P14 3/4 done (47, 189 s)
+P14 4/4 done (48, 190 s)
+P18 1/4 done (49, 195 s)
+P18 2/4 done (50, 198 s)
+P18 4/4 done (51, 204 s)
+P18 3/4 done (52, 206 s)
+P24 1/4 done (53, 211 s)
+P24 2/4 done (54, 214 s)
+P24 3/4 done (55, 217 s)
+P24 4/4 done (56, 219 s)
+classes pypy 221 s
+**74 of 76 role and stage rows within the band, 2 slow or weak.**
+PASS_DONE

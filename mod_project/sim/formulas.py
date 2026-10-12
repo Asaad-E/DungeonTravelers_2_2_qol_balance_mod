@@ -249,7 +249,9 @@ def critical_rate(dex, target_agi, level, target_level, skill=0.0, enchant=0.0, 
     which replaces the rate after its limits."""
     if fixed is not None:
         return fixed * 100.0
-    a = (dex * CRIT_DEX) / (dex + target_agi) * 100.0
+    # both stats at 0 (met once, at C40 with the dolls role, on 2026-10-12; which units was not looked at): the
+    # program would divide 0 by 0; taken here as no share from the stats, an assumption
+    a = (dex * CRIT_DEX) / (dex + target_agi) * 100.0 if dex + target_agi else 0.0
     b = max(0.0, (level - target_level) * CRIT_LEVEL)
     rate = (a + b + skill) * (1 + min(CRIT_ENCHANT_MAX, enchant) * 0.02) * (1 + max(CRIT_ENCHANT_MIN, target_enchant) * 0.02)
     rate += CRIT_PER_EARLIER_HIT * earlier_hits
