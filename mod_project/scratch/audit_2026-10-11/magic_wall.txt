@@ -1,0 +1,66 @@
+C30 | vanilla 167% (Stone Hammer) | mod 172% (Stone Hammer) | Heartless Avenger 50/50/75/50/100
+C31 | vanilla 169% (Fire Blast) | mod 183% (Inferno) | Sweet Peach -15/60/0/20/0; Tres Durian 50/50/50/50/50; Persibang 0/30/40/30/-20
+C32 | vanilla 314% (Thunderbolt) | mod 328% (Thunderbolt) | Moby Dick 0/100/30/30/-20
+C33 | vanilla 325% (Ice Edge) | mod 340% (Ice Edge) | Death Cataphract 50/-25/50/-25/75
+C34 | vanilla 302% (Blood Absorb) | mod 305% (Blood Absorb) | Queen of Darkness 90/70/70/70/90
+C35 | vanilla 816% (Blood Absorb) | mod 799% (Blood Absorb) | Scanner 50/50/100/50/100
+C36 | vanilla 384% (Air Cutter) | mod 374% (Air Cutter) | Demon God Fried 75/80/50/50/80
+C37 | vanilla 531% (Ice Edge) | mod 531% (Ice Edge) | Iron Maiden 75/0/0/100/75
+C38 | vanilla 366% (Blood Absorb) | mod 353% (Blood Absorb) | Samael 100/75/75/100/75
+C39 | vanilla 193% (Stone Hammer) | mod 187% (Stone Hammer) | Melek Taus 50/60/100/80/60
+C40 | vanilla 274% (Blood Absorb) | mod 269% (Blood Absorb) | Atialuco 60/80/80/60/60
+P01 | vanilla 201% (Thunderbolt) | mod 238% (Thunderbolt) | Aradia 50/25/50/25/25
+P02 | vanilla 395% (Fireball) | mod 403% (Fireball) | Iktomi 80/50/100/80/60
+P03 | vanilla 260% (Air Cutter) | mod 396% (Air Cutter) | Persephone 40/40/20/70/70; Aradia 30/80/100/100/30; Flauros 90/50/50/70/90
+P04 | vanilla 154% (Ice Edge) | mod 152% (Ice Edge) | Sukuna-Hikona 75/100/95/80/75
+P05 | vanilla 235% (Blood Absorb) | mod 293% (Blood Absorb) | Euthys 80/70/90/70/90
+P06 | vanilla 223% (Stone Hammer) | mod 230% (Gaia Crush) | Overdue 60/60/100/40/80
+P07 | vanilla 0% ((plain attack)) | mod 0% ((plain attack)) | Vitoria 50/50/80/80/60; Siegdrad 100/75/75/100/100; Airavata 0/40/0/40/-30
+P08 | vanilla 383% (Muon Plasma) | mod 360% (Muon Plasma) | Qitian Dasheng 80/40/80/75/20
+P09 | vanilla 448% (Fire Blast) | mod 431% (Fire Blast) | Velvet Mary -20/40/40/0/15; Azathoth 100/70/70/80/100; Nurse Maid Mary -20/20/20/-25/40
+P10 | vanilla 100% (Ice Edge) | mod 97% (Ice Edge) | Kuchinawa 80/100/60/100/60
+P11 | vanilla 384% (Cocytus) | mod 384% (Cocytus) | Mist Dragon -30/100/60/60/20; Aradia 80/100/60/60/70; Kukulkan -30/0/80/-25/-25
+P12 | vanilla 731% (Crimson Flare) | mod 731% (Crimson Flare) | Genbu 0/100/30/80/0
+P13 | vanilla 0% ((plain attack)) | mod 0% ((plain attack)) | Nuwa 80/100/50/60/40
+P14 | vanilla 709% (Fire Blast) | mod 709% (Fire Blast) | Beard Knight 0/0/30/30/30; Murasaki Shikibu 60/60/100/60/100; Beard Knight 0/0/30/30/30
+P15 | vanilla 631% (Fire Blast) | mod 631% (Fire Blast) | Grizz-Witch -20/0/40/40/0; Velvet Mary -20/40/40/0/15; Aradia 75/100/100/50/50
+P16 | vanilla 353% (Crimson Flare) | mod 353% (Crimson Flare) | Demi Lich 75/85/85/90/75; Aradia 30/40/80/100/70; Nebiros -30/-20/50/100/50
+P17 | vanilla 1576% (Fire Blast) | mod 1557% (Fire Blast) | Peggy Sniper -10/95/50/60/80; Last Judgment 50/50/80/100/100; Peggin Templar -20/75/50/50/-20
+P18 | vanilla 337% (Crimson Flare) | mod 337% (Crimson Flare) | Hanako -25/100/-5/20/50; Aradia 100/50/80/60/100; Zamedi 50/50/50/50/50
+P19 | vanilla 313% (Stone Shower) | mod 313% (Stone Shower) | Clotho 20/20/20/20/20; Lachesis 60/40/60/40/60; Atropos 80/100/100/80/80
+P20 | vanilla 180% (Crimson Flare) | mod 180% (Crimson Flare) | Crom Cruach 30/100/100/60/70
+P21 | vanilla 368% (Crimson Flare) | mod 364% (Crimson Flare) | Peggin Templar -20/75/50/50/-20; Ria the Farsighted 100/100/90/50/50; Calico Mary -20/80/80/60/90
+P22 | vanilla 293% (Stone Shower) | mod 293% (Stone Shower) | Peggin Etoile -20/100/60/60/20; Chika the Impenetrable 100/100/95/60/-30; Peggy Sniper -10/95/50/60/80
+P23 | vanilla 185% (Muon Plasma) | mod 185% (Muon Plasma) | Samael 100/85/85/100/85
+P24 | vanilla 319% (Crimson Flare) | mod 319% (Crimson Flare) | Roger Orso -30/40/50/50/50; Aradia 80/100/95/50/80; Peggy Oversummoner 30/50/30/0/20
+P25 | vanilla 0% ((plain attack)) | mod 0% ((plain attack)) | Peggy Oversummoner 30/50/30/0/20; Mil the Overlord 100/50/100/75/100; Stepgirl Mary 0/35/40/0/60
+P26 | vanilla 242% (Ice Storm) | mod 242% (Ice Storm) | Roger Orso -30/40/50/50/50; Lina the Statuesque 60/100/75/60/50; Flannel Mary -10/60/80/20/30
+P27 | vanilla 139% (Crimson Flare) | mod 139% (Crimson Flare) | Melek Taus 60/70/100/90/70
+P28 | vanilla 51% (Gaia Crush) | mod 51% (Gaia Crush) | Hell's Angel 75/75/100/50/75
+P29 | vanilla 73% (Cocytus) | mod 73% (Cocytus) | Panagia 100/70/90/80/100
+P30 | vanilla 50% (Gaia Crush) | mod 50% (Gaia Crush) | Tenerezza 100/75/90/75/100; Lolo 90/60/100/30/100
+P31 | vanilla 107% (Cocytus) | mod 107% (Cocytus) | Magna Meretrix 90/80/90/100/100
+P32 | vanilla 129% (Tempest) | mod 129% (Tempest) | Aradia 90/90/80/100/100
+P33 | vanilla 81% (Cocytus) | mod 84% (Cocytus) | Panagia 100/75/95/85/100; Radiant Being 80/100/100/100/80
+P34 | vanilla 410% (Crimson Flare) | mod 406% (Crimson Flare) | Peggin Etoile -20/100/60/60/20; Tama the Red 80/90/40/90/60; Peggy Sniper -10/95/50/60/80
+P35 | vanilla 258% (Crimson Flare) | mod 258% (Crimson Flare) | Peggy Oversummoner 30/50/30/0/20; Riko the Reclusive 70/40/90/80/100; Roger Orso -30/40/50/50/50
+P36 | vanilla 168% (Cocytus) | mod 168% (Cocytus) | Rai the Sweltering 100/-50/50/-50/90
+P37 | vanilla 311% (Inferno) | mod 308% (Inferno) | Flannel Mary -10/60/80/20/30; Calico Mary -20/80/80/60/90; Mor the Drunken 90/40/100/80/90
+P38 | vanilla 230% (Inferno) | mod 231% (Inferno) | Peggin Etoile -20/100/60/60/20; Stepgirl Mary 0/35/40/0/60; Gam the Wise 100/100/100/100/100
+P39 | vanilla 222% (Gaia Crush) | mod 228% (Gaia Crush) | Peggy Devil Summoner 90/80/60/0/60; Ruu the Woodsy 60/-25/80/90/80; Lunatic Mary 20/80/90/100/100
+P40 | vanilla 258% (Crimson Flare) | mod 263% (Crimson Flare) | Ma the Eccentric 90/80/100/-20/70; Mandra Princess 75/80/20/80/75; Gamble Beard 90/0/80/90/80
+P41 | vanilla 345% (Crimson Flare) | mod 355% (Crimson Flare) | Citlalinicue 100/70/50/100/60
+P42 | vanilla 41523% (Cocytus) | mod 42215% (Cocytus) | Marduk 80/30/60/90/40
+P43 | vanilla 268% (Gaia Crush) | mod 272% (Gaia Crush) | Arjuna 50/50/100/40/80
+P44 | vanilla 116% (Muon Plasma) | mod 117% (Muon Plasma) | Yoshitsune 40/100/50/70/100
+P45 | vanilla 422% (Cocytus) | mod 428% (Cocytus) | Peggy Hawkeye 80/100/80/60/25; Zouchou Kuma 40/80/80/100/90; Velour Mary 85/0/100/60/60
+P46 | vanilla 156% (Gaia Crush) | mod 156% (Gaia Crush) | Freddie Orso 30/70/90/-75/90; Jikoku Peggin 80/100/80/70/70; Joker Mary 90/80/100/70/30
+P47 | vanilla 0% ((plain attack)) | mod 0% ((plain attack)) | Beard Warlord 85/100/50/0/60; Koumoku Mary 75/100/75/75/90; Peggin High Priest 60/100/20/70/70
+P48 | vanilla 141% (Crimson Flare) | mod 145% (Crimson Flare) | Panttalion 90/70/80/90/70; Bishamon Peggy 80/100/80/80/60; Queen Maid Mary 20/80/90/60/90
+P49 | vanilla 116% (Cocytus) | mod 118% (Cocytus) | Crom Cruach 60/100/100/80/90
+P50 | vanilla 54% (Gaia Crush) | mod 54% (Gaia Crush) | Tenerezza 100/85/100/85/100; Lolo 100/75/100/45/100
+P51 | vanilla 51% (Crimson Flare) | mod 51% (Crimson Flare) | Samson 100/100/100/100/100; Magna Meretrix 90/80/90/100/100; Adon 75/75/75/75/75
+P52 | vanilla 175% (Muon Plasma) | mod 179% (Muon Plasma) | Bearerophon 75/100/85/90/50
+P53 | vanilla 138% (Cocytus) | mod 140% (Cocytus) | Magical Mary 90/75/100/100/85
+P54 | vanilla 158% (Crimson Flare) | mod 158% (Crimson Flare) | Beard Master 50/100/85/60/100
+P55 | vanilla 204% (Crimson Flare) | mod 204% (Crimson Flare) | Peggy Sentinel 65/100/80/70/55; Mul the Mechanical 85/75/90/50/100; Brian Orso 20/65/80/100/80
