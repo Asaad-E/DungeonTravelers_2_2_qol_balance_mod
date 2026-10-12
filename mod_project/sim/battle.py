@@ -147,26 +147,28 @@ handles('outside battle: acts on the map, in menus or after the battle (sim/expe
 class Action:
     """What a unit does on its turn. source: a Skill, an EnemyAttack, or None for a plain attack or a defence."""
     __slots__ = ('actor', 'kind', 'source', 'level', 'target', 'item', 'chanting', 'fixed_targets', 'furious',
-                 '_fx', '_first', '_key')
+                 '_fx', '_first', '_src', '_lvl', '_kind')
 
     def __init__(self, actor, kind, source=None, level=1, target=None, item=None, fixed_targets=None):
         self.actor, self.kind, self.source, self.level, self.target, self.item = actor, kind, source, level, target, item
         self.chanting = False
         self.fixed_targets, self.furious = fixed_targets, False
-        self._key = None
+        self._src = self._lvl = self._kind = self._first = None
 
     # what the action carries ------------------------------------------------------------------------
     def effects(self):
         """[(effect id, kind, value)] at the level of the action. Worked out once per action (the policy asks for
-        it tens of thousands of times a battle); worked out again if the source or the level change."""
-        key = (id(self.source), self.level, self.kind)
-        if self._key != key:
-            self._fx = self._effects()
-            self._first = {}
-            for e, _, v in self._fx:
-                self._first.setdefault(e, v)
-            self._key = key
+        it tens of thousands of times a battle); worked out again if the source, the level or the kind change."""
+        if self._first is None or self._src is not self.source or self._lvl != self.level or self._kind != self.kind:
+            self._refresh()
         return self._fx
+
+    def _refresh(self):
+        self._fx = self._effects()
+        first = {}
+        for e, _, v in self._fx:
+            first.setdefault(e, v)
+        self._first, self._src, self._lvl, self._kind = first, self.source, self.level, self.kind
 
     def _effects(self):
         s = self.source
@@ -185,11 +187,13 @@ class Action:
         return []
 
     def value(self, effect, default=None):
-        self.effects()
+        if self._first is None or self._src is not self.source or self._lvl != self.level or self._kind != self.kind:
+            self._refresh()
         return self._first.get(effect, default)
 
     def has(self, effect):
-        self.effects()
+        if self._first is None or self._src is not self.source or self._lvl != self.level or self._kind != self.kind:
+            self._refresh()
         return effect in self._first
 
     @property
