@@ -565,9 +565,10 @@ unit at `int(max HP * value)`; Stamina is checked against a share of max HP. The
 
 Effect 254 (Guts; on the Balance variant also the unique skill of Lizerietta), `0x42389d - 0x423901`: when the HP of
 the target minus the damage is 0 or less, the first status of effect 254 in its list rolls `value * 100`, and on a
-success the damage becomes HP - 1. As shipped it rolls at 1 HP too, so a unit can hold on again and again. Row X15
-of the sheet `ExePatches` (lever L46, Balance variant) skips the roll at 1 HP: the test becomes "HP - 2 >= damage,
-unsigned", which also rolls for a hit that leaves exactly 1 HP, with the same result. No enemy has the effect.
+success the damage becomes HP - 1. It rolls at 1 HP too, so a unit can hold on again and again. Seven bytes of the
+same length would skip the roll at 1 HP (`2b 45 40 85 c0 0f 8f` to `48 48 3b 45 40 0f 83` at `0x4238a2`: "HP - 2 >=
+damage, unsigned"); built and withdrawn on 2026-10-12 by the user, since the code is the one of Guts too. No enemy
+has the effect.
 
 ### 12.8 Songs and dances (`0x48bf90`)
 
