@@ -43,7 +43,7 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | C33 | Death Cataphract | easy | 44 | 100% | 80% | within |
 | C34 | Queen of Darkness (weakened) | easy | 50 | 100% | 80% | within |
 | C35 | Scanner | hard | 52 | 100% | 20% | within |
-| C36 | Demon God Fried | easy | 53 | 90% | 80% | within |
+| C36 | Demon God Fried | normal | 53 | 90% | 50% | within |
 | C37 | Iron Maiden | normal | 55 | 100% | 50% | within |
 | C38 | Samael | easy | 62 | 60% | 80% | read: near the floor |
 | C39 | Melek Taus | normal | 62 | 90% | 50% | within |
