@@ -979,7 +979,8 @@ def apply_skill_text_overrides(target, overrides):
             if desc:
                 row[col['QoL_Desc']].value = desc
             if lvup:
-                row[col['QoL_LvUp']].value = lvup
+                import generate_qol_skill_text
+                row[col['QoL_LvUp']].value = generate_qol_skill_text.spaced(lvup)     # the separators of the template
             row[col['Edited']].value = 'yes'
             done += 1
     if done != len(wanted):

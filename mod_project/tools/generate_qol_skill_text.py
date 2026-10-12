@@ -51,6 +51,12 @@ def airy(line):
     """The same line with wider separators, when it still fits: the box has room and a full line is hard to read."""
     wide = line.replace(SEP, WIDE_SEP)
     return wide if len(wide) <= WIDE_LINE else line
+
+
+def spaced(text):
+    """A box worded by hand with the separators of the generated ones: whatever room was typed around each "|" is
+    taken back to one space, then widened by the same rule (airy). The other lines are left as they are."""
+    return '\n'.join(airy(re.sub(r' *\| *', SEP, line)) if '|' in line else line for line in str(text or '').split('\n'))
 HEADERS = ['Category', 'Filename', 'Skill_Name', 'Levels', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp',
            'Edited', 'Coverage', 'Phrases_Kept_As_Vanilla', 'Tables_Not_Shown', 'Not_Level_By_Level', 'Left_Out',
            'Previous_Mod_Desc', 'Previous_Mod_LvUp', 'Line1_Notes']
@@ -714,6 +720,7 @@ def main():
         desc, line1_notes = generate_line1(skill, row)
         if key in edited:
             desc, lvup = edited[key]
+            lvup = spaced(lvup)
             flag, row['coverage'], line1_notes = 'yes', 'Edited by hand', []
         line1[('changed' if desc != skill['desc'] else 'noted' if line1_notes else 'vanilla')] += 1
         coverage[(skill['category'], row['coverage'])] += 1

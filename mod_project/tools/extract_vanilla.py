@@ -200,7 +200,8 @@ FIELD_DOCS = [
     ('Skills', 'Misc_0x124', 'Magic 0x124', 'float', 'Unknown single value', 'Unknown', ''),
     ('Skills', 'Trailer', 'last 7 words of the header', 'int', 'Unknown', 'Unknown', ''),
     ('UniqueSkills', 'Lv1..Lv9, EX', 'UniqueSkillData 0x1C', '10 x float', 'Value per unique skill level; 10th is EX',
-     'Inferred', 'Lesson Sp03: unique skill reaches EX after Lv 9'),
+     'Verified', 'docs/FORMULAS.md 12.19 and 16.3: the value is the chance or the size of the one effect of the skill; '
+     'rank = level / 10, the tenth value once the bonus of the resets reaches 50 (0x4f615e - 0x4f61e3)'),
     ('Items', 'Buy_Price', 'ItemData 0x1C', 'int', 'Shop price', 'Verified',
      'Vanilla Rin-Rin lines: Danish 450, Fairy Apple 900'),
     ('Items', 'Sell_Price', 'ItemData 0x20', 'int', 'Sell value (buy / 3)', 'Inferred', ''),
@@ -236,7 +237,9 @@ FIELD_DOCS = [
      '0x44aa49 and 0x44d5c0 read 0x38 at the start of the hit chance; 0x44b497 adds 0x3C to the modifiers; 0x557560 returns int(0x40)'),
     ('EnemyAttacks', 'EffN_ID / Value / Tail', 'EnemyAttackData 0x4C (+12 per slot)', 'int + number + int',
      'Effect slots (same effect ids as skills)', 'Verified', 'Effect count equals used slots in all 2375 entries'),
-    ('FoodMenu', 'EffN_ID / Value', 'FoodMenuData 0x20 (+8 per pair)', 'int + float', 'Meal effects', 'Inferred', ''),
+    ('FoodMenu', 'EffN_ID / Value', 'FoodMenuData 0x20 (+8 per pair)', 'int + float', 'Meal effects', 'By the player guide',
+     'Effects 62, 63 and 64 hold tenths of max HP and TP: the DT2-2 wiki lists every meal with the same figure '
+     '("HP 2/10" for a stored 2). Not read in the program'),
     ('Raw_*', 'w_0x..', 'JoinSkill / PartySkill / SealScroll / Class', 'int/float',
      'Header words not decoded yet (string pointers included)', 'Unknown', ''),
 ]
