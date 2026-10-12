@@ -19,10 +19,9 @@ from sim.variant import balance_data                      # noqa: E402
 
 GIRL = 'Lizerietta'
 # label -> (effect added to her passives, amount), or None for no unique skill, 'own' for the one she has
-IDEAS = (('no unique skill', None), ('Usurper of Souls (as built)', 'own'),
-         ('dolls stronger +0.20', (286, 0.20)),
-         ('evasion +0.10', (338, 0.10)), ('evasion +0.15', (338, 0.15)), ('evasion +0.20', (338, 0.20)),
-         ('evasion +0.30', (338, 0.30)))
+IDEAS = (('no unique skill', None), ('as built', 'own'),
+         ('survives a killing blow 0.20', (254, 0.20)), ('survives a killing blow 0.35', (254, 0.35)),
+         ('survives a killing blow 0.50', (254, 0.50)))
 
 
 def main():
