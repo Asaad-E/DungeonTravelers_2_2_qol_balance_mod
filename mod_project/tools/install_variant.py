@@ -25,7 +25,9 @@ import datetime
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
-GAME_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mod_config                       # noqa: E402  (the folder of the game: config.json, else the one beside mod_project)
+GAME_DIR = mod_config.data_dir()
 GAME_SUBDIRS = ('Parameter', 'Script')
 # Data/ENG/Enemy/Enemy.pck, Data/ENG/NPC/NPC.pck: only a variant that changes values builds them (balance)
 VALUE_SUBDIRS = ('Enemy', 'NPC')
@@ -125,7 +127,7 @@ def install_program(variant):
     rows = exe_patch.patches(variant)
     if rows:
         done = exe_patch.install(variant)
-        return [f"    Program: {len(rows)} rows of the set '{variant}' in the {label} ({changed} bytes differ from vanilla)"
+        return [f"    Program: {len(rows)} rows of the set '{variant}' in {label} ({changed} bytes differ from vanilla)"
                 for label, _, changed in done]
     done = exe_patch.restore()
     return [f"    Program: vanilla ({', '.join(done)})" if done else '    Program: vanilla, never patched']

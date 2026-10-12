@@ -9,13 +9,14 @@ DungeonTravelers2-2_EN/
 *.jpg
 *.jpeg
 
-# Except backups inside mod_project
-!mod_project/backups/*.pck
-!mod_project/backups/Script/*.pck
-!mod_project/backups/Enemy/*.pck
-!mod_project/backups/Dungeon/*.pck
-!mod_project/backups/Summon/*.pck
 !mod_project/data_tables/*.xlsx
+
+# The originals of the game: each user copies them from a copy of the game (tools/setup_backups.py)
+mod_project/backups/
+
+# Where the game is on this machine, and the archives made for players (they hold files of the game)
+mod_project/config.json
+mod_project/dist/
 
 # Python
 __pycache__/

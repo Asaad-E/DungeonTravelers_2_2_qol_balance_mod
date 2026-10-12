@@ -47,7 +47,8 @@ from pck_handler import PckArchive
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FLOOR_ZIP = os.path.join(BASE_DIR, 'backups', 'Dungeon', 'floor_parameters.zip')
-GAME_DUNGEON_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Dungeon')
+import mod_config                       # noqa: E402
+GAME_DUNGEON_DIR = os.path.join(mod_config.data_dir(), 'Dungeon')
 ZONE_COUNT, ZONE_POINTER, ZONE_SIZE, COUNT, FORMATIONS, RECORD = 0x98, 0xA0, 0xD0, 0x5C, 0x60, 88
 FIXED_COUNT, FIXED_POINTER = 0x28, 0x30
 ENEMY_SLOTS = 12

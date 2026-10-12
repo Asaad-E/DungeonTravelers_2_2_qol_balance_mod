@@ -408,32 +408,31 @@ class ExePatches(unittest.TestCase):
         os.makedirs(os.path.join(_paths.PROJECT_DIR, 'build'), exist_ok=True)
         folder = tempfile.mkdtemp(prefix='dt22_exe_', dir=os.path.join(_paths.PROJECT_DIR, 'build'))
         try:
-            vanilla = {'game file': exe_patch.VANILLA_COPY if os.path.exists(exe_patch.VANILLA_COPY) else exe_patch.GAME_EXE,
-                       'unwrapped file': reading_path()}
-            targets = []
-            for label, source in vanilla.items():
-                name = label.replace(' ', '_')
-                shutil.copy2(source, os.path.join(folder, name + '.exe'))
-                targets.append((label, os.path.join(folder, name + '.exe'), os.path.join(folder, 'kept', name + '.vanilla.exe')))
+            vanilla, targets = {}, []
+            for label, game_file, copy in exe_patch.find_targets():
+                vanilla[label] = copy if os.path.exists(copy) else game_file
+                shutil.copy2(vanilla[label], os.path.join(folder, label))
+                targets.append((label, os.path.join(folder, label), os.path.join(folder, 'kept', label + '.vanilla.exe')))
+            first = targets[0][0]
             rows = exe_patch.patches('balance')
             done = exe_patch.install('balance', targets)
-            self.assertEqual([d[2] for d in done], [19, 19])
+            self.assertEqual([d[2] for d in done], [19] * len(targets))
             for label, path, copy in targets:
                 self.assertEqual(exe_patch.sha(copy), exe_patch.sha(vanilla[label]))
                 self.assertEqual(exe_patch.problems(Exe(path), rows, expect='new'), [])
             self.assertEqual(exe_patch.install('balance', targets), done)              # a second install changes nothing
-            self.assertEqual(set(exe_patch.installed_set(targets)['game file'].values()), {'patched'})
-            self.assertEqual(exe_patch.restore(targets), ['game file', 'unwrapped file'])
+            self.assertEqual(set(exe_patch.installed_set(targets)[first].values()), {'patched'})
+            self.assertEqual(exe_patch.restore(targets), [label for label, _, _ in targets])
             for label, path, _ in targets:
                 self.assertEqual(exe_patch.sha(path), exe_patch.sha(vanilla[label]))
-            with open(targets[1][1], 'r+b') as f:                                       # one byte nobody asked to move
+            with open(targets[-1][1], 'r+b') as f:                                       # one byte nobody asked to move
                 f.seek(0x1000)
                 byte = f.read(1)
                 f.seek(0x1000)
                 f.write(bytes([byte[0] ^ 1]))
             with self.assertRaises(SystemExit):
                 exe_patch.install('balance', targets)
-            self.assertEqual(exe_patch.sha(targets[0][1]), exe_patch.sha(vanilla['game file']))
+            self.assertEqual(exe_patch.sha(targets[0][1]), exe_patch.sha(vanilla[first]))
         finally:
             shutil.rmtree(folder, ignore_errors=True)
 

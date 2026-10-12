@@ -1,0 +1,265 @@
+{
+ "what": "The original files of the game the tools read, with the hash each must have. Written by tools/setup_backups.py --manifest; no file of the game is in the repository.",
+ "files": [
+  {
+   "backup": "CharacterData.pck",
+   "game": "Parameter/CharacterData.pck",
+   "sha256": "6b42151c9c5f9a9d14d48f66d6d0e919bf80a6545894f72117954dc8466cae02"
+  },
+  {
+   "backup": "ClassData.pck",
+   "game": "Parameter/ClassData.pck",
+   "sha256": "c831de82c25b7088da936315f202e97c53fc05e821a4b9c3a30b6104c21f47f9"
+  },
+  {
+   "backup": "ClassLevelData.pck",
+   "game": "Parameter/ClassLevelData.pck",
+   "sha256": "675f581aebe1fdcf6b29966b0d9df032ef7d4653293d18806e019e555b0c0a44"
+  },
+  {
+   "backup": "CommandData.pck",
+   "game": "Parameter/CommandData.pck",
+   "sha256": "8bff14a3d93228a11a5d51760e6ce71b8fcf4fdf3c4788c508c8e5f866dfe7b5"
+  },
+  {
+   "backup": "EffectSequenceData.pck",
+   "game": "Parameter/EffectSequenceData.pck",
+   "sha256": "bcbc4923ffc075635e12f20e3c83661f482236f1c7c12b22825e49de98979abb"
+  },
+  {
+   "backup": "EnchantData.pck",
+   "game": "Parameter/EnchantData.pck",
+   "sha256": "b89aa1c7a48a5320870b21d09e12d7f62fea5f37296976768bafa21c8bb93081"
+  },
+  {
+   "backup": "EnemyAttackData.pck",
+   "game": "Parameter/EnemyAttackData.pck",
+   "sha256": "ab9bd548618e4eeae7422d24a0c837d1c1a0a31d8e356811ee4968c982b3dacf"
+  },
+  {
+   "backup": "EquipmentData.pck",
+   "game": "Parameter/EquipmentData.pck",
+   "sha256": "125ce4e9726c7d9e5ad8ada9a760137d958c73b9c011a147fd73acdee0083345"
+  },
+  {
+   "backup": "FoodMenuData.pck",
+   "game": "Parameter/FoodMenuData.pck",
+   "sha256": "8470a0e219576255a3b728d52db4f4f2dd601316c6b532565bb5324f35ba523e"
+  },
+  {
+   "backup": "IntroductionData.pck",
+   "game": "Parameter/IntroductionData.pck",
+   "sha256": "81bcd571617095425a6f20b4b45684889f781207e6aa5df26caf2197b321867a"
+  },
+  {
+   "backup": "ItemData.pck",
+   "game": "Parameter/ItemData.pck",
+   "sha256": "f2f05bd9ef274df17146b616037cb870d9b7b3140dd12fec4c2d30262353aedf"
+  },
+  {
+   "backup": "JoinSkillData.pck",
+   "game": "Parameter/JoinSkillData.pck",
+   "sha256": "914bab889fa22c1b3a1801b35486420a5b54acff0c3ef04866e9d98f5cc9abdc"
+  },
+  {
+   "backup": "KeyHelpData.pck",
+   "game": "Parameter/KeyHelpData.pck",
+   "sha256": "e1d661771249976eecd7e130e2e6326572322534c585bf67d104cd95a5d3a86e"
+  },
+  {
+   "backup": "Lesson.pck",
+   "game": "Script/Lesson.pck",
+   "sha256": "5cfe3f00b13fd360298c33ad23464817531c714d6c79f05d0b0d96617a2b03dc"
+  },
+  {
+   "backup": "LvExpSkptData.pck",
+   "game": "Parameter/LvExpSkptData.pck",
+   "sha256": "8bca84b83fc6e4bd4137a46ec6c8025ede39ece758e645454b3119cb70caf651"
+  },
+  {
+   "backup": "MagicSkillData.pck",
+   "game": "Parameter/MagicSkillData.pck",
+   "sha256": "03c41d52665c2e80fd3e9d45be26b0d4e0ecdcf28bad83f606cb3edf0a9f65f2"
+  },
+  {
+   "backup": "PartySkillData.pck",
+   "game": "Parameter/PartySkillData.pck",
+   "sha256": "8b750a66a6ddf413395ab698a2a369b0c3e0fd6ff65dbc3a2e0b2c43d3383702"
+  },
+  {
+   "backup": "PassiveSkillData.pck",
+   "game": "Parameter/PassiveSkillData.pck",
+   "sha256": "4e839d7c51cf1ddc3c01e05dfa5184e2366c6e0349fde184d1bd87295b0b5e39"
+  },
+  {
+   "backup": "QuestData.pck",
+   "game": "Parameter/QuestData.pck",
+   "sha256": "bde2d24266319c1d12e802f8a2830ee3e91787d114aae827dc6e663dbe9cf48e"
+  },
+  {
+   "backup": "QuestRankData.pck",
+   "game": "Parameter/QuestRankData.pck",
+   "sha256": "0ca10e94acf5f9399eadb8eadecb352d6de908697a4b7f35eca2a5f5677f7449"
+  },
+  {
+   "backup": "SEV.pck",
+   "game": "Parameter/SEV.pck",
+   "sha256": "20388a9babe63bee5d8a983d6de4f90634694b30f69d32e87f7586e27f9134f6"
+  },
+  {
+   "backup": "SealScrollData.pck",
+   "game": "Parameter/SealScrollData.pck",
+   "sha256": "e5091ba15b2627b2d83ba57df50f1ed9b3a76c1feb7f538e8269247c842964b5"
+  },
+  {
+   "backup": "ShopBar.pck",
+   "game": "Script/ShopBar.pck",
+   "sha256": "a0cc6ef6210e6b9fe0de46ca60291e3a63e94c8b0e356bcd1dfd56f3bb35f9a2"
+  },
+  {
+   "backup": "ShopBlacksmith.pck",
+   "game": "Script/ShopBlacksmith.pck",
+   "sha256": "1944c1050671e669b0973623a57b654e7dede09d24e79911d00d1019a1f4f66a"
+  },
+  {
+   "backup": "ShopQuest.pck",
+   "game": "Script/ShopQuest.pck",
+   "sha256": "580322a79380315a59b4d7ff9e994da292ec3523bf5394a978d5271782ed63fc"
+  },
+  {
+   "backup": "ShopStore.pck",
+   "game": "Script/ShopStore.pck",
+   "sha256": "3509cd7ee36c051002a6ed8f1e9d36772477f74b1fa8126969538bf042f898c0"
+  },
+  {
+   "backup": "ShopVoiceData.pck",
+   "game": "Parameter/ShopVoiceData.pck",
+   "sha256": "4d9191880fa2bd018ac487087e46b7278013cde5fd5aa4297361959688a74a90"
+  },
+  {
+   "backup": "StringData.pck",
+   "game": "Parameter/StringData.pck",
+   "sha256": "f28be02f8dde2f07271f9a85f904f38bf03e7973da00306e8b2c9b6cca590bd2"
+  },
+  {
+   "backup": "Teaching.pck",
+   "game": "Script/Teaching.pck",
+   "sha256": "99ba1179532f02aebcd284300ac26082fea7a33ab486a12fb27a3d6a71d5e5aa"
+  },
+  {
+   "backup": "TechniqueSkillData.pck",
+   "game": "Parameter/TechniqueSkillData.pck",
+   "sha256": "3a4f159e1005e70f1dfa97e4b4be0147943d5430894b8c2b10208c45f2c6b159"
+  },
+  {
+   "backup": "TrapData.pck",
+   "game": "Parameter/TrapData.pck",
+   "sha256": "d62161ae34f2edd2c28070e46f764d72b77d08cca8c3c42163da1f86f3825838"
+  },
+  {
+   "backup": "TreasureBoxData.pck",
+   "game": "Parameter/TreasureBoxData.pck",
+   "sha256": "09d294e5112e199402ecaf202e966dd4758924ddd2b5fcbc56040f62eb86f694"
+  },
+  {
+   "backup": "TrophyData.pck",
+   "game": "Parameter/TrophyData.pck",
+   "sha256": "58c7582e25e78e5512a802e0076ceb5e320e25daa180679e31548ac2994166f3"
+  },
+  {
+   "backup": "UniqueSkillData.pck",
+   "game": "Parameter/UniqueSkillData.pck",
+   "sha256": "4f59078138f5edd4630e2da55da46687429d4385d09e7b78a1c826433c937608"
+  },
+  {
+   "backup": "WeaponEffectSequenceData.pck",
+   "game": "Parameter/WeaponEffectSequenceData.pck",
+   "sha256": "589611d2ad3b90541c017040e9d0eb48418d04dd988819fbdafaf12d8fffddda"
+  },
+  {
+   "backup": "WeaponRankData.pck",
+   "game": "Parameter/WeaponRankData.pck",
+   "sha256": "38d6e46a363d378c6d22766aa6c7ed9114e94e8553ea2166bbd165c5c9507081"
+  },
+  {
+   "backup": "Script/Battle.pck",
+   "game": "Script/Battle.pck",
+   "sha256": "7af0b7e72369cf667c349cfb75eec06ae9c9a88ca37cb9be9251fb8b6697684c"
+  },
+  {
+   "backup": "Script/Item0885.pck",
+   "game": "Script/Item0885.pck",
+   "sha256": "14b07ac1f1bdfedf44ab7e35af308655e063bcd9bdd146153e45eca8440c91e3"
+  },
+  {
+   "backup": "Script/SEV.pck",
+   "game": "Script/SEV.pck",
+   "sha256": "734087d8a90497743b565996e745c1c75e803c0653fb2007443459061da99fa4"
+  },
+  {
+   "backup": "Script/ShopCostume.pck",
+   "game": "Script/ShopCostume.pck",
+   "sha256": "94d7977dba727f70cb9cb42a1d7be7af7b0db945b9a565942c2274d9e9b4e462"
+  },
+  {
+   "backup": "Script/ShopDarkPeddler.pck",
+   "game": "Script/ShopDarkPeddler.pck",
+   "sha256": "2467a34c003eae405038a22c645724cbb6fb0c01ac903ef4e9a877fe1fdaa73d"
+  },
+  {
+   "backup": "Script/ShopIce.pck",
+   "game": "Script/ShopIce.pck",
+   "sha256": "45030450d629079a396d027ea70eb5f31987570451e54f75e2afa5f52535b478"
+  },
+  {
+   "backup": "Script/ShopPeddler.pck",
+   "game": "Script/ShopPeddler.pck",
+   "sha256": "b8f35aed82340a511e19ace68b4f22e36538b6af7f0bb2e54c784541aa858d6f"
+  },
+  {
+   "backup": "Script/ShopRamen.pck",
+   "game": "Script/ShopRamen.pck",
+   "sha256": "4253a4f38bc1a37867254749ef4cd3643a0508208967f5ec78b43ee4151039d6"
+  },
+  {
+   "backup": "Script/evt00.pck",
+   "game": "Script/evt00.pck",
+   "sha256": "37f516a8c49eee9cb6dac137b9564b2c013b17dd7e048863c27c1e34e3f97945"
+  },
+  {
+   "backup": "Script/evt02.pck",
+   "game": "Script/evt02.pck",
+   "sha256": "0f33c415661e6d3245c02a6bcd07c073003b6e40190d73f6580d5327d43bac16"
+  },
+  {
+   "backup": "Script/evt99.pck",
+   "game": "Script/evt99.pck",
+   "sha256": "e070bb8ae2a4262aa44b0096b5faef234aa1563e12558961aae03ac0ff0111b6"
+  },
+  {
+   "backup": "Enemy/Enemy.pck",
+   "game": "Enemy/Enemy.pck",
+   "sha256": "5de6e78d025cbaa843b7cbd6329d961d8153a3df6073fa17b2b5b89393b9bc36"
+  },
+  {
+   "backup": "NPC/NPC.pck",
+   "game": "NPC/NPC.pck",
+   "sha256": "39aa4d7a19566bb5bab1dc6c51be65ac1ea441263f3007f6f03ead46f1636a7c"
+  },
+  {
+   "backup": "Dungeon/Dungeon.pck",
+   "game": "Dungeon/Dungeon.pck",
+   "sha256": "7f07f05ae7280a6763c016a2786ef6875d66935de7cad6100b37845917e8b514"
+  },
+  {
+   "backup": "Summon/Summon.pck",
+   "game": "Summon/Summon.pck",
+   "sha256": "1f5b2747788c3423aa160fefc283e330a23507d584df6495814cf38863bf2332"
+  },
+  {
+   "backup": "Character/Character.pck",
+   "game": "Character/Character.pck",
+   "sha256": "71a38b66f250b4d4ac200045120dddc60f3b2b395d4ea2ff8e51d190e1320ae7"
+  }
+ ]
+}

@@ -2,8 +2,9 @@
 The start is the nearest "push ebp; mov ebp, esp" (or a padding of int3 before code) above the address; the callers
 are the direct calls (E8) of the code that land on it. Indirect calls through a table are not seen."""
 import struct
+import os
 import sys
-sys.path.insert(0, r'C:\Users\user\Personal\Physics\DungeonTraveler2-2\mod_project\tools')
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'tools'))
 from exe_reader import Exe
 
 exe = Exe()

@@ -17,15 +17,35 @@ import sys
 import struct
 import functools
 
+import mod_config
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXE_PATH = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'DT22_en_unwrapped.exe')
+# the program file the formulas were read from while the mod was made
+EXE_PATH = os.path.join(mod_config.game_dir(), 'DT22_en_unwrapped.exe')
 # the copy tools/exe_patch.py keeps before it writes into the game file: once it exists, formulas are read from it
-VANILLA_PATH = os.path.join(BASE_DIR, 'backups', 'exe', 'DT22_en_unwrapped.vanilla.exe')
+COPY_DIR = os.path.join(BASE_DIR, 'backups', 'exe')
+VANILLA_PATH = os.path.join(COPY_DIR, 'DT22_en_unwrapped.vanilla.exe')
 
 
 def reading_path():
-    """The unwrapped executable as the game shipped it, whatever the game folder holds now."""
-    return VANILLA_PATH if os.path.exists(VANILLA_PATH) else EXE_PATH
+    """The program file the formulas are read from, as the game shipped it whenever that can be had: the file
+    config.json names; else the vanilla copy of the file above, or that file; else any vanilla copy the patch tool
+    keeps; else the first .exe of the game folder. The file the shop delivers holds the same code and the same tables
+    at the same addresses (its .data section is identical, its code differs in 48 bytes of its start-up)."""
+    named = mod_config.formula_exe()
+    if named:
+        return named
+    for path in (VANILLA_PATH, EXE_PATH):
+        if os.path.exists(path):
+            return path
+    copies = sorted(n for n in os.listdir(COPY_DIR) if n.endswith('.vanilla.exe')) if os.path.isdir(COPY_DIR) else []
+    if copies:
+        return os.path.join(COPY_DIR, copies[0])
+    folder = mod_config.game_dir()
+    found = sorted(n for n in os.listdir(folder) if n.lower().endswith('.exe')) if os.path.isdir(folder) else []
+    if not found:
+        raise SystemExit(f'No program file of the game in {folder}: name the folder of the game in {mod_config.CONFIG_PATH}.')
+    return os.path.join(folder, found[0])
 
 
 class Exe:

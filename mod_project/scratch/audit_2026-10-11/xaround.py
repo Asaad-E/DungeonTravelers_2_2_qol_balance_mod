@@ -1,7 +1,8 @@
 """Disassemble around the address of a constant found in the code: xaround.py ADDR [BEFORE AFTER]. Tries the starts
 before the address until the listing passes through an instruction that holds it."""
+import os
 import sys
-sys.path.insert(0, r'C:\Users\user\Personal\Physics\DungeonTraveler2-2\mod_project\tools')
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'tools'))
 import capstone
 from exe_reader import Exe
 

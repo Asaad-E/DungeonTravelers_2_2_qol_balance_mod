@@ -14,7 +14,7 @@ Start with `docs/philosophy.md` (why), `docs/dungeontravelers2-2.md` (what was d
 ```text
 DungeonTraveler2-2/
 ├── mod_project/
-│   ├── backups/                 original .pck files; every build reads from here
+│   ├── backups/                 original .pck files; every build reads from here. Not in git: tools/setup_backups.py copies them from your game
 │   ├── data_tables/
 │   │   ├── vanilla_source_of_truth.xlsx   original values, generated, never edited
 │   │   ├── qol_skill_text.xlsx            QoL skill text, edited by hand

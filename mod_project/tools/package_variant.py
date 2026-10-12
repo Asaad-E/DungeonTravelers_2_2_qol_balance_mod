@@ -63,7 +63,7 @@ def program_patch(variant):
     from exe_reader import Exe
     rows = exe_patch.patches(PATCH_SETS[variant])
     tables = []
-    for _, game_file, vanilla_copy in exe_patch.TARGETS:
+    for _, game_file, vanilla_copy in exe_patch.find_targets():
         exe = Exe(vanilla_copy)
         wrong = exe_patch.problems(exe, rows)
         if wrong:

@@ -33,7 +33,8 @@ from pck_handler import PckArchive
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAP_ZIP = os.path.join(BASE_DIR, 'backups', 'Dungeon', 'floor_maps.zip')
-GAME_DUNGEON_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Dungeon')
+import mod_config                       # noqa: E402
+GAME_DUNGEON_DIR = os.path.join(mod_config.data_dir(), 'Dungeon')
 HEADER, CELL = 0x0C, 42
 NO_MAGIC = 2
 

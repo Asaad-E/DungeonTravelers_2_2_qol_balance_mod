@@ -1,8 +1,8 @@
 import os, sys, struct, re, openpyxl
 
-base_dir = r"c:\Users\user\Personal\Physics\DungeonTraveler2-2\mod_project"
-game_param_dir = r"c:\Users\user\Personal\Physics\DungeonTraveler2-2\DungeonTravelers2-2_EN\Data\ENG\Parameter"
-game_script_dir = r"c:\Users\user\Personal\Physics\DungeonTraveler2-2\DungeonTravelers2-2_EN\Data\ENG\Script"
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+game_param_dir = os.path.join(os.path.dirname(base_dir), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Parameter')
+game_script_dir = os.path.join(os.path.dirname(base_dir), 'DungeonTravelers2-2_EN', 'Data', 'ENG', 'Script')
 
 sys.path.insert(0, os.path.join(base_dir, 'tools'))
 from pck_handler import PckArchive, ItemHelper, EquipmentHelper, SkillHelper, SealScrollHelper

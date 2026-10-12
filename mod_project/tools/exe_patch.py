@@ -2,10 +2,13 @@
 Patch of the program files, for the levers classed "Executable" in the sheet Levers.
 
 Every byte it writes is a row of the sheet ExePatches of data_tables/balance_criteria.xlsx: an address, the bytes
-that must be there, the bytes to write, and for a repointed constant the two floats involved. The game folder holds
-two program files, the one the shop delivers (DT22_en.exe, with its protector) and the same program without the
-protector (DT22_en_unwrapped.exe). Their code sits at the same addresses, and both are always written together:
-nothing is written into either unless every row of the set checks in both.
+that must be there, the bytes to write, and for a repointed constant the two floats involved. A game folder may hold
+more than one program file (the one the shop delivers and a copy of the same program under another name). Their code
+sits at the same addresses, and all are always written together: nothing is written into any unless every row of
+the set checks in each.
+
+Which files: every .exe of the game folder that is the program, known by what it holds at the addresses of the
+sheet (each row its old bytes or its new ones); or the files config.json names (tools/mod_config.py).
 
     python mod_project/tools/exe_patch.py check balance     says whether every row matches both program files
     python mod_project/tools/exe_patch.py install balance   keeps a copy of each vanilla file, then writes the set
@@ -28,15 +31,13 @@ import sys
 
 import openpyxl
 
-from exe_reader import Exe, EXE_PATH, VANILLA_PATH
+import mod_config
+from exe_reader import Exe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORKBOOK = os.path.join(BASE_DIR, 'data_tables', 'balance_criteria.xlsx')
-GAME_EXE = os.path.join(os.path.dirname(EXE_PATH), 'DT22_en.exe')
-VANILLA_COPY = os.path.join(BASE_DIR, 'backups', 'exe', 'DT22_en.vanilla.exe')
-# (what the file is, the file of the game, its vanilla copy)
-TARGETS = (('game file', GAME_EXE, VANILLA_COPY), ('unwrapped file', EXE_PATH, VANILLA_PATH))
-SAVE_DIR = os.path.join(os.path.expanduser('~'), 'Documents', 'AQUAPLUS', 'DUNGEON TRAVELERS 2-2_EN')
+COPY_DIR = os.path.join(BASE_DIR, 'backups', 'exe')
+SAVE_DIR = mod_config.save_dir()
 LINE_END = chr(10)
 
 
@@ -52,6 +53,41 @@ def patches(patch_set=None):
         found.append({'id': d['ID'], 'set': d['Set'], 'lever': d['Lever'], 'va': int(d['VA'], 16),
                       'old': bytes.fromhex(d['Old_Hex']), 'new': bytes.fromhex(d['New_Hex']),
                       'float_before': d['Float_Before'], 'float_after': d['Float_After'], 'meaning': d['Meaning']})
+    return found
+
+
+def is_program(path, every_row=None):
+    """Whether a file is the program this sheet was written for: a 32-bit executable in which every row holds its
+    old bytes or its new ones."""
+    every_row = patches() if every_row is None else every_row
+    try:
+        exe = Exe(path)
+        return bool(every_row) and all(exe.read(p['va'], len(p['old'])) in (p['old'], p['new']) for p in every_row)
+    except (OSError, ValueError, StopIteration, struct.error, TypeError):
+        return False
+
+
+def program_files(every_row=None):
+    """The program files of the game: the ones config.json names, else every .exe of the game folder that is the
+    program (is_program). A file the configuration names and that is not the program stops the tool."""
+    listed = mod_config.listed_program_files()
+    if listed:
+        wrong = [p for p in listed if not is_program(p, every_row)]
+        if wrong:
+            raise SystemExit('config.json names a file that is not the program this mod was made for: ' + ', '.join(wrong))
+        return listed
+    folder = mod_config.game_dir()
+    names = sorted(n for n in os.listdir(folder) if n.lower().endswith('.exe')) if os.path.isdir(folder) else []
+    return [os.path.join(folder, n) for n in names if is_program(os.path.join(folder, n), every_row)]
+
+
+def find_targets(every_row=None):
+    """[(the name of the file, the file of the game, its vanilla copy backups/exe/<name>.vanilla.exe)]."""
+    found = [(os.path.basename(p), p, os.path.join(COPY_DIR, os.path.splitext(os.path.basename(p))[0] + '.vanilla.exe'))
+             for p in program_files(every_row)]
+    if not found:
+        raise SystemExit(f'No program file of the game found in {mod_config.game_dir()}: name the folder of the game, or the '
+                         f'files, in {mod_config.CONFIG_PATH} (see config.example.json).')
     return found
 
 
@@ -149,10 +185,11 @@ def planned(label, game_file, copy, rows, every_row):
     return data, []
 
 
-def install(patch_set, targets=TARGETS, rows=None, every_row=None):
+def install(patch_set, targets=None, rows=None, every_row=None):
     """Writes the set into every target, or into none. Returns [(label, path, bytes changed)]."""
     rows = patches(patch_set) if rows is None else rows
     every_row = patches() if every_row is None else every_row
+    targets = find_targets(every_row) if targets is None else targets
     if not rows:
         raise SystemExit(f'Nothing written: no rows in set {patch_set}.')
     for _, game_file, copy in targets:
@@ -180,8 +217,9 @@ def install(patch_set, targets=TARGETS, rows=None, every_row=None):
     return done
 
 
-def restore(targets=TARGETS):
+def restore(targets=None):
     """Puts the vanilla copy of every target back. Returns the labels of the files it put back."""
+    targets = find_targets() if targets is None else targets
     done = []
     for label, game_file, copy in targets:
         if not os.path.exists(copy):
@@ -197,9 +235,10 @@ def restore(targets=TARGETS):
     return done
 
 
-def installed_set(targets=TARGETS, every_row=None):
+def installed_set(targets=None, every_row=None):
     """What every target carries: {label: {row id: 'patched' | 'vanilla' | the bytes found}}."""
     every_row = patches() if every_row is None else every_row
+    targets = find_targets(every_row) if targets is None else targets
     found = {}
     for label, game_file, _ in targets:
         exe = Exe(game_file)
@@ -231,7 +270,7 @@ def keep_saves(label):
 def status():
     carried = installed_set()
     for p in patches():
-        states = ', '.join(f'{label} {carried[label][p["id"]]}' for label, _, _ in TARGETS)
+        states = ', '.join(f'{label} {state[p["id"]]}' for label, state in carried.items())
         print(f"{p['id']} {p['set']} {p['va']:#x} {states}  {p['meaning'][:80]}")
 
 
@@ -240,9 +279,11 @@ def main():
     if command == 'check':
         rows = patches(sys.argv[2])
         found = []
-        for label, game_file, copy in TARGETS:
+        every = find_targets()
+        for label, game_file, copy in every:
             found += [f'{label}: {m}' for m in problems(Exe(copy if os.path.exists(copy) else game_file), rows)]
-        print(LINE_END.join(found) if found else f'{len(rows)} rows of {sys.argv[2]} check in both program files')
+        print(LINE_END.join(found) if found else f'{len(rows)} rows of {sys.argv[2]} check in {len(every)} program '
+              f"file(s): {', '.join(label for label, _, _ in every)}")
     elif command == 'install':
         for label, path, changed in install(sys.argv[2]):
             print(f'{label}: {changed} bytes differ from vanilla in {path}  sha256 {sha(path)[:16]}')
