@@ -1,7 +1,7 @@
 """
 The archives for players, from start to end: both variants built, verified and packaged in one command.
 
-    python tools/release.py
+    python tools/package_all.py
 
 For each variant (qol, balance), stopping at the first step that fails:
     1. tools/build_variant.py <variant> --no-install    builds it from the workbooks and the originals, and verifies it

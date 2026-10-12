@@ -37,7 +37,7 @@ What you will notice when playing:
 - A few outright bugs are fixed. The passive Concentrate, for example, does nothing in the original game.
 - Bosses still hit hard. The party gets more options, not more power.
 
-The full list of changes is in [release/README_Balance.txt](release/README_Balance.txt).
+The full list of changes is in [installer/README_Balance.txt](installer/README_Balance.txt).
 
 Neither version includes game files. The mod is applied to your own copy of the game.
 
@@ -86,7 +86,7 @@ Other commands:
 
 | Command | What it does |
 |---|---|
-| `python tools/release.py` | Builds both variants and writes the two zips to `dist/` |
+| `python tools/package_all.py` | Builds both variants and writes the two zips to `dist/` |
 | `python -m unittest discover -s tests -p "test_*.py"` | Runs the tests |
 | `python tools/exe_patch.py status` | Shows which patches each `.exe` carries |
 

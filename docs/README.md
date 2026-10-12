@@ -35,7 +35,7 @@ data_tables/             every value, rule and wording of the mod (below)
 tools/                   the tools (below)
 sim/                     the battle simulator: the formulas of docs/FORMULAS.md played turn by turn
 tests/                   the unittest suite
-release/                 the README of each variant for players, and the template of the program patch
+installer/               the README of each variant for players, and the template of the program patch
 measures/                the measures and readings a row of a workbook or a document cites: each script says
                          how to run it, each report which script wrote it
 scratch/                 the rest of the working files: one-off scripts and partial results, kept to be read
@@ -63,7 +63,7 @@ Nothing that is a value, a rule or a wording is written in code.
 
 | Group | Tools |
 |---|---|
-| Install | `apply_mod.py` (originals, build and install in one), `setup_backups.py`, `mod_config.py`, `install_variant.py`, `package_variant.py` (the archive for players), `release.py` (both variants built and packaged in one) |
+| Install | `apply_mod.py` (originals, build and install in one), `setup_backups.py`, `mod_config.py`, `install_variant.py`, `package_variant.py` (the archive for players), `package_all.py` (both variants built and packaged in one) |
 | Build | `build_variant.py` (builds and verifies a variant), `balance_values.py` (writes every row of `balance_changes.xlsx`), `balance_readback.py` (reads the built files back against the simulator), `exe_patch.py` (the program patch) |
 | Text | `generate_qol_*_text.py`, `text_checks.py` (every figure in a text against the built file), `rules.py`, `magnitude_words.py`, `weapon_rank_labels.py`, `enchant_values.py`, `shortened_text.py` |
 | Readers of the game | `pck_handler.py`, `extract_vanilla.py`, `enemy_data.py`, `enemy_ai.py`, `npc_data.py`, `summon_data.py`, `doll_data.py`, `class_data.py`, `character_data.py`, `skill_tree_data.py`, `item_effect_data.py`, `floor_data.py`, `map_data.py` |

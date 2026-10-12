@@ -498,7 +498,7 @@ class Package(unittest.TestCase):
                 _, _, before, after, size, start, count = listed[chr(92).join(('Data', 'ENG', sub, name))]
                 self.assertEqual(before, package_variant.sha(original))
                 out_bytes = bytearray()
-                for k in range(int(start), int(start) + int(count)):                # as release/mod_patch.ps1 applies them
+                for k in range(int(start), int(start) + int(count)):                # as installer/mod_patch.ps1 applies them
                     kind, at, length = struct.unpack_from('<3i', ops, 12 * k)
                     out_bytes += (original if kind == package_variant.COPY else blob)[at:at + length]
                 self.assertEqual(bytes(out_bytes), built)

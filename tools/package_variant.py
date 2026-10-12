@@ -6,7 +6,7 @@ Packages a built variant for players, as differences: the archive holds no file 
 Writes dist/DT22_<variant>_<date>.zip, to unpack into the folder of the game:
     Install_<Variant>.bat          applies the variant
     Uninstall_DT22_Mod.bat         puts every file back
-    DT22_Mod/mod_patch.ps1         release/mod_patch.ps1: it checks each file of the game by its SHA-256, keeps a copy,
+    DT22_Mod/mod_patch.ps1         installer/mod_patch.ps1: it checks each file of the game by its SHA-256, keeps a copy,
                                    rebuilds the file of the variant from the original and the differences, and checks
                                    the result. For the balance variant it also patches the program: every .exe of the
                                    folder that holds the original bytes at the places of the sheet ExePatches
@@ -14,7 +14,7 @@ Writes dist/DT22_<variant>_<date>.zip, to unpack into the folder of the game:
                                    row of the program patch (the offset in the file, the bytes before, the bytes after)
     DT22_Mod/<variant>.ops         the steps: (0 copy from the original | 1 take from .dat, offset, length), 12 bytes each
     DT22_Mod/<variant>.dat         the bytes that are not in the original
-    DT22_Mod/README.txt            release/README_<variant>.txt
+    DT22_Mod/README.txt            installer/README_<variant>.txt
 
 Run build_variant.py first: the package is made from build/<variant>/ and the originals of backups/. It is refused if
 a built file is identical to its original (nothing to ship), and every file is rebuilt here from its differences and
@@ -34,7 +34,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
 DIST_DIR = os.path.join(BASE_DIR, 'dist')
-RELEASE_DIR = os.path.join(BASE_DIR, 'release')
+RELEASE_DIR = os.path.join(BASE_DIR, 'installer')
 README_NAMES = {'qol': 'README_QoL.txt', 'balance': 'README_Balance.txt'}
 PATCH_SETS = {'balance': 'balance'}                   # variant -> set of the sheet ExePatches its program patch holds
 PATCH_SCRIPT = 'mod_patch.ps1'
