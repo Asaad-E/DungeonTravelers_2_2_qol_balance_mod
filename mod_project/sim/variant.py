@@ -20,7 +20,9 @@ DOLL_LIFE = 147                    # the life of a doll is effect 147 of its ski
 
 
 def rows(path=CHANGES, states=('decided', 'built', 'checked')):
-    it = openpyxl.load_workbook(path, read_only=True)['Changes'].iter_rows(values_only=True)
+    if os.environ.get('BALANCE_PROPOSED') == '1':      # a measure of the rows still proposed, by any tool, set apart
+        states = tuple(states) + ('proposed',)
+    it =openpyxl.load_workbook(path, read_only=True)['Changes'].iter_rows(values_only=True)
     header = next(it)
     return [dict(zip(header, r)) for r in it if r and r[0] is not None and dict(zip(header, r))['State'] in states]
 
