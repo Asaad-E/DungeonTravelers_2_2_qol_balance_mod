@@ -96,6 +96,7 @@ AILMENT_ENDS = {114: ('dance', 'doll'), 116: ('chant', 'song', 'dance', 'doll'),
 MATERIAL_GUARD = 179
 GENJIMARU, GENJIMARU_ACTION = 427, 107       # 0x48b1f0; the hidden skill of the unit it creates
 GENJIMARU_LIFE = 3                           # 0x48b325: the life the doll constructor is given (push 3)
+ARCANE_CHANCE = 15                           # 0x424766: the roll of Arcane Shield, a figure written in the program
 SHADOW_ATTACK = 2                            # 0x4fe3ca: add eax, eax on the ATK of the shadow
 SHADOW_LIFE = 3                             # 0x437a2e: the life the shadow of Shadow Heart is given (push 3)
 SACRIFICE, MAX_HP_DRAIN, EXTRA_TARGETS = 77, 133, 137
@@ -1475,7 +1476,7 @@ class Battle:
             if target.chant is not None or self.performing(target):
                 self.interrupt(target, amount, critical, action is None or not action.magic)
         if target.unique and target.unique[0] == 447 and unit is not None and not unit.has(307) and amount > 0:
-            if self.rng.randrange(100) < 15:
+            if self.rng.randrange(100) < ARCANE_CHANCE:
                 self.lose_hp(unit, int(amount * target.unique[1]), target)
 
     def interrupt(self, target, amount, critical, physical=True):
