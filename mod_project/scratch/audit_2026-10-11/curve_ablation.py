@@ -37,6 +37,10 @@ def build(case):
     back = sum(GROUPS.values(), ()) if case == 'then' else GROUPS.get(case, ())
     mine = lambda r: str(r['Record']).startswith(back) if back else False      # noqa: E731
     rows = [r for r in now if not mine(r)] + [r for r in then if mine(r)]
+    if case.startswith('evasion '):      # 'evasion 0.04,0.06,...': the ten values of the unique skill of Lizerietta tried
+        tried = [float(x) for x in case.split()[1].split(',')]
+        rows = [dict(r, New=tried[int(r['Level']) - 1]) if str(r['Record']).startswith('Unique 370') and r['Field'] == 'value'
+                else r for r in rows]
     out = variant_mod.apply(data, rows)
     old_roll = case in ('then', 'arcane shield')
     old_rate = case in ('then', 'interruption')
@@ -47,15 +51,16 @@ def build(case):
     return data, out
 
 
-def run(case):
+def run(case, runs=None):
+    """runs: battles a checkpoint (the 40 of the setting check_runs when left out); the result is then kept apart."""
     data, changed = build(case)
     setup = setup_mod.load()
     rows = []
     for cid in PLACES:
-        _, before, after, out = measures.check_change(data, setup, [], [cid], changed=changed)[0]
+        _, before, after, out = measures.check_change(data, setup, [], [cid], runs=int(runs) if runs else None, changed=changed)[0]
         rows.append({'id': cid, 'vanilla': before, 'variant': after, 'out': out})
         print(case, cid, out, flush=True)
-    with open(os.path.join(HERE, f"curve_ablation_{case.replace(' ', '_')}.json"), 'w', encoding='utf-8') as f:
+    with open(os.path.join(HERE, f"curve_ablation_{case.replace(' ', '_').replace(',', '_')}{'_' + str(runs) if runs else ''}.json"), 'w', encoding='utf-8') as f:
         json.dump(rows, f)
 
 
