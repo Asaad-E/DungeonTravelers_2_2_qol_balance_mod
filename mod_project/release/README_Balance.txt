@@ -26,6 +26,14 @@ What changes
 * Quests pay more gold. Seven rare drops fall a little more often, and four strong common enemies
   can be robbed.
 * The bosses the stronger party made too easy hold more HP, the last boss of the story among them.
+* The unique skills of the girls that did little do more (Third Eye Wide, Arcane Shield, Alter
+  Fate, Tranquil Song). Lizerietta has a new one, No Miracles Needed: she may hold on with 1 HP
+  when a hit would fell her.
+* Concentrate works: the game left it without effect. Guts no longer saves a girl who is at
+  1 HP already.
+* A fruit gives a fifth more TP, so a party without a Maid can go on with a full bag.
+* The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
+  mercenary, heals more.
 
 Every skill, item and enchantment shows its new figures in the game.
 
@@ -35,8 +43,9 @@ Install
 2. Copy the folder "Data" of this archive over the folder "Data" of the game
    (the one beside the game's .exe). Accept replacing the files.
 3. Copy "Patch_Program.bat" and "Program_Patch.ps1" into the folder of the game, beside its .exe,
-   and run "Patch_Program.bat". It changes 19 bytes of the program (the EXP by level gap, the
-   Crown, the chance of Arcane Shield and the passive Concentrate, which the game left without effect) and keeps a copy of the file as "<name>.exe.original" first. It writes nothing if the
+   and run "Patch_Program.bat". It changes 25 bytes of the program (the EXP by level gap, the
+   Crown, the chance of Arcane Shield, the passive Concentrate and the chance to hold on with
+   1 HP) and keeps a copy of the file as "<name>.exe.original" first. It writes nothing if the
    program is not the version the mod was made for.
 
 Uninstall

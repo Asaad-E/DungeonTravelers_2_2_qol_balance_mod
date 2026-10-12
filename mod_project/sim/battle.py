@@ -1444,7 +1444,13 @@ class Battle:
     # --- damage taken -------------------------------------------------------------------------------------------
     def take_damage(self, target, amount, action, critical=False):
         unit = action.actor if action is not None else None
-        if amount >= target.hp and target.has(254) and self.roll(target.value(254)):
+        # 0x4238a2 - 0x423901. With row X15 of the sheet ExePatches the roll is skipped at 1 HP, and a hit that
+        # leaves exactly 1 HP rolls too (the same result)
+        if getattr(self.data, 'survival_guard', False):
+            fatal = target.hp > 1 and amount >= target.hp - 1
+        else:
+            fatal = amount >= target.hp
+        if fatal and target.has(254) and self.roll(target.value(254)):
             amount = target.hp - 1
         before = target.hp
         if self.log is not None:
@@ -1818,6 +1824,8 @@ class Battle:
         each with the life of effect 147 plus effect 297 of the owner. The arrows are not dolls of the Doll Master:
         they do not count against Double Puppet, and a new cast replaces the arrows of the one before (A28)."""
         owner = action.actor
+        if owner.side == PARTY and owner.kind != 'member':
+            return self.make_guest_doll(action)
         doll = next((d for d in self.data.dolls if d['skill'] == action.source.id), None)
         if doll is None:
             return
@@ -1838,6 +1846,26 @@ class Battle:
             unit.position = len(self.units)
             unit.next_time = self.time + self.wait(unit)
             self.units.append(unit)
+
+    def make_guest_doll(self, action):
+        """The doll of a guest ally (Marion, Paracas): her attack names the doll by its effect (228 - 233) and its
+        life (147), not by the id of the skill of the Doll Master. One doll at a time. The level its hidden action is
+        read at is not read in the program: taken as the lowest level at which the skill of a member gives that
+        life (docs/FORMULAS.md 11.1, open). The dolls of enemies are not built: nothing of them is read."""
+        owner = action.actor
+        doll = next((d for d in self.data.dolls if d['effect'] is not None and action.has(d['effect'])), None)
+        if doll is None:
+            return
+        life = int(action.value(147, 3) or 3)
+        level = next((k + 1 for k, turns in enumerate(doll['turns']) if turns >= life), len(doll['turns']))
+        for u in [u for u in self.units if u.owner is owner and u.kind == 'doll' and u.alive]:
+            self.remove_doll(u)
+        unit = build_doll(owner, doll, level, self.data)
+        unit.arrow = False
+        unit.life = life
+        unit.position = len(self.units)
+        unit.next_time = self.time + self.wait(unit)
+        self.units.append(unit)
 
     def remove_doll(self, doll):
         doll.alive = False

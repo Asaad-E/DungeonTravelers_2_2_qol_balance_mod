@@ -200,7 +200,14 @@ def balance_data(data, path=CHANGES):
     out = apply(data, rows(path))
     out.arcane_chance = arcane_chance()
     out.interrupt_product = interrupt_product()
+    out.survival_guard = lever_patched('L46')
     return out
+
+
+def lever_patched(lever):
+    """Whether the set balance of the sheet ExePatches holds a row of this lever."""
+    import exe_patch
+    return any(p['lever'] == lever for p in exe_patch.patches('balance'))
 
 
 def interrupt_product():

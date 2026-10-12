@@ -48,7 +48,9 @@ def guest_doll(self, action):
     self.units.append(unit)
 
 
-battle_mod.Battle.make_doll = guest_doll
+# sim/battle.py builds the doll of a guest itself since 2026-10-12 (make_guest_doll): the patch above is kept for DOLL_LEVEL
+if DOLL_LEVEL[0]:
+    battle_mod.Battle.make_doll = guest_doll
 
 
 def build(data, record):

@@ -404,7 +404,9 @@ class ExePatches(unittest.TestCase):
         import shutil
         import tempfile
         from exe_reader import Exe, reading_path
-        folder = tempfile.mkdtemp(prefix='dt22_exe_')
+        # inside the project: this machine refuses to open a program file copied to the temporary folder of Windows
+        os.makedirs(os.path.join(_paths.PROJECT_DIR, 'build'), exist_ok=True)
+        folder = tempfile.mkdtemp(prefix='dt22_exe_', dir=os.path.join(_paths.PROJECT_DIR, 'build'))
         try:
             vanilla = {'game file': exe_patch.VANILLA_COPY if os.path.exists(exe_patch.VANILLA_COPY) else exe_patch.GAME_EXE,
                        'unwrapped file': reading_path()}
@@ -415,7 +417,7 @@ class ExePatches(unittest.TestCase):
                 targets.append((label, os.path.join(folder, name + '.exe'), os.path.join(folder, 'kept', name + '.vanilla.exe')))
             rows = exe_patch.patches('balance')
             done = exe_patch.install('balance', targets)
-            self.assertEqual([d[2] for d in done], [19, 19])
+            self.assertEqual([d[2] for d in done], [25, 25])
             for label, path, copy in targets:
                 self.assertEqual(exe_patch.sha(copy), exe_patch.sha(vanilla[label]))
                 self.assertEqual(exe_patch.problems(Exe(path), rows, expect='new'), [])

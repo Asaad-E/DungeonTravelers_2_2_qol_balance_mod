@@ -563,6 +563,12 @@ petrified unit gains half its DEF and loses half its AGI.
 TP Conversion and the enchantments 72 and 73 turn part of the damage a unit takes into TP; Resuscitate raises a fallen
 unit at `int(max HP * value)`; Stamina is checked against a share of max HP. The sheet has the figures.
 
+Effect 254 (Guts; on the Balance variant also the unique skill of Lizerietta), `0x42389d - 0x423901`: when the HP of
+the target minus the damage is 0 or less, the first status of effect 254 in its list rolls `value * 100`, and on a
+success the damage becomes HP - 1. As shipped it rolls at 1 HP too, so a unit can hold on again and again. Row X15
+of the sheet `ExePatches` (lever L46, Balance variant) skips the roll at 1 HP: the test becomes "HP - 2 >= damage,
+unsigned", which also rolls for a hit that leaves exactly 1 HP, with the same result. No enemy has the effect.
+
 ### 12.8 Songs and dances (`0x48bf90`)
 
 A song or a dance is applied with its value plus the bonus of its performer: the value of Song Bonus or Dance Bonus
