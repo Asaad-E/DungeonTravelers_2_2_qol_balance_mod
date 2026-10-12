@@ -18,10 +18,14 @@ NOTES = {
     'Positive Trance': ' The simulator holds Pep at 100; she was played at Pep 130, the most it can be, so this is the '
                        'most the skill gives: +6% damage at rank 5 - 6, +15% at rank 9, +30% crowned (the guide measured '
                        'about +15% at level 90)',
-    'Shadow Heart': ' The fault the Japanese page tells (the attack of the shadow falling back when it drains HP or TP) '
-                    'is neither read in the program nor played',
-    'Third Eye Wide': ' The program draws one of seven results, the dispel among them (0x43697b); the Japanese page '
-                      'says the dispel never fires in version 1.05 and the English guide says it does: not settled',
+    'Shadow Heart': ' Played since 2026-10-12 as read (scratch/qol_fields_reading.md 5, checked): the shadow has the '
+                    'stats of its owner at that moment with twice the ATK, her passives, none of the statuses techniques '
+                    'put, a life of 3. The fault the Japanese page tells (its attack falling back after a drain) is not '
+                    'in the program by that reading',
+    'Third Eye Wide': ' Its seventh result, the dispel, removes nothing: 0x47ee6f jumps over the routine '
+                      '(scratch/qol_fields_reading.md 7, checked), as the Japanese page says; played so since 2026-10-12',
+    'Did You Call for Me?': ' Played since 2026-10-12 as read: the second action belongs to the same turn, so her '
+                            'statuses do not lose a turn between the two (Power Charge serves both blows)',
     'Usurper of Souls': ' It only acts on what an enemy summons; which of these five fights hold a summoner was not looked at',
     'Demon Wall': ' It cuts the damage of demons, undead and apparitions: Samael (C38) and Melek Taus (P27) are demons; the race of the others was not checked against its list',
 }

@@ -186,8 +186,8 @@ FIELD_DOCS = [
      'GameFAQs speed values'),
     ('SkillLevels', 'cast', 'Magic 0xD4', '10 x float', 'Chant time multiplier', 'Verified',
      'GameFAQs cast values'),
-    ('SkillLevels', 'arr_0xFC', 'Magic 0xFC', '10 x float', 'Magic accuracy', 'By vanilla text',
-     'Rises with level in 30 of the 35 spells whose LvUp line says "Accuracy UP"'),
+    ('SkillLevels', 'arr_0xFC', 'Magic 0xFC', '10 x float', 'Magic accuracy', 'Verified',
+     'Read by the hit chance of a spell at 0x44d590, by spell level (scratch/qol_fields_reading.md 3; docs/FORMULAS.md 3)'),
     ('SkillLevels', 'effect_N', 'Technique 0xE4, Magic 0x12C, Passive 0x5C (+0x30 per slot)',
      'id + 10 values + tail', 'Effect slot. Effect_ID is resolved in the Effects sheet.', 'Verified',
      'Effect count field equals used slots in all 312 skills'),
@@ -207,7 +207,8 @@ FIELD_DOCS = [
     ('Items', 'Sell_Price', 'ItemData 0x20', 'int', 'Sell value (buy / 3)', 'Inferred', ''),
     ('Items', 'EffN_Type / EffN_Value', 'ItemData 0x24 (+8 per pair)', 'int + float',
      'Up to 4 effect pairs. Types: ' + ', '.join(f'{k}={v}' for k, v in ITEM_EFFECT_NAMES.items()),
-     'Partly verified', 'Vanilla descriptions; pairs 3-4 not understood'),
+     'Verified', 'Pairs 1 and 2 act when the target is a member of the party, pairs 3 and 4 when it is an enemy, never '
+     'the four together (0x55b550, 0x55b5b0; scratch/qol_fields_reading.md 1). The types are named from the vanilla texts'),
     ('Equipment', 'Category_Code', 'EquipmentData 0x20', 'int', 'Equipment slot', 'Verified', 'Unidentified name string'),
     ('Equipment', 'Rank_Idx', 'EquipmentData 0x4C', 'int', 'Index into WeaponRanks (-1 for non-weapons)', 'Verified',
      'Range 0-11 on weapons only'),
@@ -237,9 +238,9 @@ FIELD_DOCS = [
      '0x44aa49 and 0x44d5c0 read 0x38 at the start of the hit chance; 0x44b497 adds 0x3C to the modifiers; 0x557560 returns int(0x40)'),
     ('EnemyAttacks', 'EffN_ID / Value / Tail', 'EnemyAttackData 0x4C (+12 per slot)', 'int + number + int',
      'Effect slots (same effect ids as skills)', 'Verified', 'Effect count equals used slots in all 2375 entries'),
-    ('FoodMenu', 'EffN_ID / Value', 'FoodMenuData 0x20 (+8 per pair)', 'int + float', 'Meal effects', 'By the player guide',
-     'Effects 62, 63 and 64 hold tenths of max HP and TP: the DT2-2 wiki lists every meal with the same figure '
-     '("HP 2/10" for a stored 2). Not read in the program'),
+    ('FoodMenu', 'EffN_ID / Value', 'FoodMenuData 0x20 (+8 per pair)', 'int + float', 'Meal effects', 'Verified',
+     'Item effect types 62, 63 and 64, not skill effects: int(max HP or TP * value / 10) to each member (0x512f37; '
+     'scratch/qol_fields_reading.md 2). The DT2-2 wiki lists every meal with the same figure'),
     ('Raw_*', 'w_0x..', 'JoinSkill / PartySkill / SealScroll / Class', 'int/float',
      'Header words not decoded yet (string pointers included)', 'Unknown', ''),
 ]

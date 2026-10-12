@@ -96,7 +96,8 @@ AILMENT_ENDS = {114: ('dance', 'doll'), 116: ('chant', 'song', 'dance', 'doll'),
 MATERIAL_GUARD = 179
 GENJIMARU, GENJIMARU_ACTION = 427, 107       # 0x48b1f0; the hidden skill of the unit it creates
 GENJIMARU_LIFE = 3                           # 0x48b325: the life the doll constructor is given (push 3)
-SHADOW_LIFE = 3                              # 0x437a2e: the life the shadow of Shadow Heart is given (push 3)
+SHADOW_ATTACK = 2                            # 0x4fe3ca: add eax, eax on the ATK of the shadow
+SHADOW_LIFE = 3                             # 0x437a2e: the life the shadow of Shadow Heart is given (push 3)
 SACRIFICE, MAX_HP_DRAIN, EXTRA_TARGETS = 77, 133, 137
 SAMSARA_STEP = 50                            # 0x438f1e: imul 0x32 on rand(2) + 1
 SPECIAL_SLEEP = (143, 10.0, 5)               # 0x484150: a sleep command of value 10.0 (0x4841da), recovery 5 (0x484201)
@@ -478,6 +479,7 @@ class Battle:
         self.actions += 1
         unit.turns_taken += 1
         unit.defending = False
+        again = getattr(unit, 'extra_turn', False)
         # state 0: Esarhaddon
         if unit.has(311):
             for effect in ESARHADDON_ORDER[:int(unit.value(311))]:
@@ -491,7 +493,7 @@ class Battle:
             if other.unique and other.unique[0] == 345 and self.roll(other.unique[1]):
                 effect = self.rng.choice((113, 115, 116, 114, 117, 118, 74))
                 if effect == 74:
-                    self.dispel(unit)
+                    pass        # the seventh result removes nothing: 0x47ee6f jumps over the dispel (scratch/qol_fields_reading.md 7)
                 else:
                     self.apply_ailment(other, unit, effect, 0.75, None)
         acted = False
@@ -504,7 +506,9 @@ class Battle:
             if action is not None:
                 acted = True
                 self.perform(action)
-        self.end_of_turn(unit, acted, ticks=lost != 'skip')
+        # an action gained by Double or Triple Action or by Did You Call for Me? belongs to the same turn: the statuses
+        # of the unit run their per-turn method once, after the first (0x439103; scratch/qol_fields_reading.md 6)
+        self.end_of_turn(unit, acted, ticks=lost != 'skip' and not again)
         self.undaunted()
 
     def before_action(self, unit):
@@ -535,6 +539,14 @@ class Battle:
         time for each owner (0x43793b - 0x4379f5)."""
         unit = build_doll(owner, {'name': owner.name + "'s shadow", 'turns': [SHADOW_LIFE], 'range': None,
                                   'actions': []}, 1)
+        # 0x4fd0b0 copies the stats its owner has at that moment and 0x4fe3c1 - 0x4fe3d2 doubles the ATK; the passives
+        # stay (Double and Triple Attack among them), the ailments and the statuses of techniques do not
+        # (0x4fe337 - 0x4fe3bf; scratch/qol_fields_reading.md 5)
+        unit.base = {s: owner.stat(s) for s in unit.base}
+        unit.base['atk'] *= SHADOW_ATTACK
+        unit.passives = dict(owner.passives)
+        unit.enchants = dict(owner.enchants)
+        unit.swing = owner.swing
         unit.shadow_of = owner
         unit.position = len(self.units)
         unit.next_time = self.time + self.wait(unit)

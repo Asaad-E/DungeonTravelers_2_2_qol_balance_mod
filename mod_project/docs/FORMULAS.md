@@ -728,6 +728,16 @@ Each unique skill is a status of one effect, and its value by level is its chanc
     Shadow Heart          before her action: a unit of her own joins to attack
     Arcane Shield         the roll is 15 in 100, written in the program; the value is the share of the damage sent back
 
+Read on 2026-10-12 (`scratch/qol_fields_reading.md` 5 to 7, checked against the program):
+
+* **Shadow Heart**: the shadow takes the stats its owner has at that moment (`0x4fd0b0`) with twice the ATK
+  (`0x4fe3ca`), keeps her passives and loses the ailments and the statuses that techniques put (`0x4fe337 - 0x4fe3bf`);
+  its life is 3 (`0x437a2e`).
+* **Did You Call for Me?**: the second action belongs to the same turn, so the statuses of the unit do not lose a
+  turn between the two, and a flag keeps it from firing twice in a row.
+* **Third Eye Wide**: its seventh result, the dispel, removes nothing (`0x47ee6f` jumps over the routine).
+* **Forerunner**: one roll for each chanted command (`0x4176a0`, called at `0x41d69c` and `0x419c55`).
+
 Without a roll: Positive Trance (2.4), Elbow Grease (2.2), Wreathed in Glory (adds to the speed of her skills), Maximum
 Maid (the bonus of maid skills), Demon Wall (less damage to its whole side, 16.8), Yearning (0.01 per point on each class
 modifier).
@@ -794,6 +804,11 @@ An item has up to four (type, value) pairs. The program turns each into an objec
   had type 6 curing all and type 7 doing nothing until then.
 * Types 53 and 54 deal `int(max HP of the target * value)`, never more than 100 (`0x511b78`).
 * Type 89 takes a twentieth of the party's gold, at least 1 (`0x51438a`); the value the item stores is not used.
+* **Which pairs act** (`0x55b550`, `0x55b5b0`; read on 2026-10-12, `scratch/qol_fields_reading.md` 1): the first two
+  pairs when the target is a member of the party, the last two when it is an enemy, never the four together. Hipanera
+  Tea gives a member 50 HP and 20 TP and an enemy 50 HP.
+* A meal of the restaurants holds item effect types, not skill effects: 62, 63 and 64 restore
+  `int(max * value / 10)` of HP, of TP, or of both to each member (`0x512f37`).
 * Types 56, 57, 60 and 61 act only on some enemies (a list of 23 ids, or a race) and then create an ailment for 5
   turns; they were not followed further.
 
