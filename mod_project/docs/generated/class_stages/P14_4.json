@@ -3,45 +3,45 @@
  "roles": {
   "sage": {
    "won": 0.925,
-   "time": 9.580816345756315,
-   "time_won": 9.994335644422971,
+   "time": 9.25309003575965,
+   "time_won": 9.640036930913062,
    "share": 0.0,
    "character": "Fiora",
    "level": 79,
    "class": "Sage"
   },
   "kunoichi": {
-   "won": 0.925,
-   "time": 8.954561808495935,
-   "time_won": 9.085219151576576,
-   "share": 0.18464337010877424,
+   "won": 0.95,
+   "time": 8.820549256812296,
+   "time_won": 8.824825577719297,
+   "share": 0.1714419853844178,
    "character": "Tsurara",
    "level": 79,
    "class": "Kunoichi"
   },
   "mistress": {
-   "won": 0.975,
-   "time": 9.50289475699384,
-   "time_won": 9.056137507735041,
-   "share": 0.08073283162871046,
+   "won": 1.0,
+   "time": 9.389301458229166,
+   "time_won": 9.389301458229166,
+   "share": 0.07205166562875705,
    "character": "Conette",
    "level": 79,
    "class": "Mistress"
   },
   "etoile": {
    "won": 0.975,
-   "time": 9.449294214341759,
-   "time_won": 9.566168692200854,
-   "share": 0.00040258579877187016,
+   "time": 9.028977895320924,
+   "time_won": 9.135075031666666,
+   "share": 0.0003883765222845171,
    "character": "Ist",
    "level": 79,
    "class": "Etoile"
   },
   "joker": {
-   "won": 0.95,
-   "time": 7.899901852291011,
-   "time_won": 8.200646149473684,
-   "share": 0.2375257816551056,
+   "won": 0.975,
+   "time": 7.893969625583004,
+   "time_won": 8.040491325448718,
+   "share": 0.22847339083403245,
    "character": "Mefmera",
    "level": 79,
    "class": "Joker"

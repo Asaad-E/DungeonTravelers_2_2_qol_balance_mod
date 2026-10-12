@@ -3,18 +3,18 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 6.73001130245698,
-   "time_won": 6.73001130245698,
-   "share": 0.2834086910157621,
+   "time": 6.73054592745698,
+   "time_won": 6.73054592745698,
+   "share": 0.28307790595254534,
    "character": "Mefmera",
    "level": 18,
    "class": "Trickster"
   },
   "valkyrie": {
    "won": 1.0,
-   "time": 5.625912280241488,
-   "time_won": 5.625912280241488,
-   "share": 0.2544096256839089,
+   "time": 5.614538717741488,
+   "time_won": 5.614538717741488,
+   "share": 0.25757833731469815,
    "character": "Alisia",
    "level": 18,
    "class": "Paladin"
@@ -30,9 +30,9 @@
   },
   "soul summoner": {
    "won": 1.0,
-   "time": 6.560335398065678,
-   "time_won": 6.560335398065678,
-   "share": 0.3359196369745659,
+   "time": 6.5920586688990115,
+   "time_won": 6.5920586688990115,
+   "share": 0.3399139743996603,
    "character": "Lilian",
    "level": 18,
    "class": "Doll Master"

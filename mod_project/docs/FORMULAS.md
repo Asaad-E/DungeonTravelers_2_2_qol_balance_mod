@@ -734,7 +734,9 @@ Read on 2026-10-12 (`scratch/qol_fields_reading.md` 5 to 7, checked against the 
   (`0x4fe3ca`), keeps her passives and loses the ailments and the statuses that techniques put (`0x4fe337 - 0x4fe3bf`);
   its life is 3 (`0x437a2e`). The statuses of techniques are those whose skill is found in the map `0x738a5c`
   (records of 0x90 words, the technique file): Power Charge, Berserk and War Cry go, Brave and the songs stay. Both
-  guides say Power Charge serves its three blows; the code read says it does not.
+  guides say Power Charge serves its three blows; the code read says it does not. The doubled ATK is written into
+  the stored stat of the shadow, which would be lost if its stats were worked out again: taken as kept for its life
+  (not read), so what Berserk or War Cry gave its owner at that moment stays in its ATK.
 * **Did You Call for Me?**: the second action belongs to the same turn, so the statuses of the unit do not lose a
   turn between the two, and a flag keeps it from firing twice in a row.
 * **Third Eye Wide**: its seventh result, the dispel, removes nothing (`0x47ee6f` jumps over the routine).
@@ -744,8 +746,11 @@ Read on 2026-10-12 (`scratch/qol_fields_reading.md` 5 to 7, checked against the 
   Clearance at `0x436bd5`); the step counter was already raised (`0x437364`), so the turn then goes on with the
   steps after it and the own action of the bearer. A report of another reader said the action of the bearer is
   replaced: the counter says it is not, and the Japanese pages 207 and 334 describe a bearer that kills one member
-  before each of its actions. What the linked attack does to its target (a death that instant death immunity or
-  earth resistance stops, by those pages) is not read, and the simulator does not play the passive.
+  before each of its actions. The linked attack is the passive itself: when the passives of an enemy are set up its
+  id is given to the status (`0x4f20a4`), and record 1580 holds nothing but effect 319 of kind 0 and value 1, no power
+  and no instant death effect. So the death those pages tell (stopped by instant death immunity or earth resistance)
+  is not in the data: it is in the code that runs that action, which was looked for on 2026-10-12 and not found. The
+  simulator does not play the passive.
 * **Forerunner**: one roll for each chanted command (`0x4176a0`, called at `0x41d69c` and `0x419c55`).
 
 Without a roll: Positive Trance (2.4), Elbow Grease (2.2), Wreathed in Glory (adds to the speed of her skills), Maximum
