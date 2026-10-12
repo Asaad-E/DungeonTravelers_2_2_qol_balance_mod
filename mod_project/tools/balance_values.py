@@ -16,6 +16,7 @@ A row is one value of one record. Each kind of row has its address here, with th
     sp_curve      LvExpSkptData: skill points of a level (0x08)
     equipment     EquipmentData: ATK 0x24, upgrade rate 0x3C, class mask 0x40, innate enchantments 0x5C (count), 0x60
     sealbooks     SealScrollData: number of enchantments 0x1C and their ids 0x20
+    items         ItemData: the value of one of its four pairs (type, value) from 0x24, named by its type
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
 
@@ -58,6 +59,7 @@ ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = 0x48, 0x4C, 12
 EQUIPMENT = {'ATK (base)': (0x24, 'i'), 'upgrade rate': (0x3C, 'f'), 'class bitmask': (0x40, 'I')}
 EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = 0x5C, 0x60, 4
 SEAL_COUNT, SEAL_ENCHANTS, SEAL_SLOTS = 0x1C, 0x20, 4
+ITEM_PAIRS, ITEM_PAIR_COUNT = 0x24, 4            # (type int, value float) pairs of an item (tools/text_checks.py)
 ENCHANT_FLAGS = 0x20
 SP_LEVEL, SP_POINTS = 0x00, 0x08
 # QuestData: the kind of the reward (0x55e210 - 0x55e2a0 test it against 0, 1, 2, 3) and its amount (0x55e300);
@@ -340,6 +342,22 @@ def equipment_row(packs, row):
         raise Refused(f'unknown equipment field {field!r}')
 
 
+def item_row(packs, row):
+    """Field 'effect <type> value': the value of the first pair of the item that holds that type."""
+    iid = int(str(row['Record']).split()[0])
+    pack, name = 'ItemData.pck', f'ItemData_{iid:04d}.bin'
+    found = re.match(r'effect (\d+) value', str(row['Field']))
+    if not found:
+        raise Refused(f"unknown item field {row['Field']!r}")
+    buf = packs.entry(pack, name)
+    for k in range(ITEM_PAIR_COUNT):
+        if struct.unpack_from('<i', buf, ITEM_PAIRS + 8 * k)[0] == int(found.group(1)):
+            packs.write(row, (pack, name, None, ITEM_PAIRS + 8 * k + 4), 'f', number(row['New']),
+                        vanilla=number(row['Vanilla']))
+            return
+    raise Refused(f'the item has no pair of type {found.group(1)}')
+
+
 def sealbook_row(packs, row):
     found = re.search(r'\((\d+)\)\s*$', str(row['Record']))
     if not found:
@@ -381,7 +399,8 @@ def quest_row(packs, row):
 
 
 WRITERS = {'skills': skill_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
-           'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row}
+           'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row,
+           'items': item_row}
 
 
 def apply(rows=None, backup_dir=BACKUP_DIR):

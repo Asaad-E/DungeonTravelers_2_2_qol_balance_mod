@@ -146,6 +146,13 @@ def apply(data, changes):
             e, kind, v = attack.effects[k]
             _check(row, v)
             attack.effects[k] = (e, kind, new)
+        elif table == 'items':
+            # 'effect 1 value': the value of the first pair of that type of the item
+            item = out.items[int(record.split()[0])]
+            kind = int(field.split()[1])
+            at = next(k for k, (t, _) in enumerate(item['effects']) if t == kind)
+            _check(row, item['effects'][at][1])
+            item['effects'] = [(t, float(new) if k == at else v) for k, (t, v) in enumerate(item['effects'])]
         elif table == 'quests':
             continue                    # the simulator has no quests; tools/balance_values.py writes and checks the row
         elif table == 'sealbooks':

@@ -116,7 +116,7 @@ VARIANTS = {
                 'joint_skill_text': 'qol_joint_skill_text.xlsx',
                 'class_text': 'qol_class_text.xlsx',
                 'numeric_changes_allowed': False, 'values': True,
-                'regenerated': ('skill_text', 'enemy_attack_text'),
+                'regenerated': ('skill_text', 'enemy_attack_text', 'item_text'),
                 'tutorial_text': 'balance_tutorial_text.xlsx',
                 'enchant_overrides': 'balance_enchant_text.xlsx'},
 }
@@ -1018,6 +1018,7 @@ def prepare_values(name, variant, problems):
     import balance_readback
     import generate_qol_skill_text
     import generate_qol_enemy_attack_text
+    import generate_qol_item_text
     from sim import data as sim_data
     from sim.variant import balance_data
     base = os.path.join(BUILD_DIR, name, 'base')
@@ -1042,10 +1043,12 @@ def prepare_values(name, variant, problems):
         return {}, {}
     print('[0b] Read back: the built packs hold what the simulator plays (' + ', '.join(f'{n} {k}' for k, n in compared.items()) + ')')
     paths = {'skill_text': os.path.join(tables, 'skill_text.xlsx'),
-             'enemy_attack_text': os.path.join(tables, 'enemy_attack_text.xlsx')}
+             'enemy_attack_text': os.path.join(tables, 'enemy_attack_text.xlsx'),
+             'item_text': os.path.join(tables, 'item_text.xlsx')}
     for key, module, sources in (
             ('skill_text', generate_qol_skill_text, {'SOURCE_PATH': os.path.join(tables, 'source_of_truth.xlsx')}),
-            ('enemy_attack_text', generate_qol_enemy_attack_text, {'BACKUP_PATH': os.path.join(base, ENEMY_PCK)})):
+            ('enemy_attack_text', generate_qol_enemy_attack_text, {'BACKUP_PATH': os.path.join(base, ENEMY_PCK)}),
+            ('item_text', generate_qol_item_text, {'BACKUP_PATH': os.path.join(base, ITEM_PCK)})):
         stopped = regenerate_text(module, os.path.join(TABLES_DIR, variant[key]), paths[key],
                                   dict(sources, OUTPUT_PATH=paths[key]),
                                   os.path.join(TABLES_DIR, 'balance_skill_text.xlsx') if key == 'skill_text' else None)
