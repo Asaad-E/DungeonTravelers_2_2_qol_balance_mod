@@ -57,6 +57,8 @@ Nothing that is a value, a rule or a wording is written in code.
 | `qol_*_text.xlsx` | The text of the QoL variant: skills, enchantments, items, enemy attacks, meals, party and joint skills, classes. |
 | `balance_*_text.xlsx` | The boxes the Balance variant words by hand where its values differ. |
 | `backups_manifest.json` | The original files the tools read, with the hash each must have. |
+| `game_profile.json` | What is particular to this game outside its records: the names of its folders, of its program file and of the archives for players. |
+| `record_layouts.json` | Where each field sits in each record of the game. Another game of the same engine is another pair of these two files. |
 
 ## Tools (`tools/`)
 

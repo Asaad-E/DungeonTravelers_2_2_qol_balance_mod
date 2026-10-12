@@ -34,7 +34,8 @@ from pck_handler import PckArchive
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHARACTER_PCK = os.path.join(BASE_DIR, 'backups', 'Character', 'Character.pck')
 PEP_MIN, PEP_MAX = 70.0, 130.0                      # 0x4f69e0
-PEP_OFFSET, PEP_COUNT = 0x3C, 21
+from game_profile import layout                           # noqa: E402
+PEP_OFFSET, PEP_COUNT = layout('PlayerStatusData')['pep'], layout('PlayerStatusData')['pep_count']
 # index of the float: the trigger read in code, with the address that adds it
 PEP_EVENTS = {0: 'fells an enemy (0x43abde)',
               1: 'falls in battle (0x43a6be)',

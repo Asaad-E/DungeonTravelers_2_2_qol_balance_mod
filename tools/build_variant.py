@@ -77,28 +77,30 @@ BATTLE_LINE = rules.setting('battle_line_width')   # the battle bar: line 1 of t
 MAX_BOX_LINES = 3
 
 # category -> (pck, header size, offsets of the 8-byte string pointers)
+from game_profile import layout                          # noqa: E402  (data_tables/record_layouts.json)
+
 SKILL_PCKS = collections.OrderedDict([
     ('Technique', (SKILL_LAYOUTS['Technique']['pck'], SKILL_LAYOUTS['Technique']['header'], (8, 16, 24, 32))),
     ('Magic', (SKILL_LAYOUTS['Magic']['pck'], SKILL_LAYOUTS['Magic']['header'], (8, 16, 24, 32))),
     ('Passive', (SKILL_LAYOUTS['Passive']['pck'], SKILL_LAYOUTS['Passive']['header'], (8, 16, 24, 32))),
-    ('Unique', ('UniqueSkillData.pck', 0x60, (8, 16))),
+    ('Unique', (layout('UniqueSkillData')['pck'], layout('UniqueSkillData')['header'], tuple(layout('UniqueSkillData')['pointers']))),
 ])
 
-ENCHANT_PCK = 'EnchantData.pck'
-ENCHANT_HEADER = 0x38
-ENCHANT_POINTERS = (8, 16, 24)
-RANK_PCK = 'WeaponRankData.pck'
-ITEM_PCK = 'ItemData.pck'
-ITEM_HEADER = 0x70
-ITEM_POINTERS = (8, 16, 0x60)
-FOOD_PCK = 'FoodMenuData.pck'
-PARTY_PCK = 'PartySkillData.pck'
-JOINT_PCK = 'JoinSkillData.pck'
-ENEMY_PCK = 'EnemyAttackData.pck'
-ENEMY_HEADER = 0xA0
-ENEMY_POINTERS = (8, 16, 24, 32)
-CLASS_PCK = 'ClassData.pck'
-CLASS_HEADER = 0x28
+ENCHANT_PCK = layout('EnchantData')['pck']
+ENCHANT_HEADER = layout('EnchantData')['header']
+ENCHANT_POINTERS = tuple(layout('EnchantData')['pointers'])
+RANK_PCK = layout('WeaponRankData')['pck']
+ITEM_PCK = layout('ItemData')['pck']
+ITEM_HEADER = layout('ItemData')['header']
+ITEM_POINTERS = tuple(layout('ItemData')['pointers'])
+FOOD_PCK = layout('FoodMenuData')['pck']
+PARTY_PCK = layout('PartySkillData')['pck']
+JOINT_PCK = layout('JoinSkillData')['pck']
+ENEMY_PCK = layout('EnemyAttackData')['pck']
+ENEMY_HEADER = layout('EnemyAttackData')['header']
+ENEMY_POINTERS = tuple(layout('EnemyAttackData')['pointers'])
+CLASS_PCK = layout('ClassData')['pck']
+CLASS_HEADER = layout('ClassData')['header']
 CLASS_POINTERS = (8, 16, 24)
 
 VARIANTS = {

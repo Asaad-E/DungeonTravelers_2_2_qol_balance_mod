@@ -3,8 +3,9 @@
 # This archive holds no file of the game: only the differences. Unpack it into the folder of the game (the one that
 # holds the .exe and the folder Data) and run the Install .bat of the variant. Close the game first.
 #
-#   mod_patch.ps1 install <variant>    checks every file, keeps a copy of each in DT22_Mod\backup, then changes it
-#   mod_patch.ps1 uninstall            puts every file back from DT22_Mod\backup
+#   mod_patch.ps1 install <variant>    checks every file, keeps a copy of each in the folder backup beside this
+#                                      script, then changes it
+#   mod_patch.ps1 uninstall            puts every file back from that folder
 #
 # Nothing is written unless every file is the one this mod was made for (each is checked by its SHA-256).
 param([string]$Mode = 'install', [string]$Variant = '')
@@ -176,4 +177,4 @@ try {
 }
 Write-Host "Done: $($files.Count) data file(s) changed, $programs program file(s) patched."
 if ($back -gt 0) { Write-Host "$back file(s) of another variant put back as the original." }
-Write-Host 'A copy of every original is in DT22_Mod\backup. To take the mod out, run the Uninstall .bat.'
+Write-Host "A copy of every original is in $(Split-Path -Leaf $modDir)\backup. To take the mod out, run the Uninstall .bat."

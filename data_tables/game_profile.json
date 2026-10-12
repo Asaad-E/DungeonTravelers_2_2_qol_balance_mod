@@ -1,0 +1,14 @@
+{
+ "what": "What is particular to this game outside its records: names of folders and files. Read by tools/game_profile.py. Another game of the same engine gets its own copy of this file and of record_layouts.json.",
+ "id": "dt2-2",
+ "title": "Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings",
+ "game_folder": "DungeonTravelers2-2_EN",
+ "data_dir": ["Data", "ENG"],
+ "text_subdirs": ["Parameter", "Script"],
+ "value_subdirs": ["Enemy", "NPC"],
+ "dungeon_subdir": "Dungeon",
+ "formula_exe": "DT22_en_unwrapped.exe",
+ "save_dir": ["Documents", "AQUAPLUS", "DUNGEON TRAVELERS 2-2_EN"],
+ "package_prefix": "DT22",
+ "mod_folder": "DT22_Mod"
+}

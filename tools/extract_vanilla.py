@@ -45,33 +45,16 @@ TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 GUIDES_DIR = os.path.join(BASE_DIR, 'Data')
 OUTPUT_PATH = os.path.join(TABLES_DIR, 'vanilla_source_of_truth.xlsx')
 
-LEVELS = 10
-SLOT_SIZE = 0x30  # effect slot: id (4) + 10 values (40) + tail (4)
+from game_profile import layout                           # noqa: E402
+LEVELS = layout('skills')['levels']
+SLOT_SIZE = layout('skills')['slot_size']  # effect slot: id (4) + 10 values (40) + tail (4)
 
 # ---------------------------------------------------------------------------
 # Decoded layouts. Offsets are relative to the start of each .bin entry.
 # ---------------------------------------------------------------------------
-SKILL_LAYOUTS = {
-    'Technique': {
-        'pck': 'TechniqueSkillData.pck', 'header': 0x1F0,
-        'target': 0x28, 'attr': 0x2C, 'group': 0x30,
-        'sp': 0x34, 'tp': 0x5C, 'turns': 0x84, 'speed': 0xAC,
-        'weapon': (0xD4, 0xD8, 0xDC),
-        'count': 0xE0, 'slots': 0xE4, 'n_slots': 5, 'trailer': 0x1D4,
-    },
-    'Magic': {
-        'pck': 'MagicSkillData.pck', 'header': 0x238,
-        'target': 0x28, 'attr': 0x2C, 'group': 0x30,
-        'sp': 0x34, 'tp': 0x5C, 'turns': 0x84, 'speed': 0xAC,
-        'cast': 0xD4, 'arr_0xFC': 0xFC, 'misc': 0x124,
-        'count': 0x128, 'slots': 0x12C, 'n_slots': 5, 'trailer': 0x21C,
-    },
-    'Passive': {
-        'pck': 'PassiveSkillData.pck', 'header': 0xD8,
-        'flag': 0x28, 'sp': 0x2C, 'weapon1': 0x54,
-        'count': 0x58, 'slots': 0x5C, 'n_slots': 2, 'trailer': 0xBC,
-    },
-}
+# data_tables/record_layouts.json, record 'skills' (tools/game_profile.py)
+SKILL_LAYOUTS = {category: dict(fields, weapon=tuple(fields['weapon'])) if 'weapon' in fields else dict(fields)
+                 for category, fields in layout('skills').items() if isinstance(fields, dict)}
 
 # Verified against the "Target: X / Type: Y" header line of all 2375 enemy attacks.
 TARGET_NAMES = {

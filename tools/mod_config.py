@@ -16,10 +16,13 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from game_profile import PROFILE                          # noqa: E402
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_PATH = os.path.join(BASE_DIR, 'config.json')
-DEFAULT_GAME_DIR = os.path.join(BASE_DIR, 'DungeonTravelers2-2_EN')
-DEFAULT_SAVE_DIR = os.path.join(os.path.expanduser('~'), 'Documents', 'AQUAPLUS', 'DUNGEON TRAVELERS 2-2_EN')
+DEFAULT_GAME_DIR = os.path.join(BASE_DIR, PROFILE['game_folder'])
+DEFAULT_SAVE_DIR = os.path.join(os.path.expanduser('~'), *PROFILE['save_dir'])
 KEYS = ('game_dir', 'program_files', 'formula_exe', 'save_dir')
 
 
@@ -47,7 +50,7 @@ def game_dir(config=None):
 
 def data_dir(config=None):
     """Data/ENG of the game: the folder its packs sit in."""
-    return os.path.join(game_dir(config), 'Data', 'ENG')
+    return os.path.join(game_dir(config), *PROFILE['data_dir'])
 
 
 def listed_program_files(config=None):

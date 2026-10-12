@@ -34,13 +34,14 @@ from pck_handler import PckArchive
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAP_ZIP = os.path.join(BASE_DIR, 'backups', 'Dungeon', 'floor_maps.zip')
 import mod_config                       # noqa: E402
-GAME_DUNGEON_DIR = os.path.join(mod_config.data_dir(), 'Dungeon')
-HEADER, CELL = 0x0C, 42
+GAME_DUNGEON_DIR = os.path.join(mod_config.data_dir(), __import__('game_profile').PROFILE['dungeon_subdir'])
+_M = __import__('game_profile').layout('FloorMap')                # data_tables/record_layouts.json
+HEADER, CELL = _M['header'], _M['cell']
 NO_MAGIC = 2
 
 
 EVENT_CELL, CHEST_CELL = 1, 2
-SCRIPT_COUNT, SCRIPT_POINTER = 0x78, 0x80
+SCRIPT_COUNT, SCRIPT_POINTER = _M['script_count'], _M['script_pointer']
 BATTLE_COMMAND = bytes((0x1F, 0x01, 0x00))
 
 

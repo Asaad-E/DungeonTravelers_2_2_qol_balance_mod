@@ -41,11 +41,12 @@ from pck_handler import PckArchive
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENEMY_PCK = os.path.join(BASE_DIR, 'backups', 'Enemy', 'Enemy.pck')
-STATS = (('level', 0x14), ('hp', 0x18), ('atk', 0x1C), ('def', 0x20), ('int', 0x24), ('res', 0x28),
-         ('dex', 0x2C), ('agi', 0x30), ('exp', 0x34), ('gold', 0x38))
+from game_profile import layout                           # noqa: E402
+_RECORD = layout('EnemyStatusData')                       # data_tables/record_layouts.json
+STATS = tuple(_RECORD['stats'].items())
 RESISTANCES = ('slash', 'stab', 'bash', 'fire', 'water', 'wind', 'earth', 'lightning')
-RESIST_OFFSET = 0x48
-ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = 0xAC, 0xB0, 16
+RESIST_OFFSET = _RECORD['resistances']
+ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = _RECORD['attack_count'], _RECORD['attack_ids'], _RECORD['attack_slots']
 RACES = {0: 'Fruit', 2: 'Beasts', 4: 'Humans', 5: 'Undead', 6: 'Magic Beings', 7: 'Apparitions', 8: 'Demons', 9: 'Dragons'}
 IMMUNITY_BITS = {2: 'stun', 3: 'sleep', 4: 'silence', 5: 'petrification', 6: 'instant death', 7: 'freeze', 8: 'poison',
                  9: 'paralysis', 10: 'shadow sew', 11: 'slow', 12: 'turn delay'}

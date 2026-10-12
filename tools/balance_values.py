@@ -57,25 +57,35 @@ OUT_DIR = os.path.join(BASE_DIR, 'build', 'balance', 'base')
 LIVE = ('decided', 'built', 'checked')
 ENEMY_PCK = os.path.join('Enemy', 'Enemy.pck')
 STATUS, AI = 'EnemyStatusData.bin', 'EnemyAIData.bin'
-NPC_PCK, NPC_RECORD, NPC_ID, NPC_STATS = os.path.join('NPC', 'NPC.pck'), 'NPCData.bin', 0x00, 0x20
+from game_profile import layout                          # noqa: E402  (data_tables/record_layouts.json)
+_L = {name: layout(name) for name in ('NPCData', 'EnemyStatusData', 'EnemyAttackData', 'EquipmentData', 'SealScrollData',
+                                      'PartySkillData', 'UniqueSkillData', 'ItemData', 'EnchantData', 'LvExpSkptData',
+                                      'QuestData')}
+NPC_PCK, NPC_RECORD = os.path.join('NPC', 'NPC.pck'), 'NPCData.bin'
+NPC_ID, NPC_STATS = _L['NPCData']['id'], _L['NPCData']['stats']
 NESTED_PCKS = (ENEMY_PCK, NPC_PCK)      # packs of a subfolder whose entries are archives themselves
 FLOAT_TOLERANCE = 5e-5                    # the workbook holds floats rounded to four decimals
 ENEMY_STATS = dict(enemy_data.STATS)
-ENEMY_FLAGS, ENEMY_EQUIPMENT_DROP, ENEMY_PASSIVE_COUNT, ENEMY_PASSIVES = 0x3C, 0x7C, 0xF0, 0xF4
-ENEMY_EQUIPMENT_SLOTS, ENEMY_EQUIPMENT_SLOT = 0x80, 12     # a count, then (zone table or fixed piece, id or kind, weight)
-ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = 0x48, 0x4C, 12
-EQUIPMENT = {'ATK (base)': (0x24, 'i'), 'upgrade rate': (0x3C, 'f'), 'class bitmask': (0x40, 'I')}
-EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = 0x5C, 0x60, 4
-SEAL_COUNT, SEAL_ENCHANTS, SEAL_SLOTS = 0x1C, 0x20, 4
-PARTY_EFFECT = 0x4C                              # the effect a party skill gives its members (tools/text_checks.py)
-UNIQUE_EFFECT = 0x50                             # the effect of a unique skill (docs/FORMULAS.md 12.19)
-UNIQUE_VALUES, UNIQUE_RANKS = 0x1C, 10           # the ten values of a unique skill (tools/extract_vanilla.py)
-ITEM_PAIRS, ITEM_PAIR_COUNT = 0x24, 4            # (type int, value float) pairs of an item (tools/text_checks.py)
-ENCHANT_FLAGS = 0x20
-SP_LEVEL, SP_POINTS = 0x00, 0x08
+_E = _L['EnemyStatusData']
+ENEMY_FLAGS, ENEMY_EQUIPMENT_DROP, ENEMY_PASSIVE_COUNT, ENEMY_PASSIVES = (_E['flags'], _E['equipment_drop'],
+                                                                         _E['passive_count'], _E['passives'])
+ENEMY_EQUIPMENT_SLOTS, ENEMY_EQUIPMENT_SLOT = _E['equipment_slots'], _E['equipment_slot_size']     # a count, then (zone table or fixed piece, id or kind, weight)
+ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = (_L['EnemyAttackData']['slot_count'], _L['EnemyAttackData']['slots'],
+                                           _L['EnemyAttackData']['slot_size'])
+_Q = _L['EquipmentData']
+EQUIPMENT = {'ATK (base)': (_Q['atk'], 'i'), 'upgrade rate': (_Q['upgrade_rate'], 'f'), 'class bitmask': (_Q['class_mask'], 'I')}
+EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = _Q['enchant_count'], _Q['enchants'], _Q['enchant_slots']
+SEAL_COUNT, SEAL_ENCHANTS, SEAL_SLOTS = (_L['SealScrollData']['count'], _L['SealScrollData']['enchants'],
+                                        _L['SealScrollData']['slots'])
+PARTY_EFFECT = _L['PartySkillData']['effect']                              # the effect a party skill gives its members (tools/text_checks.py)
+UNIQUE_EFFECT = _L['UniqueSkillData']['effect']                             # the effect of a unique skill (docs/FORMULAS.md 12.19)
+UNIQUE_VALUES, UNIQUE_RANKS = _L['UniqueSkillData']['values'], _L['UniqueSkillData']['ranks']           # the ten values of a unique skill (tools/extract_vanilla.py)
+ITEM_PAIRS, ITEM_PAIR_COUNT = _L['ItemData']['pairs'], _L['ItemData']['pair_count']            # (type int, value float) pairs of an item (tools/text_checks.py)
+ENCHANT_FLAGS = _L['EnchantData']['flags']
+SP_LEVEL, SP_POINTS = _L['LvExpSkptData']['level'], _L['LvExpSkptData']['points']
 # QuestData: the kind of the reward (0x55e210 - 0x55e2a0 test it against 0, 1, 2, 3) and its amount (0x55e300);
 # kind 3 hands the amount to the party at once (0x5959ac - 0x5959ce): gold. Kind 2 is experience (window 0x448c60)
-QUEST_KIND, QUEST_AMOUNT, QUEST_GOLD = 0x38, 0x40, 3
+QUEST_KIND, QUEST_AMOUNT, QUEST_GOLD = _L['QuestData']['kind'], _L['QuestData']['amount'], _L['QuestData']['gold_kind']
 SKILL_ARRAYS = {'TP cost': 'tp', 'SP cost': 'sp', 'speed factor': 'speed', 'chant speed factor': 'cast'}
 
 

@@ -1,0 +1,53 @@
+{
+ "what": "Where each field sits in the records of the game: offsets from the start of an entry, in hexadecimal; counts and sizes as plain numbers. Read by tools/game_profile.py (layout). The meaning of each field is told in the tool that reads it and in docs/dungeontravelers2-2.md section 3.",
+ "skills": {
+  "levels": 10,
+  "slot_size": "0x30",
+  "Technique": {
+   "pck": "TechniqueSkillData.pck", "header": "0x1F0",
+   "target": "0x28", "attr": "0x2C", "group": "0x30",
+   "sp": "0x34", "tp": "0x5C", "turns": "0x84", "speed": "0xAC",
+   "weapon": ["0xD4", "0xD8", "0xDC"],
+   "count": "0xE0", "slots": "0xE4", "n_slots": 5, "trailer": "0x1D4"
+  },
+  "Magic": {
+   "pck": "MagicSkillData.pck", "header": "0x238",
+   "target": "0x28", "attr": "0x2C", "group": "0x30",
+   "sp": "0x34", "tp": "0x5C", "turns": "0x84", "speed": "0xAC",
+   "cast": "0xD4", "arr_0xFC": "0xFC", "misc": "0x124",
+   "count": "0x128", "slots": "0x12C", "n_slots": 5, "trailer": "0x21C"
+  },
+  "Passive": {
+   "pck": "PassiveSkillData.pck", "header": "0xD8",
+   "flag": "0x28", "sp": "0x2C", "weapon1": "0x54",
+   "count": "0x58", "slots": "0x5C", "n_slots": 2, "trailer": "0xBC"
+  }
+ },
+ "UniqueSkillData": {"pck": "UniqueSkillData.pck", "header": "0x60", "pointers": [8, 16], "values": "0x1C", "ranks": 10, "effect": "0x50"},
+ "EnemyStatusData": {
+  "stats": {"level": "0x14", "hp": "0x18", "atk": "0x1C", "def": "0x20", "int": "0x24", "res": "0x28", "dex": "0x2C", "agi": "0x30", "exp": "0x34", "gold": "0x38"},
+  "flags": "0x3C", "resistances": "0x48", "equipment_drop": "0x7C", "equipment_slots": "0x80", "equipment_slot_size": 12,
+  "attack_count": "0xAC", "attack_ids": "0xB0", "attack_slots": 16, "passive_count": "0xF0", "passives": "0xF4"
+ },
+ "EnemyAttackData": {"pck": "EnemyAttackData.pck", "header": "0xA0", "pointers": [8, 16, 24, 32], "power": "0x3C", "slot_count": "0x48", "slots": "0x4C", "slot_size": 12},
+ "NPCData": {"id": "0x00", "name_pointer": "0x08", "character": "0x10", "level": "0x18", "rank": "0x1C", "stats": "0x20", "attack_count": "0x38", "attack_ids": "0x3C", "attack_slots": 11, "kind": "0x94", "extra_attack": "0x98", "hp": "0xAC"},
+ "SummonData": {"id": "0x00", "character": "0x10", "enemy": "0x14", "level": "0x18", "rank": "0x20", "factors": "0x24", "attack_count": "0x3C", "attack_ids": "0x40", "attack_slots": 12, "passive": "0x9C"},
+ "EquipmentData": {"atk": "0x24", "upgrade_rate": "0x3C", "class_mask": "0x40", "enchant_count": "0x5C", "enchants": "0x60", "enchant_slots": 4},
+ "SealScrollData": {"count": "0x1C", "enchants": "0x20", "slots": 4},
+ "PartySkillData": {"pck": "PartySkillData.pck", "effect": "0x4C"},
+ "ItemData": {"pck": "ItemData.pck", "header": "0x70", "pointers": [8, 16, "0x60"], "pairs": "0x24", "pair_count": 4},
+ "EnchantData": {"pck": "EnchantData.pck", "header": "0x38", "pointers": [8, 16, 24], "flags": "0x20"},
+ "ClassData": {"pck": "ClassData.pck", "header": "0x28"},
+ "FoodMenuData": {"pck": "FoodMenuData.pck", "count": "0x1C", "pairs": "0x20"},
+ "JoinSkillData": {"pck": "JoinSkillData.pck", "slot_count": "0x50", "slots": "0x54"},
+ "WeaponRankData": {"pck": "WeaponRankData.pck"},
+ "LvExpSkptData": {"level": "0x00", "points": "0x08"},
+ "QuestData": {"kind": "0x38", "amount": "0x40", "gold_kind": 3},
+ "PlayerStatusData": {"pep": "0x3C", "pep_count": 21},
+ "FloorParameter": {
+  "encounter": "0x1C", "fixed_count": "0x28", "fixed_pointer": "0x30", "count": "0x5C", "formations": "0x60",
+  "equipment_count": "0x68", "equipment_pointer": "0x70", "equipment_record": "0x24", "drop_kinds": 4,
+  "zone_count": "0x98", "zone_pointer": "0xA0", "zone_factors": "0xB8", "zone_size": "0xD0", "record": 88, "enemy_slots": 12
+ },
+ "FloorMap": {"header": "0x0C", "cell": 42, "script_count": "0x78", "script_pointer": "0x80"}
+}

@@ -33,7 +33,8 @@ AILMENT_LABELS = {
     'Stun': 118, 'Instakill': 119, 'Petrify': 120, 'Slow': 122,
 }
 EFFECT_LABELS = {'HP Absorb': 75, 'TP Absorb': 76, 'Targets': 137, 'Heal Cap': 295}
-UNIQUE_VALUES = 0x1C
+from game_profile import layout                           # noqa: E402  (data_tables/record_layouts.json)
+UNIQUE_VALUES = layout('UniqueSkillData')['values']
 # Line: the figure of the game; Balance_Line: the one the Balance variant holds where its program patch changes it
 # (sheet ExePatches of balance_criteria.xlsx), worded in balance_skill_text.xlsx
 UNIQUE_NOTE_LINES = {line for column in ('Line', 'Balance_Line')
@@ -248,7 +249,7 @@ def check_skill_text(category, b, text):
 # An item holds four (int effect type, float value) pairs. The first two act when it is used on an
 # ally, the last two when it is used on an enemy (Deep-Fried Mystery: 2:175, 30:0.75 | 0:175, 25:0.75,
 # which the DT2-2 wiki describes as "HP and TP 175 and maybe Berserk; on an enemy, maybe ATK up").
-ITEM_PAIRS = 0x24
+ITEM_PAIRS = layout('ItemData')['pairs']
 ITEM_PAIR_COUNT = 4
 ITEM_ALLY_PAIRS = 2
 ITEM_RESTORE = {             # vanilla wording -> effect type of the pair that holds the amount
@@ -342,8 +343,8 @@ def check_item_text(b, text, vanilla_text=None, shortened=None):
 # ---------------------------------------------------------------------------
 # Enemy attacks (also the abilities of summoned monsters)
 # ---------------------------------------------------------------------------
-ENEMY_SLOT_COUNT = 0x48      # int, then (int effect id, float value, int tail) slots of 12 bytes
-ENEMY_SLOTS = 0x4C
+ENEMY_SLOT_COUNT = layout('EnemyAttackData')['slot_count']      # int, then (int effect id, float value, int tail) slots of 12 bytes
+ENEMY_SLOTS = layout('EnemyAttackData')['slots']
 ENEMY_DATA_LINE = 'Target:'  # vanilla line 1: "Target: Single / Type: Stab / Range: Long"
 ENEMY_TOKEN_RE = re.compile(r'^(?P<label>[A-Za-z][A-Za-z ./]*): (?P<value>[+-]?\d+(?:\.\d+)?[%x]?)$')
 AILMENT_NAMES = {v: k for k, v in AILMENT_LABELS.items()}
@@ -438,7 +439,7 @@ def enemy_effect_facts(b):
     return facts
 
 
-ENEMY_POWER = 0x3C           # float: what a physical attack adds to the modifiers of its attack value (0x44b497)
+ENEMY_POWER = layout('EnemyAttackData')['power']           # float: what a physical attack adds to the modifiers of its attack value (0x44b497)
 PLAIN_HIT = 0                # the effect of a hit that deals physical damage
 POWER_LABEL = rules.setting('enemy_power_label')
 _POWER_SCOPE = []
@@ -568,8 +569,8 @@ def check_enemy_attack_text(b, text, vanilla_text):
 # ---------------------------------------------------------------------------
 # Meals (ice cream and ramen shops)
 # ---------------------------------------------------------------------------
-FOOD_COUNT = 0x1C            # int, then (int effect id, float value) pairs from 0x20
-FOOD_PAIRS = 0x20
+FOOD_COUNT = layout('FoodMenuData')['count']            # int, then (int effect id, float value) pairs from 0x20
+FOOD_PAIRS = layout('FoodMenuData')['pairs']
 FOOD_HP, FOOD_TP, FOOD_BOTH = 62, 63, 64      # tenths of the maximum (DT2-2 wiki: stored 2 = "HP 2/10")
 FOOD_VAGUE_RE = re.compile(r'(?:a tiny bit of|a little|some|a lot of) (HP and TP|HP|TP)')
 FOOD_EXACT_RE = re.compile(r'(\d+)% (HP and TP|HP and (\d+)% TP|HP|TP)')
@@ -639,7 +640,7 @@ def check_food_text(b, text, vanilla_text):
 # awards and reaches the bound with all of them (half of it with half of them). The game says the rule
 # itself ("Party skills grow stronger the more Awards you obtain."). Bounds and wording: sheets
 # PartySkillBounds and Settings of qol_rules.xlsx.
-PARTY_EFFECT = 0x4C
+PARTY_EFFECT = layout('PartySkillData')['effect']
 PARTY_LINE = rules.setting('party_line_width')
 PARTY_SENTENCES = {int(r['Effect_ID']): (r['Sentence'], [part.strip() for part in str(r['Bounds']).split(',') if part.strip()])
                    for r in rules.rows('PartySkillBounds')}
@@ -679,7 +680,7 @@ def check_party_skill_text(b, text, vanilla_text):
 # is written into the sentence: "High chance of instakill." -> "85% chance of instakill.". The sentences
 # are the sheet JointSkillSentences of qol_rules.xlsx, with {eID} where the value of effect ID goes; how
 # each value is written is the sheet JointEffects. A skill without a row keeps the game's text.
-JOINT_SLOTS, JOINT_SLOT_COUNT = 0x54, 0x50
+JOINT_SLOTS, JOINT_SLOT_COUNT = layout('JoinSkillData')['slots'], layout('JoinSkillData')['slot_count']
 JOINT_PLACE_RE = re.compile(r'\{e(\d+)\}')
 JOINT_STYLES = {
     'chance': lambda v: f'{min(100 * v, 100):g}%',          # a chance stored above 100% is 100%

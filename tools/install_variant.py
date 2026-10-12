@@ -28,9 +28,10 @@ BUILD_DIR = os.path.join(BASE_DIR, 'build')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mod_config                       # noqa: E402  (the folder of the game: config.json, else DungeonTravelers2-2_EN in the repository folder)
 GAME_DIR = mod_config.data_dir()
-GAME_SUBDIRS = ('Parameter', 'Script')
+from game_profile import PROFILE        # noqa: E402
+GAME_SUBDIRS = tuple(PROFILE['text_subdirs'])
 # Data/ENG/Enemy/Enemy.pck, Data/ENG/NPC/NPC.pck: only a variant that changes values builds them (balance)
-VALUE_SUBDIRS = ('Enemy', 'NPC')
+VALUE_SUBDIRS = tuple(PROFILE['value_subdirs'])
 BUILT_SUBDIR = os.path.join('Data', 'ENG', 'Parameter')
 
 

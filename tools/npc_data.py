@@ -30,19 +30,22 @@ from pck_handler import PckArchive
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NPC_PCK = os.path.join(BASE_DIR, 'backups', 'NPC', 'NPC.pck')
 STATS = ('atk', 'def', 'int', 'res', 'dex', 'agi')
-ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = 0x38, 0x3C, 11
+from game_profile import layout                           # noqa: E402
+RECORD = layout('NPCData')                                # data_tables/record_layouts.json
+ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = RECORD['attack_count'], RECORD['attack_ids'], RECORD['attack_slots']
 
 
 def read_npc(blob):
     b = bytes(blob)
     i = lambda offset: struct.unpack_from('<i', b, offset)[0]
-    name_at = struct.unpack_from('<Q', b, 0x08)[0]
+    name_at = struct.unpack_from('<Q', b, RECORD['name_pointer'])[0]
     count = max(0, min(i(ATTACK_COUNT), ATTACK_SLOTS))
-    npc = {'id': i(0x00), 'character': i(0x10), 'level': i(0x18), 'raw_1c': i(0x1C),
+    npc = {'id': i(RECORD['id']), 'character': i(RECORD['character']), 'level': i(RECORD['level']), 'raw_1c': i(RECORD['rank']),
            'name': b[name_at:b.index(b'\x00', name_at)].decode('utf-8', 'replace'),
            'attacks': [i(ATTACK_IDS + 8 * k) for k in range(count)],
-           'kind': i(0x94), 'extra_attack': i(0x98) if i(0x98) != -1 else None, 'hp': i(0xAC)}
-    npc.update(zip(STATS, struct.unpack_from('<6i', b, 0x20)))
+           'kind': i(RECORD['kind']), 'hp': i(RECORD['hp']),
+           'extra_attack': i(RECORD['extra_attack']) if i(RECORD['extra_attack']) != -1 else None}
+    npc.update(zip(STATS, struct.unpack_from('<6i', b, RECORD['stats'])))
     return npc
 
 

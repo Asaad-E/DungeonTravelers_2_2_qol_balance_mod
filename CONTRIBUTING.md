@@ -39,7 +39,7 @@ Nothing works without it, including the tests.
 
 | Folder | What it holds |
 |---|---|
-| `data_tables/` | Every value, rule and line of text of the mod, as spreadsheets |
+| `data_tables/` | Every value, rule and line of text of the mod, as spreadsheets. Also what is particular to this game: `game_profile.json` (folder and file names) and `record_layouts.json` (where each field sits in each record) |
 | `tools/` | Builders, readers of the game files and of the executable, measures |
 | `sim/` | The battle simulator |
 | `tests/` | The test suite |
@@ -63,11 +63,13 @@ These are checked by the build or the tests wherever possible.
    player sees. Use the game's own terms.
 4. **Text must match the data.** The build compares every number in a text with the built file and fails if they
    differ. A box has at most 3 lines of 85 characters.
-5. **Prefer plain value changes.** Changing a number inside an existing record is safe. Changing the executable is
+5. **Nothing about the game's files is hard-coded either.** A folder name or the offset of a field goes in
+   `game_profile.json` or `record_layouts.json`, read through `tools/game_profile.py`.
+6. **Prefer plain value changes.** Changing a number inside an existing record is safe. Changing the executable is
    the last resort: each patch is a row of the sheet `ExePatches`, same length as the bytes it replaces.
-6. **No game files in git.** Not the originals, not the built files, not the zips.
-7. **Neutral wording.** Documents, comments and commit messages say what was decided and why, not who decided it.
-8. **English everywhere** in the repository.
+7. **No game files in git.** Not the originals, not the built files, not the zips.
+8. **Neutral wording.** Documents, comments and commit messages say what was decided and why, not who decided it.
+9. **English everywhere** in the repository.
 
 For the reasoning behind these, see `docs/philosophy.md`.
 

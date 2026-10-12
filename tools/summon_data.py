@@ -34,18 +34,24 @@ SUMMON_PCK = os.path.join(BASE_DIR, 'backups', 'Summon', 'Summon.pck')
 STATS = ('atk', 'def', 'int', 'res', 'dex', 'agi')
 
 
+from game_profile import layout                           # noqa: E402
+RECORD = layout('SummonData')                             # data_tables/record_layouts.json
+
+
 def read_summon(blob):
     b = bytes(blob)
-    count = struct.unpack_from('<i', b, 0x3C)[0]
-    strings = [t.decode('utf-8', 'replace') for t in b[0x40 + 8 * 12:].split(b'\x00') if t]
+    r = RECORD
+    i = lambda offset: struct.unpack_from('<i', b, offset)[0]
+    count = i(r['attack_count'])
+    strings = [t.decode('utf-8', 'replace') for t in b[r['attack_ids'] + 8 * r['attack_slots']:].split(b'\x00') if t]
     printable = [t for t in strings if len(t) > 2 and all(32 <= ord(c) < 0x3000 for c in t)]
-    return {'id': struct.unpack_from('<i', b, 0x00)[0], 'character': struct.unpack_from('<i', b, 0x10)[0],
-            'family': struct.unpack_from('<i', b, 0x14)[0], 'enemy': struct.unpack_from('<i', b, 0x14)[0],
-            'level': struct.unpack_from('<i', b, 0x18)[0],
-            'rank': struct.unpack_from('<i', b, 0x20)[0],
-            'factors': dict(zip(STATS, struct.unpack_from('<6f', b, 0x24))),
-            'attacks': [struct.unpack_from('<i', b, 0x40 + 8 * k)[0] for k in range(max(count, 0))],
-            'passive': struct.unpack_from('<i', b, 0x9C)[0] if struct.unpack_from('<i', b, 0x9C)[0] != -1 else None,
+    return {'id': i(r['id']), 'character': i(r['character']),
+            'family': i(r['enemy']), 'enemy': i(r['enemy']),
+            'level': i(r['level']),
+            'rank': i(r['rank']),
+            'factors': dict(zip(STATS, struct.unpack_from('<6f', b, r['factors']))),
+            'attacks': [i(r['attack_ids'] + 8 * k) for k in range(max(count, 0))],
+            'passive': i(r['passive']) if i(r['passive']) != -1 else None,
             'name': printable[-1] if printable else ''}
 
 

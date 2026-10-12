@@ -38,7 +38,10 @@ RELEASE_DIR = os.path.join(BASE_DIR, 'installer')
 README_NAMES = {'qol': 'README_QoL.txt', 'balance': 'README_Balance.txt'}
 PATCH_SETS = {'balance': 'balance'}                   # variant -> set of the sheet ExePatches its program patch holds
 PATCH_SCRIPT = 'mod_patch.ps1'
-MOD_DIR = 'DT22_Mod'
+from game_profile import PROFILE                          # noqa: E402
+MOD_DIR = PROFILE['mod_folder']
+PREFIX = PROFILE['package_prefix']
+UNINSTALL = f'Uninstall_{MOD_DIR}.bat'
 LAUNCHER = ('@echo off' + chr(10) + 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0' + MOD_DIR + chr(92)
             + PATCH_SCRIPT + '" {args}' + chr(10) + 'pause' + chr(10))
 WINDOW, STEP = 16, 4                                  # a run of the original is looked for by blocks of this size
@@ -158,11 +161,11 @@ def package(variant, out_dir=DIST_DIR, stamp=None):
     lines, ops, blob = differences(variant, files)
     os.makedirs(out_dir, exist_ok=True)
     stamp = stamp or datetime.date.today().isoformat()
-    path = os.path.join(out_dir, f'DT22_{variant}_{stamp}.zip')
+    path = os.path.join(out_dir, f'{PREFIX}_{variant}_{stamp}.zip')
     title = {'qol': 'QoL', 'balance': 'Balance'}[variant]
     with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
         z.writestr(f'Install_{title}.bat', LAUNCHER.format(args=f'install {variant}'))
-        z.writestr('Uninstall_DT22_Mod.bat', LAUNCHER.format(args='uninstall'))
+        z.writestr(UNINSTALL, LAUNCHER.format(args='uninstall'))
         z.write(os.path.join(RELEASE_DIR, PATCH_SCRIPT), f'{MOD_DIR}/{PATCH_SCRIPT}')
         z.write(readme, f'{MOD_DIR}/README.txt')
         z.writestr(f'{MOD_DIR}/{variant}.txt', chr(10).join(lines) + chr(10))

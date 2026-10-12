@@ -487,10 +487,11 @@ class Package(unittest.TestCase):
             self.assertEqual(problems, [])
             with zipfile.ZipFile(path) as z:
                 names = set(z.namelist())
-                self.assertEqual(names, {'Install_QoL.bat', 'Uninstall_DT22_Mod.bat', 'DT22_Mod/mod_patch.ps1',
-                                         'DT22_Mod/README.txt', 'DT22_Mod/qol.txt', 'DT22_Mod/qol.ops', 'DT22_Mod/qol.dat'})
-                ops, blob = z.read('DT22_Mod/qol.ops'), z.read('DT22_Mod/qol.dat')
-                lines = [line.split('|') for line in z.read('DT22_Mod/qol.txt').decode('utf-8').splitlines()]
+                mod = package_variant.MOD_DIR
+                self.assertEqual(names, {'Install_QoL.bat', package_variant.UNINSTALL, f'{mod}/mod_patch.ps1',
+                                         f'{mod}/README.txt', f'{mod}/qol.txt', f'{mod}/qol.ops', f'{mod}/qol.dat'})
+                ops, blob = z.read(f'{mod}/qol.ops'), z.read(f'{mod}/qol.dat')
+                lines = [line.split('|') for line in z.read(f'{mod}/qol.txt').decode('utf-8').splitlines()]
             listed = {line[1]: line for line in lines if line[0] == 'file'}
             self.assertEqual(len(listed), len(files))
             self.assertFalse([line for line in lines if line[0] == 'exe'])          # the QoL variant leaves the program alone

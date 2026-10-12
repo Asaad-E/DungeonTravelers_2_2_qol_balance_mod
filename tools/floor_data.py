@@ -48,13 +48,16 @@ from pck_handler import PckArchive
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FLOOR_ZIP = os.path.join(BASE_DIR, 'backups', 'Dungeon', 'floor_parameters.zip')
 import mod_config                       # noqa: E402
-GAME_DUNGEON_DIR = os.path.join(mod_config.data_dir(), 'Dungeon')
-ZONE_COUNT, ZONE_POINTER, ZONE_SIZE, COUNT, FORMATIONS, RECORD = 0x98, 0xA0, 0xD0, 0x5C, 0x60, 88
-FIXED_COUNT, FIXED_POINTER = 0x28, 0x30
-ENEMY_SLOTS = 12
-ZONE_FACTORS, FACTOR_NAMES = 0xB8, ('up_a', 'up_b', 'down_a', 'down_b', 'element')
-ENCOUNTER = 0x1C               # the chance of a random battle per step, then the five special chances
-EQUIPMENT_COUNT, EQUIPMENT_POINTER, EQUIPMENT_RECORD, DROP_KINDS = 0x68, 0x70, 0x24, 4
+GAME_DUNGEON_DIR = os.path.join(mod_config.data_dir(), __import__('game_profile').PROFILE['dungeon_subdir'])
+_F = __import__('game_profile').layout('FloorParameter')          # data_tables/record_layouts.json
+ZONE_COUNT, ZONE_POINTER, ZONE_SIZE = _F['zone_count'], _F['zone_pointer'], _F['zone_size']
+COUNT, FORMATIONS, RECORD = _F['count'], _F['formations'], _F['record']
+FIXED_COUNT, FIXED_POINTER = _F['fixed_count'], _F['fixed_pointer']
+ENEMY_SLOTS = _F['enemy_slots']
+ZONE_FACTORS, FACTOR_NAMES = _F['zone_factors'], ('up_a', 'up_b', 'down_a', 'down_b', 'element')
+ENCOUNTER = _F['encounter']               # the chance of a random battle per step, then the five special chances
+EQUIPMENT_COUNT, EQUIPMENT_POINTER = _F['equipment_count'], _F['equipment_pointer']
+EQUIPMENT_RECORD, DROP_KINDS = _F['equipment_record'], _F['drop_kinds']
 
 
 def read_equipment(blob, block):

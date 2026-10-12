@@ -21,10 +21,11 @@ import mod_config
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # the program file the formulas were read from while the mod was made
-EXE_PATH = os.path.join(mod_config.game_dir(), 'DT22_en_unwrapped.exe')
+EXE_NAME = __import__('game_profile').PROFILE['formula_exe']
+EXE_PATH = os.path.join(mod_config.game_dir(), EXE_NAME)
 # the copy tools/exe_patch.py keeps before it writes into the game file: once it exists, formulas are read from it
 COPY_DIR = os.path.join(BASE_DIR, 'backups', 'exe')
-VANILLA_PATH = os.path.join(COPY_DIR, 'DT22_en_unwrapped.vanilla.exe')
+VANILLA_PATH = os.path.join(COPY_DIR, os.path.splitext(EXE_NAME)[0] + '.vanilla.exe')
 
 
 def reading_path():
