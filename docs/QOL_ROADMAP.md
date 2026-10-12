@@ -285,6 +285,21 @@ The QoL variant is closed. A text is still corrected, in both variants, when a r
 (on 2026-10-12: the labels of four unique skills, and the box of Concentrate, which goes back to the sentence of the
 game because the program gives the passive no effect; `FORMULAS.md` 2.5).
 
+## The abilities of summons and guest allies (2026-10-12)
+
+Asked by the user from the screen of a summon, where Covering Attack showed no chance. Every ability a summoned
+monster or a guest ally can use (747 enemy attacks, shown in "View the details of your teammates' abilities") now
+says its figure on its data line, with the label the box of the same skill of a party member uses: the chance of a
+passive (`Activation rate`, `Double attack rate`, `Triple attack rate`, `Occurrence rate`), the power of a spell
+(`Pwr`) and of a blow (`Power`), what a heal multiplies RES by, the turns of a doll, the size of a song, a dance or a
+stance (`Critical rate`, `TP recovery`, `EXP`, `Resistance decrease`, `All stats`, `ATK`, `DEF`,
+`Damage reduction rate`), `Power decrease`, `Damage vs. unholy`, `Targets`. The rules are rows of the sheet
+`EnemyEffects` of `qol_rules.xlsx` (columns `After_Power`: written after the power, the first left out when the line is
+short; `Scope`: `summons` keeps a figure to these abilities). 666 of the 747 carry added data; the 70 with no figure
+at all are abilities that hold none to show (Take Break, a plain Attack, Full Heal, the steals) or whose effect has
+no label yet (two dances, two songs, Limit Field, Circle Illusion). Where the line has no room the generator says so
+in the column `Note` (54 attacks).
+
 ## The conditions of side events: looked at and dropped
 
 Reopened on 2026-10-07 for one point, row S25 of the Balance register ("side events with conditions nobody can

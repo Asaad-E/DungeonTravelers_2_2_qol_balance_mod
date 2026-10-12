@@ -345,7 +345,7 @@ def check_item_text(b, text, vanilla_text=None, shortened=None):
 ENEMY_SLOT_COUNT = 0x48      # int, then (int effect id, float value, int tail) slots of 12 bytes
 ENEMY_SLOTS = 0x4C
 ENEMY_DATA_LINE = 'Target:'  # vanilla line 1: "Target: Single / Type: Stab / Range: Long"
-ENEMY_TOKEN_RE = re.compile(r'^(?P<label>[A-Za-z][A-Za-z ./]*): (?P<value>[+-]?\d+(?:\.\d+)?%?)$')
+ENEMY_TOKEN_RE = re.compile(r'^(?P<label>[A-Za-z][A-Za-z ./]*): (?P<value>[+-]?\d+(?:\.\d+)?[%x]?)$')
 AILMENT_NAMES = {v: k for k, v in AILMENT_LABELS.items()}
 
 # Figures that the game's own prose states: effect id -> (wording, factor between the stored value and the
@@ -367,6 +367,8 @@ WORDING_FIXES = [(r['Pattern'], rules.id_set(r['Needs_Effects']), rules.id_set(r
 ENEMY_EFFECTS = [(int(r['Effect_ID']), r['Label'], r['Style']) for r in rules.rows('EnemyEffects')]
 # the effects written after the power of the attack: when the line is short of room they are the ones left out
 ENEMY_AFTER_POWER = {int(r['Effect_ID']) for r in rules.rows('EnemyEffects') if rules.yes(r.get('After_Power'))}
+# the effects written only on the attacks a summon of the player can use (the scope the power of an attack has too)
+ENEMY_SUMMON_ONLY = {int(r['Effect_ID']) for r in rules.rows('EnemyEffects') if str(r.get('Scope') or '') == 'summons'}
 
 
 def enemy_attack_slots(b):
@@ -406,6 +408,8 @@ def write_value(value, style):
         return f'{round(value, 1):+g}%'
     if style == 'abs_num':                       # a decrease stored as a negative figure, under a label that says so
         return f'{abs(round(value, 2)):g}'
+    if style == 'half_x':                        # a heal: half the stored figure is what multiplies RES (docs/FORMULAS.md 6b)
+        return f'{round(value / 2, 2):g}x'
     if style == 'abs_pct':
         return f'{abs(round(value * 100, 1)):g}%'
     pct = round(value * 100, 1)
@@ -420,6 +424,8 @@ def enemy_effect_facts(b):
     for effect_id, label, style in ENEMY_EFFECTS:
         values = {round(v, 4) for i, v, _ in slots if i == effect_id}
         if len(values) != 1 or label in facts or label in late:
+            continue
+        if effect_id in ENEMY_SUMMON_ONLY and i32(b, 0) not in summon_attacks():
             continue
         value = values.pop()
         if value == 0 or (style == 'pct' and not 0 < value <= 1):
@@ -438,12 +444,29 @@ POWER_LABEL = rules.setting('enemy_power_label')
 _POWER_SCOPE = []
 
 
-def power_scope():
-    """Ids of the enemy attacks whose power is shown: the ones a summon of the player can use."""
-    if not _POWER_SCOPE:
+def summon_attacks():
+    """Ids of the enemy attacks a summon or a guest ally of the player can use, the passive of each among them."""
+    if not _SUMMON_ATTACKS:
         import summon_data
-        _POWER_SCOPE.append({attack for summon in summon_data.summons() for attack in summon['attacks']}
-                            if rules.setting('enemy_power_scope') == 'summons' else set())
+        import npc_data
+        for summon in summon_data.summons():
+            _SUMMON_ATTACKS.update(summon['attacks'])
+            if summon.get('passive') is not None:
+                _SUMMON_ATTACKS.add(summon['passive'])
+        for guest in npc_data.npcs():               # a guest ally shows her abilities on the same screen
+            _SUMMON_ATTACKS.update(guest['attacks'])
+            if guest.get('extra_attack') is not None:
+                _SUMMON_ATTACKS.add(guest['extra_attack'])
+    return _SUMMON_ATTACKS
+
+
+_SUMMON_ATTACKS = set()
+
+
+def power_scope():
+    """Ids of the enemy attacks whose power is shown: the ones a summon or a guest ally of the player can use."""
+    if not _POWER_SCOPE:
+        _POWER_SCOPE.append(summon_attacks() if rules.setting('enemy_power_scope') == 'summons' else set())
     return _POWER_SCOPE[0]
 
 
