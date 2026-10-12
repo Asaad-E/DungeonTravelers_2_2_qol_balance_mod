@@ -131,7 +131,8 @@ def install_program(variant):
 
 
 def main():
-    if len(sys.argv) != 2:
+    # a name that has no build would put every original back (it happened with "--help" on 2026-10-12)
+    if len(sys.argv) != 2 or not os.path.isdir(os.path.join(BUILD_DIR, sys.argv[1])):
         print(__doc__)
         return 1
     result = install(sys.argv[1])
