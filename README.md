@@ -165,4 +165,11 @@ python -m unittest discover -s tests -p "test_*.py"
 
 runs the tests (they need step 5 done once, for the originals).
 
+```bash
+python tools/release.py
+```
+
+builds both variants and writes the two archives for players into `dist/`. Run it after any change, and publish
+those two files.
+
 Credits and sources: [docs/CREDITS.md](docs/CREDITS.md).
