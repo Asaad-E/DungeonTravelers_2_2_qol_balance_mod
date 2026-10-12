@@ -1,4 +1,4 @@
-"""A trial of other values for one unique skill (the user, 2026-10-12: with calm, one step at a time): the girl in
+"""A trial of other values for one unique skill (decided 2026-10-12: with calm, one step at a time): the girl in
 the reference party without her skill, with it as built, and with its ten values times each factor, at the five
 places of unique_skills.py beside this file. For Arcane Shield a trial may also set the chance of its roll, which is
 a figure of the program (lever L38). Nothing is written.

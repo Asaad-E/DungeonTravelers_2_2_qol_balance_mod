@@ -1,5 +1,5 @@
 """The measure of each unique skill (unique_skills.py beside this file) written into its row of the register (rows
-I01 - I18 of the sheet Criticisms). The rows stay open: the user decides after reading them.
+I01 - I18 of the sheet Criticisms). The rows stay open: the decision is taken on after reading them.
 
     python register_unique_figures.py
 """
@@ -62,7 +62,7 @@ def main():
             skill = str(row[col['Subject']].value).split(' (')[0]
             if skill in found:
                 row[col['Balance_Result']].value = found[skill]
-                row[col['Verdict']].value = 'measured; to be read with the user'
+                row[col['Verdict']].value = 'measured; to be read '
                 done += 1
     wb.save(WORKBOOK)
     print(done, 'rows')

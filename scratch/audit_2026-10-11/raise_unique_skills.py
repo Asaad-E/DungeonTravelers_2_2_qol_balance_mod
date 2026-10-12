@@ -1,4 +1,4 @@
-"""Three unique skills raised at the user's word of 2026-10-12, after the trials of unique_trial.py beside this file:
+"""Three unique skills raised on request of 2026-10-12, after the trials of unique_trial.py beside this file:
 
 * Third Eye Wide (Lilian): its chance times 2 (rows U001 - U010 of data_tables/balance_changes.xlsx).
 * Usurper of Souls (Lizerietta): its chance times 1.6, never over 1 (rows U011 - U020): "very effective where it
@@ -19,15 +19,15 @@ from sim.data import game_data                            # noqa: E402
 
 TABLES = os.path.join(PROJECT, 'data_tables')
 RAISES = (('Third Eye Wide', 2.0, 'I15',
-           'The user, 2026-10-12: times 2. Without it the reference party won 78.6% of five late bosses, with it 78.0%, '
+           'Decided 2026-10-12: times 2. Without it the reference party won 78.6% of five late bosses, with it 78.0%, '
            'at twice the chance 80.2% (500 battles a row); rows of eight random battles at four floors do not run away '
            'with it. Its seventh result, the dispel, still removes nothing: that is a fault of the program (0x47ee6f)'),
           ('Usurper of Souls', 1.6, 'I11',
-           'The user, 2026-10-12: raise its chance so that it is very effective where it belongs, against the enemies '
+           'Decided 2026-10-12: raise its chance so that it is very effective where it belongs, against the enemies '
            'that summon; it does nothing anywhere else, so nothing else moves. Times 1.6 and never over 1: the crown '
            'value becomes certain'))
 PATCH = ('X13', 'balance', 'L38', '0x424768', '0f', '19', None, None,
-         'Roll of Arcane Shield, a number below 100 under: 15 -> 25 (the user, 2026-10-12; cmp eax, imm8 at 0x424766)')
+         'Roll of Arcane Shield, a number below 100 under: 15 -> 25 (decided 2026-10-12; cmp eax, imm8 at 0x424766)')
 ARCANE_FILE = 'UniqueSkillData_0379.bin'
 ARCANE_OLD, ARCANE_NEW = 'Activation rate: 15%', 'Activation rate: 25%'
 

@@ -1,4 +1,4 @@
-"""Support Shot (row F52 of the register), raised at the user's word on 2026-10-11: rows W047 - W051 of
+"""Support Shot (row F52 of the register), raised on request on 2026-10-11: rows W047 - W051 of
 data_tables/balance_changes.xlsx.
 
     python raise_support_shot.py
@@ -10,7 +10,7 @@ PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file
 CHANGES = os.path.join(PROJECT, 'data_tables', 'balance_changes.xlsx')
 VANILLA = (0.04, 0.06, 0.08, 0.1, 0.12)
 NEW = (0.1, 0.15, 0.2, 0.25, 0.3)
-WHY = ('Decided 2026-10-11 (the user: raise it to a reasonable level): Support Shot fires only after a plain attack of '
+WHY = ('Decided 2026-10-11 (decided: raise it to a reasonable level): Support Shot fires only after a plain attack of '
        'another member, and at 4 - 12% the reference party with and without it was the same inside the noise (C22, C30, '
        'C34, C40). At 10 - 30% a Sniper beside members who strike plainly adds a shot to about one of their attacks in '
        'three; beside a party that spends TP every turn it stays what it was')

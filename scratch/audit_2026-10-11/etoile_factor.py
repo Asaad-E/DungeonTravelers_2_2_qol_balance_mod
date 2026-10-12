@@ -1,4 +1,4 @@
-"""Which second raise of the two protecting dances of the Etoile (the user, 2026-10-12): 1.0 (none), 1.3, 1.4 or 1.5
+"""Which second raise of the two protecting dances of the Etoile (decided 2026-10-12): 1.0 (none), 1.3, 1.4 or 1.5
 times the values of rows A084 - A093 and A124 - A133 before that raise. For each: the Meta party with her in the place
 of the Diva, and the reference party with her in its last place, as tools/class_stages.py plays a role. The build
 holds 1.5, so each factor is applied over it. Nothing is written.

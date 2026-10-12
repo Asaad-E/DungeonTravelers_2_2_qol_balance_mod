@@ -1,7 +1,7 @@
 # Class identity (vanilla)
 
 What each class of Dungeon Travelers 2-2 is for, as the game presents it. It is a soft standard for phase 2
-(BALANCE_PLAN.md section 3, asked by the user on 2026-10-07): every change to a skill or a class (themes T02, T04,
+(asked on 2026-10-07): every change to a skill or a class (themes T02, T04,
 T05, T06, T07) and every effect added is checked against the entry of the class it touches, so that a class gains
 viability while keeping its flavour.
 
@@ -300,4 +300,4 @@ For a change to a class or skill, the check is in words, beside the figures of t
 1. Does the class still do what its **role** says, in its **niche**?
 2. Is what makes it **unique** still its own, or does the change hand it to another class?
 3. Does the change work through its **own tools** (fixing what is broken), rather than by giving it the tools of
-   another class (principle 4 of BALANCE_PLAN.md)?
+   another class?

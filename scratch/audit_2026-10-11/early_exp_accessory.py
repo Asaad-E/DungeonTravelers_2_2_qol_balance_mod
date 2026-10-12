@@ -10,11 +10,11 @@ import openpyxl
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CHANGES = os.path.join(PROJECT, 'data_tables', 'balance_changes.xlsx')
-DROPPED = ('Dropped on 2026-10-12 (the user): the effect goes on an accessory, not on a sealbook; the book of Molle is as '
+DROPPED = ('Dropped on 2026-10-12 : the effect goes on an accessory, not on a sealbook; the book of Molle is as '
            'in vanilla. Was: ')
 ROW = {'ID': 'P090', 'Table': 'equipment', 'Record': '732 Bathroom Slippers', 'Field': 'Enchant 2 (0x64)',
        'Vanilla': 33, 'New': 270, 'Lever': 'L15', 'Serves': 'U01',
-       'Why': 'The user, 2026-10-12: the piece that raises the EXP factors of B4 comes late (the Grand Sealbook of Dragon '
+       'Why': 'Decided 2026-10-12: the piece that raises the EXP factors of B4 comes late (the Grand Sealbook of Dragon '
               'Papi, level 44); he wants the same effect earlier on one unique accessory that is neither farmed nor '
               'stolen, without filling the game with such pieces. The Bathroom Slippers are the reward of quest rank 3, '
               'given once, wearable by every class; they keep "Nullify poison" and give up "Physical defense UP" '

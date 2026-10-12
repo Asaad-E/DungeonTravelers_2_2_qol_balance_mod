@@ -1,6 +1,6 @@
 # Level curve of the story (generated)
 
-Written by `tools/checkpoint_levels.py` from the game data and `data_tables/sim_setup.xlsx`. Reference level: the guides (sheet `GuideLevels`), else the level of the random enemies of the zone where the boss stands (the lowest level covering 90% of its encounters), never below the checkpoint before (assumption A15, decided by the user on 2026-10-07). Gap: boss level minus reference. Step: reference minus the reference of the checkpoint before. The mod keeps every jump in its place and none larger (Regression R03).
+Written by `tools/checkpoint_levels.py` from the game data and `data_tables/sim_setup.xlsx`. Reference level: the guides (sheet `GuideLevels`), else the level of the random enemies of the zone where the boss stands (the lowest level covering 90% of its encounters), never below the checkpoint before (assumption A15, decided on 2026-10-07). Gap: boss level minus reference. Step: reference minus the reference of the checkpoint before. The mod keeps every jump in its place and none larger (Regression R03).
 
 | Checkpoint | Boss | Boss level | Zone level | Guide | Reference | From | Gap | Step |
 |---|---|---|---|---|---|---|---|---|

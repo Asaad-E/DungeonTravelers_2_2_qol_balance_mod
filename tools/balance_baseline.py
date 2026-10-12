@@ -11,7 +11,7 @@ Writes docs/generated/BALANCE_BASELINE.md from:
                                             checked against it by the build
     data_tables/balance_criteria.xlsx       which skills the complaints and the guide speak of
 
-Rule of the user (2026-10-05): vanilla figures written by hand get fixed in one revision and broken in the
+Rule (2026-10-05): vanilla figures written by hand get fixed in one revision and broken in the
 next. The documents hold decisions; the figures are regenerated here.
 """
 import os

@@ -11,7 +11,7 @@ Workbook: data_tables/qol_skill_text.xlsx
   * Every number comes from data_tables/vanilla_source_of_truth.xlsx. Numbers in
     edited rows are checked against the binary by the build and by the tests.
 
-Style: docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md (the user's standard)
+Style: docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md (the standard of the project)
   Line 1  vanilla description; techniques and spells get a damage word and the ailment chance in it
           and nothing else ("Deal minor bash damage to one enemy. May stun (30%+)."), because this
           is the one line shown in battle, where the level is unknown (tools/magnitude_words.py)
@@ -87,11 +87,11 @@ for _row in _LABELS['multi']:
 DAMAGE_EFFECTS = [(int(r['Effect_ID']), r['Label'], r['Style']) for r in _LABELS['damage']]
 SUMMON_TURNS = 147          # "Duration UP" of a summon skill
 # Stored in points and written with %. Resistance is also in points but the game writes it as a plain
-# number on the status screen, so it gets no sign (decision of the user). Setting percent_points.
+# number on the status screen, so it gets no sign (by decision). Setting percent_points.
 POINT_STEMS = re.compile(rules.setting('percent_points'), re.I)
 NO_GUESS_EFFECTS = {228, 229, 230, 231, 233}   # parameters of a summoned doll: what they scale is not known
 # Known effects that no vanilla phrase mentions. They are shown always, also when the value is the same
-# at every level (rule of the user: a value the skill has is in its box). Labels are the game's words.
+# at every level (rule of decided: a value the skill has is in its box). Labels are the game's words.
 # A row without a label (168) is 'Speed increase' or 'Speed decrease', by the sign.
 EXTRA_EFFECTS = [(int(r['Effect_ID']), r['Label'] or None, r['Style']) for r in _LABELS['extra']]
 EXPLAINED_BY_TEXT = {106, 232, 311}     # "Can cure poison > paralysis > ...": the list itself is the data
@@ -146,7 +146,7 @@ def load_previous_mod():
 
 
 def load_edited_rows():
-    """Rows the user marked as Edited keep their text."""
+    """Rows marked as Edited keep their text."""
     if not os.path.exists(OUTPUT_PATH):
         return {}
     ws = openpyxl.load_workbook(OUTPUT_PATH)['Skills']
@@ -254,7 +254,7 @@ class Segment:
     def cost(self, mode, main=False):
         """What the player loses when the table is printed this way (0 = nothing).
 
-        Rule agreed with the user: every effect of the skill stays in the box. The main
+        Rule agreed with decided: every effect of the skill stays in the box. The main
         effect is shown level by level; to make room, the TP cost and the secondary
         effects turn into base + step, and speed and chant are the first to go.
         """
@@ -642,7 +642,7 @@ def generate_line1(skill, row):
         if len(text) > BATTLE_LINE:
             notes = notes + [f'{len(text)} characters: the battle bar holds {BATTLE_LINE}; shorten it in ShortSkills']
     if LINE1_VALUES and text == skill['desc'] and not magnitude_words.has_power_table(slots) and '\n' not in text:
-        # Off by the user's choice (qol_rules.xlsx, Settings/line1_values): the box below has every value,
+        # Off's choice (qol_rules.xlsx, Settings/line1_values): the box below has every value,
         # so repeating them in line 1 is bloat.
         text, more = magnitude_words.put_values(skill['desc'], row.get('effects', []), MAX_LINE)
         notes = notes + more

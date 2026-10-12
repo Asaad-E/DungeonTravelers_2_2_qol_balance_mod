@@ -13,7 +13,7 @@ This document outlines the scope, principles, and architectural reasoning of the
 
 **Each pillar is its own build.** The QoL variant changes no value; the Balance variant rebalances and carries the same information for the rebalanced game. A text written for one must never ship over the data of the other.
 
-**Order of work.** QoL first, until it is right (closed on 2026-10-04). Balance afterwards (`BALANCE_PLAN.md`). Tools are built once and must serve both: the same extraction, the same checks and the same build, with the variant as a parameter.
+**Order of work.** QoL first, until it is right (closed on 2026-10-04). Balance afterwards. Tools are built once and must serve both: the same extraction, the same checks and the same build, with the variant as a parameter.
 
 **QoL is judged on the screen.** A true figure is necessary, not sufficient. A box that holds every number but is hard to read has failed. Start from the decision the player takes on each screen, what that screen already shows and what is missing; the data and the tools follow from that.
 

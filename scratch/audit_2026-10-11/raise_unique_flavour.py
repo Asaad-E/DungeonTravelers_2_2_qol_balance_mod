@@ -18,14 +18,14 @@ TABLES = os.path.join(PROJECT, 'data_tables')
 FIRST = 20
 # skill, factor, the most a value may be (a chance stays under 1; a share sent back does not), row it serves, why
 RAISES = (('Arcane Shield', 1.5, None, 'I18',
-           'The user, 2026-10-12, for the feel of it: with its roll at 25 in 100 (X13) the share sent back times 1.5. '
+           'Decided 2026-10-12, for the feel of it: with its roll at 25 in 100 (X13) the share sent back times 1.5. '
            'Tried at 1.5 and at 2 with the roll at 15 and at 25: the wins of the reference party do not move (81 - 82% '
            'of five late bosses), the damage sent back is little beside the HP of a boss'),
           ('Alter Fate', 1.5, 1.0, 'I14',
-           'The user, 2026-10-12, for the feel of it: an insurance that is seen now and then. Tried: the reference party '
+           'Decided 2026-10-12, for the feel of it: an insurance that is seen now and then. Tried: the reference party '
            'wins 92.6% of five late bosses with it and 94.0% at 1.5 times the chance (90.0% without it)'),
           ('Tranquil Song', 1.25, 1.0, 'I15',
-           'The user, 2026-10-12: a little, it is one of the good ones. The singer, whose song fired 7 - 13% of her turns'))
+           'Decided 2026-10-12: a little, it is one of the good ones. The singer, whose song fired 7 - 13% of her turns'))
 
 
 def main():

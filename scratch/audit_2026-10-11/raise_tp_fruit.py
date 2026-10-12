@@ -9,7 +9,7 @@ import openpyxl
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CHANGES = os.path.join(PROJECT, 'data_tables', 'balance_changes.xlsx')
 FRUIT = (('Y012', '19 Magical Fruit', 25, 30), ('Y013', '20 Fairy Apple', 50, 60), ('Y014', '21 Golden Apple', 100, 120))
-WHY = ('The user, 2026-10-12 (row F01: no party without the Maid line wins from C30 on): a fifth more TP from the fruit, '
+WHY = ('Decided 2026-10-12 (row F01: no party without the Maid line wins from C30 on): a fifth more TP from the fruit, '
        'not a new cut of TP costs, which would move every party. Measured before it: the Meta party with a Bishop for '
        'its Diva wins 2% at C30 and C34 with 8 fruit of 50 TP, 50% with 24, 100% with TP at will; C36 and the last boss '
        'do not turn on TP. The Maid keeps her part; without her the fights are won with effort and a bag of fruit')

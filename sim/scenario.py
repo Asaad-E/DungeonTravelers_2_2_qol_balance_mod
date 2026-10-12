@@ -412,7 +412,7 @@ def zone_level(data, floor, number, share):
 
 
 def reference_levels(data, setup):
-    """{checkpoint: (level, where it comes from)} in the order of the sheet (A15, the user's decision of 2026-10-07):
+    """{checkpoint: (level, where it comes from)} in the order of the sheet (A15, the decision of 2026-10-07):
     the guides' level, else the level of the random enemies of the zone where the boss stands, else the level of the
     checkpoint before; never below the level of the checkpoint before, since a party does not lose levels."""
     share = float(setup.settings['zone_level_share'])

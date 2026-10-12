@@ -92,7 +92,7 @@ rate   = rate A - enchantments                                           kept be
   `f3 0f 58 c1`). With values of 0.1 to 0.5 against a max HP in the hundreds, **Concentrate changes the rate by less
   than a thousandth: in the game as shipped it does nothing**. One byte (`58` to `59` at `0x44d044`)
   makes it the product the message tells: row X14 of the sheet `ExePatches` (lever L45), in the Balance variant only
-  (the user, 2026-10-12, for every unit that has the passive). The QoL variant keeps the text of the game for the
+  (decided 2026-10-12, for every unit that has the passive). The QoL variant keeps the text of the game for the
   passive, with no figure.
 * Enchantments subtract 0.10, 0.06 or 0.03 per piece according to their kind; one adds.
 * The roll is a number below 100 against the rate cut to an integer percent (`0x44d1f3`). Only the physical function rolls it; a spell breaks a chant only through the second roll of a critical (16.7). **A critical hit rolls a second time**: a number below 100 under 33 also breaks the chant, whatever the damage (`0x44d228 - 0x44d246`). This is the "1 in 3" of the lessons.
@@ -567,7 +567,7 @@ Effect 254 (Guts; on the Balance variant also the unique skill of Lizerietta), `
 the target minus the damage is 0 or less, the first status of effect 254 in its list rolls `value * 100`, and on a
 success the damage becomes HP - 1. It rolls at 1 HP too, so a unit can hold on again and again. Seven bytes of the
 same length would skip the roll at 1 HP (`2b 45 40 85 c0 0f 8f` to `48 48 3b 45 40 0f 83` at `0x4238a2`: "HP - 2 >=
-damage, unsigned"); built and withdrawn on 2026-10-12 by the user, since the code is the one of Guts too. No enemy
+damage, unsigned"); built and withdrawn on 2026-10-12, since the code is the one of Guts too. No enemy
 has the effect.
 
 ### 12.8 Songs and dances (`0x48bf90`)
@@ -905,7 +905,7 @@ A sleeping unit takes none.
   joint power)) * (1 + enchantments * 0.01); attack C = attack B * (1 + Spiritual Fantasia) * (1 + element boost), the
   element boost being 0.2 for the matching element status 325 - 329 and 0.2 per piece of its "magic buff" enchantment
   (78 - 82). A spell of a doll adds 500 * (Doll Mastery + min(0.05, 0.02 * pieces of 304 + 0.01 * pieces of 305)) to its
-  power. Magic hit terms of the user: 167, 309, 197, 222, 278, 353; of the target: 165, 198. Magic defence modifiers:
+  power. Magic hit terms of decided: 167, 309, 197, 222, 278, 353; of the target: 165, 198. Magic defence modifiers:
   163, 196, 205, 336, 213, 220, 223.
 * Effects 71 and 136 (`0x44c60e - 0x44c6b6`): 71 adds its value to the "other" bonus once for every buff or debuff of
   the target; 136 adds value * the number of the hit record.

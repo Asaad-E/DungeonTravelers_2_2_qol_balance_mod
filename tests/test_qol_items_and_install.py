@@ -33,7 +33,7 @@ class ItemText(unittest.TestCase):
         self.assertEqual(item_pairs(self.entries[DANISH])[0], (0, 250.0))
 
     def test_original_sentence_plus_data(self):
-        """The user's rule for items: the game's sentence stays and what the item does is added."""
+        """The rule for items: the game's sentence stays and what the item does is added."""
         by_name = {ItemHelper.read_item(b)['name']: self.table[fn] for fn, b in self.entries.items()}
         expected = {
             'Rice Cracker': 'Old-fashioned rice cracker covered in soy sauce. (HP +75)',
@@ -405,7 +405,7 @@ class PartySkillBox(unittest.TestCase):
 
 
 class VoiceOfTheGame(unittest.TestCase):
-    """Hard rule of the user: nothing shown in the game speaks from outside it. A line such as
+    """Hard rule of decided: nothing shown in the game speaks from outside it. A line such as
     "Activation rate: about 15% (player guide; the game data holds no figure)" must stop the build."""
 
     def test_out_of_game_words_are_caught_and_the_game_wording_is_left_alone(self):

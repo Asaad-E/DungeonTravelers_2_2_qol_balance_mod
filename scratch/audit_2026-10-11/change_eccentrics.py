@@ -1,4 +1,4 @@
-"""Eccentrics (Lilian, Lizerietta, Souffle) changed at the user's word of 2026-10-12: its DEX bonus added nothing that
+"""Eccentrics (Lilian, Lizerietta, Souffle) changed on request of 2026-10-12: its DEX bonus added nothing that
 could be measured. The size of a party skill bonus is the program's, by effect (0x4f9000 - 0x4f94e6), so what a row
 can change is which effect the skill gives: it takes the one of Board Members (DEX and AGI, 20 each at every proof)
 in the place of its own (DEX, 32). Row P091 of data_tables/balance_changes.xlsx, lever L42.
@@ -12,7 +12,7 @@ PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file
 TABLES = os.path.join(PROJECT, 'data_tables')
 ROW = {'ID': 'P091', 'Table': 'party_skills', 'Record': 'PartySkillData_0393 (Eccentrics)', 'Field': 'effect id',
        'Vanilla': 371, 'New': 415, 'Lever': 'L42', 'Serves': 'R02',
-       'Why': 'The user, 2026-10-12: change it. Measured (scratch/audit_2026-10-11/PARTY_SKILLS.md, the full bonus on the '
+       'Why': 'Decided 2026-10-12: change it. Measured (scratch/audit_2026-10-11/PARTY_SKILLS.md, the full bonus on the '
               'members the skill needs, four late bosses): DEX +32 on three members leaves the wins and the length of '
               'the fights where they were, while DEX +20 with AGI +20, the bonus of Board Members, makes them 13% shorter. '
               'Read in the program (0x4f9268 - 0x4f94b3): each party effect is asked once of a member ("has it?") and '

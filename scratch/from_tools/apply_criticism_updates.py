@@ -84,7 +84,7 @@ updates = {
         'Vanilla_Result': 'Joint skills require specific party rosters and TP/gauge investment; parked by user decision',
         'Proposal': 'None: joint skills parked',
         'Decision': None,
-        'Why': 'Joint skills parked by the user on 2026-10-04; DLC ignored'
+        'Why': 'Joint skills parked on 2026-10-04; DLC ignored'
     },
     'F87': {
         'Status': 'open',

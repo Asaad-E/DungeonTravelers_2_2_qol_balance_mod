@@ -1,6 +1,6 @@
 """The postgame bosses the variant leaves easier than vanilla at the same preparation (postgame_compare.py beside this
 file, over 15 points of wins): for each, the vanilla party and the variant party again over more battles, and the
-variant with the HP of the enemies of the fight times each factor. A proposal for the user; nothing is written.
+variant with the HP of the enemies of the fight times each factor. A proposal ; nothing is written.
 
     python postgame_fit.py k/n [runs]
 """

@@ -1,6 +1,6 @@
 """Moves to the state "blocked" the rows of balance_changes.xlsx the value step refuses (tools/balance_values.py),
 with the reason, and writes the state into the sheet About. A blocked row is not of the variant: neither the
-simulator nor the build applies it until the user decides what it becomes.
+simulator nor the build applies it until the decision is taken on what it becomes.
 
     python block_unbuildable_rows.py --write
 """
@@ -30,7 +30,7 @@ REASONS = {**{f'W{n:03d}': WEAPON for n in (38, 39)},
            **{f'P{n:03d}': QUEST for n in range(26, 31)}}
 ABOUT = ('State blocked', 'A row that cannot be written into the game files as it stands (tools/balance_values.py refuses '
          'it), with the reason at the start of its Why. It is not of the variant: sim/variant.py and the build leave it '
-         'out until the user decides what it becomes.')
+         'out until the decision is taken on what it becomes.')
 
 
 def main(write):

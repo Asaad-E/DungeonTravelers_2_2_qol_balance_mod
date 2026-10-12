@@ -1,4 +1,4 @@
-"""Row F01 of the register closed on the user's decision of 2026-10-12 (a fifth more TP from the fruit, rows
+"""Row F01 of the register closed on the decision of 2026-10-12 (a fifth more TP from the fruit, rows
 Y012 - Y014), with the figures measured on the build (no_maid_line.py and tp_items_trial.py beside this file).
 
     python close_f01.py
@@ -17,7 +17,7 @@ FIGURE = ('Y012 - Y014 (Magical Fruit 25 to 30 TP, Fairy Apple 50 to 60, Golden 
           'Nothing else moved: curve 37 of 44, battery 75 of 85, classes 74 of 76, anchors 6 of 6')
 VERDICT = ('true from C30 on in vanilla; on the variant a party without the Maid line wins C30 to C38 with a bag of '
            'fruit, and needs her at the last boss')
-DECISION = ('; the user, 2026-10-12: a fifth more TP from the fruit and no new cut of TP costs; the Maid keeps her part '
+DECISION = ('; decided 2026-10-12: a fifth more TP from the fruit and no new cut of TP costs; the Maid keeps her part '
             'and a party without her gets through with effort')
 
 

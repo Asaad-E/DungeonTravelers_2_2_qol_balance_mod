@@ -14,11 +14,10 @@ The mod ships as two variants, built separately from the same tools and the same
 | Document | What it holds |
 |---|---|
 | [philosophy.md](philosophy.md) | Why the project works as it does: the two variants, the order of sources, nothing written in code. |
-| [BALANCE_PLAN.md](BALANCE_PLAN.md) | The Balance variant: its phases, the decisions of the user, and where the work stands (section 7). |
 | [FORMULAS.md](FORMULAS.md) | Every battle formula of the game, read from its program, with the address of each. |
 | [CLASS_IDENTITY.md](CLASS_IDENTITY.md) | What each class is for: the standard a change to a class is held to. |
 | [dungeontravelers2-2.md](dungeontravelers2-2.md) | The technical reference: file formats, the text system and its limits, the rules of the text. |
-| [SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | How a skill box is worded: the specification of the user. |
+| [SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | How a skill box is worded: the specification of the project. |
 | [QOL_ROADMAP.md](QOL_ROADMAP.md) | The QoL variant pack by pack: what is shown, what is not and why. |
 | [SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Why the simulator plays both sides with full knowledge. |
 | [CREDITS.md](CREDITS.md) | The sources: the guides of the players the figures were checked against. |

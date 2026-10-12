@@ -1,7 +1,7 @@
 """
 The level curve of the story: the reference level of every checkpoint and the jumps of the curve.
 
-The reference level is the user's decision of 2026-10-07 (assumption A15 of data_tables/sim_setup.xlsx): the level the
+The reference level is the decision of 2026-10-07 (assumption A15 of data_tables/sim_setup.xlsx): the level the
 guides give (sheet GuideLevels), else the level of the random enemies of the zone where the boss stands, never below
 the checkpoint before. A jump is a rise of at least `level_jump_step` levels from one checkpoint to the next, or a boss
 at least `boss_gap` levels above its reference (sheet Settings). The mod keeps every jump in its place, none larger
@@ -50,7 +50,7 @@ def main():
            'Written by `tools/checkpoint_levels.py` from the game data and `data_tables/sim_setup.xlsx`. Reference '
            'level: the guides (sheet `GuideLevels`), else the level of the random enemies of the zone where the boss '
            f'stands (the lowest level covering {float(setup.settings["zone_level_share"]):.0%} of its encounters), never '
-           'below the checkpoint before (assumption A15, decided by the user on 2026-10-07). Gap: boss level minus '
+           'below the checkpoint before (assumption A15, decided on 2026-10-07). Gap: boss level minus '
            'reference. Step: reference minus the reference of the checkpoint before. The mod keeps every jump in its '
            'place and none larger (Regression R03).', '',
            '| Checkpoint | Boss | Boss level | Zone level | Guide | Reference | From | Gap | Step |',

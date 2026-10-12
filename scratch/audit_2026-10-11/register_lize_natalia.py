@@ -18,7 +18,7 @@ NAME = 'Small Target'
 BOX = ('Enemy attacks and spells are less likely to hit her.\n'
        'Evasion: 10% -> 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26%   |   Crown EX: 35%')
 NATALIA = ((76, 28, 41), (77, 40, 82), (78, 49, 101), (79, 57, 123), (80, 68, 148))
-WHY_LIZE = ('The user, 2026-10-12: her unique skill becomes evasion: it tells what she is in the game (the smallest of the '
+WHY_LIZE = ('Decided 2026-10-12: her unique skill becomes evasion: it tells what she is in the game (the smallest of the '
             'team), it serves in every class and every fight, and it suits her dolls without being tied to them (a blow '
             'that misses her cannot end her dolls, her chant or her dance: docs/FORMULAS.md 16.6). Effect 338 is read '
             'among the evasion buffs of the target of a blow (0x44ac56) and of a spell (0x44d8cb), in the list of '
@@ -26,7 +26,7 @@ WHY_LIZE = ('The user, 2026-10-12: her unique skill becomes evasion: it tells wh
             '(scratch/audit_2026-10-11/lize_ideas.py, 100 battles a cell, as papillon, doll master and joker at C36, '
             'C40, P24): from +0.10 to +0.30 the wins stay within the noise of the party without it or a little above; '
             'nothing breaks at +0.30')
-WHY_NATALIA = ('The user, 2026-10-12: approved. Measured (scratch/audit_2026-10-11/mercenary_log.py, mercenary_trial.py): '
+WHY_NATALIA = ('Decided 2026-10-12: approved. Measured (scratch/audit_2026-10-11/mercenary_log.py, mercenary_trial.py): '
                'the last of the named mercenaries (78% / 93% / 100% at C36, C40, P24); she heals 368 and 626 HP a fight '
                'where Priscilla heals 1,019 and 2,496. Her heal spells are shared with enemies, her RES is hers alone and '
                'is what her Heal is worked from: times 1.5 takes C36 from 81% to 87% (Priscilla 90%)')
@@ -71,7 +71,7 @@ def main():
         if row[0].value == 'I11':
             row[col['Proposal']].value = ('U011 - U020, U051: the skill becomes evasion (effect 338, 10 - 26% by rank, 35% '
                                           'with the crown), named again in the variant')
-            row[col['Decision']].value = (str(row[col['Decision']].value or '') + f' | {TODAY} (evening), the user: the '
+            row[col['Decision']].value = (str(row[col['Decision']].value or '') + f' | {TODAY} (evening), decided: the '
                                           'effect is changed for evasion, which serves in every class and fight').strip(' |')
         if row[0].value == 'F94':
             row[col['Decision']].value = (str(row[col['Decision']].value or '') + f' | {TODAY}: every mercenary measured '

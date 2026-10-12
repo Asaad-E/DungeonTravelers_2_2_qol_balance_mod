@@ -109,6 +109,10 @@ Balance changes were tested with a battle simulator (`sim/`) built on those form
 
 More in [docs/](docs/README.md).
 
+## License
+
+MIT, see [LICENSE](LICENSE). It covers this repository, not the game.
+
 ## Credits
 
 Game by Aquaplus and Sting. Figures were cross-checked against the Japanese community wiki and the GameFAQs guides.

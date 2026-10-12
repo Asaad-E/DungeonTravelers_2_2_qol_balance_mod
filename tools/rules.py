@@ -1,7 +1,7 @@
 """
 The editable rules of the QoL text: data_tables/qol_rules.xlsx.
 
-Rule of the user: nothing that reaches the screen is written in the tools. Every wording and every
+Rule of decided: nothing that reaches the screen is written in the tools. Every wording and every
 figure that is not read from the game files lives in that workbook, one sheet per table (its About
 sheet lists them). The tools read it through this module; to change a word, a bound or a figure, edit
 the workbook and run the generators again.

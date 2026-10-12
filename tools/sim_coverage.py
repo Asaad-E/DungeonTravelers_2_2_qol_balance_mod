@@ -3,8 +3,8 @@ The checklist that closes phase 1 (the simulator), generated: docs/generated/SIM
 
     python tools/sim_coverage.py
 
-It counts, from the code of sim/ and the workbooks, never by hand, the five steps of phase 1 (BALANCE_PLAN.md
-section 3, approach of 2026-10-07) and the engine they rest on:
+It counts, from the code of sim/ and the workbooks, never by hand, the five steps of phase 1 (the simulator)
+and the engine they rest on:
     effects   every effect a skill of the player uses (or a unique skill), and whether sim/battle.py acts on it
               (HANDLED), with an assumption of data_tables/sim_setup.xlsx (ASSUMED), or not at all
     AI        the commands, sources and target kinds of the enemy scripts sim/ai.py runs, and the scripts that use

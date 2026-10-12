@@ -21,7 +21,7 @@ def main():
     wb = openpyxl.load_workbook(path)
     wb['ExePatches'].append(['X14', 'balance', 'L45', '0x44d044', '58', '59', None, None,
                              'Interruption rate of a blow: max HP * 1.5 times (1 + Concentrate) where the program adds the '
-                             'two (addss -> mulss at 0x44d042; its debug message writes the product). The user, 2026-10-12: '
+                             'two (addss -> mulss at 0x44d042; its debug message writes the product). Decided 2026-10-12: '
                              'mend it for every unit, enemies with the passive too'])
     wb['Levers'].append(['L45', 'Concentrate divides the interruption rate (the product the message of the program tells)',
                          'executable, 0x44d042', 'one byte', 'Executable', 'The byte is 58 (addss) and becomes 59 (mulss)',
@@ -42,7 +42,7 @@ def main():
         if row[col['Filename']].value == FILE:
             row[col['QoL_LvUp']].value = row[col['Vanilla_LvUp']].value
             row[col['Edited']].value = 'yes'
-            row[col['Line1_Notes']].value = ('Left as the game words it (the user, 2026-10-12): the program adds the value '
+            row[col['Line1_Notes']].value = ('Left as the game words it (decided 2026-10-12): the program adds the value '
                                              'where it means to multiply (docs/FORMULAS.md 2.5), so no figure is true of it')
     wb.save(path)
 

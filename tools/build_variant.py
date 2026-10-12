@@ -18,7 +18,7 @@ Variants
                                    a figure of the prose that the data does not hold is corrected)
           WeaponRankData.pck       rank names generated from the delay multiplier of each rank
   balance   The values of data_tables/balance_changes.xlsx and the same texts over them. Never installed by the
-            build: python tools/install_variant.py balance, when the user says so.
+            build: python tools/install_variant.py balance, on request.
               [0a] tools/balance_values.py writes every live row into copies of the originals
                    (build/balance/base/) and reads the result byte by byte against the originals;
               [0b] tools/balance_readback.py reads that folder with the readers of the project and sets it
@@ -1328,7 +1328,7 @@ def main():
     for pck in copied:
         print(f"    {os.path.join('Data', 'ENG', pck)}  (values only)")
     if variant.get('values'):
-        print(f"    Not installed. When the user says so: python tools/install_variant.py {args.variant}")
+        print(f" Not installed. To install: python tools/install_variant.py {args.variant}")
     elif not args.no_install:
         result = install_variant.install(args.variant)
         install_variant.report(args.variant, *result)

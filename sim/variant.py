@@ -168,7 +168,7 @@ def apply(data, changes):
             _check(row, npc[field])
             npc[field] = int(new)
         elif table == 'party_skills':
-            continue                    # out of the model (CLAUDE.md); tools/balance_values.py writes and checks the row
+            continue                    # out of the model; tools/balance_values.py writes and checks the row
         elif table == 'quests':
             continue                    # the simulator has no quests; tools/balance_values.py writes and checks the row
         elif table == 'sealbooks':

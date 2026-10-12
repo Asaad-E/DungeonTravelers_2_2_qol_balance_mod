@@ -1,4 +1,4 @@
-"""The user, 2026-10-12: effect 254 stays as the game has it (it may be rolled at 1 HP), since the guard of row X15
+"""Decided 2026-10-12: effect 254 stays as the game has it (it may be rolled at 1 HP), since the guard of row X15
 changed Guts of the Etoile too. Row X15 and lever L46 leave the workbook; the box of the unique skill of Lizerietta
 goes back to its sentence without the clause. Run once."""
 import os

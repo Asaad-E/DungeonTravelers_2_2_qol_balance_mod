@@ -7,7 +7,7 @@ of an ailment is given as a figure in the shortest true form:
 
     "Deal bash damage to one enemy. May stun."  ->  "Deal minor bash damage to one enemy. May stun (30%+)."
 
-Damage scale (the words and the 80% floor are the user's; the other bounds come from the data)
+Damage scale (the words and the 80% floor were set by hand; the other bounds come from the data)
 
     Word           Physical: average ATK         Magic: average Pwr
     negligible     below 80%                     below 80
@@ -17,7 +17,7 @@ Damage scale (the words and the 80% floor are the user's; the other bounds come 
     severe         175% - 224%                   500 - 699
     tremendous     225% and above                700 and above   (out of the scale; the game's own word)
 
-Ailment chance (the user's rule)
+Ailment chance (the rule)
 
     (25%)       the chance is the same at every level
     (30%+)      it starts at 30% and rises by 10 points or less over the levels
@@ -25,7 +25,7 @@ Ailment chance (the user's rule)
     (100%)      it always happens (a stored chance above 100% is written as 100%)
     The tilde of "~30%+" cannot be used: the game font has no glyph for it.
 
-Everything else (the user's rule: line 1 must say the value)
+Everything else (the rule: line 1 must say the value)
 
     A skill that deals no damage says how much it does in the same three forms, at the end of its
     sentence: "Raise the party's ATK (8%+)."  "ATK bonus with sword equipped (3-15%)."

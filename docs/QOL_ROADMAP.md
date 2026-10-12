@@ -1,8 +1,8 @@
 # QoL roadmap: what must be true before QoL is called finished
 
-**QoL is closed.** State on 2026-10-04: the user accepted the variant; every step of section 4 that can be done without the executable is done, and what stays unknown is listed in section 6 and carried over to the Balance work. Every number here was read from the files in `backups/` or from the output of `build_variant.py qol`; nothing is estimated.
+**QoL is closed.** State on 2026-10-04: the variant was accepted; every step of section 4 that can be done without the executable is done, and what stays unknown is listed in section 6 and carried over to the Balance work. Every number here was read from the files in `backups/` or from the output of `build_variant.py qol`; nothing is estimated.
 
-Tags: **[done]** built, verified by the build and installed. **[seen]** also looked at on screen by the user. **[open]** not started or not finished. **[blocked]** needs something that is not known yet.
+Tags: **[done]** built, verified by the build and installed. **[seen]** also looked at on screen. **[open]** not started or not finished. **[blocked]** needs something that is not known yet.
 
 ---
 
@@ -16,7 +16,7 @@ QoL is finished when all ten hold. Each one is checked by a tool or by a look at
 | D2 | Every figure on screen is the value in the binary. Where the binary has none, it comes from a guide of this game. | `build_variant.py` stops otherwise. | Checked on every build: 773 figures of skill boxes, 115 damage words and chances of line 1, 604 pieces of item data, 13 meal amounts, 1,837 figures of enemy attacks, 36 values of joint skills, 12 rank labels. From guides: 142 enchant figures, 28 bounds of party skills, 1 activation rate (Arcane Shield) |
 | D3 | No game value differs from the original. | Numeric part of every built entry compared with the backup; script packs differ only in the corrected sentence, same length. | Holds for the 3,661 entries of the 11 built packs and for `Teaching` |
 | D4 | Jokes, prose and the game's own words are intact. Data is added next to them. Prose changes only where the data contradicts it, or where a sentence had to be shortened to fit its line. | Build check per pack. | 11 corrections of enemy attack prose, 1 of a tutorial; 221 item sentences, 44 skill sentences and 35 joint skill sentences worded by hand to fit the battle bar (sheets of `data_tables/qol_rules.xlsx`), nothing else |
-| D5 | Every kind of box has been seen on screen after the install, by the user. | Section 3. | 13 of 14 kinds of screen seen; the joint skill menu is missing |
+| D5 | Every kind of box has been seen on screen after the install,. | Section 3. | 13 of 14 kinds of screen seen; the joint skill menu is missing |
 | D6 | Every pack the build writes has a writer that reproduces the original byte for byte. | Round-trip test. | 11 packs exact; scripts are patched in place without a writer. No inexact writer is left |
 | D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s tests -p "test_*.py"` | 118 tests pass |
 | D8 | Nothing that reaches the screen is written in the tools: every wording, label, scale and guide figure is in a workbook. | `data_tables/qol_rules.xlsx` and the `qol_*_text.xlsx` workbooks; a test holds it for the shortened sentences. | 19 rule sheets. Still in code: the regular expressions that recognise the game's phrases, and the layout offsets |
@@ -69,7 +69,7 @@ QoL is finished when all ten hold. Each one is checked by a tool or by a look at
 
 ### 2.3 Skills: what is left
 
-Built: 269 of 330 boxes carry data (261 with every vanilla phrase resolved, 8 partly), 48 internal entries skipped, 13 unchanged. A value that is the same at every level is shown too (`Speed decrease: 10%`). Line 1 of techniques and spells carries a damage word and the chance of its ailments and nothing else: it does not repeat the values of the box below (the user: "es solo bloat"), and it fits the 70 characters of the battle bar; 44 sentences were reworded by hand for that (sheet `ShortSkills`).
+Built: 269 of 330 boxes carry data (261 with every vanilla phrase resolved, 8 partly), 48 internal entries skipped, 13 unchanged. A value that is the same at every level is shown too (`Speed decrease: 10%`). Line 1 of techniques and spells carries a damage word and the chance of its ailments and nothing else: it does not repeat the values of the box below (decided: "es solo bloat"), and it fits the 70 characters of the battle bar; 44 sentences were reworded by hand for that (sheet `ShortSkills`).
 
 | Open item | Size | What closes it |
 |---|---|---|
@@ -108,7 +108,7 @@ An effect id means the same in skills, enemy attacks and traps. Two sources, bot
 
 69 ids carry a meaning with evidence written next to it (`EFFECT_NAMES` in `tools/extract_vanilla.py`); the other 188 are named by the game's table only, and are not used in any text until they are understood.
 
-**Corrections of the original prose** (rule of the user: when the text and the data disagree, the data wins; the sentence stays and only the wrong figure or word changes):
+**Corrections of the original prose** (rule of decided: when the text and the data disagree, the data wins; the sentence stays and only the wrong figure or word changes):
 
 | Enemy attack | The original says | The data holds | Now |
 |---|---|---|---|
@@ -125,7 +125,7 @@ An item holds four effect pairs: the first two act on an ally, the last two on a
 
 | Open item | Size | What closes it |
 |---|---|---|
-| Shortened sentences to review | 201 items | Sheet `ShortItems` of `data_tables/qol_rules.xlsx`. Each keeps the joke and drops filler so that sentence + (data) fits the 70 characters of the battle bar ("Legendary. Eat it and fall in love."). Worth a read by the user |
+| Shortened sentences to review | 201 items | Sheet `ShortItems` of `data_tables/qol_rules.xlsx`. Each keeps the joke and drops filler so that sentence + (data) fits the 70 characters of the battle bar ("Legendary. Eat it and fall in love."). Worth a read |
 | Effect not decoded | 21 items | Types 29 (a second "speed up" the wiki does not tell apart from 27), 32, 54-56 (damage by max HP, with caps the wiki gives and the data does not), 60, 61, 89 (the wiki: lose 5% of gold; the item stores 1), 90 (Fireball; one of its two items does nothing according to the wiki). Decoded on 2026-10-04 with the wiki's item list: 27 speed up, the 12 spell types (`Fire Blast Lv2`: the stored value is the spell level), 69, 88 |
 | Effect on an enemy | partly | An item made only of harmful effects shows its figures for an enemy (`25% stun`). A food that also works on enemies shows the ally's side only |
 | Light items | 4 items | Steps are written as stored value x 5 (Flashlight stores 10; the wiki measures 50 steps; the ratio holds for the 4 items). Inferred from the guide |
@@ -187,7 +187,7 @@ Each step ends with a build that passes, an install, and a look at the screen.
 
 ## 6. What is left
 
-For the user:
+To check in the game:
 
 | # | What | Where |
 |---|---|---|
@@ -209,7 +209,7 @@ Blocked on something that is not known:
 
 ## 5. Decisions
 
-Answered by the user on 2026-10-04 and applied:
+Answered on 2026-10-04 and applied:
 
 | Question | Answer |
 |---|---|
@@ -226,7 +226,7 @@ Answered by the user on 2026-10-04 and applied:
 | Values in line 1 of a skill (`(TP transfer bonus 100-140%)`) | Removed: the box below has them, in line 1 they are bloat. This replaces the earlier answer on buffs, heals and passives |
 | Width of the battle bar | The Self-Sacrifice line (70 characters) is the most that fits well; anything longer is rewritten |
 | Party skill box | Limit is the line that overflowed minus 3 (50), held by a test |
-| Arcane Shield says "occasionally" and shows only the reflected share | The rate is not in the game data; the guide's figure is shown. It was first written with its source on screen: the user called that horrible. Never again: see D10 |
+| Arcane Shield says "occasionally" and shows only the reflected share | The rate is not in the game data; the guide's figure is shown. It was first written with its source on screen: that was rejected as horrible. Never again: see D10 |
 
 Still open:
 
@@ -253,7 +253,7 @@ Reading the program settled things the QoL variant had left open. Applied throug
 | Items of types 29, 32, 89, 90 (8 items) | `40% Accelerator`, `20% War Cry`, `lose 5% of gold`, `Fireball Lv3` | `tools/item_effect_data.py`, `docs/FORMULAS.md` 15 |
 | Arcane Shield, `Activation rate: 15%` | Unchanged on screen; its source is now the program, not a guide | `docs/FORMULAS.md` 12.19 |
 
-Second pass the same day, on the user's review:
+Second pass the same day, on review:
 
 | What | On screen now | Source |
 |---|---|---|
@@ -264,7 +264,7 @@ Second pass the same day, on the user's review:
 
 The player has 35 summons in 105 forms (`tools/summon_data.py`); together they use 413 enemy attacks, 154 with a power. Only those show it.
 
-Third pass, on a screenshot of the Heal box sent by the user ("HP recovery?", "no air"):
+Third pass, on a screenshot of the Heal box sent ("HP recovery?", "no air"):
 
 * **Heals show the multiple of RES**: `Heals RES: 4x (+1x/Lv) -> 13x`. The stored figure (8 to 26) is the coefficient of `RES * about 0.5 * figure` (`docs/FORMULAS.md` 6b); half of it is what multiplies RES. Heal, Circle Heal, Primevil. Label and style in the sheet `SkillEffectLabels`.
 * **Air between the items of a line**: three spaces on each side of the bar (`Turns: 3 -> 7   |   TP Cost: 1 -> 5`) whenever the widened line stays within 92 characters (settings `skill_separator_pad`, `skill_wide_line`). What a line holds is still chosen for 85. 92 is read off the screenshot (73 characters end at three quarters of the box), not measured with a full line: **to be looked at on screen**.
@@ -277,8 +277,8 @@ Known and **not shown**, each with its reason:
 |---|---|
 | Dark Cloud (type 56 and petrifying 0.8) | Its second value is stored on another scale than the other items of its type (0.8 against 25 or 50): which reading is right is not known |
 | Power on 4 summon attacks | No room on their data line |
-| Power of the other enemy attacks and of joint skills | Left alone by decision of the user |
-| Cost of a joint skill | Left alone by decision of the user (2026-10-05) |
+| Power of the other enemy attacks and of joint skills | Left alone by decision |
+| Cost of a joint skill | Left alone by decision (2026-10-05) |
 | Chances of the random moves, class modifiers, rules of vague passives | Their boxes are prose with no room for a table |
 
 The QoL variant is closed. A text is still corrected, in both variants, when a reading of the program shows it wrong
@@ -287,7 +287,7 @@ game because the program gives the passive no effect; `FORMULAS.md` 2.5).
 
 ## The abilities of summons and guest allies (2026-10-12)
 
-Asked by the user from the screen of a summon, where Covering Attack showed no chance. Every ability a summoned
+Asked from the screen of a summon, where Covering Attack showed no chance. Every ability a summoned
 monster or a guest ally can use (747 enemy attacks, shown in "View the details of your teammates' abilities") now
 says its figure on its data line, with the label the box of the same skill of a party member uses: the chance of a
 passive (`Activation rate`, `Double attack rate`, `Triple attack rate`, `Occurrence rate`), the power of a spell
@@ -304,4 +304,4 @@ in the column `Note` (54 attacks).
 
 Reopened on 2026-10-07 for one point, row S25 of the Balance register ("side events with conditions nobody can
 guess"): whether the condition of each side event could be read from the data and shown somewhere in the game without
-changing the program. Dropped by the user on 2026-10-12 before anything was built.
+changing the program. Dropped on 2026-10-12 before anything was built.

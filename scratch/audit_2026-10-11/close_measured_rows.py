@@ -34,14 +34,14 @@ ROWS = {
             'make plain attacks',
             'scratch/audit_2026-10-11/measure_open_rows.py: the reference party with and without Support Shot at its '
             'top level: C22 100% / 100% wins, length +2%; C30 +6%; C34 -4%; C40 80% / 73% wins (40 fights each: inside '
-            'the noise). Waits for the user: leave it as the passive of plain-attack parties, or raise its chance'),
+            'the noise). Waits for decided: leave it as the passive of plain-attack parties, or raise its chance'),
     'F22': ('open',
             'true for Roulette Circus only: Magic Box, Showtime and Heaven or Hell are worth 100% after the L rows',
             'L rows built. Roulette Circus (15 TP, one level; half its results an ailment on every enemy, a fifth a '
             'heal of the party, a tenth damage of level x 15): cast every turn by the dolls role, rows of eight random '
             'battles last 3 - 25% longer (C03, C06, C13, C22) and end with -1 to +3 points of HP; against bosses 6 - 32% '
             'longer (scratch/audit_2026-10-11/roulette_chain.py, measure_open_rows.py). SKILL_WORTH.md gives it 0% '
-            'because it counts damage only. Waits for the user: leave it as the gamble of the base class, or raise it'),
+            'because it counts damage only. Waits for decided: leave it as the gamble of the base class, or raise it'),
 }
 
 

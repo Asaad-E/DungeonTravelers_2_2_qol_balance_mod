@@ -1,4 +1,4 @@
-"""Ideas for the unique skill of Lizerietta, the puppeteer (the user, 2026-10-12), tried before anything is
+"""Ideas for the unique skill of Lizerietta, the puppeteer (decided 2026-10-12), tried before anything is
 chosen: her dolls act faster (effect 316, the one Double Puppet holds), hit and heal harder (286, the one of Doll
 Mastery), or last longer (297, the one of Destiny Line). She is played in the last place of the reference party in a
 doll role, with no unique skill, with the one she has, and with each idea (the fourth of 2026-10-12: she is harder to hit, effect 338, read among the evasion buffs of the target of a blow and of a spell, 0x44ac56 and 0x44d8cb). The sizes are on top of what

@@ -61,7 +61,7 @@ def load_previous_mod():
 
 
 def load_edited():
-    """Rows the user marked as edited keep their wording."""
+    """Rows marked as edited keep their wording."""
     if not os.path.exists(OUTPUT_PATH):
         return {}
     ws = openpyxl.load_workbook(OUTPUT_PATH)['Enchants']

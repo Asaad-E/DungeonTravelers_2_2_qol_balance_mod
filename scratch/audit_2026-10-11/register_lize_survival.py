@@ -1,4 +1,4 @@
-"""The unique skill of Lizerietta, decided again by the user on 2026-10-12 (night): not evasion, which is always at
+"""The unique skill of Lizerietta, decided again on 2026-10-12 (night): not evasion, which is always at
 work where every other unique skill is situational, but the chance to hold on with 1 HP when a hit would fell her
 (effect 254, the one of Guts, which no class of hers has). Named after what she says of herself in her event
 (sev_180: she does not believe in God and would not be glad to be saved by a miracle). Run once.
@@ -15,7 +15,7 @@ VALUES = [0.15, 0.18, 0.21, 0.24, 0.27, 0.30, 0.33, 0.36, 0.40, 0.55]
 NAME = 'No Miracles Needed'
 BOX = ('When a hit would fell her, she may hold on with 1 HP.' + chr(10) +
        'Activation rate: 15% -> 18 -> 21 -> 24 -> 27 -> 30 -> 33 -> 36 -> 40%   |   Crown EX: 55%')
-WHY = ('The user, 2026-10-12 (night): evasion was always at work and made her simply better than any other Spieler; the '
+WHY = ('Decided 2026-10-12 (night): evasion was always at work and made her simply better than any other Spieler; the '
        'skill becomes the chance to hold on with 1 HP when a hit would fell her (effect 254, read among the statuses of '
        'the target at 0x4238ad, where a unique skill is found as any status): situational as the others, it tells who she '
        'is (the smallest, who fights on without complaining and waits for no miracle: her event sev_180), and it serves '
@@ -72,7 +72,7 @@ def main():
             row[col['Proposal']].value = ('U011 - U020, U051: the skill becomes the chance to hold on with 1 HP when a hit '
                                           'would fell her (effect 254, 15 - 40% by rank, 55% with the crown), named again in '
                                           'the variant')
-            row[col['Decision']].value = (str(row[col['Decision']].value or '') + ' | 2026-10-12 (night), the user: not '
+            row[col['Decision']].value = (str(row[col['Decision']].value or '') + ' | 2026-10-12 (night), decided: not '
                                           'evasion (always at work); the chance to survive a killing hit, situational as '
                                           'the others')
     wb.save(path)

@@ -47,3 +47,7 @@ build/
 # Snapshots of a workbook kept beside a working script
 scratch/**/*.xlsx
 scratch/*.xlsx
+
+# Working notes kept on this machine only
+CLAUDE.md
+docs/BALANCE_PLAN.md

@@ -1,4 +1,4 @@
-"""A trial for the Etoile as the one support of a party (the user, 2026-10-12): the values of her two protecting
+"""A trial for the Etoile as the one support of a party (decided 2026-10-12): the values of her two protecting
 dances, Fascinating Waltz (the ATK of the enemies) and Dumbing Mazurka (their INT), times each factor, and what the
 Meta party with her in the place of the Diva then wins on the variant. Nothing is written.
 

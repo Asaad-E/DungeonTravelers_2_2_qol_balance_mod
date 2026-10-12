@@ -92,7 +92,7 @@ def main():
         for name, value in cells.items():
             rows[rid][col[name]].value = value
 
-    alone = ('B4 alone (the user, 2026-10-11): the factors by level gap are in the program, the EXP of a level stays as in '
+    alone = ('B4 alone (decided 2026-10-11): the factors by level gap are in the program, the EXP of a level stays as in '
              'vanilla. The kept curve is not built: it would put a party 3 to 9 levels above the level the bosses were '
              'fitted at, and can be added later as data')
     put('U01', Proposal=alone + '. 10 levels behind: 20 - 47 battles (vanilla 48 - 144); 20 behind: 24 - 82 (65 - 311); '
@@ -106,7 +106,7 @@ def main():
     put('S11', Why='The growth tables give the same per level before and after 70, so as stated it is not in the data. '
         'What rises is the EXP each level costs; the gap factors answer that for whoever is below the enemies (a level '
         'costs 25 battles at 70 instead of 35, 11 at 90 instead of 18)',
-        Proposal='Nothing beyond the factors B4: the kept curve is not built (the user, 2026-10-11)',
+        Proposal='Nothing beyond the factors B4: the kept curve is not built (decided 2026-10-11)',
         Decision='2026-10-09: nothing beyond the kept curve; 2026-10-11: nothing beyond B4, the curve not built')
     why = rows['F92'][col['Why']].value
     put('F92', Why=why.replace('(option Kept + B4)', '(option B4, without the kept curve)')

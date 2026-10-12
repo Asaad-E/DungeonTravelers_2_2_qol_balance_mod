@@ -380,7 +380,7 @@ every measure over random battles changed from one run to the next (the same exp
 
 ## 8. State after the second round (commits 67322e2, ed05df4)
 
-The user, 2026-10-11: fix everything as recommended; the eased bosses a little harder while the five parties (or their
+Decided 2026-10-11: fix everything as recommended; the eased bosses a little harder while the five parties (or their
 versions with a Diva) stay inside their share.
 
 | Action of section 6 | State | What stands |

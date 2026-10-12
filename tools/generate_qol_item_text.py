@@ -6,7 +6,7 @@ workbook that is edited by hand.
 
 Workbook: data_tables/qol_item_text.xlsx
   * QoL_Desc is the text the build uses. Put "yes" in Edited to keep your wording.
-  * Rule set by the user: original text + (data). The game's sentence, joke included, stays; what the
+  * Rule set: original text + (data). The game's sentence, joke included, stays; what the
     item does is added in a final parenthesis when the sentence does not already say it:
         "Sandwich filled with soft, fluffy eggs."  ->  "Sandwich filled with soft, fluffy eggs. (HP/TP +10, cures 1 ailment)"
   * Where the vanilla text gives a vague size, the amount replaces the word and nothing is appended:

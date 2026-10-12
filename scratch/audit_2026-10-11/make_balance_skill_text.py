@@ -46,7 +46,7 @@ ROWS = [
     ('Magic', M % 231, 'Carrot and Stick', None,
      'DEF: -7% -> -9% -> -10% -> -12% -> -15% (L1-5 Max)   |   Magic defense: -15% -> -23%\n'
      'Accuracy: 80% -> 90% | HP recovery: 35 -> 25 | Turns: 3 | TP: 18 (+2-4/Lv) -> 32', 'Rows M081, A159'),
-    # what a row adds that the box did not say (the user, 2026-10-11): the cure of Heal and Circle Heal, the gun
+    # what a row adds that the box did not say (decided 2026-10-11): the cure of Heal and Circle Heal, the gun
     ('Magic', M % 187, 'Heal', "Heal an ally's HP and cure poison.",
      'Heals RES: 4x (+1x/Lv) -> 13x (L10 Max)   |   Heal Cap: 100 (+60-80/Lv) -> 800\n'
      'Cures: Poison -> + Paralysis (Lv6+) | TP Cost: 2 (+1-3/Lv) -> 19 | Speed: 1.75x',

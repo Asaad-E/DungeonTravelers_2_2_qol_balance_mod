@@ -24,13 +24,13 @@ def main():
             renamed += 1
         first = row[0].value
         if isinstance(first, str) and first.startswith('The step of 59 to 68 levels'):
-            row[0].value = ('The step of 59 to 68 levels stays at 1 point (accepted by the user, 2026-10-05): its instruction '
+            row[0].value = ('The step of 59 to 68 levels stays at 1 point (accepted by decided 2026-10-05): its instruction '
                             'is an "inc", with no byte that holds the amount. Giving it 2 means rewriting the end of the '
                             'function. With the other four steps one point higher the cheapest crown no longer uses that '
                             'step (docs/generated/CATCH_UP_OPTIONS.md, rule "' + KEPT + '").')
         if isinstance(first, str) and first.startswith('Factors with the piece'):
             row[0].value = ('Factors with the piece of enchantment 270 (X06 to X08: 1.5, 4, 6) and the last band at 10 with '
-                            'or without the piece: accepted by the user on 2026-10-05, after the test in the game. The name '
+                            'or without the piece: accepted on 2026-10-05, after the test in the game. The name '
                             'of the enchantment in the Balance variant states them (balance_enchant_text.xlsx).')
         if isinstance(first, str) and first.startswith('VA: address'):
             row[0].value = ('VA: address of the first byte changed. Old_Hex must be found there before anything is written, '

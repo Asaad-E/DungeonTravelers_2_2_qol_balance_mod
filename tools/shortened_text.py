@@ -1,7 +1,7 @@
 """
 Original sentences shortened by hand, so that the sentence and its data fit in one line of 85 characters.
 
-Rule of the user: a text is one line; where the original plus its data does not fit, the original is
+Rule of decided: a text is one line; where the original plus its data does not fit, the original is
 made shorter. Each entry keeps the joke or the image of the original and drops only filler. They are
 used only when the original does not fit (the generators check), and the build accepts no other
 change to an original sentence.

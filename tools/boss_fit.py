@@ -15,7 +15,7 @@ vanilla (Settings check_*_window) for wins, length and lowest HP. Lever L01 (ene
     python tools/boss_fit.py gentle 6 C26;C30       again, the checkpoints a change touched
     python tools/boss_fit.py gentle-report
 
-gentle (the user, 2026-10-11: "a little harder to make up for it, as long as the five parties stay inside their share"):
+gentle (decided 2026-10-11: "a little harder to make up for it, as long as the five parties stay inside their share"):
 every checkpoint the curve marks easier, but those of Settings boss_fit_skip. The pairs are those of Settings
 boss_fit_gentle only. A pair is allowed when no figure of the reference party leaves the window of vanilla on the
 harder side and every archetype of the sheet BatteryParties (the best of its parties) still wins at least the floor of

@@ -189,7 +189,7 @@ class LevelUpLinesAfterDecoding(unittest.TestCase):
                     self.assertIn(piece, self.rows[name]['QoL_LvUp'] or self.rows[name]['QoL_Desc'])
 
     def test_values_that_never_change_are_in_the_box(self):
-        """The user's rule: a value the skill has is shown, also when every level has the same."""
+        """The rule: a value the skill has is shown, also when every level has the same."""
         expected = {
             'Phoenix': 'Speed decrease: 10%', 'Justice': 'DEF: -10%', 'Cross Slash': 'Damage vs. unholy: +65%',
             'Daedalus Attack': 'Heavy Lance bonus: +20%', 'Halving Slice': 'Power decrease: 10%',

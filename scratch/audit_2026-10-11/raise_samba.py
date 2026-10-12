@@ -1,4 +1,4 @@
-"""Alluring Samba raised at the user's word of 2026-10-12 (enough to quicken a fight a little, not to break it): the
+"""Alluring Samba raised on request of 2026-10-12 (enough to quicken a fight a little, not to break it): the
 rows A094 - A103 of data_tables/balance_changes.xlsx take 1.75 times the value they held, which was 1.5 times vanilla.
 
     python raise_samba.py
@@ -9,7 +9,7 @@ import openpyxl
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CHANGES = os.path.join(PROJECT, 'data_tables', 'balance_changes.xlsx')
 FACTOR = 1.75
-WHY = (' | 2026-10-12 (the user): times 1.75 again, 60% of the DEF of the enemies at its top level. The Etoile with Waltz '
+WHY = (' | 2026-10-12 : times 1.75 again, 60% of the DEF of the enemies at its top level. The Etoile with Waltz '
        'and Samba in the place of Waltz and Mazurka (scratch/audit_2026-10-11/samba_trial.py, 100 battles): at 1.5 and 2 '
        'times the fights of C30, C36 and P24 are 0 - 11% shorter and those of C38 and C40 4 - 8% longer, the wins within '
        '5 points; before it the pair was never better (fights up to 12% longer, 8 points fewer wins at C38). The dance '

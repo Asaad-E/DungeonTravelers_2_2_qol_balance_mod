@@ -27,7 +27,7 @@ def main():
             row[col['Status']].value = 'open'
             row[col['Verdict']].value = VERDICT
             row[col['Balance_Result']].value = FIGURE
-            row[col['Decision']].value = str(row[col['Decision']].value) + '; 2026-10-12: reopened, the closing held no figure; waits for the user'
+            row[col['Decision']].value = str(row[col['Decision']].value) + '; 2026-10-12: reopened, the closing held no figure; waits for a decision'
     wb.save(WORKBOOK)
 
 

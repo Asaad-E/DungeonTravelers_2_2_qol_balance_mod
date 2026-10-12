@@ -1,6 +1,6 @@
 """The six support skills that show nothing at the contested bosses (SKILL_VALUE_CONTESTED.md beside this file): each
 with and without, as tools/skill_value.py plays it, on the variant and with its value, its length in turns or its TP
-cost changed. A trial for the user to decide on; nothing is written.
+cost changed. A trial to be decided on; nothing is written.
 
     python six_candidates.py "Aim" [runs]
 """

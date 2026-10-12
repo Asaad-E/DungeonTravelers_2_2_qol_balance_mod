@@ -3,7 +3,7 @@ The measures of phase 2: each turns a row of the sheet Criticisms of balance_cri
 number. The sheet Measures of data_tables/sim_setup.xlsx names, for each row, the function of this file that measures
 it and its arguments. Every function takes (data, setup, **arguments) and returns a dict of figures.
 
-check_change is the check of a change (phase 1, step 4; BALANCE_PLAN.md principle 3): the story checkpoints the change
+check_change is the check of a change (phase 1, step 4): the story checkpoints the change
 touches, each played by the reference party in vanilla and with the change, and the figures of Regression R08 (win
 share, length) and R10 (lowest HP of the party, damage of the enemies per action against the party's max HP) set
 against the windows of the sheet Settings. Whether the change solves its own row is the measure of that row.

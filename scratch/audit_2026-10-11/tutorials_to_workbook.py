@@ -143,7 +143,7 @@ def main():
             ('Limits', f'A box is the whole string of the script, not the part that changes: at most {MAX_LINES} lines and '
                        f'{MAX_WIDTH} characters a line (the originals reach 75 in Lesson.pck and 69 in Teaching.pck).'),
             ('Voiced', 'The clip that plays with the box. A voiced box whose text no longer says what the Japanese line '
-                       'says is a choice to take with the user before building it.'),
+                       'says is a choice to take before building it.'),
             ('Source', 'scratch/update_euthys_and_teaching.py as of 2026-10-11 14:03, reviewed in the audit of that day '
                        '(scratch/audit_2026-10-11/AUDIT_REPORT.md, section 5).')):
         about.append(line)

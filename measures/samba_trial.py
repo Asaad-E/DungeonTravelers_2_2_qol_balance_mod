@@ -1,4 +1,4 @@
-"""Alluring Samba stronger (the user, 2026-10-12: enough to quicken a fight a little, not to break it): the Etoile in
+"""Alluring Samba stronger (decided 2026-10-12: enough to quicken a fight a little, not to break it): the Etoile in
 the last place of the reference party with Waltz and Mazurka, and with Samba in the place of Mazurka at each factor on
 its value. Variant; nothing is written.
 

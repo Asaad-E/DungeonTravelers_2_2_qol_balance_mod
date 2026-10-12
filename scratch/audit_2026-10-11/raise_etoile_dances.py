@@ -11,7 +11,7 @@ PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file
 CHANGES = os.path.join(PROJECT, 'data_tables', 'balance_changes.xlsx')
 RECORDS = ('Technique 69 Fascinating Waltz', 'Technique 74 Dumbing Mazurka')
 FACTOR = 1.5
-WHY = (' | 2026-10-12 (the user: raise the Etoile more, without making her a Diva): times 1.5 again. As the one support '
+WHY = (' | 2026-10-12 (decided: raise the Etoile more, without making her a Diva): times 1.5 again. As the one support '
        'of the Meta party she won 50% / 88% / 67% at C30 / C34 / C38 and wins 68% / 98% / 82% with it; C36 (10%) and the '
        'last boss (0%) stay out of her reach, they ask for a heal she does not have, nor with Primevil. Beside a Diva '
        'the party gains at most 14 points (C38), nothing elsewhere: scratch/audit_2026-10-11/etoile_trial.py')

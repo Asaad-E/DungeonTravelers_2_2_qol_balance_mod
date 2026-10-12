@@ -1,6 +1,6 @@
 """The abilities of summoned monsters (and of every enemy attack that shares them) say their figure: the rows added on
 2026-10-12 to the sheet EnemyEffects of qol_rules.xlsx, with the label the box of the same skill of a party member
-uses. Asked by the user from the screen of a summon (Covering Attack shown with no chance). Run once."""
+uses. Asked from the screen of a summon (Covering Attack shown with no chance). Run once."""
 import os
 import openpyxl
 

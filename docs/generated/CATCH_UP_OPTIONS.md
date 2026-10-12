@@ -9,7 +9,7 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | Option | Kind | What it is |
 |---|---|---|
 | Vanilla | vanilla | Nothing changed |
-| Kept curve | curve | Data only. EXP per level of the earlier proposal the user asked to keep, through the five steps he gave (level, share of vanilla) |
+| Kept curve | curve | Data only. EXP per level of the earlier proposal it was asked to keep, through the five steps he gave (level, share of vanilla) |
 | Steep 2.5% | steep | Data only. EXP per level and EXP of enemies both grow 2.5% more per level from level 20: about the steepest that stays exact in the float arithmetic of the game |
 | Double EXP piece | piece | Data only. The member who is behind wears a piece with enchantment 275 |
 | Kept + B | gap | Kept curve; factors by gap unchanged down to 4 levels below the enemy, then 2, 4 from 10 below, 8 from 20 below |

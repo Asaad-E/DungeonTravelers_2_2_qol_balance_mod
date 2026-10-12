@@ -15,7 +15,7 @@ PASS = {
             'PARTY_BATTERY.md: no party wins everywhere more than the best of vanilla did; the weakest party of vanilla '
             '(Anti-Meta-Plus, 0 - 14% at eight bosses) reaches 29 - 100%, still the weakest. CLASS_STAGES.md: 74 of 76 rows '
             'within the band. Limit: the band has no top, so a class that is too fast is not flagged (the Witch fights at '
-            '0.59 of the median attacker at the advanced stage; row J11, left by the user)'),
+            '0.59 of the median attacker at the advanced stage; row J11, left)'),
     'R02': ('met',
             'PARTY_BATTERY.md: 64 of 85 pairs at or above the floor in vanilla, 76 of 85 on the variant; no pair that met '
             'its floor in vanilla lost it. CLASS_STAGES.md: the two slow rows (Assassin and Treasure Hunter of the treasure '
@@ -37,7 +37,7 @@ PASS = {
             'value beside the new one, and the rows the measures did not need were dropped (99 dropped)'),
     'R08': ('met; 7 bosses easier, accepted',
             'DIFFICULTY_CURVE.md: 37 of 44 checkpoints within the windows of vanilla, 7 easier (C14, C26, C29, C30, C32, '
-            'C37, C38), 0 harder. The user, 2026-10-11: the bosses the variant leaves easier stay as they are. C40, raised '
+            'C37, C38), 0 harder. Decided 2026-10-11: the bosses the variant leaves easier stay as they are. C40, raised '
             'as an exception, is within (wins 88% > 95%, length 35.5 > 34.2). Limit found the same day: Heretic Samsara of '
             'Demiurge is not played by the model, in vanilla or on the variant'),
     'R09': ('met',
@@ -57,7 +57,7 @@ ROWS = {
     'F22': ('not a problem',
             'true for Roulette Circus only, and by its nature: Magic Box, Showtime and Heaven or Hell are worth 100% '
             'after the L rows',
-            'L rows built; L002 dropped on 2026-10-11 (the user): its damage draw strikes any unit of the battle, the '
+            'L rows built; L002 dropped on 2026-10-11 : its damage draw strikes any unit of the battle, the '
             'party included, so it stays at level x 10. Its heal of an enemy is 10% of max HP instead of all of it '
             '(L001). Cast every turn, rows of eight random battles last 3 - 25% longer and end with -1 to +3 points of HP: '
             'the cheap gamble of the base class (15 TP, one level), which can no longer sink a fight'),

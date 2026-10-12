@@ -1,4 +1,4 @@
-"""A trial of a small cut to the Dark Lord and the Valkyrie (the user, 2026-10-12): the power of every strike only the
+"""A trial of a small cut to the Dark Lord and the Valkyrie (decided 2026-10-12): the power of every strike only the
 Dark Lord learns and the values of every skill only the Valkyrie learns, times a factor, and what the Meta party and
 the two roles alone (the reference party with the role in its last place) then win. Nothing is written.
 

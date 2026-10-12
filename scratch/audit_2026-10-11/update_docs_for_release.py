@@ -43,10 +43,10 @@ t = swap(t, [
      "| Japanese community (the atwiki of the game; `docs/CREDITS.md`) | What players feel. Each complaint is a row of the register, with its page |"),
     ("| The earlier proposal (`CONSOLIDATED_BALANCE_PROPOSAL_AND_FEASIBILITY.md`) | Ideas to test.",
      "| The earlier proposal (a document of 2026-10-04, since removed) | Ideas to test."),
-    ("and the table for the user is" + NL + "   `docs/THEME_TABLES.md`.",
-     "and the table for the user was" + NL + "   `docs/THEME_TABLES.md` (removed on 2026-10-12, every theme decided)."),
-    ("all still open for the user's decision; the tables are in `docs/THEME_TABLES.md`.",
-     "all still open for the user's decision at that date; the tables were in `docs/THEME_TABLES.md`."),
+    ("and the table is" + NL + " `docs/THEME_TABLES.md`.",
+     "and the table was" + NL + " `docs/THEME_TABLES.md` (removed on 2026-10-12, every theme decided)."),
+    ("all still open for the decision; the tables are in `docs/THEME_TABLES.md`.",
+     "all still open for the decision at that date; the tables were in `docs/THEME_TABLES.md`."),
 ], 'BALANCE_PLAN.md')
 write('BALANCE_PLAN.md', t)
 
@@ -77,7 +77,7 @@ write('SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md', t)
 
 # --- QOL_ROADMAP.md: its last section ----------------------------------------------------------------------------
 t = read('QOL_ROADMAP.md')
-a = t.index(NL + 'Still open, needs the user: the play-through.') + 1
+a = t.index(NL + 'Still open, needs decided: the play-through.') + 1
 t = t[:a] + '''The QoL variant is closed. A text is still corrected, in both variants, when a reading of the program shows it wrong
 (on 2026-10-12: the labels of four unique skills, and the box of Concentrate, which goes back to the sentence of the
 game because the program gives the passive no effect; `FORMULAS.md` 2.5).
@@ -86,7 +86,7 @@ game because the program gives the passive no effect; `FORMULAS.md` 2.5).
 
 Reopened on 2026-10-07 for one point, row S25 of the Balance register ("side events with conditions nobody can
 guess"): whether the condition of each side event could be read from the data and shown somewhere in the game without
-changing the program. Dropped by the user on 2026-10-12 before anything was built.
+changing the program. Dropped on 2026-10-12 before anything was built.
 '''
 write('QOL_ROADMAP.md', t)
 
@@ -98,7 +98,7 @@ t = swap(t, [
     ("Reference for agents and modders working on *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, Aquaplus / Sting engine). Read `philosophy.md` first for the reasoning, and `docs_example/` for the method this project copies.",
      "Reference for modders working on *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, Aquaplus / Sting engine): the file formats, the text system and its limits, and the rules the text of the mod follows. Read `philosophy.md` first for the reasoning." + NL + NL +
      "Sections 3 to 7 and 9 were written while the QoL variant was built (2026-10-04) and hold for both variants; the counts they give are those of that day. Where the work stands is in `QOL_ROADMAP.md` (QoL, closed) and `BALANCE_PLAN.md` section 7 (Balance). The battle formulas are in `FORMULAS.md`."),
-    ("Language of chat with the user: Spanish. Everything in the repository: English." + NL, "Everything in the repository is in English." + NL),
+    ("Language of chat with decided: Spanish. Everything in the repository: English." + NL, "Everything in the repository is in English." + NL),
 ], 'dungeontravelers2-2.md')
 t = between(t, '## 1. Deliverables', '## 3. Data layout', '''## 1. Deliverables
 

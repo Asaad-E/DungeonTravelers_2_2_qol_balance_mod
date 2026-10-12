@@ -732,7 +732,7 @@ def check_joint_skill_text(b, name, text, vanilla_text):
 # ---------------------------------------------------------------------------
 # The voice of the game
 # ---------------------------------------------------------------------------
-# Hard rule of the user: nothing shown in the game may speak from outside it ("player guide", "the game
+# Hard rule of decided: nothing shown in the game may speak from outside it ("player guide", "the game
 # data holds no figure"). Where a figure comes from is recorded in the workbooks, never on screen.
 # Words: sheet OutOfGameWords of qol_rules.xlsx.
 OUT_OF_GAME_RE = re.compile(r'\b(' + '|'.join(re.escape(r['Word']) for r in rules.rows('OutOfGameWords')) + r')\b', re.I)

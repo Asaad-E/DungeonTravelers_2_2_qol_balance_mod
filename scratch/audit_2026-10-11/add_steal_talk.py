@@ -1,5 +1,5 @@
 """Two boxes of a short talk of Euthys (Lesson.pck, Talk_Scenario27, the one about gold) say what a steal takes and
-from whom: rows of data_tables/balance_tutorial_text.xlsx. The wording was agreed with the user on 2026-10-11.
+from whom: rows of data_tables/balance_tutorial_text.xlsx. The wording was agreed on 2026-10-11.
 
     python add_steal_talk.py
 """

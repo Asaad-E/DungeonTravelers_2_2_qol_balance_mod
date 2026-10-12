@@ -15,4 +15,4 @@ Anchors met: **5 of 6**, 40 battles each, with the settings of the workbook (kit
 
 ## Known limits
 
-- **N06**: Not met by the model: 0 - 17% at level 55 whatever the share of forged enchantments, and 0 - 7.5% with the best meal of the ice cream and ramen shops in the best case (its buffs at the start of the fight, 40 battles, 2026-10-09). What a player at 55 adds beyond the model (unique pieces, character sealbooks, a party built for this fight) is not modelled. The fight is optional (the three supply devices weaken the Queen, N04, met). Closed as a known limit, confirmed by the user on 2026-10-09
+- **N06**: Not met by the model: 0 - 17% at level 55 whatever the share of forged enchantments, and 0 - 7.5% with the best meal of the ice cream and ramen shops in the best case (its buffs at the start of the fight, 40 battles, 2026-10-09). What a player at 55 adds beyond the model (unique pieces, character sealbooks, a party built for this fight) is not modelled. The fight is optional (the three supply devices weaken the Queen, N04, met). Closed as a known limit, confirmed on 2026-10-09

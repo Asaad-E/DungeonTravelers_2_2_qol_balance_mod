@@ -1,5 +1,5 @@
 """The unique skills of the eighteen girls as rows of the register (sheet Criticisms of
-data_tables/balance_criteria.xlsx), asked by the user on 2026-10-12: what the Japanese pages of each girl say
+data_tables/balance_criteria.xlsx), asked on 2026-10-12: what the Japanese pages of each girl say
 (w.atwiki.jp/dt2-2, read that day) and what the GameFAQs guide says (faqs/80834, page "Girl Unique Skills + Party
 Skills"), paraphrased, beside the values of the game. Theme T15, state open: to be measured before anything is decided.
 

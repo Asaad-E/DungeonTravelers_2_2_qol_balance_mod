@@ -13,7 +13,7 @@ from text_checks import skill_tables, check_enemy_attack_text, enemy_ailments, e
 
 SKILL_TABLE = os.path.join(_paths.TABLES_DIR, 'qol_skill_text.xlsx')
 ENEMY_TABLE = os.path.join(_paths.TABLES_DIR, 'qol_enemy_attack_text.xlsx')
-POISON_SHOT = 'EnemyAttackData_0385.bin'        # the Cupid ability the user saw without its chance
+POISON_SHOT = 'EnemyAttackData_0385.bin' # the Cupid ability first seen without its chance
 
 
 def skills():
@@ -29,7 +29,7 @@ class Scales(unittest.TestCase):
     def test_boundaries(self):
         phys = lambda v: mw.tier(v, mw.PHYS_BOUNDS, mw.DAMAGE_WORDS, mw.OUT_OF_SCALE)
         magic = lambda v: mw.tier(v, mw.MAGIC_BOUNDS, mw.DAMAGE_WORDS, mw.OUT_OF_SCALE)
-        # The user's rule: negligible only below 80%.
+        # The rule: negligible only below 80%.
         self.assertEqual([phys(v) for v in (79, 80, 100, 124, 125, 149, 150, 174, 175, 224, 225)],
                          ['negligible', 'minor', 'minor', 'minor', 'moderate', 'moderate', 'major', 'major', 'severe',
                           'severe', 'tremendous'])
@@ -119,7 +119,7 @@ class Line1(unittest.TestCase):
         self.assertGreater(changed, 50)
 
     def test_line1_does_not_repeat_the_values_of_the_box(self):
-        """The user's rule (2026-10-04): the box below has every value; repeating them in line 1 is bloat.
+        """The rule (2026-10-04): the box below has every value; repeating them in line 1 is bloat.
         Line 1 of a skill that deals no damage is the game's sentence, shortened only for the battle bar."""
         table = bv.load_skill_text(SKILL_TABLE)
         rows = {}
@@ -134,7 +134,7 @@ class Line1(unittest.TestCase):
         self.assertEqual(rows['Moon Curtain']['desc'], 'Raise party resistance to fire, water, lightning, wind, and earth.')
 
     def test_line1_fits_the_battle_bar(self):
-        """The battle bar draws 70 characters well (measured by the user); a longer sentence is rewritten."""
+        """The battle bar draws 70 characters well (measured); a longer sentence is rewritten."""
         table = bv.load_skill_text(SKILL_TABLE)
         self.assertEqual(bv.BATTLE_LINE, 70)
         for category, pck in (('Technique', 'TechniqueSkillData.pck'), ('Magic', 'MagicSkillData.pck')):

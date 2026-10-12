@@ -2,7 +2,7 @@
 
 Reference for modders working on *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, Aquaplus / Sting engine): the file formats, the text system and its limits, and the rules the text of the mod follows. Read `philosophy.md` first for the reasoning.
 
-Sections 3 to 7 and 9 were written while the QoL variant was built (2026-10-04) and hold for both variants; the counts they give are those of that day. Where the work stands is in `QOL_ROADMAP.md` (QoL, closed) and `BALANCE_PLAN.md` section 7 (Balance). The battle formulas are in `FORMULAS.md`.
+Sections 3 to 7 and 9 were written while the QoL variant was built (2026-10-04) and hold for both variants; the counts they give are those of that day. Where the work stands is in `QOL_ROADMAP.md` (QoL, closed). The battle formulas are in `FORMULAS.md`.
 
 Confidence tags: **[verified]** read from the binary and confirmed by a byte-identical round trip or a test; **[inferred]** deduced from the data, a guide or the vanilla text; **[untested]** never run in the game.
 
@@ -17,7 +17,7 @@ The mod ships as **two variants that are built separately**, from the same tools
 | Variant | Goal | May change game values | State |
 |---|---|---|---|
 | **QoL** | Everything the player needs to make an informed decision is in the game, clean, understandable and easy to read. | No. Every figure shown is the original one. | Closed (`QOL_ROADMAP.md`). |
-| **Balance** | Answer the complaints of the Japanese players and the criticisms of the English guide (the register: `data_tables/balance_criteria.xlsx`, sheet `Criticisms`), and show the figures of the changed game. | Yes: each change is a row of `data_tables/balance_changes.xlsx`. It also patches the program (sheet `ExePatches`). | Built and installed; in its final checks (`BALANCE_PLAN.md` section 7). |
+| **Balance** | Answer the complaints of the Japanese players and the criticisms of the English guide (the register: `data_tables/balance_criteria.xlsx`, sheet `Criticisms`), and show the figures of the changed game. | Yes: each change is a row of `data_tables/balance_changes.xlsx`. It also patches the program (sheet `ExePatches`). | Built and installed; in its final checks. |
 
 `tools/build_variant.py <variant>` builds a variant into `build/<variant>/` and verifies it; `tools/install_variant.py`
 puts it into the game, saving what it replaces; `tools/apply_mod.py` runs the whole chain (the README of the
@@ -100,7 +100,7 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 
 ## 4. Text system and limits
 
-* **Description boxes: 3 lines, 85 characters per line** **[verified]** measured on screen by the user. The description counts as a line: a skill has 1 description line and at most 2 level-up lines.
+* **Description boxes: 3 lines, 85 characters per line** **[verified]** measured on screen. The description counts as a line: a skill has 1 description line and at most 2 level-up lines.
 * **Equipment box** **[verified]** on a screenshot of the earlier build: the game draws the item's enchantments (their `EnchantData` names) on lines 2 and 3 of the box, in two columns, on top of whatever the description has there. All 551 vanilla equipment descriptions are one line (77 characters at most). An equipment description must stay on **line 1**.
 * The equipment title bar already shows `[Sword - 2 Hand - Short Range] Speed E+`: weapon type, hands, range and speed rank. Do not repeat them. The delay multiplier of the rank is shown by putting it in the rank name itself (`Speed E+ (2.45x)`, section 6.1). Whether the longer title still fits the bar is **[untested]**.
 * The game lists innate enchantments there too (seen: Legendary Duster shows `Max HP +10%` and `Interrupt Rate -25%`), and draws the stat change of the item (`ATK+24`) at the right end of line 1. An `Innate:` line in the description repeats the first and a long line 1 would run into the second.
@@ -129,7 +129,7 @@ Fix a writer (make its round trip exact, add it to the tests) before building it
 | Figures in the text | The original ones, from `vanilla_source_of_truth.xlsx`. | The ones of the built binary. |
 | Text describing a mechanic | Only what the base game does. | Only what the built data implements. |
 
-Order of sources, set by the user: **binary first, then player guides of this same game** (the Japanese wiki is the most complete). A figure is never typed from memory, and a guide never overrides the binary. When the binary does not hold a value (it is computed in the executable), a figure may be shown only if a guide of this same game gives it; it is recorded with its source in a table (`enchant_values.py`), tagged **[inferred]**, and the build refuses any other figure. A figure known only from another game (the first Dungeon Travelers 2) is weaker: it is shown only because the user decided so, and its source stays written next to it. Without a source, the text says nothing.
+Order of sources, set: **binary first, then player guides of this same game** (the Japanese wiki is the most complete). A figure is never typed from memory, and a guide never overrides the binary. When the binary does not hold a value (it is computed in the executable), a figure may be shown only if a guide of this same game gives it; it is recorded with its source in a table (`enchant_values.py`), tagged **[inferred]**, and the build refuses any other figure. A figure known only from another game (the first Dungeon Travelers 2) is weaker: it is shown only by decision, and its source stays written next to it. Without a source, the text says nothing.
 
 ---
 
@@ -147,7 +147,7 @@ What the player must see at a glance: what the skill does now, what the next lev
 * **Never an average.** `text_checks.py` rejects `avg`, and rejects a step that is not exact.
 * Labels: `ATK` (damage as % of a normal hit), `Pwr` (magic power), `Turns`, `TP Cost`, `Speed`, `Chant`, `Accuracy`, the ailment name, `HP Absorb`, `TP Absorb`, `Targets`, `Heal Cap`. Buffs and debuffs take the stat with its sign, as in the mockups: `"ATK increase UP"` -> `ATK: +8%`, `"DEF decrease UP"` -> `DEF: -11%`. Any other label is the wording of the vanilla level-up phrase.
 
-How `generate_qol_skill_text.py` applies it when a box cannot hold everything (rule chosen by the user: **every effect of the skill stays in the box**):
+How `generate_qol_skill_text.py` applies it when a box cannot hold everything (rule chosen: **every effect of the skill stays in the box**):
 
 1. The main effect is shown level by level.
 2. Every other effect stays. If its list does not fit it becomes base + step: `Accuracy: +20% (+2%/Lv)` when the step is the same at every level, or the real bounds of the step when it is not, `Instakill: 10% (+1-2%/Lv) -> 20%`. The bounds are the smallest and largest rise between two levels; this is not an average.
@@ -193,7 +193,7 @@ Both are names that the game prints by itself on the equipment screen, so the in
 | Source | What | Used by QoL |
 |---|---|---|
 | `dt22-wiki` | Japanese wiki of this game: [enchant effects](https://w.atwiki.jp/dt2-2/pages/38.html) ([table](https://w.atwiki.jp/dt2-2/pages/39.html)), [grand sealbooks](https://w.atwiki.jp/dt2-2/pages/40.html), [player tests](https://w.atwiki.jp/dt2-2/pages/105.html) | Yes: 99 names |
-| `dt2-wiki` | Japanese wiki of the first Dungeon Travelers 2: [enchant effects](https://w.atwiki.jp/dungeon-travelers2/pages/200.html). Same system, another game. Where both wikis give a figure they agree, except stat DOWN (-10% there, -5% here) and two stacking caps. | Yes, by decision of the user (2026-10-04): 43 names. Not confirmed for this game. |
+| `dt2-wiki` | Japanese wiki of the first Dungeon Travelers 2: [enchant effects](https://w.atwiki.jp/dungeon-travelers2/pages/200.html). Same system, another game. Where both wikis give a figure they agree, except stat DOWN (-10% there, -5% here) and two stacking caps. | Yes, by decision (2026-10-04): 43 names. Not confirmed for this game. |
 
 How a name is written: the tier word of the vanilla name is replaced by the figure, and nothing else changes (`Max HP UP` -> `Max HP +10%`, `Received damage MiniDOWN` -> `Received damage -4%`, `Fire resistance MegaUP` -> `Fire resistance +100`). Names without a tier word are worded by hand in the same table (`HP recovery every turn` -> `Recover 4% HP every turn`). An enchantment without a figure keeps its vanilla name; a name that already has its figure (`Front line ATK 8% UP`) is not touched.
 
@@ -210,7 +210,7 @@ Figures of this game's wiki (all **[inferred]**: a guide, not the binary; the 43
 | HP every turn (slight / normal / large) | 2% | 4% | 8% | | | |
 | TP every turn (slight / normal / large) | 2 | 4 | 6 | | | |
 
-Resistance is stored as points where 100 is immunity (the guide, and the skill effects in the binary: Stab Guard 20 to 36), so a point is 1% of the damage taken; it is written with `%` in enchant names and in the 6 skill boxes that show it, as the user asked. **[inferred]**: the damage formula was not read.
+Resistance is stored as points where 100 is immunity (the guide, and the skill effects in the binary: Stab Guard 20 to 36), so a point is 1% of the damage taken; it is written with `%` in enchant names and in the 6 skill boxes that show it, as asked. **[inferred]**: the damage formula was not read.
 
 Figures from the first game's guide: physical and magic attack +4% / +2%, speed +10% / +5%, chant speed +20% / +10%, enmity +5% / -5%, interruption rate -6% / -3% / +6%, element magic +20%, HP absorb 15% / 50% and TP absorb 5% / 20% of the damage, race bonuses +20% / +40% / +100% (Fruit +50%), 5% of received damage into TP, Max HP DOWN -10%. To stop showing them: remove `'dt2-wiki'` from `SHOWN_SOURCES` and run the generator.
 
@@ -224,7 +224,7 @@ Figures from the first game's guide: physical and magic attack +4% / +2%, speed 
 
 **Line 1 of techniques and spells** (`tools/magnitude_words.py`). It is the only line the battle bar shows, and it shows it without the level, so it carries the main points and nothing else:
 
-* Damage as one word, chosen by the average of the real per-level values. The words and the 80% floor are the user's; the other bounds come from the data.
+* Damage as one word, chosen by the average of the real per-level values. The words and the 80% floor were set by hand; the other bounds come from the data.
 
 | Word | Physical: average ATK | Magic: average Pwr | Skills today |
 |---|---|---|---|
@@ -254,9 +254,9 @@ If it hits, it may inflict poison. Also, ouch.
 
 An attack has no levels, so its figures are exact. Shown so far: the chance of each of the 9 ailments (858 attacks, 922 chances). Equal chances share an item (`Freeze/Silence: 20%`). Entry layout: header `0xA0`, four `u64` string pointers (name, Japanese name, a third string, description), each string padded to 8 bytes; `0x48` effect count, then `(int id, float value, int tail)` slots of 12 bytes from `0x4C`. **[verified]**: 2,375 of 2,375 rewrite identically.
 
-**Rule for every other text** (set by the user): whatever a screen shows must give the precise data, and the jokes and the in-game prose stay. Data is added beside the prose, in a place that already holds data when there is one.
+**Rule for every other text** (set): whatever a screen shows must give the precise data, and the jokes and the in-game prose stay. Data is added beside the prose, in a place that already holds data when there is one.
 
-### 6.3 Rules set by the user on 2026-10-04, second round, and how each is built
+### 6.3 Rules set on 2026-10-04, second round, and how each is built
 
 | Rule | Built as |
 |---|---|
@@ -275,7 +275,7 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 ---
 ### 6.4 Nothing hardcoded, party skills and joint skills (2026-10-04, fifth round)
 
-**Rule of the user: nothing hardcoded; everything in a workbook, for quick editing.** `data_tables/qol_rules.xlsx` holds every table that used to be a dict in a tool. `tools/rules.py` reads it (`rules.rows(sheet)`, `rules.setting(key)`); the modules keep their names (`ITEM_SENTENCES`, `PHYS_BOUNDS`, `VALUES`, `ITEM_EFFECTS`...) and fill them from the sheets. Moving the tables changed no generated text (every cell of the five text workbooks was compared before and after). A new wording or guide figure is a new row or sheet there, never code.
+**Rule of decided: nothing hardcoded; everything in a workbook, for quick editing.** `data_tables/qol_rules.xlsx` holds every table that used to be a dict in a tool. `tools/rules.py` reads it (`rules.rows(sheet)`, `rules.setting(key)`); the modules keep their names (`ITEM_SENTENCES`, `PHYS_BOUNDS`, `VALUES`, `ITEM_EFFECTS`...) and fill them from the sheets. Moving the tables changed no generated text (every cell of the five text workbooks was compared before and after). A new wording or guide figure is a new row or sheet there, never code.
 
 | Sheet | Was | Holds |
 |---|---|---|
@@ -298,18 +298,18 @@ An attack has no levels, so its figures are exact. Shown so far: the chance of e
 | Place | Limit | Measured on | Setting in `qol_rules.xlsx` |
 |---|---|---|---|
 | Battle bar: line 1 of techniques and spells, joint skill sentences, item lines | 70 | Self-Sacrifice, 70 characters: "the most that fits well" | `battle_line_width` |
-| Box of the party skill list | 50 | A line of 53 ran over the frame; the user set the limit at that minus 3 | `party_line_width` |
+| Box of the party skill list | 50 | A line of 53 ran over the frame; the limit was set at that minus 3 | `party_line_width` |
 | Lines 2-3 of the skill box, enemy attack lines, passive and unique boxes | 85 | Earlier screenshots | `line_width` |
 
 The build stops on a modified line longer than its limit. Texts of the original game that are longer and get nothing added stay as they are.
 
-**Line 1 does not repeat values.** `Distribute all of one's TP to the target (TP transfer bonus 100-140%).` sat right above `TP transfer bonus: 100% -> ... -> 140%`. Line 1 of a skill that deals no damage is now the game's sentence; setting `line1_values` (`no`). The damage word and the chance of an ailment stay: they are the user's own design for the battle bar, where the level is not shown.
+**Line 1 does not repeat values.** `Distribute all of one's TP to the target (TP transfer bonus 100-140%).` sat right above `TP transfer bonus: 100% -> ... -> 140%`. Line 1 of a skill that deals no damage is now the game's sentence; setting `line1_values` (`no`). The damage word and the chance of an ailment stay: they are the design chosen for the battle bar, where the level is not shown.
 
 **A sentence that does not fit is rewritten by hand, in the workbook**: `ShortSkills` (44), `ShortItems` (201), `JointSkillSentences` (35). Each keeps the joke or the image and drops filler: `Katana skill. Moderate bash damage to an enemy. May paralyze (20-50%).`, `Legendary. Eat it and fall in love. (HP/TP +1000, cures all ailments)`.
 
 **A figure the game data does not hold** comes from a guide of this game, and the screen does not say so. Arcane Shield stores the reflected share only; its third line reads `Activation rate: about 15%` (DT2-2 wiki, pages/42.html; the source is the `Source` column of the sheet `UniqueSkillNotes`).
 
-**Hard rule: the voice of the game is never broken.** The first version of that line read `Activation rate: about 15% (player guide; the game data holds no figure)`; the user: "horrible... nunca hacer esto NUNCA". No text of the mod may speak from outside the game: no source, no caveat, no note to the reader. Provenance and confidence live in the workbooks and in these docs. `check_game_voice` in `build_variant.py` stops the build when a modified text holds a word of the sheet `OutOfGameWords` (guide, wiki, data, binary, source, unknown...) that the game's own text did not have.
+**Hard rule: the voice of the game is never broken.** The first version of that line read `Activation rate: about 15% (player guide; the game data holds no figure)`; decided: "horrible... nunca hacer esto NUNCA". No text of the mod may speak from outside the game: no source, no caveat, no note to the reader. Provenance and confidence live in the workbooks and in these docs. `check_game_voice` in `build_variant.py` stops the build when a modified text holds a word of the sheet `OutOfGameWords` (guide, wiki, data, binary, source, unknown...) that the game's own text did not have.
 
 ### 6.6 Scripts, unique skill labels, packaging (2026-10-04, last round)
 
@@ -323,7 +323,7 @@ The build stops on a modified line longer than its limit. Texts of the original 
 
 ### 6.7 QoL closed (2026-10-04)
 
-The user accepted the QoL variant ("todo perfecto") with two last decisions:
+The QoL variant was accepted with two last decisions:
 
 * **Resistances are written without `%`**, as the status and enemy screens write them (`Bs Res -20`, `+15`): `Fire resistance +20`, `Resistance: 20 -> 24 -> 28 -> 32 -> 36`, `Slash resistance increased (up to +25).`, Moon Curtain `(+25)` in Gjallarhorn. Critical rate keeps its `%` (setting `percent_points`).
 * **The earlier mixed build is deleted**: its tools (an `apply_mod.py` of that time, which the present `tools/apply_mod.py` only shares its name with, `audit_tool.py`, `package_release.py`, the `populate_*`, `update_*`, `generate_enchants`... scripts) and its 15 workbooks. The `Previous_Mod_*` columns of the text workbooks are now empty.
@@ -347,7 +347,7 @@ What the Balance variant inherits: the backups, `pck_handler.py` (every writer e
 | `test_qol_line1_and_enemy_attacks.py` | Bounds of the damage scale and forms of the chance; line 1 of real skills; a skill whose damage the power table does not measure stays as written; a wrong word, a wrong chance or a level figure in line 1 stops the build. Enemy attack writer exact; chance on the data line; prose never changed; a wrong chance, an edited joke and a changed value stop the build. |
 | `test_effect_decoding.py` | The evidence for the decoded effects is re-read from the files: figures stated by enemy attack texts equal the stored values (fixed crit rate, cap, fixed damage, fixed accuracy), hit-count and ignore-defense wording goes with its id, and the only disagreements are the four known errors of the original text. Every effect treated as harmless for the damage word is named with its evidence. No box leaves an effect out. |
 
-Verified without the game: container and entry round trips, numeric identity of the QoL build, 733 figures in the built skill text and 9 item amounts against the built binary, every rank label against its multiplier, the game folder against the variant after an install. Enchant figures cannot be verified against the binary (it holds none): they are checked against the source table only. Seen on screen by the user: the rank label in the title bar. Everything else of the QoL build is installed and waiting for a look.
+Verified without the game: container and entry round trips, numeric identity of the QoL build, 733 figures in the built skill text and 9 item amounts against the built binary, every rank label against its multiplier, the game folder against the variant after an install. Enchant figures cannot be verified against the binary (it holds none): they are checked against the source table only. Seen on screen: the rank label in the title bar. Everything else of the QoL build is installed and waiting for a look.
 
 ---
 
@@ -383,4 +383,4 @@ every figure, and a step that cannot do its job stops the build.
 ## 10. What is left
 
 Nothing is listed here any more: what the QoL variant shows and leaves unshown, pack by pack and with the reason, is
-`QOL_ROADMAP.md`; the state of the Balance variant and its known limits are `BALANCE_PLAN.md` section 7.
+`QOL_ROADMAP.md`.

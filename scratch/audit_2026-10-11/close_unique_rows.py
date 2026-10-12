@@ -1,4 +1,4 @@
-"""The rows of the unique skills (theme T15 of the sheet Criticisms) closed on the user's decisions of 2026-10-12:
+"""The rows of the unique skills (theme T15 of the sheet Criticisms) closed on the decisions of 2026-10-12:
 three raised (Third Eye Wide, Usurper of Souls, Arcane Shield), the others left as they are ("they add little but it
 is good to have them").
 
@@ -23,7 +23,7 @@ RAISED = {
                       'without the skill): what it sends back is a share of the damage she takes, little beside the HP '
                       'of a boss. Raised for the feel of it, at the word of the user'),
 }
-LEFT = 'the user, 2026-10-12: left as it is; it adds little but it is good to have'
+LEFT = 'decided 2026-10-12: left as it is; it adds little but it is good to have'
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
             row[col['Status']].value = 'closed'
             row[col['Proposal']].value = proposal
             row[col['Balance_Result']].value = str(row[col['Balance_Result']].value) + figure
-            row[col['Decision']].value = 'the user, 2026-10-12: raised'
+            row[col['Decision']].value = 'decided 2026-10-12: raised'
             row[col['Verdict']].value = 'true: it added nothing that could be measured'
             closed += 1
         else:

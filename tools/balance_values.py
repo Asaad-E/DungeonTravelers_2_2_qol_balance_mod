@@ -25,14 +25,14 @@ A row is one value of one record. Each kind of row has its address here, with th
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
 
-Rules of the step (docs/philosophy.md 2.5, BALANCE_PLAN.md phase 4):
+Rules of the step (docs/philosophy.md 2.5):
   * before a value is written, what the original holds there is compared with the column Vanilla of the row; a
     mismatch refuses the row;
   * a row this step cannot write as it stands is refused with its reason, never skipped in silence: the build stops;
   * only the bytes of the field change. check() reads the result against the originals byte by byte and wants every
     differing byte inside a field a row wrote, and every field a row wrote to hold its new value.
 Rows in state "blocked" are not of the variant (sim/variant.py leaves them out too): a row that cannot be written, with
-its reason in the column Why, waiting for the user.
+its reason in the column Why, waiting for a decision.
 """
 import os
 import re

@@ -1,4 +1,4 @@
-"""Resolves the rows of balance_changes.xlsx blocked on 2026-10-11, as the user asked that day.
+"""Resolves the rows of balance_changes.xlsx blocked on 2026-10-11, as asked that day.
 
   W038, W039   dropped: Warning Shot and Support Shot stay bow skills. The game holds one gun (Degtyaryov, ATK 97
                against 468 for the best bow), and Spiral Arrow and Divine Cannon do open to it (W036, W037).
@@ -28,7 +28,7 @@ TODAY = '2026-10-11'
 KIND, AMOUNT, GOLD = 0x38, 0x40, 3
 GOLD_FACTOR = 1.4                      # the rows of 2026-10-10 asked for +43% to +50%; the register says "+30% to +50%"
 ROUNDING = ((1000, 10), (10000, 50), (None, 500))          # below the first figure, to the nearest second figure
-WEAPON = ('Dropped on %s (the user): the passive stays a bow skill. A passive record holds one weapon code, and the game '
+WEAPON = ('Dropped on %s : the passive stays a bow skill. A passive record holds one weapon code, and the game '
           'has one gun, the Degtyaryov (ATK 97; the best bow has 468), which Spiral Arrow and Divine Cannon do reach '
           '(W036, W037)' % TODAY)
 NOT_GOLD = ('Dropped on %s: the quest does not pay gold. QuestData 0x38 is the kind of its reward (0 an item, 1 a piece of '

@@ -8,10 +8,10 @@
 
 ## 1. User Feedback, Core Complaints & Design Mandates
 
-This standard was forged directly through iterative playtesting feedback, player critiques, and explicit directives provided by the user. Any future modification or automated generation script **must strictly comply** with these user-defined mandates:
+This standard was forged directly through iterative playtesting feedback, player critiques, and explicit directives provided. Any future modification or automated generation script **must strictly comply** with these user-defined mandates:
 
 ### Mandate A: Elimination of "Spreadsheet Friction" & Verbose Formulas
-* **The User's Complaint (Step 186):**
+* **Complaint (Step 186):**
   > *"I don't like it, it's way too verbose. Why are you showing me confusing ranges? I just want to know what it does, what damage it deals, and what cost it has right now and next level. You have the numbers in the game, why make it harder?"*
 * **The Design Rule:**
   * **Strictly Prohibited:** Statistical formulas such as `(avg +3.33%/Lv)`, aggregated summaries, or mathematical jargon.
@@ -20,7 +20,7 @@ This standard was forged directly through iterative playtesting feedback, player
 ---
 
 ### Mandate B: Pure In-Universe Nomenclature (Line 1 Untouched)
-* **The User's Directive (Step 197):**
+* **Directive (Step 197):**
   > *"When I say in-game, I don't mean a generic RPG style. Use the exact nomenclature and descriptions that the game uses normally. Nothing outside."*
 * **The Design Rule:**
   * **Line 1 belongs 100% to Aquaplus/Sting.** The original English flavor text and descriptive prose must never be replaced, rewritten with modder jargon, or trimmed.
@@ -38,10 +38,10 @@ This standard was forged directly through iterative playtesting feedback, player
 ---
 
 ### Mandate D: Rejection of Automated "Average" Compression
-* **The User's Complaint on Automated Scripts (`qol_skill_text.xlsx`):**
+* **Complaint on Automated Scripts (`qol_skill_text.xlsx`):**
   > Automated scripts attempting to adhere to character limits took shortcuts by reintroducing compressed statistical formulas: e.g. `ATK: 80% -> 110% (avg +3.33%/Lv, L1-10)`.
 * **The Directive:**
-  * The user explicitly rejected this format. If a 10-level skill cannot fit all 10 numbers due to wide values, it must use clean, explicit step progression (e.g., `ATK: 125% (+8%/Lv) -> 200% (L10 Max)`), **never** fractional averages like `(avg +3.33%/Lv)`.
+  * This format was explicitly rejected. If a 10-level skill cannot fit all 10 numbers due to wide values, it must use clean, explicit step progression (e.g., `ATK: 125% (+8%/Lv) -> 200% (L10 Max)`), **never** fractional averages like `(avg +3.33%/Lv)`.
 
 ---
 
@@ -93,7 +93,7 @@ Since 5 levels fit comfortably within 85 characters, **all 5 values must be writ
 
 ## 4. Approved Reference Archetypes (The Approved Mockups)
 
-These mockups were rendered on real game screenshots and formally approved by the user in Step 231:
+These mockups were rendered on real game screenshots and formally approved in Step 231:
 
 ### 1. ⚔️ Fighter: `War Cry` (5-Level Party Buff)
 ```text
@@ -176,7 +176,7 @@ ATK: +3% (L1) -> +5% -> +7% -> +9% -> +11% -> +12% -> +13% -> +14% -> +15% (L10)
 
 ## 7. Amendment of 2026-10-04: line 1 in battle
 
-Decided by the user after seeing the battle bar, which shows line 1 alone and without the skill level. It replaces "Line 1 untouched" for techniques and spells; everything else in this document stands.
+Decided after seeing the battle bar, which shows line 1 alone and without the skill level. It replaces "Line 1 untouched" for techniques and spells; everything else in this document stands.
 
 1. Line 1 keeps the game's sentence and gains only the main points:
    * **Damage as one word**, placed inside the sentence ("Deal minor bash damage to one enemy"): Negligible (only below 80%), Minor, Moderate, Major, Severe. The word is chosen by the average of the real values over the levels. Magic uses the same words. A value beyond the scale is an exception and gets its own word (the game's "tremendous").
@@ -192,7 +192,7 @@ Bounds of the scale and the rules of placement: `tools/magnitude_words.py` and s
 
 ## 8. Amendment of 2026-10-04, second round
 
-Answers of the user to the open questions of the roadmap. They extend section 7.
+Answers to the open questions of the roadmap. They extend section 7.
 
 1. **A value that does not change with the level is always shown** in the box ("Speed decrease: 10%").
 2. **Line 1 says the value for every skill**, not only damage and ailments: buffs, heals and passives too ("Raise the party's ATK (8%+)."). Same three forms: the value when it never changes, the starting value and a plus when it changes little, first and last level when it changes more. The level-by-level list stays in the box.

@@ -9,7 +9,7 @@ During engine audits, a recurring observation raised by automated auditors and r
 
 Reviewers often interpret this as a potential flaw, arguing: *"Real human players do not possess perfect knowledge on a blind playthrough, so high simulation win rates might produce false positives."*
 
-**This document formally establishes the architectural and mathematical rebuttal to that critique.** The user and engineering team have established that **AI omniscience is not a defect—it is a mandatory methodological requirement for rigorous A/B differential testing.**
+**This document formally establishes the architectural and mathematical rebuttal to that critique.** It is established that **AI omniscience is not a defect—it is a mandatory methodological requirement for rigorous A/B differential testing.**
 
 ---
 

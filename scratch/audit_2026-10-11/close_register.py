@@ -13,7 +13,7 @@ DAY = '2026-10-11'
 BUILT = 'built and read back (BALANCE_BUILD.md, 1,382 of 1,382 rows)'
 CLASSES = 'CLASS_STAGES.md'
 WORTH = 'SKILL_WORTH.md (78 of 84 active skills at 60% or more of the best strike of their class)'
-USER_KEEPS = f'{DAY}, the user: the change stays, it is justified in its row'
+USER_KEEPS = f'{DAY}, decided: the change stays, it is justified in its row'
 
 CLOSED = {
     'J03': f'C001 - C168, the TP cost of 22 damage skills, {BUILT}',
@@ -32,7 +32,7 @@ CLOSED = {
            f'Trickster 1.08 - 1.13, within the band ({CLASSES})',
     'J31': f'A rows, every story and postgame boss immune to turn delay, {BUILT}',
     'J33': f'M rows, {BUILT}; Witch 0.59 advanced, 0.94 late ({CLASSES})',
-    'J37': 'ExePatches set balance in both program files (12 rows, 17 bytes each); seen working in the game by the user',
+    'J37': 'ExePatches set balance in both program files (12 rows, 17 bytes each); seen working in the game',
     'F03': 'as J29',
     'F04': 'as J27',
     'F05': 'as J25',
@@ -61,11 +61,11 @@ CLOSED = {
     'F60': f'K rows (TP -25%) and X rows (chant 0.75 at every level), {BUILT}. {USER_KEEPS}',
     'F61': f'X rows, Shadow Sew -25% TP, {BUILT}. {USER_KEEPS}',
     'F62': f'X rows, {BUILT}; the scrolls are worth 48 - 60% beside Ninja Piledriver, which the Tantou (W045) raised ({WORTH}). '
-           f'{DAY}, the user: they stay as they are, they are debuffs late (J27)',
+           f'{DAY}, decided: they stay as they are, they are debuffs late (J27)',
     'F68': f'T051 - T055, {BUILT}; Enticing Love worth 100% ({WORTH})',
     'F69': f'M rows, Carrot and Stick x1.5, {BUILT}',
     'F71': f'D rows, {BUILT}; dolls within the band at the four stages (1.12, 0.97, 1.04, 1.13; {CLASSES})',
-    'F72': f'X rows, {BUILT}; Life Bringer worth 48% beside Showtime ({WORTH}). {DAY}, the user: it stays as it is',
+    'F72': f'X rows, {BUILT}; Life Bringer worth 48% beside Showtime ({WORTH}). {DAY}, decided: it stays as it is',
     'F74': f'Limit Field TP x0.55, {BUILT}',
     'F75': f'S rows, {BUILT}; Graceful Rose worth 100% ({WORTH})',
     'F78': f'W rows, +25%, {BUILT}',
@@ -74,7 +74,7 @@ CLOSED = {
     'F90': f'P024, P079 - P084 (seven pieces under 2% raised to 2%) and P085 - P088 (Item Steal open on Odin, Myrddin, Asmodeus and '
            f'Carmilla), {BUILT}; their pieces come out of 6 - 9% of the steals that succeed; a talk of Euthys says it in the game',
     'F93': 'as U01',
-    'U01': 'ExePatches set balance in both program files; CATCH_UP_OPTIONS.md, row B4; seen working in the game by the user',
+    'U01': 'ExePatches set balance in both program files; CATCH_UP_OPTIONS.md, row B4; seen working in the game',
     'S01': 'as U01',
     'S02': f'E rows, common enemies of level 80 or more lose 10 points of physical resistance, {BUILT}',
     'S03': f'E rows, four enemy passives capped at the party top, {BUILT}',
@@ -87,13 +87,13 @@ CLOSED = {
            f'within the band ({CLASSES})',
 }
 DECIDED = {
-    'F34': f'{DAY}: approved by the user, the change stays',
-    'F35': f'{DAY}: approved by the user, the change stays',
-    'F44': f'{DAY}: approved by the user, the change stays',
-    'F60': f'{DAY}: approved by the user, the change stays',
-    'F61': f'{DAY}: approved by the user, the change stays',
-    'F90': f'{DAY}: approved by the user (seven drop weights to the 2% floor; Item Steal open on the four immune commons)',
-    'S20': f'{DAY}: approved by the user (quest gold x1.40)',
+    'F34': f'{DAY}: approved, the change stays',
+    'F35': f'{DAY}: approved, the change stays',
+    'F44': f'{DAY}: approved, the change stays',
+    'F60': f'{DAY}: approved, the change stays',
+    'F61': f'{DAY}: approved, the change stays',
+    'F90': f'{DAY}: approved (seven drop weights to the 2% floor; Item Steal open on the four immune commons)',
+    'S20': f'{DAY}: approved (quest gold x1.40)',
 }
 NOT_A_PROBLEM = ('J11', 'J32', 'F18', 'F19', 'F20', 'F21', 'F27', 'F28', 'F29', 'F30', 'F33', 'F36', 'F37', 'F38', 'F39',
                  'F40', 'F41', 'F43', 'F50', 'F51', 'F53', 'F58', 'F63', 'F64', 'F65', 'F66', 'F67', 'F70', 'F76', 'F77',

@@ -29,7 +29,7 @@ FIGHTS = ('P28', 'P29', 'P30', 'P33', 'P50', 'P51')
 ELEMENTS = ('fire', 'water', 'wind', 'earth', 'lightning')
 CHANGES = os.path.join(PROJECT, 'data_tables', 'balance_changes.xlsx')
 WHY = ('Decided 2026-10-09 (row J02: lower a little the elemental resistances of the superbosses that wall magic off, '
-       'keeping their flavour) and confirmed by the user on 2026-10-12 (without abuse; the postgame stays hard, the mages '
+       'keeping their flavour) and confirmed on 2026-10-12 (without abuse; the postgame stays hard, the mages '
        'keep some of their power). The six fights where the best option of the mage was under that of the Dark Lord '
        '(50 - 84%): every elemental resistance under 100 of their enemies goes down by {step}; a resistance of 100 stays. '
        'The mage beside the Dark Lord there: {before} before, {after} after')
@@ -97,7 +97,7 @@ def main():
 
 
 WHY_RES = ('Row J02 (decided 2026-10-09: lower a little what walls magic off at the superbosses, keeping their flavour; '
-           'the user, 2026-10-12: without abuse, the postgame stays hard, the mages keep some of their power). At the six '
+           'decided 2026-10-12: without abuse, the postgame stays hard, the mages keep some of their power). At the six '
            'fights where the best option of the mage was under that of the Dark Lord, RES of every enemy times {factor}; '
            'the elemental resistances are left alone (lowering them raises the elemental strikes of the Dark Lord as much '
            'as the spells: measured, the mage stays at 50 - 84%). The mage beside the Dark Lord there: {before} before, '
