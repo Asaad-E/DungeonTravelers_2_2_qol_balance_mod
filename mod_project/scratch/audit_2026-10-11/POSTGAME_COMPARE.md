@@ -33,12 +33,12 @@ Crown: the least bonus at which the vanilla party reaches the floor (the prepara
 | P25 Mil the Overlord | easy | 0 | 85% > 98% | 4.4 > 4.1 | 43% > 45% |
 | P26 Lina the Statuesque | easy | 0 | 100% > 100% | 4.3 > 3.9 | 63% > 64% |
 | P27 Melek Taus (Gruneworth) | normal | 40 | 57% > 75% | 2.3 > 2.1 | 13% > 21% |
-| P28 Hell's Angel | normal | 0 | 65% > 70% | 3.3 > 3.2 | 33% > 35% |
+| P28 Hell's Angel | normal | 0 | 65% > 70% | 3.3 > 3.2 | 33% > 34% |
 | P29 Panagia (weakened) | easy | 40 | 95% > 95% | 3.2 > 2.8 | 30% > 33% |
-| P30 Lolo and Tenerezza (weakened superboss) | hard | 10 | 22% > 30% | 9.0 > 8.4 | 7% > 7% |
+| P30 Lolo and Tenerezza (weakened superboss) | hard | 10 | 22% > 28% | 9.0 > 8.4 | 7% > 6% |
 | P31 Matrix superboss, weakened (Magna Meretrix) | hard | 0 | 55% > 40% | 5.9 > 4.8 | 23% > 19% |
 | P32 Aradia (8th fight), First Sealbook afterword | hard | 50 | 50% > 57% | 2.7 > 2.9 | 7% > 8% |
-| P33 Final boss after the 8th Aradia (Panagia, then Radiant Being) | normal | 50 (floor not reached) | 10% > 35% | 9.3 > 8.1 | 4% > 10% |
+| P33 Final boss after the 8th Aradia (Panagia, then Radiant Being) | normal | 50 (floor not reached) | 10% > 35% | 9.3 > 8.3 | 4% > 10% |
 | P34 Casino VIP, 1st (Tama the Red) | hard | 20 | 48% > 48% | 4.9 > 4.7 | 18% > 14% |
 | P35 Casino VIP, 2nd (Riko the Reclusive) | hard | 40 | 38% > 42% | 11.0 > 8.7 | 14% > 16% |
 | P36 Casino VIP, 3rd (Rai the Sweltering) | hard | 40 | 32% > 45% | 4.4 > 3.5 | 16% > 26% |
