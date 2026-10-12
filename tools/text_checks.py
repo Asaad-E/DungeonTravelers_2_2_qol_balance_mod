@@ -365,6 +365,8 @@ WORDING_FIXES = [(r['Pattern'], rules.id_set(r['Needs_Effects']), rules.id_set(r
 # order written. Sheet EnemyEffects of qol_rules.xlsx; the labels are the ones the skill boxes use.
 # Meaning and evidence of each id: EFFECT_NAMES.
 ENEMY_EFFECTS = [(int(r['Effect_ID']), r['Label'], r['Style']) for r in rules.rows('EnemyEffects')]
+# the effects written after the power of the attack: when the line is short of room they are the ones left out
+ENEMY_AFTER_POWER = {int(r['Effect_ID']) for r in rules.rows('EnemyEffects') if rules.yes(r.get('After_Power'))}
 
 
 def enemy_attack_slots(b):
@@ -402,6 +404,10 @@ def write_value(value, style):
         return f'{round(value, 2):+g}'
     if style == 'plus_num_pct':
         return f'{round(value, 1):+g}%'
+    if style == 'abs_num':                       # a decrease stored as a negative figure, under a label that says so
+        return f'{abs(round(value, 2)):g}'
+    if style == 'abs_pct':
+        return f'{abs(round(value * 100, 1)):g}%'
     pct = round(value * 100, 1)
     return f'{pct:+g}%' if style == 'signed_pct' else f'{pct:g}%'
 
@@ -410,18 +416,19 @@ def enemy_effect_facts(b):
     """{label: written value} of the other effects of an enemy attack. An effect that appears twice with
     different values, or whose label is already taken, is left out: it cannot be stated in one item."""
     slots = enemy_attack_slots(b)
-    facts = {}
+    facts, late = {}, {}
     for effect_id, label, style in ENEMY_EFFECTS:
         values = {round(v, 4) for i, v, _ in slots if i == effect_id}
-        if len(values) != 1 or label in facts:
+        if len(values) != 1 or label in facts or label in late:
             continue
         value = values.pop()
         if value == 0 or (style == 'pct' and not 0 < value <= 1):
             continue
-        facts[label] = write_value(value, style)
+        (late if effect_id in ENEMY_AFTER_POWER else facts)[label] = write_value(value, style)
     power = round(struct.unpack_from('<f', b, ENEMY_POWER)[0], 4)
     if power and i32(b, 0) in power_scope() and any(i == PLAIN_HIT for i, _, _ in slots) and POWER_LABEL not in facts:
         facts[POWER_LABEL] = write_value(power, 'signed_pct')
+    facts.update({label: value for label, value in late.items() if label not in facts})
     return facts
 
 
