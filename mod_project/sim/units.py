@@ -68,6 +68,7 @@ class Unit:
         self.uses = {}                      # skill key -> times used
         self.once_done = set()              # commands of the AI script fired once
         self.ecstasy_done = False
+        self.samsara = None                 # Heretic Samsara: False until under half HP, then the eight resistances of the turn
         self.ai_set = 0
         self.life = None                    # turns left of a doll or summon
         self.action_skill = None            # hidden skill of a doll
@@ -124,6 +125,8 @@ class Unit:
         return hp
 
     def resistance(self, index):
+        if self.samsara:                    # 0x4fc76f: the state of the type replaces the resistance, after its clamp
+            return self.samsara[index]
         value = self.resist_base[index]
         if index >= 3:
             value += sum(int(self.value(e)) for e in ELEMENT_RESIST_BUFFS if self.has(e))   # a passive too (Adaptation)

@@ -98,6 +98,7 @@ GENJIMARU, GENJIMARU_ACTION = 427, 107       # 0x48b1f0; the hidden skill of the
 GENJIMARU_LIFE = 3                           # 0x48b325: the life the doll constructor is given (push 3)
 SHADOW_LIFE = 3                              # 0x437a2e: the life the shadow of Shadow Heart is given (push 3)
 SACRIFICE, MAX_HP_DRAIN, EXTRA_TARGETS = 77, 133, 137
+SAMSARA_STEP = 50                            # 0x438f1e: imul 0x32 on rand(2) + 1
 SPECIAL_SLEEP = (143, 10.0, 5)               # 0x484150: a sleep command of value 10.0 (0x4841da), recovery 5 (0x484201)
 MURDER, DARK_QUEST, KNOCK_DOWN, PRETEND, DEMON_WALL, ENEMIES_FLEE = 258, 263, 305, 310, 356, 432
 # the third argument of CreateCommand (0x47b2ea: the turns of a status, the starting recovery chance of an ailment)
@@ -131,6 +132,7 @@ handles('Battle.resolve (2.4, the changes of the final value; 0x44cda2)', 86)
 # damage through their effect 1, which Battle.magic_damage plays
 handles('nothing reads it: the damage of a breath is its effect 1', 3)
 handles('Battle.take_damage (12.7)', 257, 188, 254, 312, 447)
+handles('Battle.turn and Unit.resistance (Heretic Samsara, 0x438e53, 0x4fc76f)', 291)
 handles('Battle.turn and lost_turn (12.4, 12.19)', 259, 283, 203, 345)
 handles('Battle.perform', 10, 425, 358, 152, 153, 154, 155, 315, 228, 229, 230, 231, 232, 233, 266, 279, 280, 287, 284,
         313, 123, 300, 348)
@@ -480,6 +482,10 @@ class Battle:
         if unit.has(311):
             for effect in ESARHADDON_ORDER[:int(unit.value(311))]:
                 unit.statuses.pop(effect, None)
+        # Heretic Samsara (0x438e53 - 0x438fef): once under half its HP, at the update of its turn each of the eight
+        # resistances of the bearer is set to (rand(2) + 1) * 50
+        if unit.samsara is not None and (unit.samsara or unit.hp < unit.max_hp / 2):
+            unit.samsara = [(self.rng.randrange(2) + 1) * SAMSARA_STEP for _ in range(8)]
         # state 2: Third Eye Wide of each opponent
         for other in self.opponents(unit):
             if other.unique and other.unique[0] == 345 and self.roll(other.unique[1]):
@@ -1446,6 +1452,8 @@ class Battle:
             target.ecstasy_done = True
             target.statuses[41] = Status(41, target.value(312), ECSTASY_TURNS, target)     # 0x47f5fc, 0x47f633
             target.statuses[45] = Status(45, target.value(312), ECSTASY_TURNS, target)
+        if target.samsara is None and target.has(291):
+            target.samsara = False              # 0x47f739: the bearer is watched from its first damage on
         if target.alive and amount > 0:
             target.statuses.pop(116, None)               # 0x47ea6b - 0x47ea80: damage wakes a sleeping unit
             if target.chant is not None or self.performing(target):
