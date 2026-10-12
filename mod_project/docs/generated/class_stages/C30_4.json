@@ -11,37 +11,37 @@
    "class": "Sage"
   },
   "kunoichi": {
-   "won": 0.9,
-   "time": 48.78662887527908,
-   "time_won": 44.76431254719516,
-   "share": 0.12825066968195256,
+   "won": 0.95,
+   "time": 36.70642502609728,
+   "time_won": 34.31427450259154,
+   "share": 0.21371746893691798,
    "character": "Tsurara",
    "level": 44,
    "class": "Kunoichi"
   },
   "mistress": {
    "won": 1.0,
-   "time": 28.784785970391898,
-   "time_won": 28.784785970391898,
-   "share": 0.21969230731992093,
+   "time": 28.668717947475233,
+   "time_won": 28.668717947475233,
+   "share": 0.21820141575331653,
    "character": "Conette",
    "level": 44,
    "class": "Mistress"
   },
   "etoile": {
    "won": 1.0,
-   "time": 26.86746764025,
-   "time_won": 26.86746764025,
-   "share": 0.0006966621966121101,
+   "time": 27.18433944775,
+   "time_won": 27.18433944775,
+   "share": 0.0007022003318810905,
    "character": "Ist",
    "level": 44,
    "class": "Etoile"
   },
   "joker": {
    "won": 1.0,
-   "time": 38.047033095083336,
-   "time_won": 38.047033095083336,
-   "share": 0.2615315833777919,
+   "time": 35.428726004333335,
+   "time_won": 35.428726004333335,
+   "share": 0.26928222404233887,
    "character": "Mefmera",
    "level": 44,
    "class": "Joker"
