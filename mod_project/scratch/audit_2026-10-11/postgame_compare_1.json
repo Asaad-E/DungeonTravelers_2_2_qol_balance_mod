@@ -1,0 +1,78 @@
+[
+ {
+  "id": "P01",
+  "boss": "Aradia (1st fight)",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 5.801965287792247,
+   "lowest_hp": 0.8572470817120623,
+   "pressure": 0.03676460427166679
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 6.316070303639317,
+   "lowest_hp": 0.8796422395157804,
+   "pressure": 0.028735946703734715
+  }
+ },
+ {
+  "id": "P02",
+  "boss": "Iktomi",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 9.410278324802082,
+   "lowest_hp": 0.517680886658302,
+   "pressure": 0.09349173045763476
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 7.142500313375,
+   "lowest_hp": 0.560340861564199,
+   "pressure": 0.09464544027872104
+  }
+ },
+ {
+  "id": "P03",
+  "boss": "Aradia (2nd fight)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 20,
+  "vanilla": {
+   "won": 0.6,
+   "time": 58.93045479815719,
+   "lowest_hp": 0.2584852519459238,
+   "pressure": 0.10155865236004831
+  },
+  "variant": {
+   "won": 0.6,
+   "time": 52.46183309472542,
+   "lowest_hp": 0.2616192134371159,
+   "pressure": 0.09271406230054048
+  }
+ },
+ {
+  "id": "P04",
+  "boss": "Sukuna-Hikona",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.825,
+   "time": 12.098013612045454,
+   "lowest_hp": 0.3046357275159498,
+   "pressure": 0.12174510423563026
+  },
+  "variant": {
+   "won": 0.85,
+   "time": 8.929601602549019,
+   "lowest_hp": 0.3465682239143857,
+   "pressure": 0.1098391712446307
+  }
+ }
+]

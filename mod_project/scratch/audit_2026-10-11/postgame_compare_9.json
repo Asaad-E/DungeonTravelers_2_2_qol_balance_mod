@@ -1,0 +1,97 @@
+[
+ {
+  "id": "P37",
+  "boss": "Casino VIP, 4th (Mor the Drunken)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.25,
+   "time": 6.037044872127153,
+   "lowest_hp": 0.07141185125735687,
+   "pressure": 0.0810693457580593
+  },
+  "variant": {
+   "won": 0.475,
+   "time": 4.804585105043861,
+   "lowest_hp": 0.16571361690743713,
+   "pressure": 0.0745451345316772
+  }
+ },
+ {
+  "id": "P38",
+  "boss": "Casino VIP, 5th (Gam the Wise)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.575,
+   "time": 7.970673260144928,
+   "lowest_hp": 0.16467027822364902,
+   "pressure": 0.17301065445868366
+  },
+  "variant": {
+   "won": 0.775,
+   "time": 6.1878421914628525,
+   "lowest_hp": 0.2398876404494382,
+   "pressure": 0.16661232236130208
+  }
+ },
+ {
+  "id": "P39",
+  "boss": "Casino VIP, 6th (Ruu the Woodsy)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 10,
+  "vanilla": {
+   "won": 0.275,
+   "time": 19.397246646212114,
+   "lowest_hp": 0.09548864557988646,
+   "pressure": 0.11632168624545923
+  },
+  "variant": {
+   "won": 0.15,
+   "time": 20.186173555277765,
+   "lowest_hp": 0.04628615842119492,
+   "pressure": 0.10976269820772941
+  }
+ },
+ {
+  "id": "P40",
+  "boss": "Casino VIP, 7th (five bosses with Mandra Prince and Princess)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.45,
+   "time": 7.357011451620374,
+   "lowest_hp": 0.2171920242168992,
+   "pressure": 0.07620362257562455
+  },
+  "variant": {
+   "won": 0.375,
+   "time": 6.486087137222225,
+   "lowest_hp": 0.20081929455119768,
+   "pressure": 0.06663366952916834
+  }
+ },
+ {
+  "id": "P41",
+  "boss": "Wandering Brigade (Citlalinicue)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.1898171432958548
+  },
+  "variant": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.17246802277402434
+  }
+ }
+]

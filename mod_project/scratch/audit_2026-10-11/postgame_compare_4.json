@@ -1,0 +1,97 @@
+[
+ {
+  "id": "P14",
+  "boss": "Murasaki Shikibu",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 10.125608820937503,
+   "lowest_hp": 0.42404139803189683,
+   "pressure": 0.07827163928707873
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 8.26946149975,
+   "lowest_hp": 0.46652103834407865,
+   "pressure": 0.06628871778887985
+  }
+ },
+ {
+  "id": "P15",
+  "boss": "Aradia (4th fight)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 30,
+  "vanilla": {
+   "won": 0.85,
+   "time": 16.189238985085783,
+   "lowest_hp": 0.3652058872168017,
+   "pressure": 0.18317038094441462
+  },
+  "variant": {
+   "won": 0.75,
+   "time": 13.132196664597222,
+   "lowest_hp": 0.32931205556474286,
+   "pressure": 0.17421692389713414
+  }
+ },
+ {
+  "id": "P16",
+  "boss": "Aradia (5th fight)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 5.761863860208333,
+   "lowest_hp": 0.5049372242958942,
+   "pressure": 0.16723489245679518
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 5.147627630791666,
+   "lowest_hp": 0.49570325755005096,
+   "pressure": 0.17207461265529203
+  }
+ },
+ {
+  "id": "P17",
+  "boss": "Last Judgment",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.75,
+   "time": 8.555238076861112,
+   "lowest_hp": 0.43361287758346584,
+   "pressure": 0.09290024440595115
+  },
+  "variant": {
+   "won": 0.875,
+   "time": 7.299796734928572,
+   "lowest_hp": 0.5289546899841018,
+   "pressure": 0.08430674100503323
+  }
+ },
+ {
+  "id": "P18",
+  "boss": "Aradia (6th fight)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 4.730121421562502,
+   "lowest_hp": 0.6176828298887123,
+   "pressure": 0.10132002564000421
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 4.683352179895834,
+   "lowest_hp": 0.6079650238473768,
+   "pressure": 0.10774131011870448
+  }
+ }
+]

@@ -1,0 +1,78 @@
+[
+ {
+  "id": "P19",
+  "boss": "Three goddesses",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.4,
+   "time": 8.461196439653795,
+   "lowest_hp": 0.15672098569157394,
+   "pressure": 0.127039418698769
+  },
+  "variant": {
+   "won": 0.55,
+   "time": 7.904600056875,
+   "lowest_hp": 0.19649046104928458,
+   "pressure": 0.12355829484349139
+  }
+ },
+ {
+  "id": "P20",
+  "boss": "Crom Cruach (weakened superboss)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.925,
+   "time": 13.471172098198203,
+   "lowest_hp": 0.45590019411193794,
+   "pressure": 0.20277293880496727
+  },
+  "variant": {
+   "won": 0.975,
+   "time": 8.823345659188035,
+   "lowest_hp": 0.5563409899708832,
+   "pressure": 0.18290183573820537
+  }
+ },
+ {
+  "id": "P21",
+  "boss": "Ria the Farsighted",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.95,
+   "time": 4.75716413629386,
+   "lowest_hp": 0.5701669316375199,
+   "pressure": 0.11326266386146626
+  },
+  "variant": {
+   "won": 0.975,
+   "time": 4.43453031292735,
+   "lowest_hp": 0.587456279809221,
+   "pressure": 0.10067024093577054
+  }
+ },
+ {
+  "id": "P22",
+  "boss": "Chika the Impenetrable",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.125,
+   "time": 12.090426841750006,
+   "lowest_hp": 0.017868601986249046,
+   "pressure": 0.13371869086957475
+  },
+  "variant": {
+   "won": 0.475,
+   "time": 8.475772473486842,
+   "lowest_hp": 0.13837662337662338,
+   "pressure": 0.15351711042789257
+  }
+ }
+]

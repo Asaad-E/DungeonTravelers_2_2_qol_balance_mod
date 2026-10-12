@@ -1,0 +1,97 @@
+[
+ {
+  "id": "P46",
+  "boss": "Four Therian Kings (Jikoku Peggin)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 10,
+  "vanilla": {
+   "won": 0.45,
+   "time": 7.017912593055557,
+   "lowest_hp": 0.1707785306230902,
+   "pressure": 0.12328560383994557
+  },
+  "variant": {
+   "won": 0.55,
+   "time": 5.569999881721717,
+   "lowest_hp": 0.22635180018599707,
+   "pressure": 0.12802436481192958
+  }
+ },
+ {
+  "id": "P47",
+  "boss": "Four Therian Kings (Koumoku Mary)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.05,
+   "time": 9.1728744375,
+   "lowest_hp": 0.00861739931560937,
+   "pressure": 0.08407513166047573
+  },
+  "variant": {
+   "won": 0.075,
+   "time": 8.420967041666666,
+   "lowest_hp": 0.014174782837588839,
+   "pressure": 0.0901892356541195
+  }
+ },
+ {
+  "id": "P48",
+  "boss": "Four Therian Kings (Bishamon Peggy)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 40,
+  "vanilla": {
+   "won": 0.475,
+   "time": 6.1878148600753144,
+   "lowest_hp": 0.15360351562500002,
+   "pressure": 0.1391788221277692
+  },
+  "variant": {
+   "won": 0.55,
+   "time": 5.410592488034554,
+   "lowest_hp": 0.19447916666666668,
+   "pressure": 0.13206724346476026
+  }
+ },
+ {
+  "id": "P49",
+  "boss": "Hell's Hole superboss (Crom Cruach, two fights)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.20696569796450756
+  },
+  "variant": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.20108355472982484
+  }
+ },
+ {
+  "id": "P50",
+  "boss": "Casino superboss (Lolo and Tenerezza)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.15810276679841895
+  },
+  "variant": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.15810276679841895
+  }
+ }
+]

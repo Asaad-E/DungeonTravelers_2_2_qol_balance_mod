@@ -1,0 +1,78 @@
+[
+ {
+  "id": "P33",
+  "boss": "Final boss after the 8th Aradia (Panagia, then Radiant Being)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.1,
+   "time": 9.296175235729168,
+   "lowest_hp": 0.04372978916052257,
+   "pressure": 0.1607542203850604
+  },
+  "variant": {
+   "won": 0.325,
+   "time": 7.757577460929488,
+   "lowest_hp": 0.10599210968826803,
+   "pressure": 0.15338136855440662
+  }
+ },
+ {
+  "id": "P34",
+  "boss": "Casino VIP, 1st (Tama the Red)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 20,
+  "vanilla": {
+   "won": 0.475,
+   "time": 4.882048743992192,
+   "lowest_hp": 0.17550349087003222,
+   "pressure": 0.09964961527557609
+  },
+  "variant": {
+   "won": 0.55,
+   "time": 4.699583230373997,
+   "lowest_hp": 0.13078343179377014,
+   "pressure": 0.09619664833726106
+  }
+ },
+ {
+  "id": "P35",
+  "boss": "Casino VIP, 2nd (Riko the Reclusive)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 40,
+  "vanilla": {
+   "won": 0.375,
+   "time": 11.002034100333333,
+   "lowest_hp": 0.13825185479597243,
+   "pressure": 0.12233476360611086
+  },
+  "variant": {
+   "won": 0.35,
+   "time": 8.23271713404762,
+   "lowest_hp": 0.14999668786433493,
+   "pressure": 0.10918865438563226
+  }
+ },
+ {
+  "id": "P36",
+  "boss": "Casino VIP, 3rd (Rai the Sweltering)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 40,
+  "vanilla": {
+   "won": 0.325,
+   "time": 4.432203040304487,
+   "lowest_hp": 0.16047526041666665,
+   "pressure": 0.4956137512327416
+  },
+  "variant": {
+   "won": 0.45,
+   "time": 3.500802232337963,
+   "lowest_hp": 0.27037434895833334,
+   "pressure": 0.42237946428571427
+  }
+ }
+]

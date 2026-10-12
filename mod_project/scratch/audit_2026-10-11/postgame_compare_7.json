@@ -1,0 +1,97 @@
+[
+ {
+  "id": "P28",
+  "boss": "Hell's Angel",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.65,
+   "time": 3.3253210701923086,
+   "lowest_hp": 0.3290752898449504,
+   "pressure": 0.22867721871326543
+  },
+  "variant": {
+   "won": 0.7,
+   "time": 3.2025301218154767,
+   "lowest_hp": 0.3446570750104764,
+   "pressure": 0.19489303312444908
+  }
+ },
+ {
+  "id": "P29",
+  "boss": "Panagia (weakened)",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 40,
+  "vanilla": {
+   "won": 0.95,
+   "time": 3.153461630592106,
+   "lowest_hp": 0.2978779030286568,
+   "pressure": 0.20622510072886957
+  },
+  "variant": {
+   "won": 0.975,
+   "time": 2.8467985842948726,
+   "lowest_hp": 0.33177033817737334,
+   "pressure": 0.20660728198416642
+  }
+ },
+ {
+  "id": "P30",
+  "boss": "Lolo and Tenerezza (weakened superboss)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 10,
+  "vanilla": {
+   "won": 0.225,
+   "time": 8.996209810648148,
+   "lowest_hp": 0.06890699971775331,
+   "pressure": 0.13701570382598424
+  },
+  "variant": {
+   "won": 0.25,
+   "time": 7.086368744583334,
+   "lowest_hp": 0.060944115156646904,
+   "pressure": 0.12683900201313
+  }
+ },
+ {
+  "id": "P31",
+  "boss": "Matrix superboss, weakened (Magna Meretrix)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.55,
+   "time": 5.905787803295457,
+   "lowest_hp": 0.228949573962844,
+   "pressure": 0.25145526665291995
+  },
+  "variant": {
+   "won": 0.45,
+   "time": 4.82550891277778,
+   "lowest_hp": 0.2052695907249616,
+   "pressure": 0.2034407576954375
+  }
+ },
+ {
+  "id": "P32",
+  "boss": "Aradia (8th fight), First Sealbook afterword",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.5,
+   "time": 2.670434146875001,
+   "lowest_hp": 0.06612152684111142,
+   "pressure": 0.19987439304019425
+  },
+  "variant": {
+   "won": 0.65,
+   "time": 2.8187276881410264,
+   "lowest_hp": 0.10038440787698948,
+   "pressure": 0.1856549597463762
+  }
+ }
+]

@@ -1,0 +1,78 @@
+[
+ {
+  "id": "P42",
+  "boss": "Wandering Brigade (Marduk)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 40,
+  "vanilla": {
+   "won": 0.225,
+   "time": 21.718624242592465,
+   "lowest_hp": 0.09945638020833333,
+   "pressure": 0.18170196231966593
+  },
+  "variant": {
+   "won": 0.075,
+   "time": 18.07985283333326,
+   "lowest_hp": 0.016165364583333335,
+   "pressure": 0.15758920311574895
+  }
+ },
+ {
+  "id": "P43",
+  "boss": "Wandering Brigade (Arjuna)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 20,
+  "vanilla": {
+   "won": 0.775,
+   "time": 12.736182416532262,
+   "lowest_hp": 0.31767286883082607,
+   "pressure": 0.11170481416288658
+  },
+  "variant": {
+   "won": 0.825,
+   "time": 11.579443873232329,
+   "lowest_hp": 0.3696687780416997,
+   "pressure": 0.11121961517652067
+  }
+ },
+ {
+  "id": "P44",
+  "boss": "Wandering Brigade (Yoshitsune)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.65,
+   "time": 4.109038537339745,
+   "lowest_hp": 0.28634296415195293,
+   "pressure": 0.2719889308870824
+  },
+  "variant": {
+   "won": 0.675,
+   "time": 3.540748095061729,
+   "lowest_hp": 0.29978932584269663,
+   "pressure": 0.2600104300004741
+  }
+ },
+ {
+  "id": "P45",
+  "boss": "Four Therian Kings (Zouchou Kuma)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 30,
+  "vanilla": {
+   "won": 0.425,
+   "time": 12.191034884313723,
+   "lowest_hp": 0.12095294271857386,
+   "pressure": 0.12116240799712669
+  },
+  "variant": {
+   "won": 0.4,
+   "time": 10.744467811979169,
+   "lowest_hp": 0.12125770087822782,
+   "pressure": 0.11649969235560066
+  }
+ }
+]

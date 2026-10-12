@@ -1,0 +1,97 @@
+[
+ {
+  "id": "P05",
+  "boss": "Euthys",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.5,
+   "time": 30.916018162129593,
+   "lowest_hp": 0.20329800370446596,
+   "pressure": 0.18101170717585185
+  },
+  "variant": {
+   "won": 0.45,
+   "time": 27.04562659980536,
+   "lowest_hp": 0.19472113603622143,
+   "pressure": 0.145611818006063
+  }
+ },
+ {
+  "id": "P06",
+  "boss": "Overdue",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.55,
+   "time": 13.842483008939393,
+   "lowest_hp": 0.2764149001852233,
+   "pressure": 0.11804544256634375
+  },
+  "variant": {
+   "won": 0.925,
+   "time": 7.1541607406756755,
+   "lowest_hp": 0.5390666803869109,
+   "pressure": 0.10127261501618365
+  }
+ },
+ {
+  "id": "P07",
+  "boss": "Royal Villa, three bosses",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.9,
+   "time": 9.743449114120372,
+   "lowest_hp": 0.2536890306647458,
+   "pressure": 0.028255406355324034
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 8.085392966614583,
+   "lowest_hp": 0.34067709405227414,
+   "pressure": 0.027099797709089678
+  }
+ },
+ {
+  "id": "P08",
+  "boss": "Qitian Dasheng",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 6.163618986421787,
+   "lowest_hp": 0.8756049923780488,
+   "pressure": 0.03684364717710346
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 5.317499191364816,
+   "lowest_hp": 0.8863900533536585,
+   "pressure": 0.035868516517443653
+  }
+ },
+ {
+  "id": "P09",
+  "boss": "Azathoth",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 10,
+  "vanilla": {
+   "won": 0.55,
+   "time": 10.644051977386363,
+   "lowest_hp": 0.16661929213277096,
+   "pressure": 0.11197346060039447
+  },
+  "variant": {
+   "won": 0.725,
+   "time": 8.359835066609195,
+   "lowest_hp": 0.23537043829084908,
+   "pressure": 0.10830938074094924
+  }
+ }
+]

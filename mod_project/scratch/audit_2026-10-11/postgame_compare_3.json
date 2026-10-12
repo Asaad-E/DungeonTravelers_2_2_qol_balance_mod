@@ -1,0 +1,78 @@
+[
+ {
+  "id": "P10",
+  "boss": "Kuchinawa",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 30,
+  "vanilla": {
+   "won": 0.725,
+   "time": 5.519142000660919,
+   "lowest_hp": 0.32803439582207816,
+   "pressure": 0.22001828533433074
+  },
+  "variant": {
+   "won": 0.775,
+   "time": 4.977740465766129,
+   "lowest_hp": 0.35957140284530886,
+   "pressure": 0.21563540398499745
+  }
+ },
+ {
+  "id": "P11",
+  "boss": "Aradia (3rd fight)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.6,
+   "time": 7.929787941537195,
+   "lowest_hp": 0.2252915047196002,
+   "pressure": 0.11518924671478807
+  },
+  "variant": {
+   "won": 0.575,
+   "time": 5.751018101156692,
+   "lowest_hp": 0.25046270590412734,
+   "pressure": 0.10524989300358241
+  }
+ },
+ {
+  "id": "P12",
+  "boss": "Genbu",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 10,
+  "vanilla": {
+   "won": 0.6,
+   "time": 16.895314748736343,
+   "lowest_hp": 0.2348612315698179,
+   "pressure": 0.16308465993341353
+  },
+  "variant": {
+   "won": 0.725,
+   "time": 9.766672615142443,
+   "lowest_hp": 0.3180572419774501,
+   "pressure": 0.1624866688522141
+  }
+ },
+ {
+  "id": "P13",
+  "boss": "Nuwa",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 10,
+  "vanilla": {
+   "won": 0.8,
+   "time": 5.192363298177083,
+   "lowest_hp": 0.28842724978973927,
+   "pressure": 0.1655131635955858
+  },
+  "variant": {
+   "won": 0.875,
+   "time": 4.9965966857142865,
+   "lowest_hp": 0.2964045416316232,
+   "pressure": 0.1470559127413627
+  }
+ }
+]

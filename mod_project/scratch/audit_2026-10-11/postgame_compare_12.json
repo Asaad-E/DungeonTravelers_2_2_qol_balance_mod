@@ -1,0 +1,97 @@
+[
+ {
+  "id": "P51",
+  "boss": "Matrix superboss (Adon, Magna Meretrix, Samson)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 50,
+  "vanilla": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.13501579788143842
+  },
+  "variant": {
+   "won": 0.0,
+   "time": null,
+   "lowest_hp": 0.0,
+   "pressure": 0.13257891751856582
+  }
+ },
+ {
+  "id": "P52",
+  "boss": "First Sealbook afterword (Bearerophon)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.2,
+   "time": 2.560558717708334,
+   "lowest_hp": 0.0782336811128946,
+   "pressure": 0.5207062600321027
+  },
+  "variant": {
+   "won": 0.625,
+   "time": 1.9344355978333334,
+   "lowest_hp": 0.33110286249331194,
+   "pressure": 0.33971758723522505
+  }
+ },
+ {
+  "id": "P53",
+  "boss": "First Sealbook afterword (Magical Mary)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.925,
+   "time": 3.337954747747749,
+   "lowest_hp": 0.3405597913322632,
+   "pressure": 0.13358672909234706
+  },
+  "variant": {
+   "won": 0.9,
+   "time": 3.0014584214120377,
+   "lowest_hp": 0.38638643659711075,
+   "pressure": 0.11861320422884093
+  }
+ },
+ {
+  "id": "P54",
+  "boss": "First Sealbook afterword (Beard Master)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.75,
+   "time": 2.7853089125,
+   "lowest_hp": 0.35998528624933124,
+   "pressure": 0.15560841922076724
+  },
+  "variant": {
+   "won": 0.975,
+   "time": 2.6710059345085475,
+   "lowest_hp": 0.43358747993579455,
+   "pressure": 0.1523299064665573
+  }
+ },
+ {
+  "id": "P55",
+  "boss": "First Sealbook afterword (Mul the Mechanical)",
+  "class": "hard",
+  "floor": 0.2,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 7.422403640312503,
+   "lowest_hp": 0.6506688068485821,
+   "pressure": 0.06519729802033174
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 4.975848323229168,
+   "lowest_hp": 0.6785045478865703,
+   "pressure": 0.06477787495628658
+  }
+ }
+]

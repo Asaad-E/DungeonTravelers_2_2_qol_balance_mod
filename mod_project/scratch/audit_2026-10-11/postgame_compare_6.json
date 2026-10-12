@@ -1,0 +1,97 @@
+[
+ {
+  "id": "P23",
+  "boss": "Samael (Dreamscape)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 20,
+  "vanilla": {
+   "won": 0.7,
+   "time": 5.788777565327384,
+   "lowest_hp": 0.21277377972465583,
+   "pressure": 0.19279967136017226
+  },
+  "variant": {
+   "won": 0.925,
+   "time": 4.570425445382884,
+   "lowest_hp": 0.4272528160200251,
+   "pressure": 0.14861949630475055
+  }
+ },
+ {
+  "id": "P24",
+  "boss": "Aradia (7th fight)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 4.680881782083335,
+   "lowest_hp": 0.6467470057666717,
+   "pressure": 0.12824097728418413
+  },
+  "variant": {
+   "won": 0.975,
+   "time": 3.9629895970940185,
+   "lowest_hp": 0.5976600621026172,
+   "pressure": 0.10847301027060643
+  }
+ },
+ {
+  "id": "P25",
+  "boss": "Mil the Overlord",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 0.85,
+   "time": 4.426770234313725,
+   "lowest_hp": 0.4262679284341269,
+   "pressure": 0.09008784194396335
+  },
+  "variant": {
+   "won": 0.975,
+   "time": 4.077339318162394,
+   "lowest_hp": 0.45366331509685054,
+   "pressure": 0.08565664439981509
+  }
+ },
+ {
+  "id": "P26",
+  "boss": "Lina the Statuesque",
+  "class": "easy",
+  "floor": 0.8,
+  "crown": 0,
+  "vanilla": {
+   "won": 1.0,
+   "time": 4.2949174976041675,
+   "lowest_hp": 0.6272031642762088,
+   "pressure": 0.09099902350126961
+  },
+  "variant": {
+   "won": 1.0,
+   "time": 3.856942556,
+   "lowest_hp": 0.6304524619251811,
+   "pressure": 0.08962003231576697
+  }
+ },
+ {
+  "id": "P27",
+  "boss": "Melek Taus (Gruneworth)",
+  "class": "normal",
+  "floor": 0.5,
+  "crown": 40,
+  "vanilla": {
+   "won": 0.575,
+   "time": 2.265749493297102,
+   "lowest_hp": 0.12644969140232526,
+   "pressure": 0.4269956635393696
+  },
+  "variant": {
+   "won": 0.75,
+   "time": 2.1082494551388895,
+   "lowest_hp": 0.20650208124013206,
+   "pressure": 0.3745200084507542
+  }
+ }
+]
