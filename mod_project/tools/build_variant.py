@@ -122,7 +122,7 @@ VARIANTS = {
 }
 VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'),
                    ('SealScrollData.pck', 'Parameter'), ('QuestData.pck', 'Parameter'),
-                   (os.path.join('Enemy', 'Enemy.pck'), 'Enemy'))
+                   (os.path.join('Enemy', 'Enemy.pck'), 'Enemy'), (os.path.join('NPC', 'NPC.pck'), 'NPC'))
 BALANCE_REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'BALANCE_BUILD.md')
 
 
@@ -142,8 +142,23 @@ def read_texts(b, category):
     return info['desc'], info['lvup'], info['name'], info['msg']
 
 
-def write_entry(b, category, desc, lvup):
-    return SkillHelper.write_skill(b, category, desc, lvup if category != 'Unique' else None)
+SKILL_NAMES = {}      # (category, entry) -> the name a variant gives a skill (column Balance_Name of its workbook)
+
+
+def write_entry(b, category, desc, lvup, name=None):
+    return SkillHelper.write_skill(b, category, desc, lvup if category != 'Unique' else None, name)
+
+
+def load_skill_names(overrides):
+    """{(category, entry): name} of the skills the workbook of a variant names again."""
+    if not os.path.exists(overrides):
+        return {}
+    rows = openpyxl.load_workbook(overrides, read_only=True)['Skills'].iter_rows(values_only=True)
+    head = next(rows)
+    if 'Balance_Name' not in head:
+        return {}
+    return {(r[head.index('Category')], r[head.index('Filename')]): r[head.index('Balance_Name')]
+            for r in rows if r and r[0] and r[head.index('Balance_Name')]}
 
 
 def load_skill_text(path):
@@ -279,7 +294,7 @@ def build_skills(out_dir, table, problems):
             if (row['desc'], row['lvup']) == (desc, lvup):
                 stats['kept'] += 1          # untouched entries stay byte-identical
                 continue
-            archive.files[i] = (fn, write_entry(b, category, row['desc'], row['lvup']))
+            archive.files[i] = (fn, write_entry(b, category, row['desc'], row['lvup'], SKILL_NAMES.get((category, fn))))
             stats['rewritten'] += 1
         archive.save(os.path.join(out_dir, pck))
     return stats
@@ -790,7 +805,7 @@ def verify_skills(out_dir, table, variant, problems):
             if not variant['numeric_changes_allowed'] and \
                     numeric_part(new, header_size, pointers) != numeric_part(old, header_size, pointers):
                 problems.append(f"{label}: numeric data differs from the original")
-            if (name, msg) != (old_name, old_msg):
+            if (name, msg) != (SKILL_NAMES.get((category, fn), old_name), old_msg):
                 problems.append(f"{label}: name or battle message changed")
             if (desc, lvup) != (row['desc'], row['lvup']):
                 problems.append(f"{label}: built text differs from the text table")
@@ -1142,6 +1157,8 @@ def main():
     parser.add_argument('--no-install', action='store_true', help='build and verify only; leave the game folder alone')
     args = parser.parse_args()
     variant = VARIANTS[args.variant]
+    if variant.get('values'):
+        SKILL_NAMES.update(load_skill_names(os.path.join(TABLES_DIR, 'balance_skill_text.xlsx')))
     out_dir = os.path.join(BUILD_DIR, args.variant, PARAM_SUBDIR)
     built_pcks = [pck for pck, _, _ in SKILL_PCKS.values()] + [ENCHANT_PCK, ITEM_PCK, ENEMY_PCK, FOOD_PCK, PARTY_PCK, JOINT_PCK, CLASS_PCK, RANK_PCK]
     print(f"=== Building variant '{args.variant}' ===")

@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import openpyxl                                          # noqa: E402
 import enemy_ai                                          # noqa: E402
 import enemy_data                                        # noqa: E402
+import npc_data                                          # noqa: E402
 import extract_vanilla                                   # noqa: E402
 from sim import data as sim_data                         # noqa: E402
 from sim.variant import balance_data                     # noqa: E402
@@ -80,6 +81,7 @@ def built_data(built_dir=BUILT_DIR, source=SOURCE):
     sim_data._load_misc(wb, data)
     for enemy in enemy_data.enemies(os.path.join(built_dir, 'Enemy', 'Enemy.pck')):
         data.enemies[enemy['id']] = enemy
+    data.npcs = npc_data.npcs(os.path.join(built_dir, 'NPC', 'NPC.pck'))
     return data
 
 
@@ -129,6 +131,8 @@ def compare(built, variant):
     table('sealbooks', built.sealbooks, variant.sealbooks, ('grand', 'level', 'enchants'), item)
     table('items', built.items, variant.items, ('effects',), item)
     table('unique skills', built.unique, variant.unique, ('effect', 'values'), item)
+    table('guest allies', {n['id']: n for n in built.npcs}, {n['id']: n for n in variant.npcs},
+          ('level', 'hp', 'attacks') + npc_data.STATS, item)
     counts['enchantments that stack'] = len(variant.enchant_stacks)
     if built.enchant_stacks != variant.enchant_stacks:
         out.append(f'enchantments that stack: {sorted(built.enchant_stacks ^ variant.enchant_stacks)} differ')

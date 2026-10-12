@@ -1,7 +1,7 @@
-"""Three ideas for the unique skill of Lizerietta, the puppeteer (the user, 2026-10-12), tried before anything is
+"""Ideas for the unique skill of Lizerietta, the puppeteer (the user, 2026-10-12), tried before anything is
 chosen: her dolls act faster (effect 316, the one Double Puppet holds), hit and heal harder (286, the one of Doll
 Mastery), or last longer (297, the one of Destiny Line). She is played in the last place of the reference party in a
-doll role, with no unique skill, with the one she has, and with each idea at two sizes. The sizes are on top of what
+doll role, with no unique skill, with the one she has, and with each idea (the fourth of 2026-10-12: she is harder to hit, effect 338, read among the evasion buffs of the target of a blow and of a spell, 0x44ac56 and 0x44d8cb). The sizes are on top of what
 the passives of her class give. Variant; nothing is written.
 
     python lize_ideas.py dolls C18 [runs]
@@ -20,9 +20,9 @@ from sim.variant import balance_data                      # noqa: E402
 GIRL = 'Lizerietta'
 # label -> (effect added to her passives, amount), or None for no unique skill, 'own' for the one she has
 IDEAS = (('no unique skill', None), ('Usurper of Souls (as built)', 'own'),
-         ('dolls faster +0.10', (316, 0.10)), ('dolls faster +0.20', (316, 0.20)),
-         ('dolls stronger +0.10', (286, 0.10)), ('dolls stronger +0.20', (286, 0.20)),
-         ('dolls last +1 turn', (297, 1.0)), ('dolls last +2 turns', (297, 2.0)))
+         ('dolls stronger +0.20', (286, 0.20)),
+         ('evasion +0.10', (338, 0.10)), ('evasion +0.15', (338, 0.15)), ('evasion +0.20', (338, 0.20)),
+         ('evasion +0.30', (338, 0.30)))
 
 
 def main():

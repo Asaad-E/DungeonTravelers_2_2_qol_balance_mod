@@ -81,12 +81,17 @@ final    = damage C * (1 + other bonuses)
 ### 2.5 Chant interruption **[message + code]** (`0x44d001 - 0x44d259`)
 
 ```
-rate A = damage taken / (max HP * 1.5 * (1 + interruption modifier))     kept between 0 and 0.95
+rate A = damage taken / (max HP * 1.5 + (1 + interruption modifier))     kept between 0 and 0.95
 rate   = rate A - enchantments                                           kept between 0 and 0.95
 ```
 
 * The chance to break a chant grows with the damage of the hit against the caster's max HP: a hit for 30% of max HP interrupts 20% of the time, a hit for 75% half of the time.
-* The interruption modifier is effect 264 (Concentrate).
+* The interruption modifier is effect 264 (Concentrate), the first status of that effect in the list of the target
+  (`0x44cfad`). Read again on 2026-10-12: the debug message writes `HPMAX * 1.5 * (1 + modifier)`, but the code adds
+  the two terms (`0x44d02b` adds 1 to the modifier, `0x44d03a` multiplies max HP by 1.5, `0x44d042` is `addss`, bytes
+  `f3 0f 58 c1`). With values of 0.1 to 0.5 against a max HP in the hundreds, **Concentrate changes the rate by less
+  than a thousandth: in the game as shipped it does nothing**. One byte (`58` to `59` at file address of `0x44d044`)
+  would make it the product the message tells; not patched.
 * Enchantments subtract 0.10, 0.06 or 0.03 per piece according to their kind; one adds.
 * The roll is a number below 100 against the rate cut to an integer percent (`0x44d1f3`). Only the physical function rolls it; a spell breaks a chant only through the second roll of a critical (16.7). **A critical hit rolls a second time**: a number below 100 under 33 also breaks the chant, whatever the damage (`0x44d228 - 0x44d246`). This is the "1 in 3" of the lessons.
 

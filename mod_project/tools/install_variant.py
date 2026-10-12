@@ -27,7 +27,8 @@ BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 GAME_DIR = os.path.join(os.path.dirname(BASE_DIR), 'DungeonTravelers2-2_EN', 'Data', 'ENG')
 GAME_SUBDIRS = ('Parameter', 'Script')
-VALUE_SUBDIRS = ('Enemy',)       # Data/ENG/Enemy/Enemy.pck: only a variant that changes values builds it (balance)
+# Data/ENG/Enemy/Enemy.pck, Data/ENG/NPC/NPC.pck: only a variant that changes values builds them (balance)
+VALUE_SUBDIRS = ('Enemy', 'NPC')
 BUILT_SUBDIR = os.path.join('Data', 'ENG', 'Parameter')
 
 

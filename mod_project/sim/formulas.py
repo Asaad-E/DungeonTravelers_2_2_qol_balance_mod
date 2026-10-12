@@ -230,7 +230,9 @@ def interruption_chance(damage, max_hp, modifier=0.0, enchant=0.0, critical=Fals
     Only the physical damage function rolls the rate (0x44d1f3); the magic one has only the critical roll (0x44f12c)."""
     rate = 0.0
     if physical:
-        a = clamp(damage / (max_hp * INTERRUPT_HP_FACTOR * (1 + modifier)), 0.0, INTERRUPT_MAX)
+        # 0x44d02b - 0x44d042: the program ADDS (1 + modifier) to max HP * 1.5 (addss, bytes f3 0f 58 c1) where its
+        # own debug message writes a product: Concentrate moves the rate by next to nothing
+        a = clamp(damage / (max_hp * INTERRUPT_HP_FACTOR + (1 + modifier)), 0.0, INTERRUPT_MAX)
         rate = int(clamp(a - enchant, 0.0, INTERRUPT_MAX) * 100) / 100.0
     if critical:
         rate = 1 - (1 - rate) * (1 - INTERRUPT_CRITICAL / 100.0)

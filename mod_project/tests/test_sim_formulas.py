@@ -60,12 +60,15 @@ class Damage(unittest.TestCase):
 
 class Interruption(unittest.TestCase):
     def test_grows_with_damage_against_max_hp(self):
-        self.assertAlmostEqual(f.interruption_chance(300, 1000), 0.2)
-        self.assertAlmostEqual(f.interruption_chance(750, 1000), 0.5)
+        # the divisor is max HP * 1.5 + 1 + modifier (0x44d02b - 0x44d042: the program adds where its message multiplies),
+        # and the rate is cut to a whole percent
+        self.assertAlmostEqual(f.interruption_chance(300, 1000), 0.19)
+        self.assertAlmostEqual(f.interruption_chance(750, 1000), 0.49)
         self.assertEqual(f.interruption_chance(5000, 1000), f.INTERRUPT_MAX)
-        self.assertLess(f.interruption_chance(300, 1000, modifier=0.5), f.interruption_chance(300, 1000))
+        # Concentrate at its top level changes nothing that a whole percent can show
+        self.assertEqual(f.interruption_chance(300, 1000, modifier=0.5), f.interruption_chance(300, 1000))
         self.assertAlmostEqual(f.interruption_chance(0, 1000, critical=True), 0.33)       # the 1 in 3 of the lessons
-        self.assertAlmostEqual(f.interruption_chance(750, 1000, critical=True), 1 - 0.5 * 0.67)
+        self.assertAlmostEqual(f.interruption_chance(750, 1000, critical=True), 1 - 0.51 * 0.67)
 
 
 

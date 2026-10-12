@@ -148,6 +148,10 @@ def apply(data, changes):
             attack.effects[k] = (e, kind, new)
         elif table == 'unique':
             skill = out.unique[int(record.split()[1])]
+            if field == 'effect id':             # the effect the skill is a status of (UniqueSkillData 0x50)
+                _check(row, skill['effect'])
+                skill['effect'] = int(new)
+                continue
             rank = int(row['Level'])
             _check(row, skill['values'][rank - 1])
             skill['values'] = [float(new) if k == rank - 1 else v for k, v in enumerate(skill['values'])]
@@ -158,6 +162,11 @@ def apply(data, changes):
             at = next(k for k, (t, _) in enumerate(item['effects']) if t == kind)
             _check(row, item['effects'][at][1])
             item['effects'] = [(t, float(new) if k == at else v) for k, (t, v) in enumerate(item['effects'])]
+        elif table == 'npcs':
+            # '<id> <name> (level <n>)': one of the six stats of a guest ally at one stage (tools/npc_data.py)
+            npc = next(n for n in out.npcs if n['id'] == int(record.split()[0]))
+            _check(row, npc[field])
+            npc[field] = int(new)
         elif table == 'party_skills':
             continue                    # out of the model (CLAUDE.md); tools/balance_values.py writes and checks the row
         elif table == 'quests':

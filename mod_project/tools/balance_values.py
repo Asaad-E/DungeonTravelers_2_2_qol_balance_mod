@@ -17,8 +17,11 @@ A row is one value of one record. Each kind of row has its address here, with th
     equipment     EquipmentData: ATK 0x24, upgrade rate 0x3C, class mask 0x40, innate enchantments 0x5C (count), 0x60
     sealbooks     SealScrollData: number of enchantments 0x1C and their ids 0x20
     items         ItemData: the value of one of its four pairs (type, value) from 0x24, named by its type
-    unique        UniqueSkillData: the value of a rank, ten floats from 0x1C (the tenth is the crown value)
+    unique        UniqueSkillData: the value of a rank, ten floats from 0x1C (the tenth is the crown value); the id of
+                  its effect 0x50
     party_skills  PartySkillData: the id of its effect 0x4C (the size of a bonus is the program's, by effect)
+    npcs          NPC.pck, NPCData of a guest ally at one stage of her growth (tools/npc_data.py): one of the six
+                  stats from 0x20
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
 
@@ -44,6 +47,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import openpyxl                                          # noqa: E402
 import enemy_ai                                          # noqa: E402
 import enemy_data                                        # noqa: E402
+import npc_data                                          # noqa: E402
 from extract_vanilla import SKILL_LAYOUTS, SLOT_SIZE, LEVELS, looks_float      # noqa: E402
 from pck_handler import PckArchive                       # noqa: E402
 
@@ -53,6 +57,8 @@ OUT_DIR = os.path.join(BASE_DIR, 'build', 'balance', 'base')
 LIVE = ('decided', 'built', 'checked')
 ENEMY_PCK = os.path.join('Enemy', 'Enemy.pck')
 STATUS, AI = 'EnemyStatusData.bin', 'EnemyAIData.bin'
+NPC_PCK, NPC_RECORD, NPC_ID, NPC_STATS = os.path.join('NPC', 'NPC.pck'), 'NPCData.bin', 0x00, 0x20
+NESTED_PCKS = (ENEMY_PCK, NPC_PCK)      # packs of a subfolder whose entries are archives themselves
 FLOAT_TOLERANCE = 5e-5                    # the workbook holds floats rounded to four decimals
 ENEMY_STATS = dict(enemy_data.STATS)
 ENEMY_FLAGS, ENEMY_EQUIPMENT_DROP, ENEMY_PASSIVE_COUNT, ENEMY_PASSIVES = 0x3C, 0x7C, 0xF0, 0xF4
@@ -62,6 +68,7 @@ EQUIPMENT = {'ATK (base)': (0x24, 'i'), 'upgrade rate': (0x3C, 'f'), 'class bitm
 EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = 0x5C, 0x60, 4
 SEAL_COUNT, SEAL_ENCHANTS, SEAL_SLOTS = 0x1C, 0x20, 4
 PARTY_EFFECT = 0x4C                              # the effect a party skill gives its members (tools/text_checks.py)
+UNIQUE_EFFECT = 0x50                             # the effect of a unique skill (docs/FORMULAS.md 12.19)
 UNIQUE_VALUES, UNIQUE_RANKS = 0x1C, 10           # the ten values of a unique skill (tools/extract_vanilla.py)
 ITEM_PAIRS, ITEM_PAIR_COUNT = 0x24, 4            # (type int, value float) pairs of an item (tools/text_checks.py)
 ENCHANT_FLAGS = 0x20
@@ -164,7 +171,8 @@ class Packs:
         """Every original pack copied to out_dir, the changed ones rebuilt from memory."""
         if os.path.isdir(out_dir):
             shutil.rmtree(out_dir)
-        os.makedirs(os.path.join(out_dir, 'Enemy'))
+        for pack in NESTED_PCKS:
+            os.makedirs(os.path.dirname(os.path.join(out_dir, pack)))
         for (pack, name), archive in self.inner.items():
             entry = next(b for fn, b in self.archive(pack).files if fn == name)
             entry[:] = archive.build()
@@ -172,7 +180,7 @@ class Packs:
         for name in sorted(os.listdir(self.backup_dir)):
             if name.endswith('.pck'):
                 written.append(name)
-        written.append(ENEMY_PCK)
+        written += NESTED_PCKS
         for pack in written:
             target = os.path.join(out_dir, pack)
             if pack in self.archives:
@@ -355,9 +363,27 @@ def party_skill_row(packs, row):
                 vanilla=int(row['Vanilla']))
 
 
+def npc_row(packs, row):
+    """Record '<id> <name> (level <n>)': the record of a guest ally at one stage; field one of the six stats."""
+    nid, field = int(str(row['Record']).split()[0]), str(row['Field'])
+    if field not in npc_data.STATS:
+        raise Refused(f'unknown field {field!r} of a guest ally')
+    for name, _ in packs.archive(NPC_PCK).files:
+        if struct.unpack_from('<i', packs.entry(NPC_PCK, name, NPC_RECORD), NPC_ID)[0] == nid:
+            packs.write(row, (NPC_PCK, name, NPC_RECORD, NPC_STATS + 4 * npc_data.STATS.index(field)), 'i',
+                        int(row['New']), vanilla=int(row['Vanilla']))
+            return
+    raise Refused(f'no guest ally has the id {nid}')
+
+
 def unique_row(packs, row):
-    """Record 'Unique <id> <name>', field 'value', column Level the rank (10: the crown value)."""
+    """Record 'Unique <id> <name>', field 'value', column Level the rank (10: the crown value); or field 'effect id',
+    the effect the skill is a status of."""
     uid = int(str(row['Record']).split()[1])
+    if str(row['Field']) == 'effect id':
+        packs.write(row, ('UniqueSkillData.pck', f'UniqueSkillData_{uid:04d}.bin', None, UNIQUE_EFFECT), 'i',
+                    int(row['New']), vanilla=int(row['Vanilla']))
+        return
     rank = int(row['Level'])
     if str(row['Field']) != 'value' or not 1 <= rank <= UNIQUE_RANKS:
         raise Refused('a unique skill has ten values, by rank')
@@ -424,7 +450,7 @@ def quest_row(packs, row):
 WRITERS = {'skills': skill_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
            'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row,
            'items': item_row, 'unique': unique_row,
-           'party_skills': party_skill_row}
+           'party_skills': party_skill_row, 'npcs': npc_row}
 
 
 def apply(rows=None, backup_dir=BACKUP_DIR):
@@ -459,7 +485,7 @@ def spans(packs):
 def entries(path):
     """{(entry, inner or None): bytes} of a pack; the entries of Enemy.pck are opened."""
     out = {}
-    nested = os.path.basename(path) == 'Enemy.pck'
+    nested = os.path.basename(path) in [os.path.basename(p) for p in NESTED_PCKS]
     for name, blob in PckArchive(path).files:
         if nested:
             for inner, data in PckArchive.from_bytes(blob, name).files:
@@ -474,7 +500,7 @@ def check(packs, out_dir=OUT_DIR, backup_dir=BACKUP_DIR):
     entry that changed size or name. Returns (problems, {'packs': read, 'changed': packs that differ, 'bytes': n})."""
     problems, wrote = [], spans(packs)
     counts = {'packs': 0, 'changed': 0, 'bytes': 0, 'fields': len(packs.ledger)}
-    names = [n for n in sorted(os.listdir(backup_dir)) if n.endswith('.pck')] + [ENEMY_PCK]
+    names = [n for n in sorted(os.listdir(backup_dir)) if n.endswith('.pck')] + list(NESTED_PCKS)
     for pack in names:
         counts['packs'] += 1
         built, original = os.path.join(out_dir, pack), os.path.join(backup_dir, pack)

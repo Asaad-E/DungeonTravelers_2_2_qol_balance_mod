@@ -161,7 +161,7 @@ class SkillHelper:
         }
 
     @staticmethod
-    def write_skill(bin_data, category, new_desc, new_lvup=None):
+    def write_skill(bin_data, category, new_desc, new_lvup=None, new_name=None):
         fixed_hdr_size = {
             'Technique': 0x1f0,
             'Magic': 0x238,
@@ -172,7 +172,9 @@ class SkillHelper:
         fixed_hdr = bin_data[:fixed_hdr_size]
         p0 = struct.unpack('<Q', fixed_hdr[8:16])[0]
         name_bytes = bin_data[p0:bin_data.find(b'\x00', p0)+1]
-        
+        if new_name:                 # a skill a variant gives another effect is named again
+            name_bytes = new_name.encode('latin-1') + b'\x00'
+
         desc_bytes = new_desc.encode('latin-1') + b'\x00'
         
         new_p0 = fixed_hdr_size
