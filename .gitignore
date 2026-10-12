@@ -40,3 +40,6 @@ backups/saves/
 
 # What the builds write: generated from the workbooks and the backups
 build/
+
+# Local settings of the assistant
+.claude/
