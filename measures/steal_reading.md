@@ -224,7 +224,7 @@ When an enemy uses a steal attack on a party member, it deducts `int(party_gold 
 
 ## 5. Data Tables and Population Analysis
 
-Data extracted using [`scratch/generate_steal_table.py`](file:///c:/Users/user/Personal/Physics/DungeonTraveler2-2/scratch/generate_steal_table.py).
+Data extracted using `scratch/generate_steal_table.py`.
 
 ### Global Population Metrics
 - **Total enemies in game**: 516 [code].
@@ -321,7 +321,7 @@ As reported in community guides (e.g. GameFAQs Very Powerful Enemies), only four
 
 #### Therian Kings & Mercenaries (Range 504–632)
 Of the 84 enemies in range 504–632:
-- **58 enemies** have Bit 15 = 1 (stealable) [code]. Full loot breakdown available in [`vpe_steal_report.txt`](file:///c:/Users/user/Personal/Physics/DungeonTraveler2-2/scratch/vpe_steal_report.txt).
+- **58 enemies** have Bit 15 = 1 (stealable) [code]. Full loot breakdown available in [`vpe_steal_report.txt`].
 - **26 enemies** have Bit 15 = 0 (immune, including boss Therians like Mandra Prince 504, Mandra Princess 511, Mil the Overlord 542, Gam the Wise 548, Zouchou Kuma 549, Hana the Waterfall 555, Bishamon Peggy 556) [code].
 
 ---

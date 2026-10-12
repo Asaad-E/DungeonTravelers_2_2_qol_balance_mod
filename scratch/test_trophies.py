@@ -1,0 +1,60 @@
+# mod_project/scratch/test_trophies.py
+proposed = {
+    0: 'Defeated your first dark mutant.',
+    1: 'Assembled a party member of each base class. (5 classes)',
+    2: 'Reassembled half of the old Royal Library squad. (9 members)',
+    3: 'Assembled a healthy number of party members. (10 heroines)',
+    4: 'Reassembled the entire old Royal Library squad. (18 heroines)',
+    5: 'Won 300 battles.',
+    6: 'Won 600 battles.',
+    7: 'Won 1,200 battles.',
+    8: 'Won 2,000 battles.',
+    9: 'Created 75 sealbooks.',
+    10: 'Created 150 sealbooks.',
+    11: 'Created 225 sealbooks.',
+    12: 'Created 300 sealbooks.',
+    13: 'Created every grand sealbook. (22 mutant seals)',
+    14: 'Saw 50 or more sub events.',
+    15: 'Saw 100 or more sub events.',
+    16: 'Saw 200 or more sub events.',
+    17: 'Reached an intermediate class with everyone. (All 18 at Lv 15+)',
+    18: 'Reached an advanced class with everyone. (All 18 at Lv 30+)',
+    19: 'Changed to all possible classes. (Unlock all 32 classes)',
+    20: 'Learned all skills. (Master all class skills on one heroine)',
+    21: 'Activated all party skills. (Trigger all 20 party compositions)',
+    22: 'Activated half of all joint skills. (Execute 26 joint skills)',
+    23: 'Activated all joint skills. (Execute all 52 joint skills)',
+    24: 'Sampled every flavor of Ramen and Ice Cream. (Eat all 16 meals)',
+    25: 'Encountered the peddler many, many times. (30 encounters)',
+    26: 'Enchanted equipment more than 100 times.',
+    27: 'Purchased class outfits for the entire team. (18 heroines)',
+    28: 'Hired the services of mercenaries many times. (30 hires)',
+    29: 'Maxed out client level at the Quest Desk. (Rank 20)',
+    30: 'Tempted your instructor to test your power. (Defeat Irena)',
+    31: 'Defeated a certain trio of historical heroes. (Beat the Magi)',
+    32: 'Defeated every type of Therian enemy. (All Therian variants)',
+    33: 'Ended the wanderings of four aimless warriors. (Defeat 4 wanderers)',
+    34: "Paid off Lolo's loan for her. (Repay 10,000 gold debt)",
+    35: 'Opened an absurd number of chests. (Open 300 chests)',
+    36: 'Amassed over 777,777 gold.',
+    37: 'Lived to fight another day... a lot. (Escape 100 battles)',
+    38: 'Snackified every monster with Materialize. (100 item drops)',
+    39: 'Mapped half of all dungeon floors. (50% map completion)',
+    40: 'Mapped almost all dungeon floors. (90% map completion)',
+    41: 'Got caught in a painful number of traps. (Trigger 100 traps)',
+    42: 'Attained a crown. (Reach Lv 99 and perform Level Reset)',
+    43: 'Let a Sealbook Summon finish off many foes. (50 summon kills)',
+    44: 'Transcended humanity to seize the godhead. (Reach Level 99)',
+    45: 'Trounced the rampaging wicked dragon. (Defeat ancient dragon)',
+    46: 'Trounced the miserly casino owner. (Defeat Gous-shin)',
+    47: 'Trounced the inappropriate queen. Propriety! (Beat Elizabeth)',
+    48: 'Trounced God? JRPG Complete? (Defeat Creator God)',
+    49: 'Reached the end of the path to power. (Clear all EX depths)'
+}
+
+for i, text in proposed.items():
+    print(f"{i:02d}: len={len(text):2d} | {text}")
+    assert len(text) <= 85, f"Too long: {text}"
+    assert "~" not in text
+
+print("\nAll 50 trophy blended texts fit within 85 characters with 0 errors!")

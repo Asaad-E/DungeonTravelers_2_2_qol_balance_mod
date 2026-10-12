@@ -43,3 +43,7 @@ build/
 
 # Local settings of the assistant
 .claude/
+
+# Snapshots of a workbook kept beside a working script
+scratch/**/*.xlsx
+scratch/*.xlsx
