@@ -1,101 +1,34 @@
-# Dungeon Travelers 2-2 (PC): what was done, how, and how to continue
+# Dungeon Travelers 2-2 (PC): the technical reference
 
-Reference for agents and modders working on *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, Aquaplus / Sting engine). Read `philosophy.md` first for the reasoning, and `docs_example/` for the method this project copies.
+Reference for modders working on *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, Aquaplus / Sting engine): the file formats, the text system and its limits, and the rules the text of the mod follows. Read `philosophy.md` first for the reasoning.
+
+Sections 3 to 7 and 9 were written while the QoL variant was built (2026-10-04) and hold for both variants; the counts they give are those of that day. Where the work stands is in `QOL_ROADMAP.md` (QoL, closed) and `BALANCE_PLAN.md` section 7 (Balance). The battle formulas are in `FORMULAS.md`.
 
 Confidence tags: **[verified]** read from the binary and confirmed by a byte-identical round trip or a test; **[inferred]** deduced from the data, a guide or the vanilla text; **[untested]** never run in the game.
 
-Language of chat with the user: Spanish. Everything in the repository: English.
+Everything in the repository is in English.
 
 ---
 
 ## 1. Deliverables
 
-The mod ships as **two variants that are built separately**.
+The mod ships as **two variants that are built separately**, from the same tools and the same text template.
 
 | Variant | Goal | May change game values | State |
 |---|---|---|---|
-| **QoL** | Everything the player needs to make an informed decision is in the game, clean, understandable and easy to read. | No. Every figure shown is the original one. | In progress, and the current focus. Built, verified and installed in the game: skill text and item amounts (against the binary), enchant names (figures from player guides) and weapon rank labels. Review on screen in progress. Everything else pending. |
-| **Balance** | Address the biggest complaints of Japanese players (`COMMUNITY_BALANCE_COMPLAINTS.md`), and show the information of the rebalanced game. | Yes, each change as data. | Starts when QoL is right. Not defined yet. |
+| **QoL** | Everything the player needs to make an informed decision is in the game, clean, understandable and easy to read. | No. Every figure shown is the original one. | Closed (`QOL_ROADMAP.md`). |
+| **Balance** | Answer the complaints of the Japanese players and the criticisms of the English guide (the register: `data_tables/balance_criteria.xlsx`, sheet `Criticisms`), and show the figures of the changed game. | Yes: each change is a row of `data_tables/balance_changes.xlsx`. It also patches the program (sheet `ExePatches`). | Built and installed; in its final checks (`BALANCE_PLAN.md` section 7). |
 
-Tools are built once for both variants: the variant is a parameter of the build, not a second toolchain.
-
-| Output | Built by | Content |
-|---|---|---|
-| `build/qol/Data/ENG/Parameter/*SkillData.pck` | `tools/build_variant.py qol` | 4 skill archives, 269 of 330 boxes with level-by-level data (values that never change included); line 1 of 202 techniques, spells and passives with its main point; numeric data identical to the original. Skill box and battle bar **[verified]** on screen. |
-| `build/qol/Data/ENG/Parameter/EnemyAttackData.pck` | `tools/build_variant.py qol` | 1,456 of 2,375 enemy attacks (also the abilities of summoned monsters) with exact data on their data line; prose identical to the original except 11 corrections where it contradicted the data. Summon ability box **[verified]** on screen. |
-| `build/qol/Data/ENG/Parameter/EnchantData.pck` | `tools/build_variant.py qol` | 142 of 280 enchant names carry their figure (`Max HP +10%`, `Water resistance -20%`, `Enmity -5%`); flags, prefix and suffix identical to the original. Installed; **[untested]** on screen. |
-| `build/qol/Data/ENG/Parameter/ItemData.pck` | `tools/build_variant.py qol` | 165 of 576 descriptions: the original sentence plus what the item does (`Eat, Skill, Love. (SP +3)`), or the exact amount in place of a vague size; prices and effects identical to the original. **[untested]** on screen. |
-| `build/qol/Data/ENG/Parameter/WeaponRankData.pck` | `tools/build_variant.py qol` | Rank names generated from the multiplier of each rank (`E+ (2.45x)`); multipliers identical to the original. **[untested]** in the game. |
-| `data_tables/vanilla_source_of_truth.xlsx` | `tools/extract_vanilla.py` | Decoded binaries. The fact base. Generated, never edited. |
-| `data_tables/qol_skill_text.xlsx` | `tools/generate_qol_skill_text.py`, then edited by hand | Text of the QoL skills (`QoL_Desc`, `QoL_LvUp`). The editable source for that text. |
-| `data_tables/qol_enchant_text.xlsx` | `tools/generate_qol_enchant_text.py`, then edited by hand | Name of each enchantment in QoL (`QoL_Name`) and the guide its figure comes from (`Figure_Source`). |
-| `data_tables/qol_item_text.xlsx` | `tools/generate_qol_item_text.py`, then edited by hand | Description of each item in QoL (`QoL_Desc`). |
-| The game folder | `tools/install_variant.py` (run by `build_variant.py`) | Holds **the QoL variant and nothing else** since 2026-10-04: the 8 built archives over the 39 untouched originals (47 files checked by the install) (section 8.1). |
-| `docs/QOL_ROADMAP.md` | by hand, from the build output | Every pack with its state, what is left and the order of work. The checklist for calling QoL finished. |
-| Earlier mixed build (QoL and balance in one) | Removed from the repository on 2026-10-04 at the user's request, with its 26 tools and 15 workbooks. It is in the git history before that date |
+`tools/build_variant.py <variant>` builds a variant into `build/<variant>/` and verifies it; `tools/install_variant.py`
+puts it into the game, saving what it replaces; `tools/apply_mod.py` runs the whole chain (the README of the
+repository tells it step by step).
 
 ---
 
 ## 2. Repository map
 
-```
-DungeonTraveler2-2/
-├── DungeonTravelers2-2_EN/Data/ENG/   live game files (Parameter/, Script/). Hold the last variant installed by build_variant.py.
-├── Data/                              GameFAQs pages (*.mhtml). Cross-check only, never a source of values. Not versioned.
-├── docs_example/                      method and reference project (7th Dragon 2020)
-└── mod_project/
-    ├── backups/                       untouched original .pck files (36), and backups/Script/ (11 scripts, among them the SEV.pck that shares its name with a Parameter file). Every build and install reads from here.
-    ├── data_tables/                   workbooks (section 2.1)
-    ├── build/<variant>/               output of build_variant.py. Not versioned.
-    ├── build/installed_backup/<time>/ game files replaced by an install, as they were. Not versioned.
-    ├── tools/                         section 2.2
-    ├── tests/                         section 7
-    └── docs/
-```
-
-### 2.1 Workbooks
-
-| Workbook | Edited by hand | Role |
-|---|---|---|
-| `vanilla_source_of_truth.xlsx` | No (generated) | Original values of skills, items, equipment, enemy attacks, traps, ranks, EXP. `Fields` sheet = meaning and confidence of every column. |
-| `qol_skill_text.xlsx` | Yes | QoL skill text. Write `yes` in `Edited` to keep a row from being regenerated. |
-| `qol_enchant_text.xlsx` | Yes | QoL enchant names. Same `Edited` rule. `Figure_Source` names the guide of each figure; `Previous_Mod_Check` says how the earlier build's figure stands against the guides. |
-| `qol_enemy_attack_text.xlsx` | Yes | QoL enemy attack text (2,375 rows). Same `Edited` rule; only line 1 may change. |
-| `qol_item_text.xlsx` | Yes | QoL item descriptions. Same `Edited` rule. `Effect_Pairs` lists the raw effect pairs of each item. |
-| `qol_rules.xlsx` | Yes | **The rules of the QoL text.** Every wording, label, scale and guide figure that reaches the screen and is not read from the game: the damage scale, shortened sentences, labels of the skill box and of the enemy data line, enchant figures with their guide, the wording of item effects, the bounds of party skills, the sentences of joint skills. Its `About` sheet lists the sheets. Read through `tools/rules.py`; no tool holds such a table in code. |
-| `qol_food_text.xlsx`, `qol_party_skill_text.xlsx` | Yes | Meals and party skills. Same `Edited` rule; the build accepts the original line or the one the rules produce. |
-| `qol_joint_skill_text.xlsx` | No (generated) | Joint skill sentences filled with the stored values, and what each entry holds (participants, TP share, Pep, power, effects). The sentences are edited in `qol_rules.xlsx`, sheet `JointSkillSentences`. |
-
-### 2.2 Tools
-
-| Tool | Purpose |
-|---|---|
-| `pck_handler.py` | Archive reader/writer and one helper per record type. |
-| `extract_vanilla.py` | Backups -> `vanilla_source_of_truth.xlsx`. Fails if a layout assumption does not hold. `--check-guides` compares with `Data/*.mhtml`. |
-| `generate_qol_skill_text.py` | Proposes the QoL skill text in the style of section 6. Leaves rows marked `Edited` alone. |
-| `text_checks.py` | Checks that every figure in a skill text is the value stored in a binary. |
-| `enchant_values.py` | The figure of each enchantment and the guide it comes from (the binary holds none). `SHOWN_SOURCES` decides which guides QoL trusts. |
-| `generate_qol_enchant_text.py` | Proposes the QoL enchant names from `enchant_values.py`. Leaves rows marked `Edited` alone. |
-| `weapon_rank_labels.py` | Writes the delay multiplier of each weapon rank into its name. Used by the build; also `weapon_rank_labels.py SOURCE.pck DEST.pck` for any `WeaponRankData.pck`. |
-| `magnitude_words.py` | Line 1 of a skill: the damage scale, the chance forms, where they go in the sentence, and the check against the binary. |
-| `generate_qol_enemy_attack_text.py` | Proposes the enemy attack text: ailment chances on the data line, prose untouched. |
-| `generate_qol_item_text.py` | Proposes the QoL item descriptions: the exact amount in place of `(small)` / `(medium)` / `(large)`. Leaves rows marked `Edited` alone. |
-| `build_variant.py` | Builds a variant into `build/<variant>/`, verifies it and, only if the verification passes, installs it into the game (`--no-install` to skip). |
-| `install_variant.py` | Puts the game folder in the state of a variant: its built files, and the original for every other backed-up file. Saves what it replaces in `build/installed_backup/<time>/`. |
-
-Dependencies: Python standard library and `openpyxl`.
-
-Build and test:
-
-```bash
-python mod_project/tools/extract_vanilla.py
-python mod_project/tools/generate_qol_skill_text.py
-python mod_project/tools/generate_qol_enchant_text.py
-python mod_project/tools/generate_qol_item_text.py
-python mod_project/tools/generate_qol_enemy_attack_text.py
-python mod_project/tools/build_variant.py qol
-python -m unittest discover -s mod_project/tests -p "test_*.py"
-```
+The layout, the workbooks and the tools are listed in `mod_project/README.md`. No file of the game is in the
+repository: `backups/` is made by `tools/setup_backups.py` from a copy of the game.
 
 ---
 
@@ -393,7 +326,7 @@ The build stops on a modified line longer than its limit. Texts of the original 
 The user accepted the QoL variant ("todo perfecto") with two last decisions:
 
 * **Resistances are written without `%`**, as the status and enemy screens write them (`Bs Res -20`, `+15`): `Fire resistance +20`, `Resistance: 20 -> 24 -> 28 -> 32 -> 36`, `Slash resistance increased (up to +25).`, Moon Curtain `(+25)` in Gjallarhorn. Critical rate keeps its `%` (setting `percent_points`).
-* **The earlier mixed build is deleted**: its tools (`apply_mod.py`, `audit_tool.py`, `package_release.py`, the `populate_*`, `update_*`, `generate_enchants`... scripts) and its 15 workbooks. The `Previous_Mod_*` columns of the text workbooks are now empty.
+* **The earlier mixed build is deleted**: its tools (an `apply_mod.py` of that time, which the present `tools/apply_mod.py` only shares its name with, `audit_tool.py`, `package_release.py`, the `populate_*`, `update_*`, `generate_enchants`... scripts) and its 15 workbooks. The `Previous_Mod_*` columns of the text workbooks are now empty.
 
 What the Balance variant inherits: the backups, `pck_handler.py` (every writer exact), `vanilla_source_of_truth.xlsx`, the rules workbook and its limits (70 / 50 / 85 characters, the voice of the game, nothing hardcoded), `build_variant.py` with its per-pack build and verify, `install_variant.py` and `package_variant.py`. A Balance build is a new entry in `VARIANTS` with `numeric_changes_allowed: True`, its own table of changed values, and texts generated from the changed values with the same generators.
 
@@ -418,30 +351,13 @@ Verified without the game: container and entry round trips, numeric identity of 
 
 ---
 
-## 8. The earlier mixed build (removed on 2026-10-04; kept here as the record of why)
+## 8. The earlier mixed build
 
-Audited at commit `28c7d90`; details in `CROSS_SYSTEM_VALIDATION_REPORT.md`. It is what the game folder and the zip currently contain.
-
-* 11 of 47 dialogue replacements never reached the game; the script reports success.
-* `WeaponRankData.pck` is changed in the game folder but missing from the zip.
-* Skill figures do not match the binary: TP 125 of 141, physical power 37 of 39, magic power 17 of 22, max level 53 of 162.
-* Seven mechanics are announced in text with no data behind them (Master Spell resistance pierce, Defend crit immunity, Killer Floor 25%, 900-step meals and others).
-* The 200 modified skills have their battle-message pointer past the end of the entry; 17 lost a real message.
-* All 551 equipment descriptions use 3 lines, and the game draws the enchantments over lines 2-3 (seen in the game: `Fire Magic +15%` printed over `[Weapon | Range: Short | Delay: E+ (2.05x) | Slots: 0]`). That second line also repeats what the title bar shows, and `Slots` is the count of innate enchants, not a slot capacity.
-* On a save made before the mod, a character can show a negative `NEXT` (seen: Lv 20, EXP 22,501, NEXT -1,577): the lighter curve puts her past the next threshold until she gains EXP again.
-* Real value changes it contains: EXP curve and +25 SP, weapon delays, 4 items, Slave's Torc enchant, 5 quest rank rewards.
-* Enchant names: of 215 figures it added, 80 agree with a guide (64 with the DT2-2 wiki, 16 with the first game's), 62 contradict one (35 the DT2-2 wiki, 27 the first game's) and 73 have no source at all (`Previous_Mod_Check` column of `qol_enchant_text.xlsx`). Examples: `All Phys Res +15` (guide: +10), `Fire Res +30` for MegaUP (guide: +100), `Damage +100%/empty party slot` (player test: +10%), `Higher-Level Enemy EXP +50%` (guide: +15%).
-
-### 8.1 What the game folder holds now
-
-The user asked for every build to be installed so the work can be checked on screen. Since 2026-10-04 `build_variant.py qol` leaves the game folder holding the QoL variant and nothing else; the earlier mixed build is no longer installed. Its files are kept in `build/installed_backup/2026-10-04_181942/` (23 files) and `build/installed_before_restore/` (2 files).
-
-| File in the game folder | Now | Effect |
-|---|---|---|
-| `TechniqueSkillData`, `MagicSkillData`, `PassiveSkillData`, `UniqueSkillData`, `EnchantData`, `ItemData`, `EnemyAttackData`, `WeaponRankData` | QoL build. | Text only; every value is the original one. Weapon ranks read `C (2.00x)`, `E+ (2.45x)`: the original multipliers, not the 1.75x / 2.05x of the earlier build. |
-| The other 28 backed-up archives, among them `EquipmentData`, `ClassData`, `LvExpSkptData`, `QuestRankData`, `StringData`, `TrapData` and the scripts `Lesson`, `Teaching`, `ShopStore`, `ShopQuest`, `ShopBlacksmith` | The original from `backups/`. | The value changes of the earlier build are gone from the game: EXP curve and +25 SP, weapon delays, 4 items, Slave's Torc, 5 quest rank rewards, and all of its text. |
-
-To undo an install, copy the matching `build/installed_backup/<time>/` folder back over `DungeonTravelers2-2_EN/Data/ENG/`.
+Before 2026-10-04 the project was one build that mixed text and value changes. An audit of it found figures in the
+text that did not match the data, mechanics announced with nothing behind them, replacements that failed in silence
+and boxes drawn over one another. It was removed with its tools and workbooks, and its lessons are the rules of
+section 9 and of `philosophy.md`: a text is generated from the data of the variant it ships with, the build proves
+every figure, and a step that cannot do its job stops the build.
 
 ---
 
@@ -464,16 +380,7 @@ To undo an install, copy the matching `build/installed_backup/<time>/` folder ba
 
 ---
 
-## 10. Not done / next
+## 10. What is left
 
-* QoL text for items, sealbooks, joint and party skills, meals, traps, trophies, classes, enemy attacks, UI strings, the library and the lessons. Equipment descriptions stay vanilla: the title bar, the stat change and the enchant list already cover them.
-* Enchant figures: 43 come from the first game's guide and are not confirmed for this one; no guide gives a figure for accuracy, evasion, defense, critical rate, ailment chances on hit and most grand sealbook effects. Finding them means reading the enchant code in the executable or testing in the game.
-* Items: only the 9 restoratives with a vague size were touched. About 150 other items have effect pairs of types that are not decoded (sealbook materials); Hipanera Tea and Kuding Tea heal HP and TP but carry a third pair that is not understood, so their text was left alone.
-* A scale of words for magnitudes whose exact value cannot be shown (the battle bar, where the level is unknown): proposed to the user on 2026-10-04, five words per kind (damage, modifier, chance) chosen from the average over the levels. Waiting for the user's word list and for the go-ahead to add it to line 1, which the display specification keeps vanilla.
-* Stacking limits reported by the DT2-2 wiki (speed UP counts up to 5, chant speed UP up to 3, damage reductions down to -25%, Max HP up to +50%, equal `All stats +N` do not add up) are in the `Note` column only; nothing in the game shows them yet.
-* The cost of a joint skill (share of max TP, Pep) is decoded and not shown; see `QOL_ROADMAP.md` 2.7.
-* Decoding `ClassData`, the equipment stats and the 188 effects named only by the game's table.
-* The Balance variant: its changes as data, and its own verification rule.
-* Packaging per variant is done: `package_variant.py`. Install is done: `install_variant.py`.
-* Dialogue replacement that fails loudly, and the corrected lines.
-* Everything still open is listed, pack by pack and with its size, in `QOL_ROADMAP.md`. That file is the checklist for calling QoL finished.
+Nothing is listed here any more: what the QoL variant shows and leaves unshown, pack by pack and with the reason, is
+`QOL_ROADMAP.md`; the state of the Balance variant and its known limits are `BALANCE_PLAN.md` section 7.

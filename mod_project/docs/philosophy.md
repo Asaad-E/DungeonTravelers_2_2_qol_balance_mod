@@ -9,11 +9,11 @@ This document outlines the scope, principles, and architectural reasoning of the
 | Pillar | Objective | Targets | Game Balance Risk |
 |---|---|---|---|
 | **QoL** | Everything the player needs to make an informed decision is present in the game, in a clean, understandable, easy-to-read form. | Text only: descriptions, names, tooltips, manuals, dialogue. | **Zero.** It shows what the base game does and changes none of it. |
-| **Balance** | Address the biggest complaints of Japanese players about the game, as collected in `COMMUNITY_BALANCE_COMPLAINTS.md`. | Data tables, plus the text that describes them. | **Controlled.** Each change answers a documented complaint and is checked against the binary first. |
+| **Balance** | Address the complaints of the Japanese players and the criticisms of the English guide, each one a row of the register (`data_tables/balance_criteria.xlsx`, sheet `Criticisms`) with the page it comes from. | Data tables, plus the text that describes them. | **Controlled.** Each change answers a documented complaint and is checked against the binary first. |
 
 **Each pillar is its own build.** The QoL variant changes no value; the Balance variant rebalances and carries the same information for the rebalanced game. A text written for one must never ship over the data of the other.
 
-**Order of work.** QoL first, until it is right. Balance afterwards. Tools are built once and must serve both: the same extraction, the same checks and the same build, with the variant as a parameter.
+**Order of work.** QoL first, until it is right (closed on 2026-10-04). Balance afterwards (`BALANCE_PLAN.md`). Tools are built once and must serve both: the same extraction, the same checks and the same build, with the variant as a parameter.
 
 **QoL is judged on the screen.** A true figure is necessary, not sufficient. A box that holds every number but is hard to read has failed. Start from the decision the player takes on each screen, what that screen already shows and what is missing; the data and the tools follow from that.
 
@@ -42,5 +42,5 @@ This document outlines the scope, principles, and architectural reasoning of the
    - A writer must reproduce the original entry byte for byte when the text is unchanged. That round trip is a test; a writer that fails it is not used.
    - A step that cannot do its job (a replacement that does not find its target) stops the build instead of continuing.
 6. **Every Balance Change Must Be Grounded in Community Data:**
-   - Rebalancing must not be done "because it feels better". It must address a complaint documented in `COMMUNITY_BALANCE_COMPLAINTS.md` (e.g., severe weapon delay gaps, magic chant interruption walls in deep post-game, high-level skill TP traps).
-   - That document records what players perceive, not what the engine does. Check each complaint against the binary before acting on it: some are exaggerated or false (Berserk does not reduce DEF to zero; it lowers it by 11% to 25%).
+   - Rebalancing must not be done "because it feels better". It must address a row of the register of complaints (sheet `Criticisms`) (e.g., severe weapon delay gaps, magic chant interruption walls in deep post-game, high-level skill TP traps).
+   - The register records what players perceive, not what the engine does. Check each complaint against the binary before acting on it: some are exaggerated or false (Berserk does not reduce DEF to zero; it lowers it by 11% to 25%).

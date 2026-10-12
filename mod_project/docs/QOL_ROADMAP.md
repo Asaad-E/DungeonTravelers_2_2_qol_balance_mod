@@ -281,18 +281,12 @@ Known and **not shown**, each with its reason:
 | Cost of a joint skill | Left alone by decision of the user (2026-10-05) |
 | Chances of the random moves, class modifiers, rules of vague passives | Their boxes are prose with no room for a table |
 
-Still open, needs the user: the play-through.
+The QoL variant is closed. A text is still corrected, in both variants, when a reading of the program shows it wrong
+(on 2026-10-12: the labels of four unique skills, and the box of Concentrate, which goes back to the sentence of the
+game because the program gives the passive no effect; `FORMULAS.md` 2.5).
 
-## Reopened on 2026-10-07 for one point, in evaluation: the conditions of side events
+## The conditions of side events: looked at and dropped
 
-Asked by the user from row S25 of the Balance register ("side events with conditions nobody can guess"). Only the
-conditions, which are text; the rest of S25 (warps, random dungeons, size of the content) stays out of scope.
-
-**State: in evaluation.** Nothing is built and nothing is shown until both questions below have an answer and the user
-decides. Everything else of the QoL variant stays closed.
-
-| Question | How it is answered |
-|---|---|
-| Can the condition of each side event be read from the data? | The event scripts of the maps are already read (`tools/map_data.py`); the conditions of the side events (flags, levels, members, story progress) have to be found in their scripts or tables |
-| Is there a place in the game where that text can be shown without changing the program? | A text the game already shows for the event, a quest or a menu entry, within the rules of the variant: the voice of the game, no outside reference, line limits |
-
+Reopened on 2026-10-07 for one point, row S25 of the Balance register ("side events with conditions nobody can
+guess"): whether the condition of each side event could be read from the data and shown somewhere in the game without
+changing the program. Dropped by the user on 2026-10-12 before anything was built.

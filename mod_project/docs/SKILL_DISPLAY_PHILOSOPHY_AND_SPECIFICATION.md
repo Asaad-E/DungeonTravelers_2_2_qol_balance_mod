@@ -2,7 +2,7 @@
 
 **Document Status:** Official Project Standard & Design Directive  
 **Target Platform:** Dungeon Travelers 2-2 (PC / Steam EN)  
-**Applicability:** Data tables (`skills.xlsx`, `qol_skill_text.xlsx`), injection scripts (`pck_handler.py`, `apply_mod.py`), and multi-agent development pipelines.
+**Applicability:** the skill text of both variants: `data_tables/qol_skill_text.xlsx`, `data_tables/balance_skill_text.xlsx`, the labels of `data_tables/qol_rules.xlsx`, and the tools that write and check them (`tools/generate_qol_skill_text.py`, `tools/text_checks.py`, `tools/build_variant.py`).
 
 ---
 

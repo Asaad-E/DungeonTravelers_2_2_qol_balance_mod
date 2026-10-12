@@ -22,11 +22,8 @@ What the Balance variant changes is told in [mod_project/release/README_Balance.
   every file of the game against a list of hashes and refuses a file that is not the original.
 - **Python 3.10 or newer** ([python.org](https://www.python.org/downloads/)). During its installation tick
   *"Add python.exe to PATH"*.
-- Two Python packages. Open a terminal (press `Win`, type `cmd`, press Enter) and run:
-
-```bash
-pip install openpyxl capstone
-```
+- Two Python packages (`openpyxl` and `capstone`, listed in `requirements.txt`). They are installed in step 2,
+  once you have the repository.
 
 ### 2. Get this repository
 
@@ -39,6 +36,12 @@ git clone <the address of this repository>
 You now have a folder that holds `README.md` (this file) and `mod_project/`. Every command below is run **from that
 folder**. To get a terminal there: open the folder in the file explorer, click its address bar, type `cmd`, press
 Enter.
+
+Install the two Python packages the mod needs:
+
+```bash
+pip install -r requirements.txt
+```
 
 ### 3. Tell the mod where the game is
 
@@ -137,7 +140,7 @@ Save files are not touched and stay compatible both ways.
 | `No program file of the game found in ...` | The folder of the game is wrong: see step 3. If your `.exe` is elsewhere, list it under `program_files` in `config.json`. |
 | `Nothing written into ...: the file is in use` | Close the game and run step 5 again. |
 | `python` is not recognised | Install Python again with *"Add python.exe to PATH"* ticked, and open a new terminal. |
-| `No module named openpyxl` (or `capstone`) | Run the `pip install` line of step 1. |
+| `No module named openpyxl` (or `capstone`) | Run the `pip install` line of step 2. |
 
 ---
 
