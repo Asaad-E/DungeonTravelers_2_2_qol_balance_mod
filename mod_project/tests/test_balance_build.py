@@ -204,6 +204,23 @@ class BalanceDrops(unittest.TestCase):
         self.assertEqual(len(balance_values.apply([wrong])[2]), 1)
 
 
+class BalanceSteal(unittest.TestCase):
+    def test_a_steal_row_moves_only_the_bit_of_item_steal(self):
+        import enemy_data
+        rows = [r for r in balance_values.live_rows() if str(r['Field']).startswith('steal flag')]
+        self.assertEqual(len(rows), 4)
+        packs, written, refused = balance_values.apply(rows)
+        self.assertEqual(refused, [])
+        vanilla = {e['id']: e for e in enemy_data.enemies()}
+        for row in rows:
+            enemy = vanilla[int(str(row['Record']).split()[0])]
+            self.assertFalse(enemy['can_steal'])
+            self.assertTrue(enemy['drops'] or enemy['equipment_drop'][0] > 0)       # the steal needs something to draw
+            self.assertEqual(int(row['New'], 16) ^ enemy['flags'], 1 << enemy_data.STEAL_BIT)
+        wrong = dict(rows[0], New=hex(int(rows[0]['New'], 16) ^ 1 << 13))
+        self.assertEqual(len(balance_values.apply([wrong])[2]), 1)
+
+
 class BalanceValueFormats(unittest.TestCase):
     def test_a_whole_number_field_refuses_a_fraction(self):
         row = {'ID': 'T3', 'Table': 'sp_curve', 'Record': 'LvExpSkptData', 'Field': 'skill points gained at the level',

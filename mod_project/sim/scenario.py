@@ -51,9 +51,12 @@ def sp_total(data, level):
     return sum(data.sp_curve.get(lv, 0) for lv in range(1, level + 1))
 
 
-def allocate_skills(data, role, level):
+def allocate_skills(data, role, level, max_tp=None):
     """Skill points of the level spent on the role's priority list (A14: skills of earlier classes are kept): first
-    every listed skill to level 1 in order, then each to its maximum in order, as far as the points go."""
+    every listed skill to level 1 in order, then each to its maximum in order, as far as the points go. max_tp: the
+    TP of the member; a skill is not raised to a level a full bar cannot pay, since the level a skill is used at is
+    the level it was raised to (the first lesson of the game: "take your party members' maximum TP into account, and
+    balance your skill levels accordingly")."""
     learnable = set(classes_so_far(data, role, level))
     by_name = {}
     for skill in data.skills.values():
@@ -66,6 +69,8 @@ def allocate_skills(data, role, level):
     def raise_to(skill, target):
         nonlocal budget
         while levels.get(skill, 0) < min(target, skill.levels):
+            if max_tp is not None and skill.tp and skill.tp[levels.get(skill, 0)] > max_tp:
+                return
             cost = skill.sp[levels.get(skill, 0)] if skill.sp else 1
             if cost > budget:
                 return
@@ -179,7 +184,9 @@ def build_role_member(data, setup, role_name, character, level, upgrade, crown=0
             if slot == 1 and equipment and data.equipment[equipment[0][1]]['two_handed']:
                 continue
             equipment.append((slot, piece['id'], upgrade))
-    skills = allocate_skills(data, role, level)
+    bare = build_member(data, character, cls, level, previous, equipment, {}, crown_bonus=crown,
+                        front=role['Row'] == 'front', party_enchants=party_enchants, sealbook=sealbook)
+    skills = allocate_skills(data, role, level, bare.max_tp)
     skills.update(extra_skills or {})                # skills given on top of the plan (tools/sim_audit.py);
     skills = {k: v for k, v in skills.items() if v > 0}   # level 0 takes a skill away
     # a weapon goes in the off hand only with Dual Wield (atwiki dt2-2 page 142: it takes the place of the shield)

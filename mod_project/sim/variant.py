@@ -101,7 +101,11 @@ def apply(data, changes):
                 raise ValueError(f'{row["ID"]}: unknown equipment field {field}')
         elif table == 'enemies':
             enemy = out.enemies[int(record.split()[0])]
-            if field.startswith('immunity flags'):
+            if field.startswith('steal flag'):
+                _check(row, hex(enemy['flags']))
+                enemy['flags'] = int(str(new), 16)
+                enemy['can_steal'] = bool(enemy['flags'] >> enemy_data.STEAL_BIT & 1)
+            elif field.startswith('immunity flags'):
                 _check(row, hex(enemy['flags']))
                 enemy['flags'] = int(str(new), 16)
                 enemy['immune'] = [n for bit, n in enemy_data.IMMUNITY_BITS.items() if enemy['flags'] >> bit & 1]

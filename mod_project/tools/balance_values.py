@@ -257,6 +257,12 @@ def enemy_row(packs, row):
         if (old ^ new) & ~decoded:
             raise Refused('the row changes a bit of the flags that is not an immunity')       # lever L26
         packs.write(row, where(ENEMY_FLAGS), 'I', new, vanilla=old)
+    elif field.startswith('steal flag'):
+        # 'steal flag (0x3C bit 15)': Item Steal works on the enemy (0x4503c5). Only that bit may move.
+        old, new = int(str(row['Vanilla']), 16), int(str(row['New']), 16)
+        if old ^ new != 1 << enemy_data.STEAL_BIT:
+            raise Refused('the row changes another bit of the flags than the one of Item Steal')
+        packs.write(row, where(ENEMY_FLAGS), 'I', new, vanilla=old)
     elif field.startswith('passive skill id'):
         buf = packs.entry(ENEMY_PCK, name, STATUS)
         count = struct.unpack_from('<i', buf, ENEMY_PASSIVE_COUNT)[0]

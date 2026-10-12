@@ -1,8 +1,8 @@
 {
  "base": {
   "won": 1.0,
-  "time": 5.00600271875,
-  "time_won": 5.00600271875,
+  "time": 4.27092075,
+  "time_won": 4.27092075,
   "share": 0.0,
   "character": null,
   "level": 5
@@ -10,36 +10,36 @@
  "roles": {
   "tank": {
    "won": 1.0,
-   "time": 3.78466425,
-   "time_won": 3.78466425,
-   "share": 0.22630208333333335,
+   "time": 3.3947410624999996,
+   "time_won": 3.3947410624999996,
+   "share": 0.19609374999999998,
    "character": "Alisia",
    "level": 5,
    "class": "Fighter"
   },
   "attacker": {
    "won": 1.0,
-   "time": 2.4737097500000003,
-   "time_won": 2.4737097500000003,
-   "share": 0.52375,
+   "time": 2.3800844375,
+   "time_won": 2.3800844375,
+   "share": 0.47984375,
    "character": "Yae",
    "level": 5,
    "class": "Fighter"
   },
   "maid": {
    "won": 1.0,
-   "time": 4.800188749999999,
-   "time_won": 4.800188749999999,
-   "share": 0.012760416666666668,
+   "time": 4.1907615,
+   "time_won": 4.1907615,
+   "share": 0.013072916666666667,
    "character": "Conette",
    "level": 5,
    "class": "Maid"
   },
   "healer": {
    "won": 1.0,
-   "time": 5.00600271875,
-   "time_won": 5.00600271875,
-   "share": 0.02541666666666667,
+   "time": 4.27092075,
+   "time_won": 4.27092075,
+   "share": 0.02135416666666667,
    "character": "Irena",
    "level": 5,
    "class": "Magic User"
