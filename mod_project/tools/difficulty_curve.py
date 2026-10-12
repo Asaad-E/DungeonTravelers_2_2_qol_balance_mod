@@ -21,8 +21,8 @@ import time
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'difficulty_curve')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'DIFFICULTY_CURVE.md')
+OUT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'difficulty_curve')
+REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'DIFFICULTY_CURVE.md')
 
 from sim import measures                                 # noqa: E402
 from sim import setup as setup_mod                       # noqa: E402

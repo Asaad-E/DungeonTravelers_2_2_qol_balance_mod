@@ -148,8 +148,8 @@ Save files are not touched and stay compatible both ways.
 
 Everything that is a value, a rule or a wording lives in a workbook of `mod_project/data_tables/`, never in code:
 `balance_changes.xlsx` holds every changed value, one per row, with its reason. Start with
-[mod_project/README.md](mod_project/README.md), then `mod_project/docs/BALANCE_PLAN.md` and
-`mod_project/docs/FORMULAS.md` (the formulas of the game, as read from its program).
+[mod_project/README.md](mod_project/README.md), then `docs/BALANCE_PLAN.md` and
+`docs/FORMULAS.md` (the formulas of the game, as read from its program).
 
 ```bash
 python -m unittest discover -s mod_project/tests -p "test_*.py"
@@ -157,4 +157,4 @@ python -m unittest discover -s mod_project/tests -p "test_*.py"
 
 runs the tests (they need step 5 done once, for the originals).
 
-Credits and sources: [mod_project/docs/CREDITS.md](mod_project/docs/CREDITS.md).
+Credits and sources: [docs/CREDITS.md](docs/CREDITS.md).

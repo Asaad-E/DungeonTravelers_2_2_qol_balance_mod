@@ -25,8 +25,8 @@ import time
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'party_battery')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'PARTY_BATTERY.md')
+OUT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'party_battery')
+REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'PARTY_BATTERY.md')
 
 from sim import scenario                                 # noqa: E402
 from sim import setup as setup_mod                       # noqa: E402

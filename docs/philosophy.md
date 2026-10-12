@@ -1,6 +1,6 @@
 # Dungeon Travelers 2-2 Mod Philosophy
 
-This document outlines the scope, principles, and architectural reasoning of the Dungeon Travelers 2-2 mod suite, mirroring the standards established in `docs_example/philosophy.md`.
+This document outlines the scope, principles, and architectural reasoning of the Dungeon Travelers 2-2 mod suite.
 
 ---
 

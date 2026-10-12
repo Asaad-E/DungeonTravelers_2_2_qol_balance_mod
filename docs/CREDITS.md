@@ -32,4 +32,4 @@ the reading is in `docs/FORMULAS.md` for anyone to check.
 ## Method
 
 The way of working (two variants, the game before the guides, nothing written in code, a build that refuses a text
-it cannot prove) follows `docs_example/philosophy.md`, written for an earlier project of the same author.
+it cannot prove) is set out in `philosophy.md`; it was first worked out by the same author on an earlier project.

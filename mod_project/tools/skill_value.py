@@ -21,8 +21,8 @@ import sys
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_value')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'SKILL_VALUE.md')
+OUT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'skill_value')
+REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'SKILL_VALUE.md')
 
 from sim import scenario, measures                       # noqa: E402
 from sim import setup as setup_mod                       # noqa: E402
@@ -192,14 +192,14 @@ def ailments(part='1/1'):
         rows.append({'skill': skill.name, 'role': role, 'stage': st['Stage'], 'rule': ' / '.join(rule_for(skill)),
                      'cells': cells})
         print(skill.name, role, flush=True)
-    out = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_ailments')
+    out = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'skill_ailments')
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, f'part_{k}.json'), 'w', encoding='utf-8') as f:
         json.dump(rows, f)
 
 
 def ailments_report():
-    out = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_ailments')
+    out = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'skill_ailments')
     rows = []
     for name in sorted(os.listdir(out)) if os.path.isdir(out) else []:
         with open(os.path.join(out, name), encoding='utf-8') as f:
@@ -222,7 +222,7 @@ def ailments_report():
             'without it. Cells: wins / length of the won fights (shorter is +) / party HP left at the end. Boss: the '
             'boss fights of the stage; random: rows of ailment_chain random battles of each floor, HP and TP carried.',
             '', '| Skill | Played as | Rule | Boss | Random rows |', '|---|---|---|---|---|'] + lines
-    with open(os.path.join(BASE_DIR, 'docs', 'generated', 'SKILL_AILMENTS.md'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'SKILL_AILMENTS.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(text) + '\n')
     print(len(rows), 'skills')
 

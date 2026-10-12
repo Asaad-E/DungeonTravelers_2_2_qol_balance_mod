@@ -194,7 +194,7 @@ def main():
         lines.append(f"| **{cid}** | {v_str} | {m1_str} | {m3_str} |")
 
     report_md = "\n".join(lines)
-    out_path = os.path.join(BASE_DIR, 'docs', 'generated', 'JUGGERNAUT_TRIPLE_ITEMS_REPORT.md')
+    out_path = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'JUGGERNAUT_TRIPLE_ITEMS_REPORT.md')
     with open(out_path, 'w', encoding='utf-8') as f:
         f.write(report_md)
 

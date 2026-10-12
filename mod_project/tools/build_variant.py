@@ -123,7 +123,7 @@ VARIANTS = {
 VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'),
                    ('SealScrollData.pck', 'Parameter'), ('QuestData.pck', 'Parameter'),
                    (os.path.join('Enemy', 'Enemy.pck'), 'Enemy'), (os.path.join('NPC', 'NPC.pck'), 'NPC'))
-BALANCE_REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'BALANCE_BUILD.md')
+BALANCE_REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'BALANCE_BUILD.md')
 
 
 # ---------------------------------------------------------------------------

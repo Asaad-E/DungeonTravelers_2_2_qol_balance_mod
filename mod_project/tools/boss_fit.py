@@ -32,9 +32,9 @@ import time
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'boss_fit')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'BOSS_FIT.md')
-CURVE_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'difficulty_curve')
+OUT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'boss_fit')
+REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'BOSS_FIT.md')
+CURVE_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'difficulty_curve')
 
 from sim import measures, scenario                       # noqa: E402
 from sim import setup as setup_mod                       # noqa: E402

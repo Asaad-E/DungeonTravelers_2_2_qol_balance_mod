@@ -33,7 +33,7 @@ from exe_reader import Exe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
-OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'EFFECT_COVERAGE.md')
+OUTPUT_PATH = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'EFFECT_COVERAGE.md')
 CREATE_COMMAND, FIND_EFFECT, STATUS_SLOT = 0x47b220, 0x47e340, 0x48
 CASE_TABLE, JUMP_TABLE, FIRST_ID, LAST_ID = 0x47e0a4, 0x47de14, 9, 9 + 0x1b8
 CONSTRUCTORS = (0x478000, 0x47b220)

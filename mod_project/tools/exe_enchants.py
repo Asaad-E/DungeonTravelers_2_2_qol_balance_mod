@@ -23,7 +23,7 @@ import openpyxl
 from exe_reader import Exe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'ENCHANT_SIZES.md')
+OUTPUT_PATH = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'ENCHANT_SIZES.md')
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 COUNT_SLOT = 0xf0
 WINDOW = 16                    # instructions looked at after the call

@@ -16,7 +16,7 @@ import openpyxl
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CRITERIA = os.path.join(BASE_DIR, 'data_tables', 'balance_criteria.xlsx')
-OUTPUT = os.path.join(BASE_DIR, 'docs', 'generated', 'VERDICTS.md')
+OUTPUT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'VERDICTS.md')
 STATES = ('open', 'closed', 'not a problem', 'out of the balance')
 
 

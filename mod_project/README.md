@@ -13,20 +13,21 @@ The mod ships as two variants, built separately from the same tools and the same
 
 | Document | What it holds |
 |---|---|
-| [docs/philosophy.md](docs/philosophy.md) | Why the project works as it does: the two variants, the order of sources, nothing written in code. |
-| [docs/BALANCE_PLAN.md](docs/BALANCE_PLAN.md) | The Balance variant: its phases, the decisions of the user, and where the work stands (section 7). |
-| [docs/FORMULAS.md](docs/FORMULAS.md) | Every battle formula of the game, read from its program, with the address of each. |
-| [docs/CLASS_IDENTITY.md](docs/CLASS_IDENTITY.md) | What each class is for: the standard a change to a class is held to. |
-| [docs/dungeontravelers2-2.md](docs/dungeontravelers2-2.md) | The technical reference: file formats, the text system and its limits, the rules of the text. |
-| [docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | How a skill box is worded: the specification of the user. |
-| [docs/QOL_ROADMAP.md](docs/QOL_ROADMAP.md) | The QoL variant pack by pack: what is shown, what is not and why. |
-| [docs/SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](docs/SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Why the simulator plays both sides with full knowledge. |
-| [docs/CREDITS.md](docs/CREDITS.md) | The sources: the guides of the players the figures were checked against. |
-| `docs/generated/` | Reports written by the tools (the vanilla baseline, the build, the difficulty curve, the battery of parties, the classes by stage, the coverage of the simulator). Never edited by hand. |
+| [docs/philosophy.md](../docs/philosophy.md) | Why the project works as it does: the two variants, the order of sources, nothing written in code. |
+| [docs/BALANCE_PLAN.md](../docs/BALANCE_PLAN.md) | The Balance variant: its phases, the decisions of the user, and where the work stands (section 7). |
+| [docs/FORMULAS.md](../docs/FORMULAS.md) | Every battle formula of the game, read from its program, with the address of each. |
+| [docs/CLASS_IDENTITY.md](../docs/CLASS_IDENTITY.md) | What each class is for: the standard a change to a class is held to. |
+| [docs/dungeontravelers2-2.md](../docs/dungeontravelers2-2.md) | The technical reference: file formats, the text system and its limits, the rules of the text. |
+| [docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](../docs/SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | How a skill box is worded: the specification of the user. |
+| [docs/QOL_ROADMAP.md](../docs/QOL_ROADMAP.md) | The QoL variant pack by pack: what is shown, what is not and why. |
+| [docs/SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](../docs/SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Why the simulator plays both sides with full knowledge. |
+| [docs/CREDITS.md](../docs/CREDITS.md) | The sources: the guides of the players the figures were checked against. |
+| `../docs/generated/` | Reports written by the tools (the vanilla baseline, the build, the difficulty curve, the battery of parties, the classes by stage, the coverage of the simulator). Never edited by hand. |
 
 ## Layout
 
 ```text
+docs/                        the documents above (at the root of the repository)
 mod_project/
 ├── config.example.json      copy to config.json to say where the game is (tools/mod_config.py)
 ├── backups/                 the original files of the game. Not in git: tools/setup_backups.py copies them
@@ -36,7 +37,6 @@ mod_project/
 ├── sim/                     the battle simulator: the formulas of docs/FORMULAS.md played turn by turn
 ├── tests/                   the unittest suite
 ├── release/                 the README of each variant for players, and the template of the program patch
-├── docs/                    the documents above
 ├── scratch/                 one-off scripts and measures kept as the record of how a figure was obtained
 └── build/, dist/            what the tools write. Not in git
 ```

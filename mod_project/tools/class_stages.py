@@ -23,8 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 # CLASS_STAGES_PROPOSED=1: the variant with the rows of balance_changes.xlsx still proposed, measured apart
 PROPOSED = os.environ.get('CLASS_STAGES_PROPOSED') == '1'
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'class_stages_proposed' if PROPOSED else 'class_stages')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'CLASS_STAGES_PROPOSED.md' if PROPOSED else 'CLASS_STAGES.md')
+OUT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'class_stages_proposed' if PROPOSED else 'class_stages')
+REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'CLASS_STAGES_PROPOSED.md' if PROPOSED else 'CLASS_STAGES.md')
 
 from sim import scenario                                # noqa: E402
 from sim import setup as setup_mod                      # noqa: E402

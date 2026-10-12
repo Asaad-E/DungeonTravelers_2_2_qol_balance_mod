@@ -39,8 +39,8 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'sim_audit')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'SIM_AUDIT.md')
+OUT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'sim_audit')
+REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'SIM_AUDIT.md')
 
 from sim import scenario                                 # noqa: E402
 from sim import setup as setup_mod                       # noqa: E402

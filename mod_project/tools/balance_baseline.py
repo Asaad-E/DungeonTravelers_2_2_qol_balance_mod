@@ -3,7 +3,7 @@ Vanilla figures for the Balance work, generated. Nothing in the Balance document
 
     python mod_project/tools/balance_baseline.py
 
-Writes mod_project/docs/generated/BALANCE_BASELINE.md from:
+Writes docs/generated/BALANCE_BASELINE.md from:
     backups/ClassLevelData.pck              growth of every class and route (tools/class_data.py)
     backups/Dungeon/stNN/Data.pck           random formations of every floor (tools/floor_data.py)
     backups/Enemy/Enemy.pck                 enemies (tools/enemy_data.py) and their behaviour (tools/enemy_ai.py)
@@ -36,7 +36,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 from sim import progression
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
-OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'BALANCE_BASELINE.md')
+OUTPUT_PATH = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'BALANCE_BASELINE.md')
 BANDS = ((1, 14), (15, 29), (30, 49), (50, 69), (70, 84), (85, 98), (99, 99))    # class changes at 15 and 30
 STATS = ('hp', 'atk', 'def', 'int', 'res', 'dex', 'agi', 'exp', 'gold')
 ELEMENTS = enemy_data.RESISTANCES[3:]

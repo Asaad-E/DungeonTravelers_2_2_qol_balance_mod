@@ -3,7 +3,7 @@ The formulas the developers left written in the executable, generated into a doc
 
     python mod_project/tools/exe_formulas.py
 
-Writes mod_project/docs/generated/EXE_FORMULA_STRINGS.md: every debug message of the executable that holds
+Writes docs/generated/EXE_FORMULA_STRINGS.md: every debug message of the executable that holds
 Japanese text and a format, with its address and the functions that refer to it. The battle code prints
 each step of its calculations through these messages ("攻撃値Ａ : 自分ATK(%.3f) * (2 + 振れ幅(%.3f)) = "),
 so they are the formulas in the developers' own words. docs/FORMULAS.md is their reading.
@@ -14,7 +14,7 @@ import collections
 from exe_reader import Exe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'EXE_FORMULA_STRINGS.md')
+OUTPUT_PATH = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'EXE_FORMULA_STRINGS.md')
 JAPANESE = re.compile(r'[぀-ヿ一-鿿]')
 
 

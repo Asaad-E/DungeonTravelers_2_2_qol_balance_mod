@@ -28,7 +28,7 @@ import openpyxl
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
-OUTPUT = os.path.join(BASE_DIR, 'docs', 'generated', 'SIM_COVERAGE.md')
+OUTPUT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'SIM_COVERAGE.md')
 CRITERIA = os.path.join(BASE_DIR, 'data_tables', 'balance_criteria.xlsx')
 SETUP = os.path.join(BASE_DIR, 'data_tables', 'sim_setup.xlsx')
 TESTS = os.path.join(BASE_DIR, 'tests')
@@ -52,7 +52,7 @@ def optional_rows(path, sheet):
 
 def anchors_count():
     """The count of anchors met that tools/sim_anchors.py wrote last, or None when it has not run."""
-    path = os.path.join(BASE_DIR, 'docs', 'generated', 'SIM_ANCHORS.md')
+    path = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'SIM_ANCHORS.md')
     if not os.path.exists(path):
         return None
     with open(path, encoding='utf-8') as f:

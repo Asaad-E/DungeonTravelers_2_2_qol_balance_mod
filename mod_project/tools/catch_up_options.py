@@ -29,7 +29,7 @@ import floor_data                      # noqa: E402
 from sim import progression            # noqa: E402
 
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
-OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'CATCH_UP_OPTIONS.md')
+OUTPUT_PATH = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'CATCH_UP_OPTIONS.md')
 PARTY = 5
 CHECKPOINTS = (20, 30, 40, 50, 60, 70, 80, 90)
 NEAR = 4                               # "with the party" = within this many levels: the gap the program does not reward

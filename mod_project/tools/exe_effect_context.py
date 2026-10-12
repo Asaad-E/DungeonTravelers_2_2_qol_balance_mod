@@ -16,7 +16,7 @@ import exe_digest
 from exe_reader import Exe
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'EFFECT_CONTEXT.md')
+OUTPUT_PATH = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'EFFECT_CONTEXT.md')
 SPAN_PLACE, SPAN_COMMAND, KEEP = 0xA0, 0x260, 14
 
 

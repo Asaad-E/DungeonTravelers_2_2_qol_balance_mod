@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # SKILL_WORTH_SPEC='Skill:field:factor;...': a trial of changes, written to scratch_skill_worth (not the report)
-OUT_DIR = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_worth' if not os.environ.get('SKILL_WORTH_SPEC')
+OUT_DIR = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'skill_worth' if not os.environ.get('SKILL_WORTH_SPEC')
                        else 'skill_worth_trial')
-REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'SKILL_WORTH.md')
+REPORT = os.path.join(os.path.dirname(BASE_DIR), 'docs', 'generated', 'SKILL_WORTH.md')
 
 from sim import scenario, measures                       # noqa: E402
 from sim import setup as setup_mod                       # noqa: E402
