@@ -2,13 +2,45 @@
 
 A mod for *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, English).
 
+The game hides almost all of its numbers and never explains its rules, and a good part of its classes and skills
+are not worth using. This project took the game apart to fix both: every battle formula was read from the executable,
+a simulator was built on top of them, and each change was measured before it went in.
+
 It comes in two variants. Install one or the other.
 
-- **QoL** shows what the game actually does. Skills, items, enchantments and enemy attacks list their real numbers:
-  chances, power, turns, costs. No value is changed.
-- **Balance** makes every class, weapon and skill worth using, and shows the new numbers the same way. It also
-  patches a few bytes of the game's `.exe`. The full list of changes is in
-  [release/README_Balance.txt](release/README_Balance.txt).
+### QoL: the game finally tells you what it does
+
+No value is changed. The game just stops hiding things.
+
+- 269 skills show their real numbers level by level: power, chance, turns, TP cost, speed.
+- 1,767 enemy, summon and mercenary abilities show their chances and power.
+- 446 items and 201 enchantments say exactly what they do, instead of "UP" or "a little".
+- Meals, party skills, joint skills and weapon speed ranks show their amounts.
+- A few lines where the original text states a wrong number are corrected.
+
+About 4,000 figures in total. Each one is checked against the game data when the mod is built, so nothing on screen
+is a guess. Jokes and flavour text are untouched.
+
+### Balance: every class, weapon and skill worth using
+
+Everything in QoL, on top of a full rebalance: 1,458 value changes across 361 skills, enemies, items and pieces of
+gear.
+
+It started from 180 complaints collected from the Japanese community wiki and the English GameFAQs guide. Each one
+was checked against the data and the simulator: 79 turned out to be real and were fixed, 89 were measured and found
+not to be a problem, and 12 were left out of scope.
+
+- Classes that fell behind (Doll Master, Kunoichi, Mistress, Magical Princess, Treasure Hunter, Trickster) are
+  playable from start to postgame.
+- Dead skills, weak weapon types, ailments and debuffs do something now.
+- A character who joins late or sat on the bench catches up in a few battles.
+- Bugs in the original are fixed. The passive *Concentrate*, for instance, does nothing in the unmodded game
+  because of a mistake in its formula.
+- Bosses keep their bite: the stronger options were paid for with tougher fights, tested with several different
+  parties against every story and postgame boss.
+
+The complete list is in [release/README_Balance.txt](release/README_Balance.txt), and the reasoning behind each
+change in `data_tables/balance_changes.xlsx`.
 
 This repository contains no game files. The mod is applied to your own copy of the game.
 
