@@ -3,9 +3,9 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 7.747621208333333,
-   "time_won": 7.747621208333333,
-   "share": 0.37646396396396403,
+   "time": 7.726899125,
+   "time_won": 7.726899125,
+   "share": 0.37578828828828836,
    "character": "Lizerietta",
    "level": 6,
    "class": "Spieler"
@@ -30,18 +30,18 @@
   },
   "soul summoner": {
    "won": 1.0,
-   "time": 6.017414270833333,
-   "time_won": 6.017414270833333,
-   "share": 0.10454204204204205,
+   "time": 6.009284083333333,
+   "time_won": 6.009284083333333,
+   "share": 0.09444444444444444,
    "character": "Lizerietta",
    "level": 6,
    "class": "Spieler"
   },
   "magical princess": {
    "won": 1.0,
-   "time": 4.976227529166667,
-   "time_won": 4.976227529166667,
-   "share": 0.3825075075075074,
+   "time": 5.013396495833334,
+   "time_won": 5.013396495833334,
+   "share": 0.3810435435435434,
    "character": "Melvy",
    "level": 6,
    "class": "Magic User"

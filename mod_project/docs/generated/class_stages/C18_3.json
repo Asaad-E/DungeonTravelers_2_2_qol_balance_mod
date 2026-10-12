@@ -3,45 +3,45 @@
  "roles": {
   "papillon": {
    "won": 1.0,
-   "time": 8.509948421646799,
-   "time_won": 8.509948421646799,
-   "share": 0.18563788737093762,
+   "time": 9.053182835784677,
+   "time_won": 9.053182835784677,
+   "share": 0.1541567909300923,
    "character": "Mefmera",
    "level": 27,
    "class": "Trickster"
   },
   "valkyrie": {
    "won": 1.0,
-   "time": 7.719801470137358,
-   "time_won": 7.719801470137358,
-   "share": 0.04308591871669792,
+   "time": 7.884718809876394,
+   "time_won": 7.884718809876394,
+   "share": 0.041444688955236585,
    "character": "Alisia",
    "level": 27,
    "class": "Paladin"
   },
   "treasure hunter": {
    "won": 1.0,
-   "time": 9.090841320441715,
-   "time_won": 9.090841320441715,
-   "share": 0.03961365140348898,
+   "time": 9.65383294186738,
+   "time_won": 9.65383294186738,
+   "share": 0.04182236980571208,
    "character": "Souffle",
    "level": 27,
    "class": "Assassin"
   },
   "soul summoner": {
    "won": 1.0,
-   "time": 7.106108857305676,
-   "time_won": 7.106108857305676,
-   "share": 0.27544533936176674,
+   "time": 7.558034954809903,
+   "time_won": 7.558034954809903,
+   "share": 0.2775359848086985,
    "character": "Lilian",
    "level": 27,
    "class": "Doll Master"
   },
   "magical princess": {
    "won": 1.0,
-   "time": 7.311295836662308,
-   "time_won": 7.311295836662308,
-   "share": 0.3573852142304187,
+   "time": 7.50911871859015,
+   "time_won": 7.50911871859015,
+   "share": 0.3754925935730968,
    "character": "Melvy",
    "level": 27,
    "class": "Sorceress"
