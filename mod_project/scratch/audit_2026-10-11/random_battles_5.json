@@ -1,0 +1,52 @@
+[
+ {
+  "id": "C15",
+  "vanilla": null,
+  "variant": null
+ },
+ {
+  "id": "C16",
+  "vanilla": {
+   "level": 21,
+   "won": 1.0,
+   "time": 2.6736438632812503,
+   "hp_left": 1.0
+  },
+  "variant": {
+   "level": 21,
+   "won": 1.0,
+   "time": 2.1688937049479167,
+   "hp_left": 1.0
+  }
+ },
+ {
+  "id": "C17",
+  "vanilla": {
+   "level": 25,
+   "won": 1.0,
+   "time": 2.477525356162001,
+   "hp_left": 1.0
+  },
+  "variant": {
+   "level": 25,
+   "won": 1.0,
+   "time": 2.147375466812273,
+   "hp_left": 1.0
+  }
+ },
+ {
+  "id": "C18",
+  "vanilla": {
+   "level": 27,
+   "won": 1.0,
+   "time": 2.283978877135417,
+   "hp_left": 1.0
+  },
+  "variant": {
+   "level": 27,
+   "won": 1.0,
+   "time": 1.9397621349034702,
+   "hp_left": 1.0
+  }
+ }
+]
