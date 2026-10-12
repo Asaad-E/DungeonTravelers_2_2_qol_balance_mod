@@ -2,12 +2,14 @@
 
 A mod for *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, English).
 
-DT2-2 is a great dungeon crawler that tells you almost nothing. Skills say "damage UP", items heal "a little", and
-several classes turn out to be dead ends you only notice forty hours in. I wanted to play it knowing what things
-actually do, so I read the battle formulas out of the executable, wrote a simulator on top of them, and went from
-there.
+The game shows very little of how it works. Skills say "damage UP", items heal "a little", and nothing explains the
+rules behind a fight. This mod puts the real numbers on screen and, in its second version, rebalances the classes
+and skills those numbers show to be weak.
 
-There are two versions. Pick one.
+The battle formulas were read from the game's executable, and the balance changes were tested with a simulator
+built on them.
+
+There are two versions.
 
 ## QoL
 
@@ -25,8 +27,7 @@ Everything QoL does, plus a rebalance of the whole game: well over a thousand ch
 gear.
 
 The starting point was a long list of complaints from the Japanese wiki and the English GameFAQs guide. Each one was
-checked against the data and the simulator. Many were real and got fixed. Many others were not, since players often
-blame the wrong thing, and those were left as they are.
+checked against the data and the simulator. Many were real and got fixed. Many others were not and those were left as they are.
 
 What you will notice when playing:
 
