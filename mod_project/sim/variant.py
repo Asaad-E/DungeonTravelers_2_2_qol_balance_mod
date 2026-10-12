@@ -158,6 +158,8 @@ def apply(data, changes):
             at = next(k for k, (t, _) in enumerate(item['effects']) if t == kind)
             _check(row, item['effects'][at][1])
             item['effects'] = [(t, float(new) if k == at else v) for k, (t, v) in enumerate(item['effects'])]
+        elif table == 'party_skills':
+            continue                    # out of the model (CLAUDE.md); tools/balance_values.py writes and checks the row
         elif table == 'quests':
             continue                    # the simulator has no quests; tools/balance_values.py writes and checks the row
         elif table == 'sealbooks':

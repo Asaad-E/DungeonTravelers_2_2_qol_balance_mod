@@ -18,6 +18,7 @@ A row is one value of one record. Each kind of row has its address here, with th
     sealbooks     SealScrollData: number of enchantments 0x1C and their ids 0x20
     items         ItemData: the value of one of its four pairs (type, value) from 0x24, named by its type
     unique        UniqueSkillData: the value of a rank, ten floats from 0x1C (the tenth is the crown value)
+    party_skills  PartySkillData: the id of its effect 0x4C (the size of a bonus is the program's, by effect)
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
 
@@ -60,6 +61,7 @@ ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = 0x48, 0x4C, 12
 EQUIPMENT = {'ATK (base)': (0x24, 'i'), 'upgrade rate': (0x3C, 'f'), 'class bitmask': (0x40, 'I')}
 EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = 0x5C, 0x60, 4
 SEAL_COUNT, SEAL_ENCHANTS, SEAL_SLOTS = 0x1C, 0x20, 4
+PARTY_EFFECT = 0x4C                              # the effect a party skill gives its members (tools/text_checks.py)
 UNIQUE_VALUES, UNIQUE_RANKS = 0x1C, 10           # the ten values of a unique skill (tools/extract_vanilla.py)
 ITEM_PAIRS, ITEM_PAIR_COUNT = 0x24, 4            # (type int, value float) pairs of an item (tools/text_checks.py)
 ENCHANT_FLAGS = 0x20
@@ -344,6 +346,15 @@ def equipment_row(packs, row):
         raise Refused(f'unknown equipment field {field!r}')
 
 
+def party_skill_row(packs, row):
+    """Record 'PartySkillData_<id> (<name>)', field 'effect id'."""
+    found = re.match(r'(PartySkillData_\d+)', str(row['Record']))
+    if not found or str(row['Field']) != 'effect id':
+        raise Refused('only the effect of a party skill has an address here')
+    packs.write(row, ('PartySkillData.pck', found.group(1) + '.bin', None, PARTY_EFFECT), 'i', int(row['New']),
+                vanilla=int(row['Vanilla']))
+
+
 def unique_row(packs, row):
     """Record 'Unique <id> <name>', field 'value', column Level the rank (10: the crown value)."""
     uid = int(str(row['Record']).split()[1])
@@ -412,7 +423,8 @@ def quest_row(packs, row):
 
 WRITERS = {'skills': skill_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
            'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row,
-           'items': item_row, 'unique': unique_row}
+           'items': item_row, 'unique': unique_row,
+           'party_skills': party_skill_row}
 
 
 def apply(rows=None, backup_dir=BACKUP_DIR):
