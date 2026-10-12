@@ -9,19 +9,20 @@ DungeonTravelers2-2_EN/
 *.jpg
 *.jpeg
 
-!mod_project/data_tables/*.xlsx
+!data_tables/*.xlsx
 
 # The originals of the game: each user copies them from a copy of the game (tools/setup_backups.py)
-mod_project/backups/
+backups/
 
 # Where the game is on this machine, and the archives made for players (they hold files of the game)
-mod_project/config.json
+config.json
+
+dist/
 
 # What a measure writes beside itself while it runs
-mod_project/measures/*.json
-mod_project/measures/*.log
-mod_project/measures/*.xlsx
-mod_project/dist/
+measures/*.json
+measures/*.log
+measures/*.xlsx
 
 # Python
 __pycache__/
@@ -34,8 +35,8 @@ venv/
 Data/
 
 # Copies kept before a patch of the program: the vanilla executable and the save files of the player
-mod_project/backups/exe/
-mod_project/backups/saves/
+backups/exe/
+backups/saves/
 
 # What the builds write: generated from the workbooks and the backups
-mod_project/build/
+build/

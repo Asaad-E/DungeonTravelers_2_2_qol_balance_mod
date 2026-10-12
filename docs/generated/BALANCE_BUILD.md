@@ -23,4 +23,4 @@ Values: 1499 fields in 14 packs, 3194 bytes that differ from the originals, ever
 
 Packs: `Enemy/Enemy.pck`, `NPC/NPC.pck`, `Parameter/ClassData.pck`, `Parameter/EnchantData.pck`, `Parameter/EnemyAttackData.pck`, `Parameter/EquipmentData.pck`, `Parameter/FoodMenuData.pck`, `Parameter/ItemData.pck`, `Parameter/JoinSkillData.pck`, `Parameter/LvExpSkptData.pck`, `Parameter/MagicSkillData.pck`, `Parameter/PartySkillData.pck`, `Parameter/PassiveSkillData.pck`, `Parameter/QuestData.pck`, `Parameter/SealScrollData.pck`, `Parameter/TechniqueSkillData.pck`, `Parameter/UniqueSkillData.pck`, `Parameter/WeaponRankData.pck`.
 
-Not installed: `python mod_project/tools/install_variant.py balance` puts it into the game folder.
+Not installed: `python tools/install_variant.py balance` puts it into the game folder.

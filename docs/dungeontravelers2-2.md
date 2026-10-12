@@ -27,7 +27,7 @@ repository tells it step by step).
 
 ## 2. Repository map
 
-The layout, the workbooks and the tools are listed in `mod_project/README.md`. No file of the game is in the
+The layout, the workbooks and the tools are listed in `README.md`. No file of the game is in the
 repository: `backups/` is made by `tools/setup_backups.py` from a copy of the game.
 
 ---
@@ -333,7 +333,7 @@ What the Balance variant inherits: the backups, `pck_handler.py` (every writer e
 
 ## 7. Tests (what each guards)
 
-`python -m unittest discover -s mod_project/tests -p "test_*.py"` (98 tests).
+`python -m unittest discover -s tests -p "test_*.py"` (98 tests).
 
 | File | Guards |
 |---|---|

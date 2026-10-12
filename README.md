@@ -10,7 +10,7 @@ Two variants, installed one at a time:
 | **QoL** | Shows what the game really does: chances, powers, turns and costs in the box of every skill, item, enchantment and enemy attack. It changes no value. |
 | **Balance** | Changes values so that every class, weapon and skill is worth using, and shows the figures of the changed game in the same way. It also changes 19 bytes of the program (the EXP by level gap, the Crown, the chance of Arcane Shield, the passive Concentrate). |
 
-What the Balance variant changes is told in [mod_project/release/README_Balance.txt](mod_project/release/README_Balance.txt).
+What the Balance variant changes is told in [release/README_Balance.txt](release/README_Balance.txt).
 
 ---
 
@@ -33,7 +33,7 @@ Either press **Code > Download ZIP** on GitHub and unpack it, or:
 git clone <the address of this repository>
 ```
 
-You now have a folder that holds `README.md` (this file) and `mod_project/`. Every command below is run **from that
+You now have a folder that holds `README.md` (this file), `tools/`, `data_tables/` and the rest. Every command below is run **from that
 folder**. To get a terminal there: open the folder in the file explorer, click its address bar, type `cmd`, press
 Enter.
 
@@ -47,8 +47,9 @@ pip install -r requirements.txt
 
 The folder of the game is the one that holds its `.exe` and its `Data` folder. Choose one of the two:
 
-- **No file to write:** put the folder of the game beside `mod_project/`, named `DungeonTravelers2-2_EN`.
-- **Or name the folder:** copy `mod_project/config.example.json` to `mod_project/config.json` and write the path of
+- **No file to write:** copy or move the folder of the game into the folder of the repository, named
+  `DungeonTravelers2-2_EN` (git ignores it).
+- **Or name the folder:** copy `config.example.json` to `config.json` and write the path of
   the game in it, with forward slashes:
 
 ```json
@@ -60,7 +61,7 @@ The folder of the game is the one that holds its `.exe` and its `Data` folder. C
 Check what the mod will use:
 
 ```bash
-python mod_project/tools/mod_config.py
+python tools/mod_config.py
 ```
 
 It prints the folder of the game. If the folder is wrong, correct `config.json` before you go on.
@@ -78,25 +79,25 @@ A running game cannot be patched. Nothing below touches your save files.
 One command does everything. For the Balance variant:
 
 ```bash
-python mod_project/tools/apply_mod.py balance
+python tools/apply_mod.py balance
 ```
 
 For the QoL variant:
 
 ```bash
-python mod_project/tools/apply_mod.py qol
+python tools/apply_mod.py qol
 ```
 
 It takes one or two minutes and runs three steps, stopping at the first that fails:
 
-1. **The originals.** The files of your game the mod works from are copied into `mod_project/backups/` and each is
+1. **The originals.** The files of your game the mod works from are copied into `backups/` and each is
    checked against its hash. A line `52 of 52 original files` means all are there.
-2. **The build.** The variant is built from those originals into `mod_project/build/<variant>/` and verified: every
+2. **The build.** The variant is built from those originals into `build/<variant>/` and verified: every
    figure a text states is compared with the value the built file holds. It ends with `[OK] Variant '<variant>' built`.
 3. **The install.** The built files are put into `Data/ENG/` of the game. What they replace is saved first, in
-   `mod_project/build/installed_backup/<date>/`. For the Balance variant the program is then patched: **every `.exe`
+   `build/installed_backup/<date>/`. For the Balance variant the program is then patched: **every `.exe`
    of the folder of the game that is the program is found by itself** (by what it holds at the addresses the mod
-   changes, whatever its name), a copy of each is kept in `mod_project/backups/exe/`, and the same bytes are written
+   changes, whatever its name), a copy of each is kept in `backups/exe/`, and the same bytes are written
    into each. For the QoL variant the program is left as the game has it.
 
 The last lines look like this:
@@ -112,7 +113,7 @@ A line that starts with `PROBLEM` or `[FAIL]` says what stopped it; nothing is h
 ### 6. Check it
 
 ```bash
-python mod_project/tools/exe_patch.py status
+python tools/exe_patch.py status
 ```
 
 Every row says `patched` for each program file (Balance) or `vanilla` (QoL). Then start the game: the box of any
@@ -123,7 +124,7 @@ skill shows its figures by level.
 Run step 5 again with the other name to change variant. To put the game back as it was:
 
 ```bash
-python mod_project/tools/apply_mod.py vanilla
+python tools/apply_mod.py vanilla
 ```
 
 Every original file goes back into the game and the program files are put back from their copies.
@@ -146,13 +147,13 @@ Save files are not touched and stay compatible both ways.
 
 ## For those who want to change the mod
 
-Everything that is a value, a rule or a wording lives in a workbook of `mod_project/data_tables/`, never in code:
+Everything that is a value, a rule or a wording lives in a workbook of `data_tables/`, never in code:
 `balance_changes.xlsx` holds every changed value, one per row, with its reason. Start with
-[mod_project/README.md](mod_project/README.md), then `docs/BALANCE_PLAN.md` and
+[docs/README.md](docs/README.md), then `docs/BALANCE_PLAN.md` and
 `docs/FORMULAS.md` (the formulas of the game, as read from its program).
 
 ```bash
-python -m unittest discover -s mod_project/tests -p "test_*.py"
+python -m unittest discover -s tests -p "test_*.py"
 ```
 
 runs the tests (they need step 5 done once, for the originals).

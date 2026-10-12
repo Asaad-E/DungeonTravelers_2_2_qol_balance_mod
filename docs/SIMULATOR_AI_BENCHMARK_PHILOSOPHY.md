@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary & Context
 
-During engine audits, a recurring observation raised by automated auditors and reviewers is that the simulator's tactical AI (`mod_project/sim/ai.py`, `Policy`, `scenario.Battle`) exhibits "omniscience":
+During engine audits, a recurring observation raised by automated auditors and reviewers is that the simulator's tactical AI (`sim/ai.py`, `Policy`, `scenario.Battle`) exhibits "omniscience":
 - The AI inspects exact enemy HP, defenses, and elemental resistances.
 - The AI calculates optimal skill rotations based on real damage formulas rather than heuristic trial-and-error.
 - The AI executes turn order predictions with mathematical precision.

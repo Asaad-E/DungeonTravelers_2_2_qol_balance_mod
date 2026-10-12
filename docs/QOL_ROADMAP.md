@@ -1,6 +1,6 @@
 # QoL roadmap: what must be true before QoL is called finished
 
-**QoL is closed.** State on 2026-10-04: the user accepted the variant; every step of section 4 that can be done without the executable is done, and what stays unknown is listed in section 6 and carried over to the Balance work. Every number here was read from the files in `mod_project/backups/` or from the output of `build_variant.py qol`; nothing is estimated.
+**QoL is closed.** State on 2026-10-04: the user accepted the variant; every step of section 4 that can be done without the executable is done, and what stays unknown is listed in section 6 and carried over to the Balance work. Every number here was read from the files in `backups/` or from the output of `build_variant.py qol`; nothing is estimated.
 
 Tags: **[done]** built, verified by the build and installed. **[seen]** also looked at on screen by the user. **[open]** not started or not finished. **[blocked]** needs something that is not known yet.
 
@@ -18,7 +18,7 @@ QoL is finished when all ten hold. Each one is checked by a tool or by a look at
 | D4 | Jokes, prose and the game's own words are intact. Data is added next to them. Prose changes only where the data contradicts it, or where a sentence had to be shortened to fit its line. | Build check per pack. | 11 corrections of enemy attack prose, 1 of a tutorial; 221 item sentences, 44 skill sentences and 35 joint skill sentences worded by hand to fit the battle bar (sheets of `data_tables/qol_rules.xlsx`), nothing else |
 | D5 | Every kind of box has been seen on screen after the install, by the user. | Section 3. | 13 of 14 kinds of screen seen; the joint skill menu is missing |
 | D6 | Every pack the build writes has a writer that reproduces the original byte for byte. | Round-trip test. | 11 packs exact; scripts are patched in place without a writer. No inexact writer is left |
-| D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s mod_project/tests -p "test_*.py"` | 118 tests pass |
+| D7 | Tests pass and the docs describe what is there. | `python -m unittest discover -s tests -p "test_*.py"` | 118 tests pass |
 | D8 | Nothing that reaches the screen is written in the tools: every wording, label, scale and guide figure is in a workbook. | `data_tables/qol_rules.xlsx` and the `qol_*_text.xlsx` workbooks; a test holds it for the shortened sentences. | 19 rule sheets. Still in code: the regular expressions that recognise the game's phrases, and the layout offsets |
 | D9 | Every line fits the place that draws it, measured on screen: battle bar 70 characters (line 1 of techniques and spells, joint skills, items), party skill box 50, skill and item boxes 85. | The build stops on a longer modified line; tests hold each limit. | Holds for every modified line. 20 item texts and 14 internal skill entries of the original game are longer than 70 and were not touched (no data to add; see 2.6) |
 | D10 | **Hard rule: nothing shown in the game speaks from outside it.** No source, caveat or note to the reader on screen ("player guide", "the game data holds no figure"). | `check_game_voice` in the build: sheet `OutOfGameWords` of `qol_rules.xlsx`; a test holds it. | Holds for the 2,358 modified texts |
@@ -180,7 +180,7 @@ Each step ends with a build that passes, an install, and a look at the screen.
 5. **[done, with a remainder] One pack at a time, smallest first.** Items (425), meals (16), party skills (20) and joint skills (52) built; traps, classes and sealbooks kept as written, each with its reason in 2.1. Remainder: 21 items (2.6), the cost of joint skills (2.7).
 6. **[done] Texts that state rules.** Lessons, tutorials, shops, `StringData`, `QuestData`, `QuestRankData`, `TrophyData`: every figure that a pack holds was compared with it, the rules of the executable with the DT2-2 wiki. One sentence was false (a tutorial) and is corrected; results per pack in 2.1.
 7. **[blocked] Enchant figures without a source**: 43 from the first game to confirm and 101 with none. They are computed in the executable; no guide of this game gives them. It needs reading that code or measuring in the game, neither of which was done. Until then those 43 show the first game's figure and the 101 keep the game's word (`Physical accuracy MiniUP`).
-8. **[done] Release.** `python mod_project/tools/package_variant.py qol` writes `mod_project/dist/DT22_qol_<date>.zip`: the 12 files the variant changes, the original of each under `Original/` to uninstall, and `README.txt` (`mod_project/release/README_QoL.txt`). The tools and tables of the earlier mixed build were deleted on 2026-10-04. Left for the user: a play-through of the first dungeon.
+8. **[done] Release.** `python tools/package_variant.py qol` writes `dist/DT22_qol_<date>.zip`: the 12 files the variant changes, the original of each under `Original/` to uninstall, and `README.txt` (`release/README_QoL.txt`). The tools and tables of the earlier mixed build were deleted on 2026-10-04. Left for the user: a play-through of the first dungeon.
 
 ---
 ---
