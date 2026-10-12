@@ -319,7 +319,7 @@ The build stops on a modified line longer than its limit. Texts of the original 
 
 **Item effect types decoded with the wiki's item list** (2026-10-04): `27` chance of speed up; `46` Fire Blast, `47` Ice Storm, `48` Thunder Chain, `49` Air Turbulence, `51` Soul Absorb, `93` Ice Edge, `98` Muon Plasma, `101` Tempest, `102` Stone Hammer, `103` Meteor, `104` Gaia Crush, `106` Rainbow Flash (the value is the spell level; the enemy-side pair is the one shown); `69` party cures freeze; `88` enemies flee.
 
-**Package.** `tools/package_variant.py qol` -> `dist/DT22_qol_<date>.zip`: the files that differ from the original, their originals under `Original/`, and the player README kept in `release/README_QoL.txt`.
+**Package.** `tools/package_variant.py <variant>` -> `dist/DT22_<variant>_<date>.zip`, to unpack into the folder of the game: for each file that differs from the original, the steps that rebuild it from that original (copy a run of it, or take bytes the archive carries) with the hash before and after; `release/mod_patch.ps1`, which checks, keeps a copy, applies and checks again, and for the Balance variant patches every `.exe` of the folder that is the program; an Install and an Uninstall `.bat`. No file of the game is in the archive.
 
 ### 6.7 QoL closed (2026-10-04)
 

@@ -1,8 +1,6 @@
 Dungeon Travelers 2-2 (PC, English) - Balance mod
 =================================================
 
-DRAFT, to be reviewed by the author before any release.
-
 What it is
 ----------
 A mod that changes values of the game so that every class, weapon and skill is worth using, and
@@ -38,19 +36,27 @@ Every skill, item and enchantment shows its new figures in the game.
 
 Install
 -------
-1. Close the game.
-2. Copy the folder "Data" of this archive over the folder "Data" of the game
-   (the one beside the game's .exe). Accept replacing the files.
-3. Copy "Patch_Program.bat" and "Program_Patch.ps1" into the folder of the game, beside its .exe,
-   and run "Patch_Program.bat". It changes 19 bytes of the program (the EXP by level gap, the
-   Crown, the chance of Arcane Shield and the passive Concentrate) and keeps a copy of the file as "<name>.exe.original" first. It writes nothing if the
-   program is not the version the mod was made for.
+This archive holds no file of the game: only the differences, and a script that applies them to
+your own copy.
+
+1. Close the game. It must be the original game, with no other mod installed.
+2. Unpack this archive into the folder of the game: the one that holds the game's .exe and its
+   folder "Data". You now have there "Install_Balance.bat", "Uninstall_DT22_Mod.bat" and a folder
+   "DT22_Mod".
+3. Run "Install_Balance.bat" (double click).
+
+It checks every file it is about to change, keeps a copy of each original in "DT22_Mod\backup",
+and then changes them. It also changes 19 bytes of the program (the EXP by level gap,
+the Crown, the chance of Arcane Shield and the passive Concentrate) in every .exe of the
+folder that is the game. If a file is not the original one it says which and changes nothing.
+The window ends with "Done: ..." when all went well.
 
 Uninstall
 ---------
-1. Run "Unpatch_Program.bat" in the folder of the game (or put the ".exe.original" copy back).
-2. Copy the folder "Original/Data" of this archive over the folder "Data" of the game.
-   It holds the untouched version of every file this mod replaces.
+Run "Uninstall_DT22_Mod.bat". Every file goes back as it was.
+
+To change from one variant of the mod to the other, unpack the other archive into the same
+folder and run its Install .bat: there is no need to uninstall first.
 
 Saves
 -----

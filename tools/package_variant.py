@@ -1,24 +1,33 @@
 """
-Packages a built variant for players.
+Packages a built variant for players, as differences: the archive holds no file of the game.
 
     python tools/package_variant.py qol | balance
 
-Writes dist/DT22_<variant>_<date>.zip with:
-    Data/ENG/Parameter/*.pck, Data/ENG/Script/*.pck   the files of the variant (only those it changes)
-    Original/Data/ENG/...                             the untouched version of each, to uninstall
-    README.txt                                        release/README_<variant>.txt
-    Patch_Program.bat, Unpatch_Program.bat, Program_Patch.ps1    balance only: the rows of the sheet ExePatches (set
-                                                      balance) as a script the player runs in the folder of the game;
-                                                      it checks the bytes it replaces and keeps a copy of the file
+Writes dist/DT22_<variant>_<date>.zip, to unpack into the folder of the game:
+    Install_<Variant>.bat          applies the variant
+    Uninstall_DT22_Mod.bat         puts every file back
+    DT22_Mod/mod_patch.ps1         release/mod_patch.ps1: it checks each file of the game by its SHA-256, keeps a copy,
+                                   rebuilds the file of the variant from the original and the differences, and checks
+                                   the result. For the balance variant it also patches the program: every .exe of the
+                                   folder that holds the original bytes at the places of the sheet ExePatches
+    DT22_Mod/<variant>.txt         one line per file (path, hash before, hash after, size, where its steps are) and per
+                                   row of the program patch (the offset in the file, the bytes before, the bytes after)
+    DT22_Mod/<variant>.ops         the steps: (0 copy from the original | 1 take from .dat, offset, length), 12 bytes each
+    DT22_Mod/<variant>.dat         the bytes that are not in the original
+    DT22_Mod/README.txt            release/README_<variant>.txt
 
-Run build_variant.py first: the package is made from build/<variant>/ and refuses to
-run if a built file is identical to its original (nothing to ship) or has no original (cannot be undone).
+Run build_variant.py first: the package is made from build/<variant>/ and the originals of backups/. It is refused if
+a built file is identical to its original (nothing to ship), and every file is rebuilt here from its differences and
+compared with the built one before the archive is written.
 """
-import os
-import sys
-import zipfile
 import argparse
 import datetime
+import hashlib
+import os
+import struct
+import sys
+import zipfile
+
 import install_variant
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,9 +37,12 @@ DIST_DIR = os.path.join(BASE_DIR, 'dist')
 RELEASE_DIR = os.path.join(BASE_DIR, 'release')
 README_NAMES = {'qol': 'README_QoL.txt', 'balance': 'README_Balance.txt'}
 PATCH_SETS = {'balance': 'balance'}                   # variant -> set of the sheet ExePatches its program patch holds
-PATCH_TEMPLATE = 'program_patch_template.ps1'
-PATCH_SCRIPT = 'Program_Patch.ps1'
-LAUNCHER = '@echo off' + chr(10) + 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0{script}" {mode}' + chr(10) + 'pause' + chr(10)
+PATCH_SCRIPT = 'mod_patch.ps1'
+MOD_DIR = 'DT22_Mod'
+LAUNCHER = ('@echo off' + chr(10) + 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0' + MOD_DIR + chr(92)
+            + PATCH_SCRIPT + '" {args}' + chr(10) + 'pause' + chr(10))
+WINDOW, STEP = 16, 4                                  # a run of the original is looked for by blocks of this size
+COPY, TAKE = 0, 1
 
 
 def changed_files(variant, build_dir=BUILD_DIR, backup_dir=BACKUP_DIR):
@@ -54,24 +66,84 @@ def changed_files(variant, build_dir=BUILD_DIR, backup_dir=BACKUP_DIR):
     return found, problems
 
 
-def program_patch(variant):
-    """The script that writes the program patch of the variant, or None: the template of release/ with a table per
-    program file, each row the offset in that file (from its vanilla copy), the original bytes and the new ones."""
+def delta(original, built):
+    """[(COPY, offset in the original, length) | (TAKE, bytes)] that rebuild `built`. Greedy: at each place of the new
+    file the longest run of the original that starts with the same block is copied; what has no such run is taken."""
+    index = {}
+    for i in range(0, len(original) - WINDOW + 1, STEP):
+        index.setdefault(original[i:i + WINDOW], i)
+    steps, pending, j, n = [], bytearray(), 0, len(built)
+    while j < n:
+        i = index.get(built[j:j + WINDOW]) if j + WINDOW <= n else None
+        if i is None:
+            pending.append(built[j])
+            j += 1
+            continue
+        while pending and i > 0 and original[i - 1] == pending[-1]:       # the bytes just before belong to the run too
+            pending.pop()
+            i -= 1
+            j -= 1
+        length = WINDOW
+        while i + length < len(original) and j + length < n and original[i + length] == built[j + length]:
+            length += 1
+        if pending:
+            steps.append((TAKE, bytes(pending)))
+            pending = bytearray()
+        steps.append((COPY, i, length))
+        j += length
+    if pending:
+        steps.append((TAKE, bytes(pending)))
+    return steps
+
+
+def rebuilt(original, steps):
+    out = bytearray()
+    for step in steps:
+        out += original[step[1]:step[1] + step[2]] if step[0] == COPY else step[1]
+    return bytes(out)
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def program_rows(variant):
+    """['exe|layout|offset|old|new'] of the program patch of the variant: one layout per kind of program file (the
+    offset of a row in the file comes from the vanilla copy of each), the same layout written once."""
     if variant not in PATCH_SETS:
-        return None
+        return []
     import exe_patch
     from exe_reader import Exe
     rows = exe_patch.patches(PATCH_SETS[variant])
-    tables = []
-    for _, game_file, vanilla_copy in exe_patch.find_targets():
+    layouts = []
+    for _, _, vanilla_copy in exe_patch.find_targets():
         exe = Exe(vanilla_copy)
         wrong = exe_patch.problems(exe, rows)
         if wrong:
             raise SystemExit(f'{vanilla_copy}: ' + '; '.join(wrong))
-        lines = [f"        @('{exe.offset(p['va']):x}', '{p['old'].hex()}', '{p['new'].hex()}')" for p in rows]
-        tables.append(f"    '{os.path.basename(game_file)}' = @(" + chr(10) + (',' + chr(10)).join(lines) + chr(10) + '    )')
-    with open(os.path.join(RELEASE_DIR, PATCH_TEMPLATE), encoding='utf-8') as f:
-        return f.read().replace('#TABLES#', chr(10).join(tables))
+        layout = tuple((exe.offset(p['va']), p['old'].hex(), p['new'].hex()) for p in rows)
+        if layout not in layouts:
+            layouts.append(layout)
+    return [f'exe|{k}|{offset:x}|{old}|{new}' for k, layout in enumerate(layouts) for offset, old, new in layout]
+
+
+def differences(variant, files):
+    """(lines of <variant>.txt, bytes of .ops, bytes of .dat). Each file is rebuilt and compared before it is kept."""
+    lines, ops, blob = [f'variant|{variant}'], bytearray(), bytearray()
+    for sub, name, built, original in files:
+        steps = delta(original, built)
+        if rebuilt(original, steps) != built:
+            raise SystemExit(f'{sub}/{name}: its differences do not rebuild it')
+        start = len(ops) // 12
+        for step in steps:
+            if step[0] == COPY:
+                ops += struct.pack('<3i', COPY, step[1], step[2])
+            else:
+                ops += struct.pack('<3i', TAKE, len(blob), len(step[1]))
+                blob += step[1]
+        rel = chr(92).join(('Data', 'ENG', sub, name))
+        lines.append(f'file|{rel}|{sha(original)}|{sha(built)}|{len(built)}|{start}|{len(steps)}')
+    return lines + program_rows(variant), bytes(ops), bytes(blob)
 
 
 def package(variant, out_dir=DIST_DIR, stamp=None):
@@ -83,24 +155,24 @@ def package(variant, out_dir=DIST_DIR, stamp=None):
         problems.append('no built file differs from the original: run build_variant.py first')
     if problems:
         return None, files, problems
+    lines, ops, blob = differences(variant, files)
     os.makedirs(out_dir, exist_ok=True)
     stamp = stamp or datetime.date.today().isoformat()
     path = os.path.join(out_dir, f'DT22_{variant}_{stamp}.zip')
+    title = {'qol': 'QoL', 'balance': 'Balance'}[variant]
     with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
-        z.write(readme, 'README.txt')
-        for sub, name, built, original in files:
-            z.writestr(f'Data/ENG/{sub}/{name}', built)
-            z.writestr(f'Original/Data/ENG/{sub}/{name}', original)
-        script = program_patch(variant)
-        if script:
-            z.writestr(PATCH_SCRIPT, script)
-            z.writestr('Patch_Program.bat', LAUNCHER.format(script=PATCH_SCRIPT, mode='patch'))
-            z.writestr('Unpatch_Program.bat', LAUNCHER.format(script=PATCH_SCRIPT, mode='unpatch'))
+        z.writestr(f'Install_{title}.bat', LAUNCHER.format(args=f'install {variant}'))
+        z.writestr('Uninstall_DT22_Mod.bat', LAUNCHER.format(args='uninstall'))
+        z.write(os.path.join(RELEASE_DIR, PATCH_SCRIPT), f'{MOD_DIR}/{PATCH_SCRIPT}')
+        z.write(readme, f'{MOD_DIR}/README.txt')
+        z.writestr(f'{MOD_DIR}/{variant}.txt', chr(10).join(lines) + chr(10))
+        z.writestr(f'{MOD_DIR}/{variant}.ops', ops)
+        z.writestr(f'{MOD_DIR}/{variant}.dat', blob)
     return path, files, problems
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Package a built variant for players.')
+    parser = argparse.ArgumentParser(description='Package a built variant for players, as differences.')
     parser.add_argument('variant', choices=sorted(README_NAMES))
     args = parser.parse_args()
     path, files, problems = package(args.variant)
@@ -112,7 +184,7 @@ def main():
     print(f'[OK] {path}  ({os.path.getsize(path):,} bytes)')
     for sub, name, built, _ in files:
         print(f'    Data/ENG/{sub}/{name}  ({len(built):,} bytes)')
-    print(f'    Original/ holds the untouched version of the same {len(files)} files; README.txt explains install and uninstall')
+    print(f'    {len(files)} files as differences; no file of the game is in the archive')
 
 
 if __name__ == '__main__':

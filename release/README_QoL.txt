@@ -28,15 +28,25 @@ on one line.
 
 Install
 -------
-1. Close the game.
-2. Copy the folder "Data" of this archive over the folder "Data" of the game
-   (the one beside the game's .exe). Accept replacing the files.
+This archive holds no file of the game: only the differences, and a script that applies them to
+your own copy.
+
+1. Close the game. It must be the original game, with no other mod installed.
+2. Unpack this archive into the folder of the game: the one that holds the game's .exe and its
+   folder "Data". You now have there "Install_QoL.bat", "Uninstall_DT22_Mod.bat" and a folder
+   "DT22_Mod".
+3. Run "Install_QoL.bat" (double click).
+
+It checks every file it is about to change, keeps a copy of each original in "DT22_Mod\backup",
+and then changes them. If a file is not the original one it says which and changes nothing.
+The window ends with "Done: ..." when all went well.
 
 Uninstall
 ---------
-Copy the folder "Original/Data" of this archive over the folder "Data" of the game.
-It holds the untouched version of every file this mod replaces.
-(Steam: "Verify integrity of game files" does the same.)
+Run "Uninstall_DT22_Mod.bat". Every file goes back as it was.
+
+To change from one variant of the mod to the other, unpack the other archive into the same
+folder and run its Install .bat: there is no need to uninstall first.
 
 Saves
 -----

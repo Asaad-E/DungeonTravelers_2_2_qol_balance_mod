@@ -474,9 +474,10 @@ class RuleTexts(unittest.TestCase):
 
 
 class Package(unittest.TestCase):
-    """The player package: only files that differ, each with its original to uninstall, and a README."""
+    """The player package: differences that rebuild every changed file from its original, and no file of the game."""
 
-    def test_package_holds_changed_files_their_originals_and_the_readme(self):
+    def test_package_rebuilds_every_changed_file_and_holds_no_file_of_the_game(self):
+        import struct
         import zipfile
         import package_variant
         if not os.path.isdir(os.path.join(package_variant.BUILD_DIR, 'qol')):
@@ -486,10 +487,21 @@ class Package(unittest.TestCase):
             self.assertEqual(problems, [])
             with zipfile.ZipFile(path) as z:
                 names = set(z.namelist())
-                self.assertIn('README.txt', names)
-                for sub, name, built, original in files:
-                    self.assertEqual(z.read(f'Data/ENG/{sub}/{name}'), built)
-                    self.assertEqual(z.read(f'Original/Data/ENG/{sub}/{name}'), original)
-                    self.assertNotEqual(built, original)
-                self.assertEqual(len(names), 1 + 2 * len(files))
-                self.assertIn('Data/ENG/Script/Teaching.pck', names)
+                self.assertEqual(names, {'Install_QoL.bat', 'Uninstall_DT22_Mod.bat', 'DT22_Mod/mod_patch.ps1',
+                                         'DT22_Mod/README.txt', 'DT22_Mod/qol.txt', 'DT22_Mod/qol.ops', 'DT22_Mod/qol.dat'})
+                ops, blob = z.read('DT22_Mod/qol.ops'), z.read('DT22_Mod/qol.dat')
+                lines = [line.split('|') for line in z.read('DT22_Mod/qol.txt').decode('utf-8').splitlines()]
+            listed = {line[1]: line for line in lines if line[0] == 'file'}
+            self.assertEqual(len(listed), len(files))
+            self.assertFalse([line for line in lines if line[0] == 'exe'])          # the QoL variant leaves the program alone
+            for sub, name, built, original in files:
+                _, _, before, after, size, start, count = listed[chr(92).join(('Data', 'ENG', sub, name))]
+                self.assertEqual(before, package_variant.sha(original))
+                out_bytes = bytearray()
+                for k in range(int(start), int(start) + int(count)):                # as release/mod_patch.ps1 applies them
+                    kind, at, length = struct.unpack_from('<3i', ops, 12 * k)
+                    out_bytes += (original if kind == package_variant.COPY else blob)[at:at + length]
+                self.assertEqual(bytes(out_bytes), built)
+                self.assertEqual((after, int(size)), (package_variant.sha(built), len(built)))
+                self.assertNotIn(built, blob)                                       # the file itself is not shipped
+            self.assertLess(len(blob), sum(len(built) for _, _, built, _ in files) // 2)

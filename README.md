@@ -14,7 +14,14 @@ What the Balance variant changes is told in [release/README_Balance.txt](release
 
 ---
 
-## Install, step by step
+## Two ways to get the mod
+
+- **To play it:** take the archive of the variant you want from the *Releases* of this repository, unpack it into the
+  folder of the game and run its `Install` file. No Python is needed; the steps are in the `README.txt` of the
+  archive. It holds only differences, applied to your own copy of the game.
+- **To build it yourself**, or to read and change it: the steps below.
+
+## Build and install from this repository, step by step
 
 ### 1. What you need
 
