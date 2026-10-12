@@ -496,7 +496,7 @@ class Battle:
             if other.unique and other.unique[0] == 345 and self.roll(other.unique[1]):
                 effect = self.rng.choice((113, 115, 116, 114, 117, 118, 74))
                 if effect == 74:
-                    pass        # the seventh result removes nothing: 0x47ee6f jumps over the dispel (scratch/qol_fields_reading.md 7)
+                    pass        # the seventh result removes nothing: 0x47ee6f jumps over the dispel (measures/qol_fields_reading.md 7)
                 else:
                     self.apply_ailment(other, unit, effect, 0.75, None)
         acted = False
@@ -510,7 +510,7 @@ class Battle:
                 acted = True
                 self.perform(action)
         # the action gained by Did You Call for Me? belongs to the same turn: the statuses of the unit run their
-        # per-turn method once, after the first (0x439103; scratch/qol_fields_reading.md 6)
+        # per-turn method once, after the first (0x439103; measures/qol_fields_reading.md 6)
         self.end_of_turn(unit, acted, ticks=lost != 'skip' and not again)
         self.undaunted()
 
@@ -544,7 +544,7 @@ class Battle:
                                   'actions': []}, 1)
         # 0x4fd0b0 copies the stats its owner has at that moment and 0x4fe3c1 - 0x4fe3d2 doubles the ATK; the passives
         # stay (Double and Triple Attack among them), the ailments and the statuses of techniques do not
-        # (0x4fe337 - 0x4fe3bf; scratch/qol_fields_reading.md 5)
+        # (0x4fe337 - 0x4fe3bf; measures/qol_fields_reading.md 5)
         unit.base = {s: owner.stat(s) for s in unit.base}
         unit.base['atk'] *= SHADOW_ATTACK
         unit.passives = dict(owner.passives)

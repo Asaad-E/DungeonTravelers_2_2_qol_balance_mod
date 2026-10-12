@@ -16,6 +16,11 @@ mod_project/backups/
 
 # Where the game is on this machine, and the archives made for players (they hold files of the game)
 mod_project/config.json
+
+# What a measure writes beside itself while it runs
+mod_project/measures/*.json
+mod_project/measures/*.log
+mod_project/measures/*.xlsx
 mod_project/dist/
 
 # Python
