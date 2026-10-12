@@ -3,45 +3,45 @@
  "roles": {
   "mage": {
    "won": 1.0,
-   "time": 5.890289177083334,
-   "time_won": 5.890289177083334,
-   "share": 0.31221052900990043,
+   "time": 5.890092291666667,
+   "time_won": 5.890092291666667,
+   "share": 0.3107936630015159,
    "character": "Melvy",
    "level": 15,
    "class": "Sorceress"
   },
   "shooter": {
    "won": 1.0,
-   "time": 5.989625510416667,
-   "time_won": 5.989625510416667,
-   "share": 0.29977046488486025,
+   "time": 5.968583385416666,
+   "time_won": 5.968583385416666,
+   "share": 0.2990510779946208,
    "character": "Monica",
    "level": 15,
    "class": "Archer"
   },
   "dolls": {
    "won": 1.0,
-   "time": 5.543937791666666,
-   "time_won": 5.543937791666666,
-   "share": 0.3701605315042365,
+   "time": 5.553466302083334,
+   "time_won": 5.553466302083334,
+   "share": 0.36903117056799434,
    "character": "Lilian",
    "level": 15,
    "class": "Doll Master"
   },
   "diva": {
    "won": 1.0,
-   "time": 8.167930958333333,
-   "time_won": 8.167930958333333,
-   "share": 0.005464378207157618,
+   "time": 8.163425958333333,
+   "time_won": 8.163425958333333,
+   "share": 0.005496004989701641,
    "character": "Ist",
    "level": 15,
    "class": "Bard"
   },
   "dark lord": {
    "won": 1.0,
-   "time": 5.92539284375,
-   "time_won": 5.92539284375,
-   "share": 0.3113228696857166,
+   "time": 5.917356385416666,
+   "time_won": 5.917356385416666,
+   "share": 0.31166951068611215,
    "character": "Yae",
    "level": 15,
    "class": "Berserker"
