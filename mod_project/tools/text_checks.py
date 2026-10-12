@@ -34,7 +34,10 @@ AILMENT_LABELS = {
 }
 EFFECT_LABELS = {'HP Absorb': 75, 'TP Absorb': 76, 'Targets': 137, 'Heal Cap': 295}
 UNIQUE_VALUES = 0x1C
-UNIQUE_NOTE_LINES = set(rules.pairs('UniqueSkillNotes', 'Skill', 'Line').values())
+# Line: the figure of the game; Balance_Line: the one the Balance variant holds where its program patch changes it
+# (sheet ExePatches of balance_criteria.xlsx), worded in balance_skill_text.xlsx
+UNIQUE_NOTE_LINES = {line for column in ('Line', 'Balance_Line')
+                     for line in rules.pairs('UniqueSkillNotes', 'Skill', column).values() if line}
 UNIQUE_LABELS = set(rules.pairs('UniqueSkillLabels', 'Skill', 'Label').values())   # in place of 'Lv1-9'
 TOLERANCE = 0.006
 

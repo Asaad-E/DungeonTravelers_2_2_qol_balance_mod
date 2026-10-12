@@ -17,6 +17,7 @@ A row is one value of one record. Each kind of row has its address here, with th
     equipment     EquipmentData: ATK 0x24, upgrade rate 0x3C, class mask 0x40, innate enchantments 0x5C (count), 0x60
     sealbooks     SealScrollData: number of enchantments 0x1C and their ids 0x20
     items         ItemData: the value of one of its four pairs (type, value) from 0x24, named by its type
+    unique        UniqueSkillData: the value of a rank, ten floats from 0x1C (the tenth is the crown value)
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
 
@@ -59,6 +60,7 @@ ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = 0x48, 0x4C, 12
 EQUIPMENT = {'ATK (base)': (0x24, 'i'), 'upgrade rate': (0x3C, 'f'), 'class bitmask': (0x40, 'I')}
 EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = 0x5C, 0x60, 4
 SEAL_COUNT, SEAL_ENCHANTS, SEAL_SLOTS = 0x1C, 0x20, 4
+UNIQUE_VALUES, UNIQUE_RANKS = 0x1C, 10           # the ten values of a unique skill (tools/extract_vanilla.py)
 ITEM_PAIRS, ITEM_PAIR_COUNT = 0x24, 4            # (type int, value float) pairs of an item (tools/text_checks.py)
 ENCHANT_FLAGS = 0x20
 SP_LEVEL, SP_POINTS = 0x00, 0x08
@@ -342,6 +344,16 @@ def equipment_row(packs, row):
         raise Refused(f'unknown equipment field {field!r}')
 
 
+def unique_row(packs, row):
+    """Record 'Unique <id> <name>', field 'value', column Level the rank (10: the crown value)."""
+    uid = int(str(row['Record']).split()[1])
+    rank = int(row['Level'])
+    if str(row['Field']) != 'value' or not 1 <= rank <= UNIQUE_RANKS:
+        raise Refused('a unique skill has ten values, by rank')
+    packs.write(row, ('UniqueSkillData.pck', f'UniqueSkillData_{uid:04d}.bin', None, UNIQUE_VALUES + 4 * (rank - 1)),
+                'f', number(row['New']), vanilla=number(row['Vanilla']))
+
+
 def item_row(packs, row):
     """Field 'effect <type> value': the value of the first pair of the item that holds that type."""
     iid = int(str(row['Record']).split()[0])
@@ -400,7 +412,7 @@ def quest_row(packs, row):
 
 WRITERS = {'skills': skill_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
            'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row,
-           'items': item_row}
+           'items': item_row, 'unique': unique_row}
 
 
 def apply(rows=None, backup_dir=BACKUP_DIR):

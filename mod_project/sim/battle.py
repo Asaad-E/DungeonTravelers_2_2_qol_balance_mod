@@ -1476,7 +1476,7 @@ class Battle:
             if target.chant is not None or self.performing(target):
                 self.interrupt(target, amount, critical, action is None or not action.magic)
         if target.unique and target.unique[0] == 447 and unit is not None and not unit.has(307) and amount > 0:
-            if self.rng.randrange(100) < ARCANE_CHANCE:
+            if self.rng.randrange(100) < (getattr(self.data, 'arcane_chance', None) or ARCANE_CHANCE):
                 self.lose_hp(unit, int(amount * target.unique[1]), target)
 
     def interrupt(self, target, amount, critical, physical=True):

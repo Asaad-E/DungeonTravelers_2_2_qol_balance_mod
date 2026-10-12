@@ -146,6 +146,11 @@ def apply(data, changes):
             e, kind, v = attack.effects[k]
             _check(row, v)
             attack.effects[k] = (e, kind, new)
+        elif table == 'unique':
+            skill = out.unique[int(record.split()[1])]
+            rank = int(row['Level'])
+            _check(row, skill['values'][rank - 1])
+            skill['values'] = [float(new) if k == rank - 1 else v for k, v in enumerate(skill['values'])]
         elif table == 'items':
             # 'effect 1 value': the value of the first pair of that type of the item
             item = out.items[int(record.split()[0])]
@@ -181,4 +186,14 @@ def apply(data, changes):
 
 
 def balance_data(data, path=CHANGES):
-    return apply(data, rows(path))
+    out = apply(data, rows(path))
+    out.arcane_chance = arcane_chance()
+    return out
+
+
+def arcane_chance():
+    """The roll of Arcane Shield on the variant: the byte the set balance of the sheet ExePatches puts at the
+    place of lever L38, or None when the set leaves it alone."""
+    import exe_patch
+    row = next((p for p in exe_patch.patches('balance') if p['lever'] == 'L38'), None)
+    return row['new'][-1] if row else None

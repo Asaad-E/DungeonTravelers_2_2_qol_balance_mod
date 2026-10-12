@@ -128,6 +128,7 @@ def compare(built, variant):
     table('equipment', built.equipment, variant.equipment, PIECE_FIELDS, item)
     table('sealbooks', built.sealbooks, variant.sealbooks, ('grand', 'level', 'enchants'), item)
     table('items', built.items, variant.items, ('effects',), item)
+    table('unique skills', built.unique, variant.unique, ('effect', 'values'), item)
     counts['enchantments that stack'] = len(variant.enchant_stacks)
     if built.enchant_stacks != variant.enchant_stacks:
         out.append(f'enchantments that stack: {sorted(built.enchant_stacks ^ variant.enchant_stacks)} differ')
