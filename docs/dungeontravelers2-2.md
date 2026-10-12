@@ -309,7 +309,7 @@ The build stops on a modified line longer than its limit. Texts of the original 
 
 **A figure the game data does not hold** comes from a guide of this game, and the screen does not say so. Arcane Shield stores the reflected share only; its third line reads `Activation rate: about 15%` (DT2-2 wiki, pages/42.html; the source is the `Source` column of the sheet `UniqueSkillNotes`).
 
-**Hard rule: the voice of the game is never broken.** The first version of that line read `Activation rate: about 15% (player guide; the game data holds no figure)`; decided: "horrible... nunca hacer esto NUNCA". No text of the mod may speak from outside the game: no source, no caveat, no note to the reader. Provenance and confidence live in the workbooks and in these docs. `check_game_voice` in `build_variant.py` stops the build when a modified text holds a word of the sheet `OutOfGameWords` (guide, wiki, data, binary, source, unknown...) that the game's own text did not have.
+**Hard rule: the voice of the game is never broken.** The first version of that line read `Activation rate: about 15% (player guide; the game data holds no figure)`; it was rejected outright. No text of the mod may speak from outside the game: no source, no caveat, no note to the reader. Provenance and confidence live in the workbooks and in these docs. `check_game_voice` in `build_variant.py` stops the build when a modified text holds a word of the sheet `OutOfGameWords` (guide, wiki, data, binary, source, unknown...) that the game's own text did not have.
 
 ### 6.6 Scripts, unique skill labels, packaging (2026-10-04, last round)
 

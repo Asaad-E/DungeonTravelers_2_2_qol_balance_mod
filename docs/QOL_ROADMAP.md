@@ -233,7 +233,7 @@ Still open:
 | # | Question | Default applied until answered |
 |---|---|---|
 | 2 | Resistances with or without `%` | **Answered: without**, as the status screen writes them |
-| 3 | `tremendous` or `ultimate` beyond the damage scale | **Answered by acceptance** ("todo perfecto"): `tremendous` stays |
+| 3 | `tremendous` or `ultimate` beyond the damage scale | **Answered by acceptance**: `tremendous` stays |
 
 ## Found after the QoL variant was closed (2026-10-05)
 
