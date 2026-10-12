@@ -1011,6 +1011,15 @@ def regenerate_text(module, source_table, target, paths, overrides=None):
     return None
 
 
+def variant_unique_notes():
+    """The note lines of the unique skills for a variant that changes values: the column Balance_Line of the sheet
+    UniqueSkillNotes where it is filled (a figure its program patch changes), else the line of the game."""
+    import rules
+    usual = rules.pairs('UniqueSkillNotes', 'Skill', 'Line')
+    changed = {k: v for k, v in rules.pairs('UniqueSkillNotes', 'Skill', 'Balance_Line').items() if v}
+    return dict(usual, **changed)
+
+
 def prepare_values(name, variant, problems):
     """Steps 0a to 0c. Returns ({text table key: path of the regenerated table}, counts for the report) and leaves
     BACKUP_DIR on the folder of the built values."""
@@ -1047,7 +1056,8 @@ def prepare_values(name, variant, problems):
              'enemy_attack_text': os.path.join(tables, 'enemy_attack_text.xlsx'),
              'item_text': os.path.join(tables, 'item_text.xlsx')}
     for key, module, sources in (
-            ('skill_text', generate_qol_skill_text, {'SOURCE_PATH': os.path.join(tables, 'source_of_truth.xlsx')}),
+            ('skill_text', generate_qol_skill_text, {'SOURCE_PATH': os.path.join(tables, 'source_of_truth.xlsx'),
+                                                     'UNIQUE_NOTES': variant_unique_notes()}),
             ('enemy_attack_text', generate_qol_enemy_attack_text, {'BACKUP_PATH': os.path.join(base, ENEMY_PCK)}),
             ('item_text', generate_qol_item_text, {'BACKUP_PATH': os.path.join(base, ITEM_PCK)})):
         stopped = regenerate_text(module, os.path.join(TABLES_DIR, variant[key]), paths[key],
