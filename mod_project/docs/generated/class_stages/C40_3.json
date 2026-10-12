@@ -38,10 +38,10 @@
    "class": "Soul Summoner"
   },
   "magical princess": {
-   "won": 0.825,
-   "time": 23.936101956389987,
-   "time_won": 24.613977630428025,
-   "share": 0.177647397030507,
+   "won": 0.75,
+   "time": 17.6139091246143,
+   "time_won": 19.34228440759104,
+   "share": 0.3231680222231306,
    "character": "Melvy",
    "level": 64,
    "class": "Magical Princess"
