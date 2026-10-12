@@ -479,7 +479,9 @@ class Battle:
         self.actions += 1
         unit.turns_taken += 1
         unit.defending = False
-        again = getattr(unit, 'extra_turn', False)
+        # only the second action of Did You Call for Me? was read as part of the same turn; the extra actions of
+        # Double and Triple Action are left as they were played (every rule has its address)
+        again = getattr(unit, 'extra_turn', False) and getattr(unit, 'extra_unique', False)
         # state 0: Esarhaddon
         if unit.has(311):
             for effect in ESARHADDON_ORDER[:int(unit.value(311))]:
@@ -506,8 +508,8 @@ class Battle:
             if action is not None:
                 acted = True
                 self.perform(action)
-        # an action gained by Double or Triple Action or by Did You Call for Me? belongs to the same turn: the statuses
-        # of the unit run their per-turn method once, after the first (0x439103; scratch/qol_fields_reading.md 6)
+        # the action gained by Did You Call for Me? belongs to the same turn: the statuses of the unit run their
+        # per-turn method once, after the first (0x439103; scratch/qol_fields_reading.md 6)
         self.end_of_turn(unit, acted, ticks=lost != 'skip' and not again)
         self.undaunted()
 
@@ -651,6 +653,7 @@ class Battle:
             unit.extra_turn = True
         elif getattr(unit, 'extra_turn', False):
             unit.extra_turn = False                   # the extra actions do not roll again
+            unit.extra_unique = False
         elif acted and unit.chant is None and not self.over():
             if unit.has(288) and self.roll(unit.value(288)):
                 unit.extra = 1
@@ -658,6 +661,7 @@ class Battle:
                 unit.extra = 2
             elif unit.unique and unit.unique[0] == 354 and self.roll(unit.unique[1]):
                 unit.extra = 1
+                unit.extra_unique = True
             if getattr(unit, 'extra', 0) > 0:
                 unit.extra -= 1
                 unit.next_time = self.time
