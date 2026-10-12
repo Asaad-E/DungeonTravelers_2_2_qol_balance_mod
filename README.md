@@ -1,48 +1,44 @@
-# Dungeon Travelers 2-2 — QoL & Balance Mod
+# Dungeon Travelers 2-2: QoL & Balance Mod
 
 A mod for *Dungeon Travelers 2-2: The Fallen Maidens & the Book of Beginnings* (PC, English).
 
-The game hides almost all of its numbers and never explains its rules, and a good part of its classes and skills
-are not worth using. This project took the game apart to fix both: every battle formula was read from the executable,
-a simulator was built on top of them, and each change was measured before it went in.
+DT2-2 is a great dungeon crawler that tells you almost nothing. Skills say "damage UP", items heal "a little", and
+several classes turn out to be dead ends you only notice forty hours in. I wanted to play it knowing what things
+actually do, so I read the battle formulas out of the executable, wrote a simulator on top of them, and went from
+there.
 
-It comes in two variants. Install one or the other.
+There are two versions. Pick one.
 
-### QoL: the game finally tells you what it does
+## QoL
 
-No value is changed. The game just stops hiding things.
+Changes nothing about how the game plays. It only makes the game show its numbers.
 
-- 269 skills show their real numbers level by level: power, chance, turns, TP cost, speed.
-- 1,767 enemy, summon and mercenary abilities show their chances and power.
-- 446 items and 201 enchantments say exactly what they do, instead of "UP" or "a little".
-- Meals, party skills, joint skills and weapon speed ranks show their amounts.
-- A few lines where the original text states a wrong number are corrected.
+Skill descriptions list their real values for every level: power, chance to land, duration, TP cost, speed. Items
+and enchantments say what they do. Enemy, summon and mercenary abilities show their chances and power as well.
+Where the original text had a number wrong, it is fixed. Jokes and flavour text are left alone.
 
-About 4,000 figures in total. Each one is checked against the game data when the mod is built, so nothing on screen
-is a guess. Jokes and flavour text are untouched.
+Every number on screen is checked against the game's data when the mod is built, so none of it is guesswork.
 
-### Balance: every class, weapon and skill worth using
+## Balance
 
-Everything in QoL, on top of a full rebalance: 1,458 value changes across 361 skills, enemies, items and pieces of
+Everything QoL does, plus a rebalance of the whole game: well over a thousand changes to skills, enemies, items and
 gear.
 
-It started from 180 complaints collected from the Japanese community wiki and the English GameFAQs guide. Each one
-was checked against the data and the simulator: 79 turned out to be real and were fixed, 89 were measured and found
-not to be a problem, and 12 were left out of scope.
+The starting point was a long list of complaints from the Japanese wiki and the English GameFAQs guide. Each one was
+checked against the data and the simulator. Many were real and got fixed. Many others were not, since players often
+blame the wrong thing, and those were left as they are.
 
-- Classes that fell behind (Doll Master, Kunoichi, Mistress, Magical Princess, Treasure Hunter, Trickster) are
-  playable from start to postgame.
-- Dead skills, weak weapon types, ailments and debuffs do something now.
+What you will notice when playing:
+
+- Classes that used to fall behind, like Doll Master, Kunoichi or Mistress, can carry their weight.
+- Skills nobody picked, weak weapon types and status ailments are worth using.
 - A character who joins late or sat on the bench catches up in a few battles.
-- Bugs in the original are fixed. The passive *Concentrate*, for instance, does nothing in the unmodded game
-  because of a mistake in its formula.
-- Bosses keep their bite: the stronger options were paid for with tougher fights, tested with several different
-  parties against every story and postgame boss.
+- A few outright bugs are fixed. The passive Concentrate, for example, does nothing in the original game.
+- Bosses still hit hard. The party gets more options, not more power.
 
-The complete list is in [release/README_Balance.txt](release/README_Balance.txt), and the reasoning behind each
-change in `data_tables/balance_changes.xlsx`.
+The full list of changes is in [release/README_Balance.txt](release/README_Balance.txt).
 
-This repository contains no game files. The mod is applied to your own copy of the game.
+Neither version includes game files. The mod is applied to your own copy of the game.
 
 ## Install
 
