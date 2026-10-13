@@ -33,7 +33,7 @@ What changes
   mercenary, heals more.
 * Every level gives one more skill point up to level 40.
 * Provoke draws more attacks as it is raised; Magic Barrier cuts more magic damage; First Grid
-  comes up more often and costs more skill points; the Kunoichi may use her Stings and Phoenix
+  comes up more often; the Kunoichi may use her Stings and Phoenix
   with a dagger or a projectile.
 * Three grand sealbooks of the postgame (Melek Taus, Genbu, Murasaki Shikibu) carry a second
   enchantment. One postgame superboss no longer opens with a spell that can fell the party.
