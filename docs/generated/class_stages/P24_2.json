@@ -8,6 +8,8 @@
    "share": 0.38105062292482905,
    "character": "Melvy",
    "level": 90,
+   "lowest_hp": 0.40486645718774544,
+   "hp_left": 0.7200981932443048,
    "class": "Witch"
   },
   "shooter": {
@@ -17,6 +19,8 @@
    "share": 0.3055119723003231,
    "character": "Monica",
    "level": 90,
+   "lowest_hp": 0.4714867310012063,
+   "hp_left": 0.7216337454764777,
    "class": "Sniper"
   },
   "dolls": {
@@ -26,6 +30,8 @@
    "share": 0.12951139644738716,
    "character": "Lilian",
    "level": 90,
+   "lowest_hp": 0.47837939888234404,
+   "hp_left": 0.7905301314000905,
    "class": "Papillon"
   },
   "diva": {
@@ -35,6 +41,8 @@
    "share": 0.00033755086559962376,
    "character": "Ist",
    "level": 90,
+   "lowest_hp": 0.5833914999224445,
+   "hp_left": 0.9570148906468126,
    "class": "Diva"
   },
   "dark lord": {
@@ -44,6 +52,8 @@
    "share": 0.18337536157057416,
    "character": "Grishna",
    "level": 90,
+   "lowest_hp": 0.527863168430083,
+   "hp_left": 0.9437553617386332,
    "class": "Dark Lord"
   }
  }

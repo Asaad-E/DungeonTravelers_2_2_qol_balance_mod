@@ -5,7 +5,9 @@
   "time_won": 8.522060344070002,
   "share": 0.0,
   "character": null,
-  "level": 18
+  "level": 18,
+  "lowest_hp": 0.7497495446265938,
+  "hp_left": 0.9982695810564662
  },
  "roles": {
   "tank": {
@@ -15,6 +17,8 @@
    "share": 0.11644977350409491,
    "character": "Alisia",
    "level": 18,
+   "lowest_hp": 0.7331795302013423,
+   "hp_left": 0.9832634228187919,
    "class": "Paladin"
   },
   "attacker": {
@@ -24,6 +28,8 @@
    "share": 0.24510924055451855,
    "character": "Grishna",
    "level": 18,
+   "lowest_hp": 0.7642074198988196,
+   "hp_left": 0.9701517706576729,
    "class": "Berserker"
   },
   "maid": {
@@ -33,6 +39,8 @@
    "share": 0.0026772710158247835,
    "character": "Conette",
    "level": 18,
+   "lowest_hp": 0.7380513051305131,
+   "hp_left": 0.9732898289828983,
    "class": "Bard"
   },
   "healer": {
@@ -42,6 +50,8 @@
    "share": 0.004965222750002833,
    "character": "Irena",
    "level": 18,
+   "lowest_hp": 0.7497495446265938,
+   "hp_left": 0.9982695810564662,
    "class": "Priestess"
   }
  }

@@ -3,11 +3,13 @@
  "roles": {
   "sage": {
    "won": 1.0,
-   "time": 4.294064437499999,
-   "time_won": 4.294064437499999,
-   "share": 0.026510416666666668,
+   "time": 2.9018253125,
+   "time_won": 2.9018253125,
+   "share": 0.3076562500000001,
    "character": "Fiora",
    "level": 5,
+   "lowest_hp": 0.8653145695364237,
+   "hp_left": 0.8879139072847682,
    "class": "Magic User"
   },
   "kunoichi": {
@@ -17,6 +19,8 @@
    "share": 0.16328125,
    "character": "Monica",
    "level": 5,
+   "lowest_hp": 0.8047507788161994,
+   "hp_left": 0.8616822429906541,
    "class": "Scout"
   },
   "mistress": {
@@ -26,6 +30,8 @@
    "share": 0.02562500000000001,
    "character": "Conette",
    "level": 5,
+   "lowest_hp": 0.7752442996742671,
+   "hp_left": 0.8492671009771987,
    "class": "Maid"
   },
   "etoile": {
@@ -35,6 +41,8 @@
    "share": 0.08161458333333334,
    "character": "Ist",
    "level": 5,
+   "lowest_hp": 0.7951954397394136,
+   "hp_left": 0.8374592833876221,
    "class": "Maid"
   },
   "joker": {
@@ -44,6 +52,8 @@
    "share": 0.5653645833333334,
    "character": "Lizerietta",
    "level": 5,
+   "lowest_hp": 0.8062893081761006,
+   "hp_left": 0.8389937106918239,
    "class": "Spieler"
   }
  }

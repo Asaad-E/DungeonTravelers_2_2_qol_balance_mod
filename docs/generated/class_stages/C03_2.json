@@ -8,6 +8,8 @@
    "share": 0.3783333333333332,
    "character": "Melvy",
    "level": 5,
+   "lowest_hp": 0.8676324503311259,
+   "hp_left": 0.8885761589403973,
    "class": "Magic User"
   },
   "shooter": {
@@ -17,6 +19,8 @@
    "share": 0.3450084162199836,
    "character": "Monica",
    "level": 5,
+   "lowest_hp": 0.8945482866043614,
+   "hp_left": 0.895171339563863,
    "class": "Scout"
   },
   "dolls": {
@@ -26,6 +30,8 @@
    "share": 0.15781249999999997,
    "character": "Lizerietta",
    "level": 5,
+   "lowest_hp": 0.8474842767295598,
+   "hp_left": 0.8721698113207548,
    "class": "Spieler"
   },
   "diva": {
@@ -35,6 +41,8 @@
    "share": 0.018489583333333337,
    "character": "Yuni",
    "level": 5,
+   "lowest_hp": 0.8283387622149837,
+   "hp_left": 0.8563517915309447,
    "class": "Maid"
   },
   "dark lord": {
@@ -44,6 +52,8 @@
    "share": 0.4223958333333333,
    "character": "Yae",
    "level": 5,
+   "lowest_hp": 0.9475446428571429,
+   "hp_left": 0.9475446428571429,
    "class": "Fighter"
   }
  }

@@ -8,6 +8,8 @@
    "share": 0.15760974326526359,
    "character": "Lizerietta",
    "level": 9,
+   "lowest_hp": 0.8461711711711711,
+   "hp_left": 0.8816666666666666,
    "class": "Spieler"
   },
   "valkyrie": {
@@ -17,6 +19,8 @@
    "share": 0.26571743864048497,
    "character": "Alisia",
    "level": 9,
+   "lowest_hp": 0.9390222984562607,
+   "hp_left": 0.9390222984562607,
    "class": "Fighter"
   },
   "treasure hunter": {
@@ -26,6 +30,8 @@
    "share": 0.18536653715540535,
    "character": "Souffle",
    "level": 9,
+   "lowest_hp": 0.8884375,
+   "hp_left": 0.9012946428571429,
    "class": "Scout"
   },
   "soul summoner": {
@@ -35,6 +41,8 @@
    "share": 0.12385152228087563,
    "character": "Lizerietta",
    "level": 9,
+   "lowest_hp": 0.8527477477477478,
+   "hp_left": 0.87490990990991,
    "class": "Spieler"
   },
   "magical princess": {
@@ -44,6 +52,8 @@
    "share": 0.46782312152794675,
    "character": "Melvy",
    "level": 9,
+   "lowest_hp": 0.8709039548022599,
+   "hp_left": 0.9398775894538607,
    "class": "Magic User"
   }
  }

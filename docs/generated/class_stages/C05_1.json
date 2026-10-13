@@ -5,7 +5,9 @@
   "time_won": 6.120050520833333,
   "share": 0.0,
   "character": null,
-  "level": 6
+  "level": 6,
+  "lowest_hp": 0.6341331269349845,
+  "hp_left": 0.7822755417956657
  },
  "roles": {
   "tank": {
@@ -15,6 +17,8 @@
    "share": 0.20319069069069062,
    "character": "Alisia",
    "level": 6,
+   "lowest_hp": 0.7168508287292819,
+   "hp_left": 0.7857044198895028,
    "class": "Fighter"
   },
   "attacker": {
@@ -24,6 +28,8 @@
    "share": 0.5040915915915916,
    "character": "Yae",
    "level": 6,
+   "lowest_hp": 0.7971685082872928,
+   "hp_left": 0.8129834254143647,
    "class": "Fighter"
   },
   "maid": {
@@ -33,6 +39,8 @@
    "share": 0.01021021021021021,
    "character": "Conette",
    "level": 6,
+   "lowest_hp": 0.61,
+   "hp_left": 0.7198484848484848,
    "class": "Maid"
   },
   "healer": {
@@ -42,6 +50,8 @@
    "share": 0.0158033033033033,
    "character": "Irena",
    "level": 6,
+   "lowest_hp": 0.6341331269349845,
+   "hp_left": 0.7822755417956657,
    "class": "Magic User"
   }
  }

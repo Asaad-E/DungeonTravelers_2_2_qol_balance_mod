@@ -8,6 +8,8 @@
    "share": 0.25075280953384405,
    "character": "Mefmera",
    "level": 64,
+   "lowest_hp": 0.4659230431922824,
+   "hp_left": 0.9563089234816926,
    "class": "Papillon"
   },
   "valkyrie": {
@@ -17,6 +19,8 @@
    "share": 0.11538396086755051,
    "character": "Grishna",
    "level": 64,
+   "lowest_hp": 0.41136317292006525,
+   "hp_left": 0.8823052610114193,
    "class": "Valkyrie"
   },
   "treasure hunter": {
@@ -26,6 +30,8 @@
    "share": 0.16309415393776805,
    "character": "Souffle",
    "level": 64,
+   "lowest_hp": 0.43259835711197575,
+   "hp_left": 0.9706225680933851,
    "class": "Treasure Hunter"
   },
   "soul summoner": {
@@ -35,6 +41,8 @@
    "share": 0.37496559507924554,
    "character": "Lilian",
    "level": 64,
+   "lowest_hp": 0.37803727823938915,
+   "hp_left": 0.8567594879856276,
    "class": "Soul Summoner"
   },
   "magical princess": {
@@ -44,6 +52,8 @@
    "share": 0.3134856698094808,
    "character": "Melvy",
    "level": 64,
+   "lowest_hp": 0.34576799140708914,
+   "hp_left": 0.7766326530612245,
    "class": "Magical Princess"
   }
  }
