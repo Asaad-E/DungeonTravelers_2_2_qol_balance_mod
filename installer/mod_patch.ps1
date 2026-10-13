@@ -271,13 +271,25 @@ foreach ($k in $pokes) {
 }
 foreach ($rel in $odd.Keys) { $problems += "${rel}: $($odd[$rel])" }
 if ($stale) { $problems += $updated }
+# a file the game holds open cannot be replaced: found now, before anything is written
+foreach ($w in $writes) {
+    try { [System.IO.File]::Open((Join-Path $root $w.Rel), [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None).Dispose() }
+    catch { $problems += "$($w.Rel): in use. Close the game and run this again." }
+}
 if ($problems.Count -gt 0) { Stop-With $problems }
 
-# 3. write: the copy of the original first, then the file. What another variant changed and this one does not goes back.
+# 3. write. First the copy of every original and every new file beside its place, under another name; only when all
+# of them are on the disk is each moved into its place, so a failure before that leaves the game as it was. What
+# another variant changed and this one does not goes back.
+$staged = '.dt22new'
 try {
     foreach ($w in $writes) {
         if ($null -ne $w.Source) { Write-File (Join-Path $backup $w.Rel) $w.Source }
-        Write-File (Join-Path $root $w.Rel) $w.Bytes
+        Write-File ((Join-Path $root $w.Rel) + $staged) $w.Bytes
+    }
+    foreach ($w in $writes) {
+        $target = Join-Path $root $w.Rel
+        Move-Item -LiteralPath ($target + $staged) -Destination $target -Force
     }
     [System.IO.File]::WriteAllLines($stateFile, [string[]]@($writes | ForEach-Object { "$($_.Rel)|$(Get-Sha $_.Bytes)" }))
     [void](Undo-Pokes (Read-Pokes $pokeFile))             # what another variant wrote in place goes back first
@@ -292,6 +304,10 @@ try {
         }
     }
 } catch {
+    foreach ($w in $writes) {
+        $left = (Join-Path $root $w.Rel) + $staged
+        if (Test-Path -LiteralPath $left) { Remove-Item -LiteralPath $left -Force }
+    }
     Write-Host "A file could not be written: $($_.Exception.Message)"
     Write-Host 'Close the game and run this again. To put everything back, run the Uninstall .bat.'
     exit 1
