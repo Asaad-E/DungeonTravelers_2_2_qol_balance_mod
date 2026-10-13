@@ -78,7 +78,15 @@ def program_files(every_row=None):
         return listed
     folder = mod_config.game_dir()
     names = sorted(n for n in os.listdir(folder) if n.lower().endswith('.exe')) if os.path.isdir(folder) else []
-    return [os.path.join(folder, n) for n in names if is_program(os.path.join(folder, n), every_row)]
+    return [os.path.join(folder, n) for n in names
+            if is_program(os.path.join(folder, n), every_row) or was_patched(os.path.join(folder, n), every_row)]
+
+
+def was_patched(path, every_row=None):
+    """A file this tool patched before, whatever the rows held then: its vanilla copy is kept, is the program, and
+    has its size. A row whose new bytes changed since (another value decided) no longer matches the file itself."""
+    copy = os.path.join(COPY_DIR, os.path.splitext(os.path.basename(path))[0] + '.vanilla.exe')
+    return os.path.exists(copy) and os.path.getsize(copy) == os.path.getsize(path) and is_program(copy, every_row)
 
 
 def find_targets(every_row=None):

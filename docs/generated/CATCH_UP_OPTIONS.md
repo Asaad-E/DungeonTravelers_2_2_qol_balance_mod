@@ -15,7 +15,7 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | Kept + B | gap | Kept curve; factors by gap unchanged down to 4 levels below the enemy, then 2, 4 from 10 below, 8 from 20 below |
 | Kept + B2 | gap | Kept curve; unchanged down to 4 below, then 3, 5 and 10 |
 | Kept + B3 | gap | Kept curve; as B, and 1.25 already from 1 level below the enemy |
-| B4 | gap | What is installed since 2026-10-11: the factors by gap of B4 in the program, the EXP of a level as in vanilla |
+| B4 | gap | What is installed: the factors by gap of B4 in the program (1.15 from 1 level below the enemy since 2026-10-13, 1.25 before), the EXP of a level as in vanilla |
 | Kept + B4 | gap | Kept curve; as B2, and 1.25 already from 1 level below the enemy |
 | Kept + D | gap | Kept curve; 1.5 from 1 level below the enemy, then 3, 5 and 10 |
 
@@ -27,10 +27,10 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | 30 | St08_0010 zone 3 | 70 | 60 | 58 | 35 | 27 | 20 | 27 | 23 | 20 | 20 |
 | 40 | St09_0015 zone 2 | 121 | 95 | 103 | 60 | 50 | 34 | 50 | 42 | 34 | 34 |
 | 50 | St13_0150 | 122 | 94 | 102 | 61 | 43 | 31 | 43 | 41 | 31 | 31 |
-| 60 | St15_1130 | 139 | 103 | 117 | 70 | 48 | 36 | 47 | 47 | 35 | 35 |
+| 60 | St15_1130 | 139 | 103 | 117 | 70 | 48 | 36 | 47 | 48 | 35 | 35 |
 | 70 | St22_1010 zone 1 | 144 | 103 | 119 | 72 | 45 | 33 | 45 | 46 | 33 | 33 |
 | 80 | St23_0050 | 99 | 68 | 82 | 49 | 31 | 23 | 31 | 33 | 23 | 22 |
-| 90 | St23_0130 | 79 | 51 | 63 | 39 | 21 | 16 | 21 | 24 | 16 | 16 |
+| 90 | St23_0130 | 79 | 51 | 63 | 39 | 21 | 16 | 21 | 25 | 16 | 16 |
 
 ## A member 20 levels behind: battles until it is within 4 levels of the party
 
@@ -71,7 +71,7 @@ Random battles with 5 members alive, in the zone whose enemies are closest to th
 | Kept + B | 19 | 23 | 21 | 9 | 2.59 | 4.14 | 2,053,328 | 600,000 | no |
 | Kept + B2 | 18 | 21 | 19 | 7 | 3.73 | 5.18 | 2,053,328 | 600,000 | no |
 | Kept + B3 | 16 | 21 | 19 | 8 | 2.60 | 4.14 | 2,053,328 | 600,000 | no |
-| B4 | 19 | 26 | 25 | 11 | 2.88 | 4.00 | 3,042,158 | 600,000 | no |
+| B4 | 20 | 27 | 26 | 11 | 2.88 | 4.00 | 3,042,158 | 600,000 | no |
 | Kept + B4 | 15 | 19 | 17 | 7 | 3.73 | 5.18 | 2,053,328 | 600,000 | no |
 | Kept + D | 14 | 18 | 16 | 6 | 3.74 | 5.18 | 2,053,328 | 600,000 | no |
 
