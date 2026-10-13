@@ -329,6 +329,13 @@ class Recorder:
         table[key] = table.get(key, 0) + amount
 
 
+# how the value getter of a dance or a song uses the bonus of its performer (docs/FORMULAS.md 12.8): (sign, scale).
+# The dances that lower a stat subtract it (0x487d70), Hopak subtracts a hundred times it (0x488890), Concentration
+# Prelude adds a hundred times it (0x488e10); every other one adds it
+PERFORMANCE_BONUS = {195: (-1, 1), 196: (-1, 1), 197: (-1, 1), 198: (-1, 1), 201: (-1, 1), 205: (-1, 1), 202: (-1, 100),
+                     211: (1, 100)}
+
+
 class Battle:
     def __init__(self, data, party, enemies, rng, choose_member=None, choose_enemy=None, setup=None, zone=None,
                  max_time=400.0, max_actions=3000):
@@ -1678,7 +1685,8 @@ class Battle:
         if effect in (215, 216):
             target.statuses[effect] = Status(effect, value, 0, singer, name, 'song', data=bonus)
         else:
-            target.statuses[effect] = Status(effect, value + bonus, 0, singer, name, 'song')
+            sign, scale = PERFORMANCE_BONUS.get(effect, (1, 1))
+            target.statuses[effect] = Status(effect, value + sign * scale * bonus, 0, singer, name, 'song')
 
     def apply_ailment(self, unit, target, effect, value, action, start=None):
         """docs/FORMULAS.md 5b: blocked by immunity or the same ailment; then the chance against resistance."""

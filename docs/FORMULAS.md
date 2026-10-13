@@ -572,8 +572,17 @@ has the effect.
 
 ### 12.8 Songs and dances (`0x48bf90`)
 
-A song or a dance is applied with its value plus the bonus of its performer: the value of Song Bonus or Dance Bonus
-(effects 279, 280) plus `min(0.05, 0.02 * pieces + 0.01 * mini pieces)` of the matching enchantments.
+The bonus of a performer is the value of Song Bonus or Dance Bonus (effects 279, 280) plus
+`min(0.05, 0.02 * pieces + 0.01 * mini pieces)` of the matching enchantments. How it enters depends on the class of
+the status, in the value getter at `[vtable + 0x2c]` (`measures/status_value_getters.py` lists them):
+
+| Effects | Getter | Value |
+|---|---|---|
+| 195 Waltz, 196 Samba, 197 Tango, 198 Polka, 201 Mazurka, 205 | `0x487d70` | `value - bonus` (the stat falls further) |
+| 202 Hopak | `0x488890` | `value - bonus * 100` |
+| 199 Salsa | `0x488400` | `value + bonus` |
+| 210, 212, 213, 214, 217, 218, 222 (songs) | `0x488be0` | `value + bonus` |
+| 211 Concentration Prelude | `0x488e10` | `value + bonus * 100` |
 
 ### 12.9 After a hit (`0x423560 - 0x4247e0`) **[read in part]**
 
