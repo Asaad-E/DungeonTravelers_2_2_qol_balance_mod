@@ -845,8 +845,8 @@ A shop is rolled only when all of this holds (`0x4bc8a1 - 0x4bca94`, `0x556380`)
 Then `chance + shift of the four enchantments above`, at least 1, against a number below 100. The battle is rolled
 first and the peddler before the blacksmith, and a shop that appears sets the 50 steps back for the others, so the
 blacksmith of a zone at 5 with a peddler at 6 and battles at 6 is the next shop a little under half of the times.
-An item sets a byte (`+0x7A4`) that puts the ice cream and ramen chances of the zone at 100 for the next step
-(`0x4bcaa9 - 0x4bcb52`). The five chances are ints of the floor file, as the chance of a battle: data, not code.
+A byte of the dungeon (`+0x7A4`, written at `0x4b2c8f`; what sets it was not followed) puts the ice cream and ramen
+chances of the zone at 100 for the next step (`0x4bcaa9 - 0x4bcb52`). The five chances are ints of the floor file, as the chance of a battle: data, not code.
 
 ## 15. Items (`0x50c596`; `tools/item_effect_data.py`) **[code]**
 
