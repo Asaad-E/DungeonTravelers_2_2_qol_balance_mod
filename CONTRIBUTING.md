@@ -14,8 +14,8 @@ Known limits, left as they are for now:
 - A handful of postgame fights are not won by any party in the simulator, with or without the mod.
 - The simulator does not build the dolls that enemies summon.
 - What the enemy passive Murder License does when it kills has not been found in the program.
-- Some changes have not been seen working in the game yet. They are marked "Not seen working in the game yet" in
-  the sheet `Levers` of `data_tables/balance_criteria.xlsx`.
+- A few rows of the register are closed on an argument, with no figure behind them (meals, forging costs, the early
+  economy, harmful map zones). They are listed in `docs/generated/VERDICTS.md`.
 
 ## Setup
 
