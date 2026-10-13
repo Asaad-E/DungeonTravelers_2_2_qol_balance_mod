@@ -20,7 +20,7 @@ import win_rates                                          # noqa: E402
 
 TRUTH = os.path.join(PROJECT, 'data_tables', 'vanilla_source_of_truth.xlsx')
 NO_MAGIC, DOWN = 2, (5, 6)
-RESTORE = {62, 63, 64, 72}                # item effect types of a meal that restore HP or TP or cure (docs/FORMULAS.md 15)
+STEPS_A_TURN = 5                          # steps of the map that count as one turn of a status (0x48d5ed)
 # F95: the same party with and without the Treasure Hunter
 SWAPS = {'Meta': 'valkyrie; dark lord; treasure hunter; papillon; diva',
          'Meta, an attacker in her place': 'valkyrie; dark lord; attacker; papillon; diva',
@@ -158,13 +158,33 @@ def economy(out):
 
 
 def meals(out):
+    import item_effect_data
+    data = _load()['data']
+    buffs = item_effect_data.meal_buffs()                 # item effect type -> (skill, level) of the buff it gives
     food = sheet('FoodMenu')
-    buffs = [m for m in food if any(m.get(f'Eff{k}_ID') is not None and m[f'Eff{k}_ID'] not in RESTORE for k in range(1, 6))]
+    lines, shortest, longest, with_buff = [], None, None, 0
+    for meal in food:
+        kinds = [meal[f'Eff{k}_ID'] for k in range(1, 6) if meal.get(f'Eff{k}_ID') in buffs]
+        if not kinds:
+            continue
+        with_buff += 1
+        parts = []
+        for kind in kinds:
+            skill, level = buffs[kind]
+            turns = data.skill_by_id[skill].turns[level - 1]
+            steps = turns * STEPS_A_TURN
+            shortest, longest = min(steps, shortest or steps), max(steps, longest or steps)
+            parts.append(f'{data.skill_by_id[skill].name} Lv{level}: {turns} turns, {steps} steps')
+        lines.append(f"| {meal['Name']} | {meal['Price']} | {'; '.join(parts)} |")
+    walk = sorted(8 + 100 / f['encounter'] for f in data.floors if f['encounter'])
     out += ['## J36 Meals', '',
-            f'{len(food)} meals; {len(food) - len(buffs)} only restore HP or TP or cure, at once; {len(buffs)} also give a buff '
-            '(a skill performed at a fixed level, tools/item_effect_data.py). How many steps such a buff lasts outside a battle '
-            'is in the program and was not read, so the test of the row (steps a meal lasts against steps to the boss) is '
-            'not answered.', '']
+            f'{len(food)} meals; {with_buff} give a buff, the others only restore or cure at once. The buff is the status of a '
+            'skill at a fixed level (tools/item_effect_data.py), with the turns that skill has at that level, and on the map a '
+            f'turn of a status is {STEPS_A_TURN} steps (docs/FORMULAS.md 12.18). So a meal lasts {shortest} to {longest} steps; '
+            f'in a battle each action of its bearer takes a turn off it. The mean walk between two random battles is '
+            f'{walk[0]:.0f} to {walk[-1]:.0f} steps by zone (median {statistics.median(walk):.0f}): a meal is worth about one '
+            'battle, and reaches a boss only when the shop appears at its door.', '',
+            '| Meal | Price | Buff |', '|---|---|---|'] + lines + ['']
 
 
 def main():

@@ -103,5 +103,18 @@ Shop prices: Croissant 90, Danish 450, Egg Sandwich 180, Gateau Au Chocolat 600.
 
 ## J36 Meals
 
-16 meals; 4 only restore HP or TP or cure, at once; 12 also give a buff (a skill performed at a fixed level, tools/item_effect_data.py). How many steps such a buff lasts outside a battle is in the program and was not read, so the test of the row (steps a meal lasts against steps to the boss) is not answered.
+16 meals; 10 give a buff, the others only restore or cure at once. The buff is the status of a skill at a fixed level (tools/item_effect_data.py), with the turns that skill has at that level, and on the map a turn of a status is 5 steps (docs/FORMULAS.md 12.18). So a meal lasts 15 to 50 steps; in a battle each action of its bearer takes a turn off it. The mean walk between two random battles is 18 to 28 steps by zone (median 25): a meal is worth about one battle, and reaches a boss only when the shop appears at its door.
+
+| Meal | Price | Buff |
+|---|---|---|
+| Hee-ho Bar | 180 | Sun Veil Lv5: 10 turns, 50 steps |
+| South Pole Shaved Ice | 260 | Water Enchant Lv5: 10 turns, 50 steps |
+| Miracle Shake | 620 | Divine Shield Lv5: 4 turns, 20 steps |
+| Raspberry Supreme | 840 | Aim Lv10: 9 turns, 45 steps |
+| 31-Layer Ice Cream | 1000 | Circle Protect Lv5: 8 turns, 40 steps; Accelerator Lv5: 3 turns, 15 steps |
+| Mapo Ramen | 80 | Fire Enchant Lv5: 10 turns, 50 steps |
+| Mega-Meaty Ramen | 380 | Circle Brave Lv5: 8 turns, 40 steps |
+| Ramen Carbonara | 520 | Circle Protect Lv5: 8 turns, 40 steps; Fleet Foot Lv10: 6 turns, 30 steps |
+| Ultimate Champon | 980 | Stab Guard Lv5: 8 turns, 40 steps; Slash Guard Lv5: 8 turns, 40 steps; Bash Guard Lv5: 8 turns, 40 steps |
+| Heaven's Ramen | 1280 | Insurance Lv5: 10 turns, 50 steps |
 
