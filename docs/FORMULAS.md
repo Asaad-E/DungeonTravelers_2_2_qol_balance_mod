@@ -821,10 +821,32 @@ Otherwise the cell names its zone, and the zone gives the chance:
 So the mean walk between two battles is `8 + 100 / chance` steps: 28 steps at 5, 22.3 at 7, 18 at 10. The figure of
 every zone is in `docs/generated/BALANCE_BASELINE.md`. It is one int of the floor file: data, not code.
 
-After that roll the same step rolls five special chances of the zone (`zone[0x20]` to `zone[0x30]`), each one only
-while its game flag (601 to 605) is on and it has not fired yet, and only once the dungeon counters allow it
-(`0x556380`: a counter of at least 5 and at least 50 steps, 25 with a piece of enchantment 259); the same four
-enchantments shift them. What each of the five starts was not followed.
+After that roll the same step rolls five more chances of the zone, in this order, and the first that falls under
+its chance fires (`0x4bcb60`): each makes a wandering shop appear, the class the program builds for it named by its
+type information (`0x4b28b7`, jump table `0x4b36cc`).
+
+| Chance | Field of the zone | Shop | Game flag | Vanilla values |
+|---|---|---|---|---|
+| 1 | `0x20` | Peddler (`CShopPeddler`) | 601 | 3 - 10 |
+| 2 | `0x24` | Blacksmith (`CShopBlacksmith`) | 602 | 2 - 10 |
+| 3 | `0x28` | Ice cream shop (`CShopIce`) | 603 | 0, or 5 - 10 |
+| 4 | `0x2C` | Ramen shop (`CShopRamen`) | 604 | 0, or 6 - 12 |
+| 5 | `0x30` | Dark peddler (`CShopDarkPeddler`) | 605 | 0 in every zone |
+
+A shop is rolled only when all of this holds (`0x4bc8a1 - 0x4bca94`, `0x556380`):
+
+* its game flag is on (the story has opened that shop);
+* it has not appeared yet: a byte of the dungeon for each shop (`+0x781` to `+0x785`), set when it appears
+  (`0x4bcbad`) and cleared with the other counters of the dungeon (`0x4b613f - 0x4b6175`);
+* the counter of battles of the dungeon (`+0x770`, one more at the start of each battle, `0x4b2730`) is at least 5;
+* at least 50 steps were taken since the last shop appeared (`+0x200`, one more a step at `0x4b92b3`, set to 0 when a
+  shop appears, `0x4b289b`); 25 steps with a piece of enchantment 259.
+
+Then `chance + shift of the four enchantments above`, at least 1, against a number below 100. The battle is rolled
+first and the peddler before the blacksmith, and a shop that appears sets the 50 steps back for the others, so the
+blacksmith of a zone at 5 with a peddler at 6 and battles at 6 is the next shop a little under half of the times.
+An item sets a byte (`+0x7A4`) that puts the ice cream and ramen chances of the zone at 100 for the next step
+(`0x4bcaa9 - 0x4bcb52`). The five chances are ints of the floor file, as the chance of a battle: data, not code.
 
 ## 15. Items (`0x50c596`; `tools/item_effect_data.py`) **[code]**
 

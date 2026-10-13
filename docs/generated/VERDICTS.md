@@ -150,12 +150,12 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 | F62 | Fire Scroll | closed | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 44 - 51% before, 66 - 77% after X |  |
 | F63 | Barrage | not a problem | passive: double attack of the Kunoichi; W raised Double and Triple Attack |  |
 | F64 | Lullaby | not a problem | false: measured +4% shorter fights with it (a free sleep on every enemy) |  |
-| F65 | Sacred Hymn | not a problem | partly true: songs compete for two slots with Carol and March; measured +0% of length and of wins at the bosses of the reference party (docs/generated/SKILL_VALUE.md), where little damage is magic |  |
+| F65 | Sacred Hymn | not a problem | partly true: it serves at the last boss alone | A song of RES is worth its slot where the boss casts: the last one. Elsewhere Carol and March are better uses of the two slots |
 | F66 | Barrage Rondo | not a problem | partly true: as F65 (measured +3%) |  |
 | F67 | Sorcerous Ballad | not a problem | partly true: as F65 (measured +5%) |  |
 | F68 | Enticing Love | closed | true before; decided in T05 (Enticing Love -25% TP) |  |
 | F69 | Carrot and Stick | closed | partly true: a debuff paid with a heal of the enemy; M raised it x1.5 |  |
-| F70 | Ecstasy | not a problem | false in the model: Ecstasy raises its own ATK and DEX statuses, which stack with War Cry |  |
+| F70 | Ecstasy | not a problem | true, for another reason: it stacks with War Cry but adds nothing that can be measured | Three turns once a battle are too little at that size. At 30% to 50% the fights of C30 and C40 are 5% to 8% shorter; at 60% to 100%, 8% to 10% (the same measure with the values changed) |
 | F71 | Oracles | closed | true by the guide (Mercidarian best); D raised every doll |  |
 | F72 | Life Bringer | closed | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 41% before, 76% after X |  |
 | F73 | Beast Binder | not a problem | false with a whip in hand: the best strike of the Joker against groups from C34 on |  |
@@ -246,7 +246,7 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 
 | Row | Subject | State | Verdict | Why |
 |---|---|---|---|---|
-| J36 | Meals | not a problem | not measured | A quarter of the meals have nothing that could run out. For the other twelve the length of the buff is not known here |
+| J36 | Meals | not a problem | not measured | A quarter of the meals have nothing that could run out. For the other twelve the buff is the skill itself, performed at a fixed level by the ordinary skill action (0x50b030, 0x41d2b0); what ends it outside a battle was looked for on 2026-10-13 and not found (the list emptied every 100 steps at 0x4b92ed holds the shops that appeared, not the buffs) |
 | S18 | Bag of 30 slots | not a problem | partly true | Starting capacity of 30 is hardcoded in the engine executable; Quest Ranks naturally expand it to 50 slots. Preserves expedition resource management without unstable executable patches. |
 | S19 | Early economy | not a problem | partly true: five to eighteen battles pay one basic heal at the start | Battles pay little at the start; quests are where the early gold comes from, and the variant raises the gold of every quest by 40% (row S20) |
 | S20 | EXP of quests | closed | partly true | Reopened on 2026-10-11: rows P026 - P030 of balance_changes.xlsx, which this verdict leaned on, cannot be written (the figure they took for gold is the id of the item or piece the quest gives; QuestData 0x38 is the kind of the reward) and are blocked; the B4 factors it also names are not built. Quest gold rewards increased by +30% to +50% in QuestData, allowing players to purchase better gear and seals, while underleveled party members catch up rapidly via the B4 EXP curve on quest monsters. |
@@ -285,7 +285,7 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 
 ## Rows closed on an argument, with no figure
 
-10 of 180 rows hold no number in what was measured, found or decided: their verdict is a reading of the design, not a measure.
+9 of 180 rows hold no number in what was measured, found or decided: their verdict is a reading of the design, not a measure.
 
 | Row | Subject | State | Verdict | Why |
 |---|---|---|---|---|
@@ -296,6 +296,5 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 | F28 | Attract | not a problem | partly true: as F27 |  |
 | F38 | Avenger | not a problem | passive: out of the measure; it can trigger an enemy Dark Aura by design |  |
 | F63 | Barrage | not a problem | passive: double attack of the Kunoichi; W raised Double and Triple Attack |  |
-| F70 | Ecstasy | not a problem | false in the model: Ecstasy raises its own ATK and DEX statuses, which stack with War Cry |  |
 | F82 | Cleanse | not a problem | false: a free cure against items |  |
 | F87 | Sniper | closed | true | Addressed by W036-W039 making bow combat skills fully compatible with guns. |
