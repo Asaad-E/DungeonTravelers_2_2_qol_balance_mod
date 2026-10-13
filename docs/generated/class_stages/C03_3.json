@@ -14,13 +14,13 @@
   },
   "valkyrie": {
    "won": 1.0,
-   "time": 3.0793646875,
-   "time_won": 3.0793646875,
-   "share": 0.20510416666666664,
+   "time": 3.058396,
+   "time_won": 3.058396,
+   "share": 0.21255208333333328,
    "character": "Alisia",
    "level": 5,
-   "lowest_hp": 0.9226934523809524,
-   "hp_left": 0.9226934523809524,
+   "lowest_hp": 0.9232142857142858,
+   "hp_left": 0.9232142857142858,
    "class": "Fighter"
   },
   "treasure hunter": {
