@@ -130,6 +130,15 @@ def program_rows(variant):
     return [f'exe|{k}|{offset:x}|{old}|{new}' for k, layout in enumerate(layouts) for offset, old, new in layout]
 
 
+def floor_rows(variant):
+    """['poke|file|offset|old|new'] of the values the variant writes in place into the packs of the dungeons, which
+    are too large to carry as differences of a whole file (tools/floor_patch.py)."""
+    if variant not in PATCH_SETS:
+        return []
+    import floor_patch
+    return floor_patch.manifest_lines()
+
+
 def differences(variant, files):
     """(lines of <variant>.txt, bytes of .ops, bytes of .dat). Each file is rebuilt and compared before it is kept."""
     lines, ops, blob = [f'variant|{variant}'], bytearray(), bytearray()
@@ -146,7 +155,7 @@ def differences(variant, files):
                 blob += step[1]
         rel = chr(92).join(('Data', 'ENG', sub, name))
         lines.append(f'file|{rel}|{sha(original)}|{sha(built)}|{len(built)}|{start}|{len(steps)}')
-    return lines + program_rows(variant), bytes(ops), bytes(blob)
+    return lines + program_rows(variant) + floor_rows(variant), bytes(ops), bytes(blob)
 
 
 def package(variant, out_dir=DIST_DIR, stamp=None):

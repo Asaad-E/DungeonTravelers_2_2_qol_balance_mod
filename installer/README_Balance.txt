@@ -31,6 +31,7 @@ What changes
 * A fruit gives a fifth more TP, so a party without a Maid can go on with a full bag.
 * The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
   mercenary, heals more.
+* The wandering blacksmith shows up more often in every dungeon.
 
 Every skill, item and enchantment shows its new figures in the game.
 
@@ -46,7 +47,8 @@ your own copy.
 3. Run "Install_Balance.bat" (double click).
 
 It checks every file it is about to change, keeps a copy of each original in "DT22_Mod\backup",
-and then changes them. It also changes 19 bytes of the program (the EXP by level gap,
+and then changes them. In the large files of the dungeons it changes a few bytes in place and
+keeps the list of them instead of a copy. It also changes 19 bytes of the program (the EXP by level gap,
 the Crown, the chance of Arcane Shield and the passive Concentrate) in every .exe of the
 folder that is the game. If a file is not the original one it says which and changes nothing.
 The window ends with "Done: ..." when all went well.

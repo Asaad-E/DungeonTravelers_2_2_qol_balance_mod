@@ -187,6 +187,8 @@ def apply(data, changes):
                 out.enchant_stacks.add(eid)
             else:
                 out.enchant_stacks.discard(eid)
+        elif table == 'zones':
+            pass                                # the chance of a wandering shop: nothing of a battle
         else:
             raise ValueError(f'{row["ID"]}: unknown table {table}')
     for doll in out.dolls:                     # a doll record follows the life of its skill

@@ -79,6 +79,10 @@ For the reasoning behind these, see `docs/philosophy.md`.
 names the kind of change, listed in the sheet `Levers` of `balance_criteria.xlsx`. If the kind is new, the writer for
 it goes in `tools/balance_values.py`, and the simulator must read it too (`sim/variant.py`).
 
+**A value of a dungeon floor** (the chance of a wandering shop). Same sheet, table `zones`. The packs of the dungeons
+are too large to copy, so these rows are written in place into the game and put back the same way
+(`tools/floor_patch.py`); `data_tables/floor_file_index.json` says where each floor file sits in its pack.
+
 **A text.** The QoL text lives in the `qol_*_text.xlsx` workbooks, labels and wordings in `qol_rules.xlsx`. Where the
 Balance variant needs a different wording, it goes in `balance_skill_text.xlsx`.
 

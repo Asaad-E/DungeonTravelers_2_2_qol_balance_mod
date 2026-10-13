@@ -123,15 +123,27 @@ def report(variant, changes, kept, problems, saved_dir):
 def install_program(variant):
     """The program files of the game in the state of the variant: the rows of the sheet ExePatches whose set carries
     the name of the variant written into both files (tools/exe_patch.py), or both vanilla files put back when the
-    variant has no such rows. Returns the lines to print."""
+    variant has no such rows; then the floor files (install_floors). Returns the lines to print."""
     import exe_patch
     rows = exe_patch.patches(variant)
     if rows:
         done = exe_patch.install(variant)
         return [f"    Program: {len(rows)} rows of the set '{variant}' in {label} ({changed} bytes differ from vanilla)"
-                for label, _, changed in done]
+                for label, _, changed in done] + install_floors(variant)
     done = exe_patch.restore()
-    return [f"    Program: vanilla ({', '.join(done)})" if done else '    Program: vanilla, never patched']
+    return [f"    Program: vanilla ({', '.join(done)})" if done else '    Program: vanilla, never patched'] + install_floors(variant)
+
+
+def install_floors(variant):
+    """The floor files of the game in the state of the variant: the rows of table zones written in place for the
+    Balance variant, the values of the game put back for any other (tools/floor_patch.py). Returns the lines to print."""
+    import floor_patch
+    try:
+        packs, count = floor_patch.apply() if variant == 'balance' else floor_patch.restore()
+    except floor_patch.Refused as reason:
+        return [f'    Floors: REFUSED, nothing written: {reason}']
+    what = 'values of the variant written' if variant == 'balance' else 'values of the game'
+    return [f'    Floors: {count} {what} in {packs} packs of the dungeons']
 
 
 def main():

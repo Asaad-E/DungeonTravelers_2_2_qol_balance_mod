@@ -7,6 +7,10 @@
 #                                      script, then changes it
 #   mod_patch.ps1 uninstall            puts every file back from that folder
 #
+# The packs of the dungeons are large, so a variant changes a few bytes of them in place (lines "poke" of its list):
+# no copy is kept, the list of what was written is (pokes.txt beside this script), and the value of the game goes back
+# wherever the file still holds the one the mod wrote.
+#
 # Nothing is written unless every file is the one this mod was made for (each is checked by its SHA-256), and
 # unless every file changed before is still as this script left it (the list installed.txt beside this script): a
 # game that was updated or repaired since then is not written over with the copies of an older one.
@@ -17,6 +21,7 @@ $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path -Parent $modDir
 $backup = Join-Path $modDir 'backup'
 $stateFile = Join-Path $modDir 'installed.txt'
+$pokeFile = Join-Path $modDir 'pokes.txt'
 
 function Get-Sha([byte[]]$bytes) {
     $sha = [System.Security.Cryptography.SHA256]::Create()
@@ -73,6 +78,47 @@ $updated = @('The game was updated or repaired after the mod was installed, so t
              "$(Split-Path -Leaf $modDir)\backup belong to an older game. Delete the folder $(Split-Path -Leaf $modDir)\backup and the file",
              "$(Split-Path -Leaf $modDir)\installed.txt, have the launcher of the game check its files, and install again.")
 
+function Holds-At([string]$path, [int]$offset, [byte[]]$bytes) {
+    $stream = [System.IO.File]::OpenRead($path)
+    try {
+        if ($offset + $bytes.Length -gt $stream.Length) { return $false }
+        $held = New-Object byte[] $bytes.Length
+        $stream.Position = $offset
+        [void]$stream.Read($held, 0, $held.Length)
+        for ($i = 0; $i -lt $bytes.Length; $i++) { if ($held[$i] -ne $bytes[$i]) { return $false } }
+        return $true
+    } finally { $stream.Dispose() }
+}
+
+function Put-At([string]$path, [int]$offset, [byte[]]$bytes) {
+    $stream = [System.IO.File]::Open($path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite)
+    try { $stream.Position = $offset; $stream.Write($bytes, 0, $bytes.Length) } finally { $stream.Dispose() }
+}
+
+function Read-Pokes([string]$path) {
+    # the lines "poke|file|offset|old|new" of a list
+    $list = @()
+    if (Test-Path $path) {
+        foreach ($line in [System.IO.File]::ReadAllLines($path)) {
+            $p = $line.Split('|')
+            if ($p[0] -eq 'poke') {
+                $list += ,@{ Rel = $p[1]; Offset = [Convert]::ToInt32($p[2], 16); Old = (To-Bytes $p[3]); New = (To-Bytes $p[4]); Line = $line }
+            }
+        }
+    }
+    return ,$list
+}
+
+function Undo-Pokes([object[]]$list) {
+    # the value of the game goes back wherever the file still holds the one the mod wrote
+    $count = 0
+    foreach ($k in $list) {
+        $path = Join-Path $root $k.Rel
+        if ((Test-Path $path) -and (Holds-At $path $k.Offset $k.New)) { Put-At $path $k.Offset $k.Old; $count++ }
+    }
+    return $count
+}
+
 function Stop-With([string[]]$lines) {
     foreach ($line in $lines) { Write-Host $line }
     Write-Host ''
@@ -87,7 +133,8 @@ if (-not (Test-Path (Join-Path $root 'Data\ENG\Parameter'))) {
 
 if ($Mode -eq 'uninstall') {
     $kept = Backup-Files
-    if ($kept.Count -eq 0) { Write-Host 'No backup here: the mod is not installed.'; exit 0 }
+    $written = Read-Pokes $pokeFile
+    if ($kept.Count -eq 0 -and $written.Count -eq 0) { Write-Host 'No backup here: the mod is not installed.'; exit 0 }
     $state = Read-State
     $moved = @()
     foreach ($rel in $kept) {
@@ -97,10 +144,12 @@ if ($Mode -eq 'uninstall') {
     if ($moved.Count -gt 0) { Stop-With ($moved + $updated) }
     try {
         foreach ($rel in $kept) { Copy-Item -Path (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force }
+        [void](Undo-Pokes $written)
+        if (Test-Path $pokeFile) { Remove-Item -Path $pokeFile -Force }
     } catch {
         Stop-With @("A file could not be written: $($_.Exception.Message)", 'Close the game and run this again.')
     }
-    Remove-Item -Path $backup -Recurse -Force
+    if (Test-Path $backup) { Remove-Item -Path $backup -Recurse -Force }
     if (Test-Path $stateFile) { Remove-Item -Path $stateFile -Force }
     Write-Host "The game is as it was: $($kept.Count) file(s) put back."
     exit 0
@@ -209,6 +258,18 @@ foreach ($rel in (Backup-Files)) {
     $original = Get-Sha ([System.IO.File]::ReadAllBytes((Join-Path $backup $rel)))
     if (Changed-Since $state $rel @($original)) { $problems += "${rel}: changed since the mod was installed"; $stale = $true }
 }
+# the values written in place: each place must hold the value of the game or the one this variant writes
+$pokes = Read-Pokes $manifest
+$odd = @{}
+foreach ($k in $pokes) {
+    if ($odd.ContainsKey($k.Rel)) { continue }
+    $path = Join-Path $root $k.Rel
+    if (-not (Test-Path $path)) { $odd[$k.Rel] = 'not found in the game' }
+    elseif (-not ((Holds-At $path $k.Offset $k.Old) -or (Holds-At $path $k.Offset $k.New))) {
+        $odd[$k.Rel] = 'not the original file (another version of the game, or another mod is installed)'
+    }
+}
+foreach ($rel in $odd.Keys) { $problems += "${rel}: $($odd[$rel])" }
 if ($stale) { $problems += $updated }
 if ($problems.Count -gt 0) { Stop-With $problems }
 
@@ -219,6 +280,10 @@ try {
         Write-File (Join-Path $root $w.Rel) $w.Bytes
     }
     [System.IO.File]::WriteAllLines($stateFile, [string[]]@($writes | ForEach-Object { "$($_.Rel)|$(Get-Sha $_.Bytes)" }))
+    [void](Undo-Pokes (Read-Pokes $pokeFile))             # what another variant wrote in place goes back first
+    foreach ($k in $pokes) { Put-At (Join-Path $root $k.Rel) $k.Offset $k.New }
+    if ($pokes.Count -gt 0) { [System.IO.File]::WriteAllLines($pokeFile, [string[]]@($pokes | ForEach-Object { $_.Line })) }
+    elseif (Test-Path $pokeFile) { Remove-Item -Path $pokeFile -Force }
     $back = 0
     foreach ($rel in (Backup-Files)) {
         if (-not $named.ContainsKey($rel.ToLower())) {
@@ -232,5 +297,6 @@ try {
     exit 1
 }
 Write-Host "Done: $($files.Count) data file(s) changed, $programs program file(s) patched."
+if ($pokes.Count -gt 0) { Write-Host "$($pokes.Count) value(s) changed in the files of the dungeons." }
 if ($back -gt 0) { Write-Host "$back file(s) of another variant put back as the original." }
 Write-Host "A copy of every original is in $(Split-Path -Leaf $modDir)\backup. To take the mod out, run the Uninstall .bat."

@@ -24,6 +24,9 @@ A row is one value of one record. Each kind of row has its address here, with th
                   stats from 0x20
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
+    zones         a floor file of Dungeon/stNN/Data.pck: one of the chances of a wandering shop of a zone. These packs
+                  are not copied nor built: the row is checked here against the floor file kept in backups/ and written
+                  in place at install time (tools/floor_patch.py)
 
 Rules of the step (docs/philosophy.md 2.5):
   * before a value is written, what the original holds there is compared with the column Vanilla of the row; a
@@ -457,10 +460,23 @@ def quest_row(packs, row):
     packs.write(row, (pack, name, None, QUEST_AMOUNT), 'i', row['New'])
 
 
+def zone_row(packs, row):
+    import floor_patch
+    try:
+        poke = floor_patch.pokes([row])[0]
+    except floor_patch.Refused as reason:
+        raise Refused(str(reason))
+    where = (f"{floor_patch.DUNGEON}/{poke['dungeon']}/{floor_patch.PACK}", poke['entry'], None, poke['at'])
+    if where in packs.claimed:
+        raise Refused(f'the field is already written by row {packs.claimed[where]}')
+    packs.claimed[where] = row['ID']
+    packs.ledger.append(where + (4, poke['new'], row['ID']))        # kept in the ledger; no pack of the folder holds it
+
+
 WRITERS = {'skills': skill_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
            'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row,
            'items': item_row, 'unique': unique_row,
-           'party_skills': party_skill_row, 'npcs': npc_row}
+           'party_skills': party_skill_row, 'npcs': npc_row, 'zones': zone_row}
 
 
 def apply(rows=None, backup_dir=BACKUP_DIR):

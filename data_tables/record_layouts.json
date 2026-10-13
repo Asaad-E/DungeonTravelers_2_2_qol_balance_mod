@@ -47,7 +47,9 @@
  "FloorParameter": {
   "encounter": "0x1C", "fixed_count": "0x28", "fixed_pointer": "0x30", "count": "0x5C", "formations": "0x60",
   "equipment_count": "0x68", "equipment_pointer": "0x70", "equipment_record": "0x24", "drop_kinds": 4,
-  "zone_count": "0x98", "zone_pointer": "0xA0", "zone_factors": "0xB8", "zone_size": "0xD0", "record": 88, "enemy_slots": 12
+  "zone_count": "0x98", "zone_pointer": "0xA0", "zone_factors": "0xB8", "zone_size": "0xD0", "record": 88, "enemy_slots": 12,
+  "zone_fields": {"peddler chance": "0x20", "blacksmith chance": "0x24", "ice cream shop chance": "0x28",
+                  "ramen shop chance": "0x2C", "dark peddler chance": "0x30"}
  },
  "FloorMap": {"header": "0x0C", "cell": 42, "script_count": "0x78", "script_pointer": "0x80"}
 }
