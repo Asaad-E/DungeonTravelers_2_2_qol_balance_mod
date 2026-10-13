@@ -93,8 +93,8 @@ class Policy:
         target = best_single_target(battle, unit, attack)
         if target is None or battle.expected_damage(attack, target) <= 0:
             return Action(unit, 'defend')             # nothing it can do lands: a player defends
-        if self.heals(unit) and punished(unit, attack, target):
-            return Action(unit, 'defend')             # a healer does not trade blows with an enemy that answers them
+        if punished(unit, attack, target) and (self.heals(unit) or self.weak_blow(battle, attack, target)):
+            return Action(unit, 'defend')             # a blow that is answered is not struck by a healer, nor for nothing
         attack.target = target
         return attack
 
@@ -109,6 +109,12 @@ class Policy:
     def heals(self, unit):
         """Whether one of the rules of the member heals: she is a heal of her party."""
         return any(action == 'heal' for _, _, action, _ in self.rules.get(getattr(unit, 'role', 'attacker'), []))
+
+    def weak_blow(self, battle, action, target):
+        """Whether a plain blow takes less of the max HP of its target than the setting punished_blow_floor: not worth
+        the answer of an enemy that punishes it."""
+        floor = float(self.setup.get('punished_blow_floor', 0) or 0)
+        return bool(floor) and battle.expected_damage(action, target) < floor * target.max_hp
 
     def heal_reserve(self, battle, unit):
         """The TP a member who heals keeps back from her buffs and her attacks: the cost of heal_reserve_casts of her
@@ -305,7 +311,7 @@ def act_damage(policy, battle, unit, arg):
         total, target = damage_value(battle, action)
         if total <= 0:
             continue
-        if action.kind == 'attack' and policy.heals(unit) and punished(unit, action, target):
+        if action.kind == 'attack' and punished(unit, action, target) and                 (policy.heals(unit) or policy.weak_blow(battle, action, target)):
             continue
 
         wait_time = policy.time_of(battle, action)
