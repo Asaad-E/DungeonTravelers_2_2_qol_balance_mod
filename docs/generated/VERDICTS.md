@@ -189,9 +189,9 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 |---|---|---|---|---|
 | J15 | Boss dispel | not a problem | partly true | True of the postgame, not of the story. The removal rides on a hit that also deals its damage, so it costs the boss nothing; what keeps a buff worth its turn is its length against how often that attack is picked, and the buffs measured still pay (docs/generated/SKILL_VALUE.md). Left as the game has it: it is what makes the postgame bosses different from the story ones |
 | J16 | Resistance wall | not a problem | partly true | Elemental resistance caps damage reduction at 50% (never 0%), and superbosses carry distinct -20% to -30% elemental weaknesses that accelerated chants exploit. |
-| J17 | Area damage spikes | not a problem | partly true | Cover (Valkyrie) and Phalanx (Paladin) are designed precisely to protect fragile backline casters from lethal AoE spikes. |
+| J17 | Area damage spikes | not a problem | true from C26 on | From C26 on one enemy action can fell the frailest member from full HP in most battles, with Cover and the guards played. It is what makes the Valkyrie and the Paladin worth their place (rows J04, F07); nothing was changed for it |
 | F86 | Superboss openings | closed | true | Resolved via Samael Turn 1 AI opening adjustment (L05), First Grid scaled to 15% (15 SP), and Warning Shot raised to 10% max. |
-| F95 | Anti-magic bosses | not a problem | partly true | Non-magic healing through Bard/Diva songs, Maid cooking, and consumables prevents Treasure Hunter from being mandatory. |
+| F95 | Anti-magic bosses | not a problem | partly true: she adds 20 to 40 points of wins at two of the four postgame fights, and is not needed in the story | She helps where magic is shut, as the guide says, but a party wins P07 and P25 without her (Meta 95% and 76%) |
 | S04 | Bosses beaten by levels and items | not a problem | false | Empirically disproven by difficulty_curve.py; 42 of 44 checkpoints match vanilla winrates and turn counts at intended checkpoint levels without overleveling. |
 | S21 | Optional and side-quest bosses | not a problem | partly true | Optional challenge bosses are intended to be tackled later; B4 catch-up curve enables smooth return during postgame. |
 | S22 | Final boss of the main story | not a problem | false | C40 final story boss Demiurge calibrated to 85% win rate at Lv64 across 41 turns, maintaining intended narrative climax challenge. |
@@ -208,11 +208,11 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 
 | Row | Subject | State | Verdict | Why |
 |---|---|---|---|---|
-| J35 | Forging | not a problem | false | Forging costs scale quadratically as an endgame gold sink; S16 complains of the opposite (forged gear being too strong). Progression functions as intended. |
+| J35 | Forging | not a problem | false on the size of the bonus; its cost not measured | A level is worth about 6% of the base ATK of the weapon, and the levels add up (a Claymore goes from 37 to 312 ATK at the top level). The half of the claim about the price is not answered |
 | F89 | Grand sealbooks | closed | true | Underperforming postgame Grand Sealbooks given complementary secondary enchantments (ench_cnt = 2 in SealScrollData.bin) boosting defense, critical rate, and TP sustainability. |
 | F90 | Best-in-slot farming | closed | true | Read on 2026-10-11 (measures/drops_reading.md, checked against 0x558517 - 0x5586fa): rows P011 - P023 and P025 of balance_changes.xlsx dropped, they changed the count of slots of drops that are certain or usual. Rows P024, P079 - P084 raise the seven pieces under 2% to 2%. The weight of a slot is the same word for the drop and for the steal (measures/steal_reading.md, checked on 2026-10-11): with the rows the Chief's Special comes out of 4.7% of the steals that succeed. Rows P085 - P088 (decided 2026-10-11): Odin, Myrddin, Asmodeus and Carmilla, the four enemies of the random battles that could not be robbed, can be: their pieces come out of 6 to 9% of the steals that succeed, against 3.9 to 5.4% of the kills. |
 | S09 | All stats enchantments | closed | true | All stats enchantments (IDs 24-28) bit 0 enabled at offset 0x20 in EnchantData.pck (word 8 changed from 428 to 429), allowing gear piece stacking. |
-| S16 | Forged pieces against unique ones | not a problem | false | Contradicts J35. Unique postgame weapons feature distinct innates and higher base stats; forged gear provides customization flexibility without invalidating unique top-tier drops. |
+| S16 | Forged pieces against unique ones | not a problem | false on ATK; the enchantments not compared | On attack the unique pieces stay ahead to the end, by 20% to 140%. Whether three or four chosen enchantments make up for it is not measured |
 
 ## T11 Information
 
@@ -239,16 +239,16 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 | F91 | Damage zones | not a problem | false | Elemental zone bonuses apply symmetrically to party and enemies, creating intentional positioning and build puzzles inherent to DT2-2 dungeon exploration. |
 | F96 | Elemental weakness | not a problem | partly true | A weakness is common early and rare where the claim places it: 4 of the 55 postgame fights. Each point below 0 adds half a percent of damage (docs/FORMULAS.md 2.4), so -50 is a quarter more, not a trivial fight |
 | S13 | Encounter rate | not a problem | partly true | Encounter rate of 5-8% in story dungeons conforms to dungeon crawler genre norms. Repel items and Grand Sealbook Tres Durian provide encounter mitigation. |
-| S14 | Harmful map zones | not a problem | false | Anti-magic, darkness, and damage tiles are core dungeon crawling hazards with dedicated counterplay (Light spell, levitate/cushion items, Grand Sealbook Sahohime). |
+| S14 | Harmful map zones | not a problem | a matter of taste; the figure: a fifth to a quarter of the floors, a tenth to a sixth of their cells | The zones weigh on both sides alike and cover a small part of the floors that have them. Maps are out of what the variant changes |
 | S15 | Traps | not a problem | false | Scout class tree provides Trap Search and Trap Disarm; Grand Sealbook Deep Slapyon mitigates trap damage by 90%. |
 
 ## T14 Economy, inventory and consumables
 
 | Row | Subject | State | Verdict | Why |
 |---|---|---|---|---|
-| J36 | Meals | not a problem | false | Meals provide pre-dungeon or mid-dungeon prep; cooking and eating items near boss rooms or utilizing long-duration food recipes addresses boss preparation. |
+| J36 | Meals | not a problem | not measured | A quarter of the meals have nothing that could run out. For the other twelve the length of the buff is not known here |
 | S18 | Bag of 30 slots | not a problem | partly true | Starting capacity of 30 is hardcoded in the engine executable; Quest Ranks naturally expand it to 50 slots. Preserves expedition resource management without unstable executable patches. |
-| S19 | Early economy | not a problem | false | Early game resource scarcity is intentional survival tension in dungeon crawlers; early story quests and enemy drops provide adequate funds for baseline gear. |
+| S19 | Early economy | not a problem | partly true: five to eighteen battles pay one basic heal at the start | Battles pay little at the start; quests are where the early gold comes from, and the variant raises the gold of every quest by 40% (row S20) |
 | S20 | EXP of quests | closed | partly true | Reopened on 2026-10-11: rows P026 - P030 of balance_changes.xlsx, which this verdict leaned on, cannot be written (the figure they took for gold is the id of the item or piece the quest gives; QuestData 0x38 is the kind of the reward) and are blocked; the B4 factors it also names are not built. Quest gold rewards increased by +30% to +50% in QuestData, allowing players to purchase better gear and seals, while underleveled party members catch up rapidly via the B4 EXP curve on quest monsters. |
 
 ## T15 Unique skills
@@ -285,14 +285,11 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 
 ## Rows closed on an argument, with no figure
 
-17 of 180 rows hold no number in what was measured, found or decided: their verdict is a reading of the design, not a measure.
+10 of 180 rows hold no number in what was measured, found or decided: their verdict is a reading of the design, not a measure.
 
 | Row | Subject | State | Verdict | Why |
 |---|---|---|---|---|
 | J13 | Mercenaries | not a problem | partly true | Minor informational point; guest allies are optional |
-| J17 | Area damage spikes | not a problem | partly true | Cover (Valkyrie) and Phalanx (Paladin) are designed precisely to protect fragile backline casters from lethal AoE spikes. |
-| J35 | Forging | not a problem | false | Forging costs scale quadratically as an endgame gold sink; S16 complains of the opposite (forged gear being too strong). Progression functions as intended. |
-| J36 | Meals | not a problem | false | Meals provide pre-dungeon or mid-dungeon prep; cooking and eating items near boss rooms or utilizing long-duration food recipes addresses boss preparation. |
 | F07 | Valkyrie | not a problem | partly true | As J04: top stability, but alternative strategies exist |
 | F20 | Skills to leave at level 1 | not a problem | true by design: some skills gain little from levels |  |
 | F21 | Items beat skills | not a problem | false: skills are free and unlimited; items cost money and slots |  |
@@ -302,7 +299,3 @@ Rows: 180. open: 0, closed: 80, not a problem: 88, out of the balance: 12. Open 
 | F70 | Ecstasy | not a problem | false in the model: Ecstasy raises its own ATK and DEX statuses, which stack with War Cry |  |
 | F82 | Cleanse | not a problem | false: a free cure against items |  |
 | F87 | Sniper | closed | true | Addressed by W036-W039 making bow combat skills fully compatible with guns. |
-| F95 | Anti-magic bosses | not a problem | partly true | Non-magic healing through Bard/Diva songs, Maid cooking, and consumables prevents Treasure Hunter from being mandatory. |
-| S14 | Harmful map zones | not a problem | false | Anti-magic, darkness, and damage tiles are core dungeon crawling hazards with dedicated counterplay (Light spell, levitate/cushion items, Grand Sealbook Sahohime). |
-| S16 | Forged pieces against unique ones | not a problem | false | Contradicts J35. Unique postgame weapons feature distinct innates and higher base stats; forged gear provides customization flexibility without invalidating unique top-tier drops. |
-| S19 | Early economy | not a problem | false | Early game resource scarcity is intentional survival tension in dungeon crawlers; early story quests and enemy drops provide adequate funds for baseline gear. |
