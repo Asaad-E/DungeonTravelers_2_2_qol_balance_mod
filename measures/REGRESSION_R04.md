@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 20 of 27 such pairs on the variant, 27 of 34 in vanilla.**
+**A party without the class reaches the floor at 18 of 24 such pairs on the variant, 25 of 31 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -18,52 +18,46 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C10 | variant | Bard | 80% | Meta with etoile for diva | 100% |
 | C13 | vanilla | Bard | 50% | Mage-Heavy with etoile for maid | 98% |
 | C13 | variant | Bard | 50% | Mage-Heavy with etoile for maid | 100% |
-| C17 | vanilla | Bard | 50% | Meta with etoile for diva | 65% |
-| C17 | variant | Bard | 50% | Meta with etoile for diva | 95% |
+| C17 | vanilla | Bard | 50% | Meta with etoile for diva | 77% |
+| C17 | variant | Bard | 50% | Meta with etoile for diva | 97% |
 | C18 | vanilla | Bard | 20% | Dual-Support with etoile for diva | 100% |
 | C18 | variant | Bard | 20% | Dual-Support with etoile for diva | 100% |
-| C19 | vanilla | Diva | 50% | Meta with etoile for diva | 95% |
-| C19 | variant | Diva | 50% | Meta with etoile for diva | 93% |
-| C21 | vanilla | Diva | 80% | Juggernaut-Plus with mistress for diva | 88% |
-| C21 | variant | Diva | 80% | Juggernaut-Plus with mistress for diva | 83% |
+| C19 | vanilla | Diva | 50% | Meta with etoile for diva | 92% |
+| C19 | variant | Diva | 50% | Meta with etoile for diva | 97% |
+| C21 | vanilla | Diva | 80% | Juggernaut-Plus with mistress for diva | 90% |
+| C21 | variant | Diva | 80% | Juggernaut-Plus with mistress for diva | 92% |
 | C24 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 100% |
 | C24 | variant | Diva | 80% | Dual-Support with etoile for diva | 100% |
-| C26 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 95% |
-| C26 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 95% |
-| C26 | variant | Diva | 80% | Meta with etoile for diva | 87% |
-| C28 | vanilla | Diva | 50% | Meta with mistress for diva | 78% |
-| C28 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 68% |
-| C28 | variant | Diva | 50% | Juggernaut-Plus with mistress for diva | 67% |
-| C29 | vanilla | Bishop | 50% | Mage-Heavy with diva for healer | 95% |
-| C29 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 95% |
+| C26 | vanilla | Diva | 80% | Meta with etoile for diva | 88% |
+| C26 | variant | Diva | 80% | Meta with etoile for diva | 100% |
+| C28 | vanilla | Diva | 50% | Juggernaut-Plus with mistress for diva | 53% |
+| C28 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 70% |
+| C28 | variant | Diva | 50% | Juggernaut-Plus with mistress for diva | 73% |
+| C29 | vanilla | Bishop | 50% | Mage-Heavy with diva for healer | 98% |
+| C29 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 100% |
 | C29 | vanilla | Sage | 50% | none could be built | - **below** |
 | C29 | vanilla | Valkyrie | 50% | Mage-Heavy with attacker for tank | 90% |
 | C29 | vanilla | Witch | 50% | none could be built | - **below** |
 | C29 | variant | Bishop | 50% | Mage-Heavy with diva for healer | 98% |
-| C29 | variant | Diva | 50% | Mage-Heavy with etoile for maid | 97% |
+| C29 | variant | Diva | 50% | Mage-Heavy with etoile for maid | 100% |
 | C29 | variant | Sage | 50% | none could be built | - **below** |
-| C29 | variant | Valkyrie | 50% | Mage-Heavy with attacker for tank | 92% |
+| C29 | variant | Valkyrie | 50% | Mage-Heavy with attacker for tank | 97% |
 | C29 | variant | Witch | 50% | none could be built | - **below** |
-| C30 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 92% |
-| C30 | vanilla | Valkyrie | 50% | Mage-Heavy with attacker for tank | 78% |
-| C30 | variant | Diva | 50% | Mage-Heavy with etoile for maid | 95% |
-| C32 | vanilla | Diva | 80% | Meta with mistress for diva | 90% |
-| C32 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 87% |
-| C32 | variant | Diva | 80% | Meta with etoile for diva | 88% |
-| C32 | variant | Valkyrie | 80% | Meta with attacker for valkyrie | 87% |
-| C34 | vanilla | Diva | 80% | Meta with mistress for diva | 100% |
-| C34 | vanilla | Valkyrie | 80% | Meta with attacker for valkyrie | 100% |
-| C34 | variant | Diva | 80% | Anti-Meta-Plus with etoile for diva | 95% |
-| C36 | vanilla | Dark Lord | 50% | Meta with attacker for dark lord | 92% |
-| C36 | vanilla | Diva | 50% | Meta with mistress for diva | 83% |
-| C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 80% |
-| C36 | variant | Diva | 50% | Meta with mistress for diva | 83% |
-| C36 | variant | Valkyrie | 50% | Mage-Heavy with attacker for tank | 73% |
-| C38 | vanilla | Bishop | 80% | Dual-Support with etoile for healer | 80% |
-| C38 | vanilla | Diva | 80% | Mage-Heavy with etoile for maid | 83% |
-| C38 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 93% |
-| C38 | variant | Diva | 80% | Meta with mistress for diva | 93% |
-| C40 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 13% **below** |
-| C40 | vanilla | Valkyrie | 50% | Dual-Support with attacker for tank | 73% |
-| C40 | variant | Diva | 50% | Meta with mistress for diva | 22% **below** |
-| C40 | variant | Valkyrie | 50% | Dual-Support with attacker for tank | 53% |
+| C30 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 98% |
+| C30 | variant | Diva | 50% | Mage-Heavy with etoile for maid | 100% |
+| C32 | vanilla | Diva | 80% | Meta with etoile for diva | 82% |
+| C32 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 92% |
+| C32 | variant | Diva | 80% | Meta with etoile for diva | 98% |
+| C34 | vanilla | Diva | 80% | Anti-Meta-Plus with etoile for diva | 97% |
+| C34 | variant | Diva | 80% | Anti-Meta-Plus with etoile for diva | 100% |
+| C36 | vanilla | Dark Lord | 50% | Meta with attacker for dark lord | 87% |
+| C36 | vanilla | Diva | 50% | Meta with mistress for diva | 75% |
+| C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 85% |
+| C36 | variant | Diva | 50% | Mage-Heavy with mistress for maid | 77% |
+| C38 | vanilla | Bishop | 80% | Dual-Support with sage for healer | 85% |
+| C38 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 92% |
+| C38 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 95% |
+| C38 | variant | Diva | 80% | Meta with etoile for diva | 93% |
+| C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 53% |
+| C40 | vanilla | Valkyrie | 50% | Dual-Support with attacker for tank | 85% |
+| C40 | variant | Diva | 50% | Anti-Meta-Plus with etoile for diva | 77% |
