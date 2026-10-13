@@ -280,6 +280,10 @@ Factor by gap = level of the member - level of the enemy (`0x450734 - 0x45080d`)
 * The factor looks at the enemy, not at the rest of the party: a member far below the enemies of a floor gets 1.25
   whoever it travels with. `sim/progression.py` holds these rules.
 * **[open]** where the bonus fraction and effect 157 come from (a party skill, a meal).
+* **Size of the figures.** The largest EXP of one enemy is 600,000. With the largest factor of the Balance variant
+  (10) and both doublings a member would receive 24,000,000 from it: above 16,777,216, where a single-precision
+  number stops holding every whole number, so the last unit of such an amount may be lost (one part in sixteen
+  million), and far below the 2,147,483,647 an int holds. Nothing overflows.
 
 ## 6d. Other recovery (one command per effect) **[code]**
 

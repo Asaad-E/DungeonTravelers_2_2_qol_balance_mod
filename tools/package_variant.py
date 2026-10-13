@@ -42,8 +42,9 @@ from game_profile import PROFILE                          # noqa: E402
 MOD_DIR = PROFILE['mod_folder']
 PREFIX = PROFILE['package_prefix']
 UNINSTALL = f'Uninstall_{MOD_DIR}.bat'
-LAUNCHER = ('@echo off' + chr(10) + 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0' + MOD_DIR + chr(92)
-            + PATCH_SCRIPT + '" {args}' + chr(10) + 'pause' + chr(10))
+END = chr(13) + chr(10)                               # a .bat wants the line ends of Windows
+LAUNCHER = ('@echo off' + END + 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0' + MOD_DIR + chr(92)
+            + PATCH_SCRIPT + '" {args}' + END + 'pause' + END)
 WINDOW, STEP = 16, 4                                  # a run of the original is looked for by blocks of this size
 COPY, TAKE = 0, 1
 

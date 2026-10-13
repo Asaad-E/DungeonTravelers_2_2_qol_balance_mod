@@ -31,6 +31,12 @@ What changes
 * A fruit gives a fifth more TP, so a party without a Maid can go on with a full bag.
 * The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
   mercenary, heals more.
+* Every level gives one more skill point up to level 40.
+* Provoke draws more attacks as it is raised; Magic Barrier cuts more magic damage; First Grid
+  comes up more often and costs more skill points; the Kunoichi may use her Stings and Phoenix
+  with a dagger or a projectile.
+* Three grand sealbooks of the postgame (Melek Taus, Genbu, Murasaki Shikibu) carry a second
+  enchantment. One postgame superboss no longer opens with a spell that can fell the party.
 * The wandering blacksmith shows up more often in every dungeon.
 * The buff of a meal lasts more than twice as many steps, enough to carry it into a few battles.
   So does any buff or lowered stat a girl walks out of a battle with; poison and the other
