@@ -7,13 +7,16 @@
 #                                      script, then changes it
 #   mod_patch.ps1 uninstall            puts every file back from that folder
 #
-# Nothing is written unless every file is the one this mod was made for (each is checked by its SHA-256).
+# Nothing is written unless every file is the one this mod was made for (each is checked by its SHA-256), and
+# unless every file changed before is still as this script left it (the list installed.txt beside this script): a
+# game that was updated or repaired since then is not written over with the copies of an older one.
 param([string]$Mode = 'install', [string]$Variant = '')
 
 $ErrorActionPreference = 'Stop'
 $modDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path -Parent $modDir
 $backup = Join-Path $modDir 'backup'
+$stateFile = Join-Path $modDir 'installed.txt'
 
 function Get-Sha([byte[]]$bytes) {
     $sha = [System.Security.Cryptography.SHA256]::Create()
@@ -45,6 +48,31 @@ function Backup-Files {
     return @(Get-ChildItem -Path $backup -Recurse -File | ForEach-Object { $_.FullName.Substring($prefix.Length) })
 }
 
+function Read-State {
+    # what this script wrote last time: relative path (lower case) -> SHA-256. Empty when there is no list.
+    $state = @{}
+    if (Test-Path $stateFile) {
+        foreach ($line in [System.IO.File]::ReadAllLines($stateFile)) {
+            $p = $line.Split('|')
+            if ($p.Length -eq 2) { $state[$p[0].ToLower()] = $p[1] }
+        }
+    }
+    return $state
+}
+
+function Changed-Since([hashtable]$state, [string]$rel, [string[]]$known) {
+    # true when the file of the game is neither what this script wrote nor one of the known states of it
+    if (-not $state.ContainsKey($rel.ToLower())) { return $false }
+    $game = Join-Path $root $rel
+    if (-not (Test-Path $game)) { return $true }
+    $now = Get-Sha ([System.IO.File]::ReadAllBytes($game))
+    return ($now -ne $state[$rel.ToLower()]) -and ($known -notcontains $now)
+}
+
+$updated = @('The game was updated or repaired after the mod was installed, so the copies kept in',
+             "$(Split-Path -Leaf $modDir)\backup belong to an older game. Delete the folder $(Split-Path -Leaf $modDir)\backup and the file",
+             "$(Split-Path -Leaf $modDir)\installed.txt, have the launcher of the game check its files, and install again.")
+
 function Stop-With([string[]]$lines) {
     foreach ($line in $lines) { Write-Host $line }
     Write-Host ''
@@ -60,12 +88,20 @@ if (-not (Test-Path (Join-Path $root 'Data\ENG\Parameter'))) {
 if ($Mode -eq 'uninstall') {
     $kept = Backup-Files
     if ($kept.Count -eq 0) { Write-Host 'No backup here: the mod is not installed.'; exit 0 }
+    $state = Read-State
+    $moved = @()
+    foreach ($rel in $kept) {
+        $original = Get-Sha ([System.IO.File]::ReadAllBytes((Join-Path $backup $rel)))
+        if (Changed-Since $state $rel @($original)) { $moved += "${rel}: changed since the mod was installed" }
+    }
+    if ($moved.Count -gt 0) { Stop-With ($moved + $updated) }
     try {
         foreach ($rel in $kept) { Copy-Item -Path (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force }
     } catch {
         Stop-With @("A file could not be written: $($_.Exception.Message)", 'Close the game and run this again.')
     }
     Remove-Item -Path $backup -Recurse -Force
+    if (Test-Path $stateFile) { Remove-Item -Path $stateFile -Force }
     Write-Host "The game is as it was: $($kept.Count) file(s) put back."
     exit 0
 }
@@ -87,6 +123,8 @@ foreach ($line in [System.IO.File]::ReadAllLines($manifest)) {
     }
 }
 
+$state = Read-State
+$stale = $false
 $problems = @()
 $writes = @()          # what to write: Rel, Bytes, and Source (the original, to keep) when there is no copy yet
 $named = @{}
@@ -100,6 +138,11 @@ foreach ($f in $files) {
     $hasCopy = Test-Path $copy
     $path = $game
     if ($hasCopy) { $path = $copy }
+    if ($hasCopy -and (Changed-Since $state $f.Rel @($f.Old, $f.New))) {
+        $problems += "$($f.Rel): changed since the mod was installed"
+        $stale = $true
+        continue
+    }
     $source = [System.IO.File]::ReadAllBytes($path)
     if ((Get-Sha $source) -ne $f.Old) {
         $problems += "$($f.Rel): not the original file (another version of the game, or another mod is installed)"
@@ -132,6 +175,11 @@ foreach ($exe in @(Get-ChildItem -Path $root -Filter *.exe -File)) {
     $path = $exe.FullName
     if ($hasCopy) { $path = $copy }
     $source = [System.IO.File]::ReadAllBytes($path)
+    if ($hasCopy -and (Changed-Since $state $rel @((Get-Sha $source)))) {
+        $problems += "${rel}: changed since the mod was installed"
+        $stale = $true
+        continue
+    }
     $rows = $null
     foreach ($name in $layouts.Keys) {
         $fits = $true
@@ -151,10 +199,17 @@ foreach ($exe in @(Get-ChildItem -Path $root -Filter *.exe -File)) {
     if (-not $hasCopy) { $keep = $source }
     $writes += ,@{ Rel = $rel; Bytes = $out; Source = $keep }
 }
-if ($layouts.Count -gt 0 -and $programs -eq 0) {
+if ($layouts.Count -gt 0 -and $programs -eq 0 -and -not $stale) {
     $problems += 'No program file of the game found here in its original state (is another mod installed?)'
 }
 
+# a file another variant changed and this one leaves alone goes back in step 3: it must be as it was left too
+foreach ($rel in (Backup-Files)) {
+    if ($named.ContainsKey($rel.ToLower())) { continue }
+    $original = Get-Sha ([System.IO.File]::ReadAllBytes((Join-Path $backup $rel)))
+    if (Changed-Since $state $rel @($original)) { $problems += "${rel}: changed since the mod was installed"; $stale = $true }
+}
+if ($stale) { $problems += $updated }
 if ($problems.Count -gt 0) { Stop-With $problems }
 
 # 3. write: the copy of the original first, then the file. What another variant changed and this one does not goes back.
@@ -163,6 +218,7 @@ try {
         if ($null -ne $w.Source) { Write-File (Join-Path $backup $w.Rel) $w.Source }
         Write-File (Join-Path $root $w.Rel) $w.Bytes
     }
+    [System.IO.File]::WriteAllLines($stateFile, [string[]]@($writes | ForEach-Object { "$($_.Rel)|$(Get-Sha $_.Bytes)" }))
     $back = 0
     foreach ($rel in (Backup-Files)) {
         if (-not $named.ContainsKey($rel.ToLower())) {

@@ -48,6 +48,13 @@ Run "Uninstall_DT22_Mod.bat". Every file goes back as it was.
 To change from one variant of the mod to the other, unpack the other archive into the same
 folder and run its Install .bat: there is no need to uninstall first.
 
+If the game is updated
+----------------------
+An update or a repair of the game puts its own files back over the mod. The Install and Uninstall
+.bat notice it and change nothing, since the copies in "DT22_Mod\backup" then belong to the older
+game. Delete the folder "DT22_Mod\backup" and the file "DT22_Mod\installed.txt", have the launcher
+check the files of the game, and run the Install .bat again.
+
 Saves
 -----
 Saves are not touched and stay compatible both ways.
