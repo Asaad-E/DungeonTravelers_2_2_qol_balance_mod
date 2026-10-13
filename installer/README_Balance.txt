@@ -37,6 +37,10 @@ What changes
   with a dagger or a projectile.
 * Three grand sealbooks of the postgame (Melek Taus, Genbu, Murasaki Shikibu) carry a second
   enchantment. One postgame superboss no longer opens with a spell that can fell the party.
+* The party buffs of the Enchantress and the Sage (Circle Brave, Circle Protect, Sun Veil) are
+  larger and, with Accelerator, chanted much faster. Ecstasy gives twice as much.
+* The Bathroom Slippers, the reward of quest rank 3, give Double EXP in the place of their
+  physical defense.
 * The wandering blacksmith shows up more often in every dungeon.
 * The buff of a meal lasts more than twice as many steps, enough to carry it into a few battles.
   So does any buff or lowered stat a girl walks out of a battle with; poison and the other
