@@ -117,6 +117,19 @@ def gear_level(data, floor_name, level, min_formations, margin):
     return max(levels, default=0)
 
 
+def walked_zones(data, setup, floor_name, level):
+    """The zones of a floor a party of this level walks: those with random battles whose strongest enemy is at most
+    gear_level_margin levels above it. A floor of the story may hold a zone of the postgame (Fairyland, the floor of
+    C30: enemies of level 64 - 75 beside those of 35 - 47), which a row of random battles of the story must not
+    draw. When the floor has none, the zones of its dungeon under the same rule."""
+    margin = int(setup.settings['gear_level_margin'])
+
+    def fits(zone):
+        return zone['formations'] and max(data.enemies[e]['level'] for f in zone['formations']
+                                          for e, _ in f['enemies'] if e in data.enemies) <= level + margin
+    return [z for z in data.floors if z['name'].split(' zone')[0] == floor_name and fits(z)] or         [z for z in data.floors if z['name'][:4] == floor_name[:4] and fits(z)]
+
+
 def checkpoint_gear(data, setup, cid):
     """The gear level of a checkpoint: gear_level at its floor, and never below the one of an earlier checkpoint."""
     best = 0

@@ -53,14 +53,13 @@ def cell(task):
             tested.items = u.items
         return kept + [tested] + [u for u in whole if u.kind != 'member']
 
-    zones = [z for z in data.floors if z['name'].split(' zone')[0] == cp['Floor'] and z['formations']] or \
-        [z for z in data.floors if z['name'][:4] == cp['Floor'][:4] and z['formations']]
+    zones = scenario.walked_zones(data, setup, cp['Floor'], level)
     rng = random.Random(7)                       # the same rows of battles for every role
 
     def enemies():
         return [measures.random_group(data, rng.choice(zones), rng) for _ in range(chain)]
 
-    res = scenario.play(data, setup, party, enemies, runs=runs)
+    res = scenario.play(data, setup, party, enemies, runs=runs, battle_setup={'random_battle': True})
     done = [r for r in res if r['won']]
     return cid, role, {'won': len(done) / len(res),
                        'hp': sum(r['hp_left'] for r in done) / len(done) if done else 0.0,

@@ -99,7 +99,7 @@ def play(data, setup, role, cid, skill, use, chain=0):
         tested.items = kept[0].items if kept else {}
         return kept + [tested] + [u for u in whole if u.kind != 'member']
 
-    zones = [z for z in data.floors if z['name'].split(' zone')[0] == cp['Floor'] and z['formations']] or         [z for z in data.floors if z['name'][:4] == cp['Floor'][:4] and z['formations']]
+    zones = scenario.walked_zones(data, setup, cp['Floor'], level)
     rng = random.Random(7)
 
     def enemies():
