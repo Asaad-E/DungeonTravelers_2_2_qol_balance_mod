@@ -1686,7 +1686,8 @@ class Battle:
             target.statuses[effect] = Status(effect, value, 0, singer, name, 'song', data=bonus)
         else:
             sign, scale = PERFORMANCE_BONUS.get(effect, (1, 1))
-            target.statuses[effect] = Status(effect, value + sign * scale * bonus, 0, singer, name, 'song')
+            cap = action.value(296) if effect == 199 else None        # the Damage cap of Debilitating Salsa
+            target.statuses[effect] = Status(effect, value + sign * scale * bonus, 0, singer, name, 'song', data=cap)
 
     def apply_ailment(self, unit, target, effect, value, action, start=None):
         """docs/FORMULAS.md 5b: blocked by immunity or the same ailment; then the chance against resistance."""
@@ -1982,7 +1983,7 @@ class Battle:
 
 
 SONG_EFFECTS = (211, 212, 213, 214, 215, 216, 217, 218, 220, 222, 223)
-DANCE_EFFECTS = (195, 196, 197, 198, 201, 205, 219, 221)
+DANCE_EFFECTS = (195, 196, 197, 198, 199, 201, 202, 205, 219, 221)      # 199 Salsa and 202 Hopak: getters 0x488400, 0x488890
 STATUS_EFFECTS = set(STAT_STATUSES) | {161, 162, 163, 164, 165, 166, 167, 168, 171, 183, 187, 188, 191, 101, 102, 180,
                                        246, 247, 285, 301, 190, 264, 27, 173}
 # Multi-hit effects (docs/FORMULAS.md 12.2; sheet EffectRules): effect -> (base, picks, weights, weights under Rondo)

@@ -16,8 +16,6 @@ from sim.units import PARTY
 
 HEAL_EFFECTS = (103, 104, 128, 132)
 DOLL_EFFECTS = (228, 229, 230, 231, 232, 233)
-SONG_EFFECTS = (211, 212, 213, 214, 215, 216, 217, 218, 220, 222, 223)
-DANCE_EFFECTS = (195, 196, 197, 198, 201, 205, 219, 221)
 
 
 # --- what a member can do ---------------------------------------------------------------------------------------
@@ -93,7 +91,7 @@ class Policy:
         target = best_single_target(battle, unit, attack)
         if target is None or battle.expected_damage(attack, target) <= 0:
             return Action(unit, 'defend')             # nothing it can do lands: a player defends
-        if punished(unit, attack, target) and (self.heals(unit) or self.weak_blow(battle, attack, target)):
+        if punished(unit, attack, target) and (self.heals(battle, unit) or self.weak_blow(battle, attack, target)):
             return Action(unit, 'defend')             # a blow that is answered is not struck by a healer, nor for nothing
         attack.target = target
         return attack
@@ -106,9 +104,22 @@ class Policy:
             t += expected_wait(battle, unit, action, chanting=True)
         return t
 
-    def heals(self, unit):
-        """Whether one of the rules of the member heals: she is a heal of her party."""
-        return any(action == 'heal' for _, _, action, _ in self.rules.get(getattr(unit, 'role', 'attacker'), []))
+    def heal_costs(self, battle, unit):
+        """The TP of each healing skill the member holds, at the level she holds it."""
+        costs = []
+        for skill_id, level in unit.skills.items():
+            skill = battle.data.skill_by_id.get(skill_id)
+            if skill is not None and usable_in_battle(skill) and any(gives(skill, e) for e in HEAL_EFFECTS):
+                costs.append(skill.tp[max(1, min(level, skill.levels)) - 1])
+        return costs
+
+    def heals(self, battle, unit):
+        """Whether the member is a healer of her party: one of her rules heals, she holds a healing skill, and she
+        stands in the back row. A tank of the front row who also has Heal, or a member who heals with items alone,
+        is not: she fights."""
+        role = getattr(unit, 'role', 'attacker')
+        return (not unit.front and any(action == 'heal' for _, _, action, _ in self.rules.get(role, []))
+                and bool(self.heal_costs(battle, unit)))
 
     def weak_blow(self, battle, action, target):
         """Whether a plain blow takes less of the max HP of its target than the setting punished_blow_floor: not worth
@@ -117,19 +128,13 @@ class Policy:
         return bool(floor) and battle.expected_damage(action, target) < floor * target.max_hp
 
     def heal_reserve(self, battle, unit):
-        """The TP a member who heals keeps back from her buffs and her attacks: the cost of heal_reserve_casts of her
-        cheapest heal, when one of her rules heals and she holds a heal. A player who is the heal of a party does not
+        """The TP a healer (heals) keeps back from her buffs and her attacks: the cost of heal_reserve_casts of her
+        cheapest heal. A player who is the heal of a party does not
         spend her last TP on a spell of fire."""
         casts = float(self.setup.get('heal_reserve_casts', 0) or 0)
-        role = getattr(unit, 'role', 'attacker')
-        if not casts or not any(action == 'heal' for _, _, action, _ in self.rules.get(role, [])):
+        if not casts or not self.heals(battle, unit):
             return 0.0
-        costs = []
-        for skill_id, level in unit.skills.items():
-            skill = battle.data.skill_by_id.get(skill_id)
-            if skill is not None and usable_in_battle(skill) and any(gives(skill, e) for e in HEAL_EFFECTS):
-                costs.append(skill.tp[max(1, min(level, skill.levels)) - 1])
-        return casts * min(costs) if costs else 0.0
+        return casts * min(self.heal_costs(battle, unit))
 
     def tp_penalty(self, unit, action):
         weight = self.setup.get('tp_weight', 0.0)
@@ -311,7 +316,8 @@ def act_damage(policy, battle, unit, arg):
         total, target = damage_value(battle, action)
         if total <= 0:
             continue
-        if action.kind == 'attack' and punished(unit, action, target) and                 (policy.heals(unit) or policy.weak_blow(battle, action, target)):
+        if action.kind == 'attack' and punished(unit, action, target) and (
+                policy.heals(battle, unit) or policy.weak_blow(battle, action, target)):
             continue
 
         wait_time = policy.time_of(battle, action)

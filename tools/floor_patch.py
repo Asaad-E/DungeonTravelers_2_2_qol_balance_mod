@@ -11,6 +11,10 @@ is four bytes at one place of one file (a "poke"), written only when the file ho
 has, and put back the same way. The parameter file of each floor is kept in backups/Dungeon/floor_parameters.zip
 (tools/floor_data.py); the whole of it is compared with the game before a byte is written.
 
+Writing puts every chance of a wandering shop of every zone in the state the live rows ask for: the value of its row,
+or the value of the game where no live row names it. A row dropped or changed since the last install is therefore put
+right by the next one, with no record kept of what was written before.
+
 A row: Record is the zone as tools/floor_data.py names it ("St01_0010", "St03_0020 zone 2"), Field one of the names
 of "zone_fields" of the record FloorParameter (data_tables/record_layouts.json).
 """
@@ -132,77 +136,90 @@ def manifest_lines(some=None):
             for p in pokes(some)]
 
 
+def shop_places():
+    """{(dungeon, entry): [offset in the parameter file]} of every field a row of this table may write: the chances of
+    the wandering shops of every zone of every floor. Whatever the game holds at those places, the rest of the file
+    must be the file kept in backups/."""
+    found = {}
+    for dungeon, entry, block in zone_blocks().values():
+        found.setdefault((dungeon, entry), []).extend(block + offset for offset in FIELDS.values())
+    return found
+
+
 def state_of(wanted):
-    """({dungeon: 'game' | 'variant' | 'mixed'}, problems): what each pack of the game holds at the places of the rows.
-    A pack whose parameter files are not those of backups/ outside those places is a problem: not the game this mod
-    was made for."""
+    """({dungeon: 'game' | 'variant' | 'other'}, problems): what each pack of the game holds at the places a row of this
+    table may write, against the values of the game and against the rows given. 'other': a value neither of them asks
+    for, left by an older build or by a row since changed or dropped; writing puts it right. A pack whose parameter
+    files differ from those of backups/ anywhere else is a problem: not the game this mod was made for, and nothing
+    is written."""
     with open(INDEX, encoding='utf-8') as f:
         index = json.load(f)
-    by_dungeon, states, problems = {}, {}, []
-    for p in wanted:
-        by_dungeon.setdefault(p['dungeon'], []).append(p)
+    asked = {(p['dungeon'], p['entry'], p['at']): p['new'] for p in wanted}
+    states, problems, by_dungeon = {}, [], {}
+    for (dungeon, entry), places in shop_places().items():
+        by_dungeon.setdefault(dungeon, []).append((entry, places))
     with zipfile.ZipFile(floor_data.FLOOR_ZIP) as archive:
-        for dungeon, mine in sorted(by_dungeon.items()):
+        for dungeon, entries in sorted(by_dungeon.items()):
             path = os.path.join(mod_config.game_dir(), relative(dungeon))
             if not os.path.exists(path) or os.path.getsize(path) != index[dungeon]['size']:
                 problems.append(f'{relative(dungeon)}: missing, or not the size of the game this mod was made for')
                 continue
             kinds = set()
             with open(path, 'rb') as f:
-                for entry in sorted({p['entry'] for p in mine}):
+                for entry, places in sorted(entries):
                     original = bytearray(archive.read(f'{dungeon}/{entry}'))
                     f.seek(index[dungeon]['entries'][entry])
                     held = bytearray(f.read(len(original)))
-                    for p in (q for q in mine if q['entry'] == entry):
-                        now = bytes(held[p['at']:p['at'] + 4])
-                        kinds.add('game' if now == p['old'] else 'variant' if now == p['new'] else 'other')
-                        held[p['at']:p['at'] + 4] = p['old']
+                    for at in places:
+                        now, game = bytes(held[at:at + 4]), bytes(original[at:at + 4])
+                        want = asked.get((dungeon, entry, at), game)
+                        kinds.add('variant' if now == want and want != game else 'game' if now == game else 'other')
+                        held[at:at + 4] = game
                     if held != original:
                         problems.append(f'{relative(dungeon)} {entry}: not the file of the game this mod was made for')
-            if 'other' in kinds:
-                problems.append(f'{relative(dungeon)}: a value is neither that of the game nor that of the variant')
-            states[dungeon] = kinds.pop() if len(kinds) == 1 else 'mixed'
+            states[dungeon] = 'other' if 'other' in kinds else 'variant' if 'variant' in kinds else 'game'
     return states, problems
 
 
-def write(wanted, key):
-    """Writes p[key] ('new' or 'old') at every place; nothing is written when a pack has a problem."""
+def write(wanted):
+    """Puts every place a row of this table may write in the state the rows given ask for: the value of the row where
+    one is given, the value of the game everywhere else. So a row that was dropped, or whose value changed since the
+    last install, is put right by the next one. Nothing is written when a pack has a problem. Returns the packs and
+    the places that changed."""
     states, problems = state_of(wanted)
     if problems:
         raise Refused('; '.join(problems))
-    by_dungeon = {}
-    for p in wanted:
-        by_dungeon.setdefault(p['dungeon'], []).append(p)
-    for dungeon, mine in by_dungeon.items():
-        with open(os.path.join(mod_config.game_dir(), relative(dungeon)), 'r+b') as f:
-            for p in mine:
-                f.seek(p['offset'])
-                f.write(p[key])
-    return len(by_dungeon)
+    with open(INDEX, encoding='utf-8') as f:
+        index = json.load(f)
+    asked = {(p['dungeon'], p['entry'], p['at']): p['new'] for p in wanted}
+    packs, changed = set(), 0
+    with zipfile.ZipFile(floor_data.FLOOR_ZIP) as archive:
+        for (dungeon, entry), places in sorted(shop_places().items()):
+            original = archive.read(f'{dungeon}/{entry}')
+            base = index[dungeon]['entries'][entry]
+            with open(os.path.join(mod_config.game_dir(), relative(dungeon)), 'r+b') as f:
+                for at in places:
+                    want = asked.get((dungeon, entry, at), bytes(original[at:at + 4]))
+                    f.seek(base + at)
+                    if f.read(4) != want:
+                        f.seek(base + at)
+                        f.write(want)
+                        packs.add(dungeon)
+                        changed += 1
+    return len(packs), changed
 
 
 def apply():
+    """The live rows written; every other place of the table at the value of the game."""
     wanted = pokes()
-    return (write(wanted, 'new') if wanted else 0), len(wanted)
+    packs, changed = write(wanted)
+    return packs, len(wanted), changed
 
 
-def restore(path=CHANGES):
-    """Puts the values of the game back at the place of every row of the table, whatever its state."""
-    it = openpyxl.load_workbook(path, read_only=True)['Changes'].iter_rows(values_only=True)
-    header = next(it)
-    every = [dict(zip(header, r)) for r in it if r and r[0] is not None and r[header.index('Table')] == TABLE]
-    wanted, seen = [], set()
-    for row in every:                     # a dropped row may have been written by an older build: its place goes back too
-        try:
-            for p in pokes([row]):
-                if (p['dungeon'], p['offset']) not in seen:
-                    seen.add((p['dungeon'], p['offset']))
-                    wanted.append(p)
-        except Refused:
-            pass
-    live = {(p['dungeon'], p['offset']): p for p in pokes()}
-    wanted = [live.get((p['dungeon'], p['offset']), p) for p in wanted]
-    return (write(wanted, 'old') if wanted else 0), len(wanted)
+def restore():
+    """The values of the game at every place a row of this table may write."""
+    packs, changed = write([])
+    return packs, changed, changed
 
 
 def main():
@@ -215,13 +232,13 @@ def main():
         elif mode == 'status':
             wanted = pokes()
             states, problems = state_of(wanted)
-            print(f'{len(wanted)} rows in {len(states)} packs: ' + ', '.join(f'{k} {v}' for k, v in sorted(states.items())))
+            print(f'{len(wanted)} rows; {len(states)} packs: ' + ', '.join(f'{k} {v}' for k, v in sorted(states.items())))
             for line in problems:
                 print('   ', line)
         elif mode in ('apply', 'restore'):
-            packs, count = apply() if mode == 'apply' else restore()
-            print(f"Floors: {count} values {'of the variant written' if mode == 'apply' else 'of the game put back'} in "
-                  f'{packs} packs of {DUNGEON}')
+            packs, count, changed = apply() if mode == 'apply' else restore()
+            print(f"Floors: {count} values {'of the variant held' if mode == 'apply' else 'of the game put back'}; "
+                  f'{changed} places written in {packs} packs of {DUNGEON}')
         else:
             raise SystemExit(__doc__)
     except Refused as reason:

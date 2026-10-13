@@ -81,6 +81,22 @@ def main():
                 step('change to qol', 0, 'install', 'qol'), held(2),
                 step('back to balance', 0, 'install', 'balance'), held(3)]
         print(f'{len(pokes)} values written in place follow the variant:', all(good))
+        record = os.path.join(root, package_variant.MOD_DIR, 'pokes.txt')
+        os.remove(record)                                   # the record of what was written in place is lost
+        good += [step('record lost, change to qol', 0, 'install', 'qol'), held(2),
+                 step('back to balance', 0, 'install', 'balance'), held(3)]
+        rel, offset, old, new = pokes[0]                    # an older version of the mod wrote another value there
+        other = bytes([new[0] + 1]) + new[1:]
+        with open(os.path.join(root, rel), 'r+b') as f:
+            f.seek(offset)
+            f.write(other)
+        with open(record, encoding='utf-8') as f:
+            lines = f.read().splitlines()
+        lines[0] = 'poke|' + rel + f'|{offset:x}|' + old.hex() + '|' + other.hex()
+        with open(record, 'w', encoding='utf-8', newline='\n') as f:
+            f.write('\n'.join(lines) + '\n')
+        good += [step('an older version wrote another value, install', 0, 'install', 'balance'), held(3)]
+        print('a lost record and an older value are put right:', all(good))
         with open(one, 'wb') as f:                          # the game repaired this file: the original again
             f.write(original)
         good.append(step('one file back as the original, install', 0, 'install', 'balance'))

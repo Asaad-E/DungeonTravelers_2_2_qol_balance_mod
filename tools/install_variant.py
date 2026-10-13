@@ -139,11 +139,11 @@ def install_floors(variant):
     Balance variant, the values of the game put back for any other (tools/floor_patch.py). Returns the lines to print."""
     import floor_patch
     try:
-        packs, count = floor_patch.apply() if variant == 'balance' else floor_patch.restore()
+        packs, count, changed = floor_patch.apply() if variant == 'balance' else floor_patch.restore()
     except floor_patch.Refused as reason:
         return [f'    Floors: REFUSED, nothing written: {reason}']
-    what = 'values of the variant written' if variant == 'balance' else 'values of the game'
-    return [f'    Floors: {count} {what} in {packs} packs of the dungeons']
+    what = f'{count} values of the variant held' if variant == 'balance' else 'the values of the game'
+    return [f'    Floors: {what}; {changed} places written in {packs} packs of the dungeons']
 
 
 def main():
