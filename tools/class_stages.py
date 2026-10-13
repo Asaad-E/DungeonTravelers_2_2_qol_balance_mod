@@ -82,7 +82,8 @@ def play(data, setup, cid, role, runs):
     won = [r for r in res if r['won']]
     return {'won': len(won) / runs, 'time': sum(r['time'] for r in res) / runs,
             'time_won': sum(r['time'] for r in won) / len(won) if won else None,
-            'share': share / runs, 'character': tested_name[0], 'level': level}
+            'share': share / runs, 'character': tested_name[0], 'level': level,
+            'lowest_hp': sum(r['lowest_hp'] for r in res) / runs, 'hp_left': sum(r['hp_left'] for r in res) / runs}
 
 
 def run(cid, part='1/1'):
