@@ -729,7 +729,7 @@ at level 10.
   tick of the 97 effects whose class is `CCommandTurnBase`: the buffs and the lowered stats with a number of turns,
   the buff of a meal among them (`measures/DESIGN_ROWS.md`). An ailment that ends on a roll has its own count of
   steps (`0x48d1fc - 0x48d208`: 5, or 2 with a piece of enchantment 265), and so has petrification (`0x483038`). The
-  Balance variant makes the first one 20 (row X15 of the sheet `ExePatches`), which leaves battles and those ailments
+  Balance variant makes the first one 12 (row X15 of the sheet `ExePatches`), which leaves battles and those ailments
   as they are.
 * Some statuses end at the tick of a sleeping bearer (their class answers yes at slot `0x8c`; `0x48d5b5`, 16.7).
 * A few classes use the base method `0x48bc50`, which removes the status the first time it runs: they last until

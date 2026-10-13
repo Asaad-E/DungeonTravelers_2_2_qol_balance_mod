@@ -32,7 +32,7 @@ What changes
 * The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
   mercenary, heals more.
 * The wandering blacksmith shows up more often in every dungeon.
-* The buff of a meal lasts four times as many steps, enough to carry it into several battles.
+* The buff of a meal lasts more than twice as many steps, enough to carry it into a few battles.
   So does any buff or lowered stat a girl walks out of a battle with; poison and the other
   ailments wear off as before.
 
