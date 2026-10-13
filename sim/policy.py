@@ -10,7 +10,8 @@ of the program taken (Battle.expected_damage), within the TP the role allows its
 from sim import formulas as f
 from sim.battle import (Action, AILMENTS, CURE_ORDER, ITEM_CURE_ONE, ITEM_CURE_ALL, RANDOM_MOVES, SONG_EFFECTS,
                         DANCE_EFFECTS, AILMENT_RESIST)
-from sim.data import (Skill, SINGLE, RANDOM, ROW, PIERCE, ALL, ALLY, ALLY_ROW, ALLIES, SELF, NO_TARGET, EVERYONE)
+from sim.data import (Skill, SINGLE, RANDOM, ROW, PIERCE, ALL, ALLY, ALLY_ROW, ALLIES, SELF, NO_TARGET, EVERYONE,
+                      SHORT, MID)
 from sim.units import PARTY
 
 HEAL_EFFECTS = (103, 104, 128, 132)
@@ -92,6 +93,8 @@ class Policy:
         target = best_single_target(battle, unit, attack)
         if target is None or battle.expected_damage(attack, target) <= 0:
             return Action(unit, 'defend')             # nothing it can do lands: a player defends
+        if self.heals(unit) and punished(unit, attack, target):
+            return Action(unit, 'defend')             # a healer does not trade blows with an enemy that answers them
         attack.target = target
         return attack
 
@@ -102,6 +105,25 @@ class Policy:
         if action.chant_speed:
             t += expected_wait(battle, unit, action, chanting=True)
         return t
+
+    def heals(self, unit):
+        """Whether one of the rules of the member heals: she is a heal of her party."""
+        return any(action == 'heal' for _, _, action, _ in self.rules.get(getattr(unit, 'role', 'attacker'), []))
+
+    def heal_reserve(self, battle, unit):
+        """The TP a member who heals keeps back from her buffs and her attacks: the cost of heal_reserve_casts of her
+        cheapest heal, when one of her rules heals and she holds a heal. A player who is the heal of a party does not
+        spend her last TP on a spell of fire."""
+        casts = float(self.setup.get('heal_reserve_casts', 0) or 0)
+        role = getattr(unit, 'role', 'attacker')
+        if not casts or not any(action == 'heal' for _, _, action, _ in self.rules.get(role, [])):
+            return 0.0
+        costs = []
+        for skill_id, level in unit.skills.items():
+            skill = battle.data.skill_by_id.get(skill_id)
+            if skill is not None and usable_in_battle(skill) and any(gives(skill, e) for e in HEAL_EFFECTS):
+                costs.append(skill.tp[max(1, min(level, skill.levels)) - 1])
+        return casts * min(costs) if costs else 0.0
 
     def tp_penalty(self, unit, action):
         weight = self.setup.get('tp_weight', 0.0)
@@ -250,6 +272,16 @@ CONDITIONS = {
 
 
 # --- actions ----------------------------------------------------------------------------------------------------
+def punished(unit, action, target):
+    """Whether a physical blow on this enemy is answered: Avenger (249) strikes back at a short or mid reach, Dark Aura
+    (262) lowers the stats of who hits at short reach (sim/battle.py, after a hit), unless the member is protected
+    (307, 304)."""
+    if target is None or not action.physical:
+        return False
+    return (target.has(249) and action.reach in (SHORT, MID) and not unit.has(307)) or \
+        (target.has(262) and action.reach == SHORT and not unit.has(304))
+
+
 def act_damage(policy, battle, unit, arg):
     best, best_score = None, 0.0
     candidates = [Action(unit, 'attack')]
@@ -260,6 +292,7 @@ def act_damage(policy, battle, unit, arg):
         if hits or any(action.has(e) for e in RANDOM_MOVES):
             candidates.append(action)
 
+    reserve = policy.heal_reserve(battle, unit)
     plain_attack = Action(unit, 'attack')
     plain_total, plain_target = damage_value(battle, plain_attack)
     plain_kills = plain_target is not None and plain_total >= plain_target.hp
@@ -267,8 +300,12 @@ def act_damage(policy, battle, unit, arg):
     for action in candidates:
         if action.tp_cost > unit.tp * (1.0 - policy.setup.get('tp_reserve', 0.0)) and action.tp_cost > 0:
             continue
+        if action.tp_cost > 0 and unit.tp - action.tp_cost < reserve:
+            continue
         total, target = damage_value(battle, action)
         if total <= 0:
+            continue
+        if action.kind == 'attack' and policy.heals(unit) and punished(unit, action, target):
             continue
 
         wait_time = policy.time_of(battle, action)
@@ -389,10 +426,13 @@ def act_item(policy, battle, unit, arg, target=None):
 def act_status(policy, battle, unit, arg):
     """Put a status of effect `arg` (a buff, a song, a dance, Provoke, Cover) where it is missing."""
     effect = int(arg)
+    reserve = policy.heal_reserve(battle, unit)
     for skill, level in options(battle, unit):
         if not puts(skill, effect):
             continue
         action = Action(unit, 'skill', skill, level)
+        if action.tp_cost > 0 and unit.tp - action.tp_cost < reserve:
+            continue
         # a performer whose song or dance slots are full keeps what it performs instead of swapping one for another
         dance = effect in DANCE_EFFECTS
         if effect in SONG_EFFECTS + DANCE_EFFECTS and skill.name not in (unit.dance if dance else unit.song) and \
@@ -428,7 +468,11 @@ def act_status(policy, battle, unit, arg):
                                     if effect == 162 else m.stat('int') if effect in (27, 173) else 0)
             return action
         if code in (ALLIES, ALLY_ROW):
-            if all(effect in m.statuses for m in battle.allies(unit) if m.kind == 'member'):
+            # cast again when a share of the members lack it, not for one who was revived or lost it alone
+            members = [m for m in battle.allies(unit) if m.kind == 'member']
+            lacking = sum(1 for m in members if effect not in m.statuses)
+            share = float(policy.setup.get('party_buff_recast_share', 0) or 0)
+            if not lacking or lacking < share * len(members):
                 continue
             return action
         if code in (SINGLE, ALL, ROW):
