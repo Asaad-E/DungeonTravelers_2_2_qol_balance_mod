@@ -724,7 +724,13 @@ at level 10.
 * A status carries a number of turns. Its per-turn method takes one away each time it runs (12.15: after the action of
   its bearer) and removes the status when the count reaches 0. A status created with 0 turns is never counted down:
   it stays until something removes it.
-* On the map a turn is **five steps**: the method runs on every step but only every fifth one counts (`0x48d5ed`).
+* On the map a turn is **five steps**: the method runs on every step but only every fifth one counts (`0x48d5ed`;
+  the count is skipped when the tick comes from a battle, the word at `+0x40` of its second argument). This is the
+  tick of the 97 effects whose class is `CCommandTurnBase`: the buffs and the lowered stats with a number of turns,
+  the buff of a meal among them (`measures/DESIGN_ROWS.md`). An ailment that ends on a roll has its own count of
+  steps (`0x48d1fc - 0x48d208`: 5, or 2 with a piece of enchantment 265), and so has petrification (`0x483038`). The
+  Balance variant makes the first one 20 (row X15 of the sheet `ExePatches`), which leaves battles and those ailments
+  as they are.
 * Some statuses end at the tick of a sleeping bearer (their class answers yes at slot `0x8c`; `0x48d5b5`, 16.7).
 * A few classes use the base method `0x48bc50`, which removes the status the first time it runs: they last until
   the next tick of their bearer.

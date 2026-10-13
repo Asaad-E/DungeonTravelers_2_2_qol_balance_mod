@@ -32,6 +32,9 @@ What changes
 * The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
   mercenary, heals more.
 * The wandering blacksmith shows up more often in every dungeon.
+* The buff of a meal lasts four times as many steps, enough to carry it into several battles.
+  So does any buff or lowered stat a girl walks out of a battle with; poison and the other
+  ailments wear off as before.
 
 Every skill, item and enchantment shows its new figures in the game.
 
@@ -48,8 +51,9 @@ your own copy.
 
 It checks every file it is about to change, keeps a copy of each original in "DT22_Mod\backup",
 and then changes them. In the large files of the dungeons it changes a few bytes in place and
-keeps the list of them instead of a copy. It also changes 19 bytes of the program (the EXP by level gap,
-the Crown, the chance of Arcane Shield and the passive Concentrate) in every .exe of the
+keeps the list of them instead of a copy. It also changes 20 bytes of the program (the EXP by level gap,
+the Crown, the chance of Arcane Shield, the passive Concentrate and how long a buff lasts
+while you walk) in every .exe of the
 folder that is the game. If a file is not the original one it says which and changes nothing.
 The window ends with "Done: ..." when all went well.
 
