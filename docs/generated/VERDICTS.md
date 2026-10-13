@@ -239,7 +239,7 @@ Rows: 181. open: 0, closed: 82, not a problem: 87, out of the balance: 12. Open 
 |---|---|---|---|---|
 | F91 | Damage zones | not a problem | false | Elemental zone bonuses apply symmetrically to party and enemies, creating intentional positioning and build puzzles inherent to DT2-2 dungeon exploration. |
 | F96 | Elemental weakness | not a problem | partly true | A weakness is common early and rare where the claim places it: 4 of the 55 postgame fights. Each point below 0 adds half a percent of damage (docs/FORMULAS.md 2.4), so -50 is a quarter more, not a trivial fight |
-| S13 | Encounter rate | not a problem | partly true | Encounter rate of 5-8% in story dungeons conforms to dungeon crawler genre norms. Repel items and Grand Sealbook Tres Durian provide encounter mitigation. |
+| S13 | Encounter rate | not a problem | partly true: at most a third more battles in the last dungeons | It rises little where it rises: a battle every 18 steps in the worst zones of the end against every 25. Repel items and a grand sealbook lower it for who wants |
 | S14 | Harmful map zones | not a problem | a matter of taste; the figure: a fifth to a quarter of the floors, a tenth to a sixth of their cells | The zones weigh on both sides alike and cover a small part of the floors that have them. Maps are out of what the variant changes |
 | S15 | Traps | not a problem | false | Scout class tree provides Trap Search and Trap Disarm; Grand Sealbook Deep Slapyon mitigates trap damage by 90%. |
 
@@ -279,7 +279,7 @@ Rows: 181. open: 0, closed: 82, not a problem: 87, out of the balance: 12. Open 
 
 | Row | Subject | State | Verdict | Why |
 |---|---|---|---|---|
-| F92 | Double-EXP accessory | out of the balance |  | The DLC is ignored (2026-10-06). What it eased is covered by T01: the factors by level gap (option B4, without the kept curve) catch a member up faster than a Double EXP piece did, and a crown costs about 400 battles instead of 4,393 (docs/generated/CATCH_UP_OPTIONS.md); one existing accessory, the Slave's Torc, carries Double EXP from 2026-10-11 (row W042 of balance_changes.xlsx), which takes the place of "no new Double EXP item" of 2026-10-07 |
+| F92 | Double-EXP accessory | out of the balance |  | The DLC is ignored (2026-10-06). What it eased is covered by T01: the factors by level gap (option B4, without the kept curve) catch a member up faster than a Double EXP piece did, and a crown costs about 400 battles instead of 4,393 (docs/generated/CATCH_UP_OPTIONS.md). No piece gains Double EXP: the Slave's Torc carried it from 2026-10-11 to 2026-10-13 (row W042, dropped); the one piece that speeds EXP up is the Bathroom Slippers, with the factor enchantment (row P090) |
 | S24 | Functions the game lacks | out of the balance |  | Out of scope: new behaviour of the program, large changes to the executable. Part of it is already answered by the QoL variant (decided 2026-10-07) |
 | S25 | Design of the content | out of the balance |  | Content and maps are out of the balance. The conditions of side events, which are only text, were looked at as an addition to the QoL variant and dropped on 2026-10-12 |
 | S26 | Reported crashes and bugs | out of the balance |  | Not for now: very specific, and almost nobody reports it (2026-10-07). Reports from the console versions and early patches; none reproduced here |
