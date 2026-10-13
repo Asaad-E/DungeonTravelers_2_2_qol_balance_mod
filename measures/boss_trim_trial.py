@@ -1,4 +1,5 @@
-"""What a change to the enemies of one boss fight does to the share of wins of the parties of measures/win_rates.py:
+"""What a change to the enemies of one boss fight does to the share of wins of the reference party and of the parties of
+measures/win_rates.py:
 the variant as it is, then each case of the command line. A case is a list of fields: `hp*1.15` multiplies the value
 of the variant, `atk=game` puts back the value of the game. Nothing is written.
 
@@ -54,6 +55,10 @@ def cell(task):
                 field = part.split('=')[0].strip()
                 data.enemies[i][field] = state['vanilla'].enemies[i][field]
     try:
+        if party == 'reference':
+            from sim import measures
+            res = measures.play_checkpoint(data, setup, cid, runs)[1]
+            return party, case, res['won'], res['time'] or 0
         roles = [r.strip() for r in win_rates.PARTIES[party][0].split(';')]
         res = scenario.play_party(data, setup, cid, roles, runs)
     finally:
@@ -65,11 +70,12 @@ def cell(task):
 
 def main():
     cid, runs, cases = sys.argv[1], int(sys.argv[2]), [''] + sys.argv[3:]
-    tasks = [(p, cid, k, runs) for p in win_rates.PARTIES for k in cases]
+    parties = ['reference'] + list(win_rates.PARTIES)
+    tasks = [(p, cid, k, runs) for p in parties for k in cases]
     with ProcessPoolExecutor(12) as pool:
         at = {(p, k): (w, t) for p, k, w, t in pool.map(cell, tasks)}
     print(cid, '| ' + ' | '.join(k or 'variant' for k in cases))
-    for p in win_rates.PARTIES:
+    for p in parties:
         print(f'  {p:16s} ' + ' | '.join(f'{at[(p, k)][0]:.0%} ({at[(p, k)][1]:.0f}t)' for k in cases))
 
 
