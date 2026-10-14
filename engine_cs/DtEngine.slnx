@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/DtEngine/DtEngine.csproj" />
+  <Project Path="src/DtEngine.Cli/DtEngine.Cli.csproj" />
+  <Project Path="tests/DtEngine.Tests/DtEngine.Tests.csproj" />
+</Solution>

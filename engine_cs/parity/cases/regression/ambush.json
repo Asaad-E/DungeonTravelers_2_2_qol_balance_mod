@@ -1,0 +1,35 @@
+{
+ "note": "kept case: ambush",
+ "job": {
+  "id": "seed-ambush",
+  "side": "variant",
+  "runs": 1,
+  "seed": 1699248144,
+  "trace": 1,
+  "kit": 12,
+  "options": {
+   "random_battle": true
+  },
+  "party": {
+   "cid": "P14",
+   "roles": [
+    "magical princess",
+    "dolls",
+    "joker",
+    "papillon",
+    "dolls"
+   ],
+   "level": 1,
+   "crown": null
+  },
+  "enemies": {
+   "kind": "fixed",
+   "battles": [
+    [
+     "St02_0010",
+     41
+    ]
+   ]
+  }
+ }
+}

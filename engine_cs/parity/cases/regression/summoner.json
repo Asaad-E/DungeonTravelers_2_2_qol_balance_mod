@@ -1,0 +1,33 @@
+{
+ "note": "kept case: summoner",
+ "job": {
+  "id": "seed-summoner",
+  "side": "vanilla",
+  "runs": 2,
+  "seed": 259775551,
+  "trace": 1,
+  "kit": 12,
+  "options": {},
+  "party": {
+   "cid": "C27",
+   "roles": [
+    "mage",
+    "mistress",
+    "tank",
+    "soul summoner",
+    "diva"
+   ],
+   "level": 42,
+   "crown": 0
+  },
+  "enemies": {
+   "kind": "fixed",
+   "battles": [
+    [
+     "St23_0010",
+     41
+    ]
+   ]
+  }
+ }
+}

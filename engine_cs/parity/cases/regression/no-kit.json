@@ -1,0 +1,27 @@
+{
+ "note": "kept case: no-kit",
+ "job": {
+  "id": "seed-no-kit",
+  "side": "vanilla",
+  "runs": 3,
+  "seed": 462962361,
+  "trace": 1,
+  "kit": 0,
+  "options": {},
+  "party": {
+   "cid": "P52",
+   "roles": [
+    "kunoichi",
+    "attacker",
+    "valkyrie"
+   ],
+   "level": 94,
+   "crown": null
+  },
+  "enemies": {
+   "kind": "zone",
+   "floor": "St21_0040 zone 1",
+   "battles": 4
+  }
+ }
+}
