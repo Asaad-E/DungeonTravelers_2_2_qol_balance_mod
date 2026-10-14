@@ -22,7 +22,7 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | C12 | Boozehound Samurai | normal | 15 | 100% | 50% | within |
 | C13 | Eros | normal | 18 | 100% | 50% | within |
 | C14 | Oh-So-Hime | normal | 18 | 100% | 50% | within |
-| C15 | Warden of the Wall | normal | 18 | 98% | 50% | within |
+| C15 | Warden of the Wall | normal | 18 | 100% | 50% | within |
 | C16 | Molle | normal | 21 | 100% | 50% | within |
 | C17 | Agent M | normal | 25 | 100% | 50% | within |
 | C18 | True Queen Eltricia | hard | 27 | 100% | 20% | within |
@@ -39,7 +39,7 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | C29a | Dragon Papi | hard | 44 | 100% | 20% | within |
 | C30 | Heartless Avenger x2 | normal | 44 | 100% | 50% | within |
 | C31 | Tres Durian, Mangos Queen | normal | 44 | 100% | 50% | within |
-| C32 | Moby Dick | easy | 44 | 95% | 80% | within |
+| C32 | Moby Dick | easy | 44 | 100% | 80% | within |
 | C33 | Death Cataphract | easy | 44 | 100% | 80% | within |
 | C34 | Queen of Darkness (weakened) | easy | 50 | 100% | 80% | within |
 | C35 | Scanner | hard | 52 | 100% | 20% | within |
@@ -54,7 +54,7 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | P04 | Sukuna-Hikona | easy | 67 | 85% | 80% | within |
 | P05 | Euthys | normal | 67 | 55% | 50% | within |
 | P06 | Overdue | hard | 67 | 40% | 20% | within |
-| P07 | Royal Villa, three bosses | easy | 67 | 98% | 80% | within |
+| P07 | Royal Villa, three bosses | easy | 67 | 95% | 80% | within |
 | P08 | Qitian Dasheng | easy | 72 | 100% | 80% | within |
 | P09 | Azathoth | normal | 74 | 35% | 50% | read: preparation gap |
 | P10 | Kuchinawa | normal | 74 | 18% | 50% | read: preparation gap |
@@ -66,7 +66,7 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | P16 | Aradia (5th fight) | normal | 79 | 100% | 50% | within |
 | P17 | Last Judgment | normal | 84 | 75% | 50% | within |
 | P18 | Aradia (6th fight) | normal | 84 | 100% | 50% | within |
-| P19 | Three goddesses | hard | 84 | 40% | 20% | within |
+| P19 | Three goddesses | hard | 84 | 42% | 20% | within |
 | P20 | Crom Cruach (weakened superboss) | hard | 84 | 95% | 20% | within |
 | P21 | Ria the Farsighted | easy | 84 | 95% | 80% | within |
 | P22 | Chika the Impenetrable | hard | 84 | 0% | 20% | read: known limit |
@@ -84,8 +84,8 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | P34 | Casino VIP, 1st (Tama the Red) | hard | 99 | 0% | 20% | read: preparation gap |
 | P35 | Casino VIP, 2nd (Riko the Reclusive) | hard | 99 | 0% | 20% | read: preparation gap |
 | P36 | Casino VIP, 3rd (Rai the Sweltering) | hard | 99 | 5% | 20% | read: preparation gap |
-| P37 | Casino VIP, 4th (Mor the Drunken) | hard | 99 | 32% | 20% | within |
-| P38 | Casino VIP, 5th (Gam the Wise) | hard | 99 | 32% | 20% | within |
+| P37 | Casino VIP, 4th (Mor the Drunken) | hard | 99 | 30% | 20% | within |
+| P38 | Casino VIP, 5th (Gam the Wise) | hard | 99 | 38% | 20% | within |
 | P39 | Casino VIP, 6th (Ruu the Woodsy) | hard | 99 | 2% | 20% | read: preparation gap |
 | P40 | Casino VIP, 7th (five bosses with Mandra Prince and Princess) | hard | 99 | 0% | 20% | read: preparation gap |
 | P41 | Wandering Brigade (Citlalinicue) | normal | 99 | 0% | 50% | read: known limit |

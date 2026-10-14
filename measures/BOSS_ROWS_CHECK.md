@@ -6,8 +6,8 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 |---|---|---|---|---|---|---|---|
 | C10 | atk x1.04; def x1.04; hp x1.15 | 100% / 8.3 / 78% | 100% / 8.1 / 77% | within | 100% / 6.8 / 77% | within | not needed: within without them |
 | C13 | atk x1.05; def x1.05; hp x1.20 | 100% / 8.9 / 76% | 100% / 8.6 / 76% | within | 100% / 7.3 / 76% | within | not needed: within without them |
-| C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.4 / 95% | 100% / 1.4 / 95% | within | 100% / 1.4 / 97% | pressure | needed |
-| C21 | hp x1.30 | 100% / 26.7 / 63% | 100% / 23.8 / 63% | within | 100% / 11.0 / 66% | time | needed |
+| C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.4 / 95% | 100% / 1.4 / 95% | within | 100% / 1.4 / 96% | pressure | needed |
+| C21 | hp x1.30 | 100% / 26.2 / 66% | 100% / 24.2 / 66% | within | 100% / 10.2 / 67% | time | needed |
 | C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.3 / 65% | 100% / 5.3 / 67% | within | 100% / 4.4 / 68% | time | needed |
 | C28 | hp x1.10 | 94% / 12.6 / 36% | 96% / 9.8 / 41% | within | 96% / 8.7 / 44% | time | needed |
 | C30 | atk x0.92; hp x1.26; int x0.92 | 98% / 38.9 / 49% | 98% / 39.6 / 54% | within | 99% / 27.3 / 54% | time | needed |

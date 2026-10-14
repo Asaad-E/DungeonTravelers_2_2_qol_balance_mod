@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**49 serves; 19 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 81).**
+**51 serves; 20 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 84).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -25,13 +25,15 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Coffee Break | dolls | C38: wins +13%, length +5%, HP left +16 points | serves |
 | Concentration Prelude | maid | C38: wins +13%, length +7%, HP left +17 points | serves |
 | Cook | maid | C30: wins +3%, length +35%, HP left +4 points | serves |
-| Cover | tank | C30: wins +0%, length +6%, HP left +1 points | serves |
+| Cover | tank | P24: wins -3%, length +5%, HP left -2 points | serves |
 | Death | sage | - | see SKILL_AILMENTS.md |
-| Defender | tank | C30: wins +0%, length +2%, HP left -0 points | nothing shown |
+| Debilitating Salsa | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
+| Defender | tank | C30: wins +0%, length +2%, HP left -1 points | nothing shown |
 | Dispel | sage | C38: wins +7%, length -17%, HP left +9 points | serves |
 | Divine Shield | healer | C38: wins +0%, length +1%, HP left +2 points | nothing shown |
 | Dumbing Mazurka | etoile | C38: wins +3%, length +4%, HP left +5 points | serves |
 | Earth Enchant | sage | C38: wins +7%, length -7%, HP left +7 points | serves |
+| Emaciating Hopak | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Evade | shooter | P24: wins +7%, length -2%, HP left +7 points | serves |
 | Experience Paean | maid | - | out of the fight: EXP, not the fight |
 | Fascinating Waltz | etoile | C38: wins +10%, length -1%, HP left +16 points | serves |
@@ -53,18 +55,18 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Lightning Enchant | sage | C38: wins +7%, length -5%, HP left +9 points | serves |
 | Limit Field | dolls | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Magic Barrier | magical princess | C38: wins +0%, length +3%, HP left +2 points | serves |
-| Material Guard | tank | C30: wins +0%, length -0%, HP left +0 points | nothing shown |
+| Material Guard | tank | P24: wins +0%, length -2%, HP left -1 points | nothing shown |
 | Mini Circle Nurse | sage | C38: wins +0%, length -2%, HP left +5 points | serves |
-| Moon Curtain | tank | P24: wins -3%, length +7%, HP left -2 points | serves |
+| Moon Curtain | tank | P24: wins -3%, length +5%, HP left -2 points | serves |
 | Nurse | healer | C38: wins +7%, length -2%, HP left +9 points | serves |
 | Oracles | dolls | C38: wins +20%, length -24%, HP left +18 points | serves |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
-| Parry | tank | C30: wins +0%, length +1%, HP left +1 points | nothing shown |
+| Parry | tank | P24: wins -3%, length +5%, HP left -2 points | serves |
 | Perdurabo | soul summoner | C38: wins +0%, length -51%, HP left +5 points | serves |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Power Charge | dark lord | P24: wins +0%, length +2%, HP left -0 points | nothing shown |
 | Primevil | etoile | C40: wins +0%, length -1%, HP left +1 points | nothing shown |
-| Protect | tank | C38: wins +7%, length +7%, HP left +6 points | serves |
+| Protect | tank | C38: wins +7%, length +9%, HP left +7 points | serves |
 | Provoke | tank | C38: wins +0%, length +7%, HP left +1 points | serves |
 | Reading Requiem | maid | C38: wins +7%, length +5%, HP left +8 points | serves |
 | Replenishing Carol | maid | C40: wins +7%, length +7%, HP left +10 points | serves |
@@ -77,6 +79,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Sleep | sage | - | see SKILL_AILMENTS.md |
 | Slow | healer | - | see SKILL_AILMENTS.md |
 | Sorcerous Ballad | maid | C38: wins +7%, length -3%, HP left +6 points | serves |
+| Spell Guard | tank | P24: wins -3%, length +5%, HP left -2 points | serves |
 | Spiritual Fantasia | maid | C38: wins +7%, length +2%, HP left +9 points | serves |
 | Stab Guard | sage | P24: wins +0%, length -2%, HP left -1 points | nothing shown |
 | Star Dust Arrow | shooter | C30: wins +0%, length -16%, HP left +2 points | nothing shown |
