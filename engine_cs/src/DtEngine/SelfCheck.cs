@@ -9,6 +9,27 @@ namespace DtEngine
     /// <summary>Checks of single parts against golden files written by the Python side.</summary>
     public static class SelfCheck
     {
+        /// <summary>Compares PyMath.RoundTo with the round(x, n) of Python, bit by bit (engine_cs/parity/round_golden.py).</summary>
+        public static (int compared, List<string> errors) RoundCheck(string path)
+        {
+            var errors = new List<string>();
+            int compared = 0;
+            using (var doc = JsonDocument.Parse(File.ReadAllBytes(path)))
+            {
+                foreach (var c in doc.RootElement.EnumerateArray())
+                {
+                    double x = c[0].GetDouble();
+                    int n = c[1].GetInt32();
+                    double expected = c[2].GetDouble();
+                    double got = PyMath.RoundTo(x, n);
+                    compared++;
+                    if (BitConverter.DoubleToInt64Bits(got) != BitConverter.DoubleToInt64Bits(expected) && errors.Count < 20)
+                        errors.Add("round(" + x.ToString("R") + ", " + n + "): got " + got.ToString("R") + ", expected " + expected.ToString("R"));
+                }
+            }
+            return (compared, errors);
+        }
+
         /// <summary>Replays the calls of engine_cs/parity/rng_golden.py; returns the number of calls compared and the differences.</summary>
         public static (int compared, List<string> errors) RngCheck(string path)
         {

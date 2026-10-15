@@ -21,6 +21,9 @@ for path in (PROJECT, os.path.join(PROJECT, 'tools'), HERE):
 
 from pyrng import CountingRandom, fmt_num  # noqa: E402
 
+sys.path.insert(0, os.path.join(PROJECT, 'measures'))
+import mercenaries  # noqa: E402  (build and stage of a guest ally)
+
 STATS = ('atk', 'def', 'int', 'res', 'dex', 'agi')
 
 
@@ -47,6 +50,8 @@ class Tracer:
 TRACER = Tracer()
 EXTRA = {}            # skills given on top of the plan to every member of the party of the job in hand ({id: level})
 EXTRA_ENCHANTS = {}   # enchantments (pieces of each) added to every member of that party ({id: pieces})
+EXTRA_MEMBER = {}     # arguments of build_member given to every member of that party (unique_level, passives)
+EXTRA_PIECES = {}     # pieces that take the place of the role's own in every member of that party ({column: name})
 
 
 def unit_line(u):
@@ -174,6 +179,8 @@ def install():
     def build_role_member(*args, **kwargs):
         if EXTRA and kwargs.get('extra_skills') is None:
             kwargs['extra_skills'] = dict(EXTRA)
+        if EXTRA_PIECES:
+            kwargs['pieces'] = dict(kwargs.get('pieces') or {}, **EXTRA_PIECES)
         return original_member(*args, **kwargs)
 
     scenario.build_role_member = build_role_member
@@ -182,6 +189,7 @@ def install():
     original_build = scenario.build_member
 
     def build_member(*args, **kwargs):
+        kwargs.update(EXTRA_MEMBER)
         if EXTRA_ENCHANTS:
             merged = dict(kwargs.get('forged') or {})
             for e, n in EXTRA_ENCHANTS.items():
@@ -190,6 +198,46 @@ def install():
         return original_build(*args, **kwargs)
 
     scenario.build_member = build_member
+
+
+def script_from_json(spec):
+    """A script in the format of the snapshot (tools/engine_export.py script_json) as the dict tools/enemy_ai.py decode gives."""
+    if spec is None:
+        return None
+
+    def command(c):
+        out = {'cmd': c['cmd']}
+        if 'args' in c:
+            out['args'] = list(c['args'])
+        if 'result' in c:
+            out['result'] = c['result']
+        if 'once' in c:
+            out['once'] = bool(c['once'])
+        if 'and' in c:
+            out['and'] = command(c['and'])
+        return out
+    return {'id': spec['id'], 'opening': [command(c) for c in spec['opening']],
+            'sets': {s['set']: {'weights': list(s['weights']), 'commands': [command(c) for c in s['commands']]} for s in spec['sets']}}
+
+
+def make_group(data, entries):
+    """scenario.Group of enemies: each entry [id, front] or [id, front, {script, attacks}] (the last replaces the script or the attacks)."""
+    from sim import scenario
+    units = []
+    for entry in entries:
+        unit = scenario.build_enemy(data, entry[0], bool(entry[1]))
+        if len(entry) > 2 and entry[2]:
+            if 'script' in entry[2]:
+                unit.script = script_from_json(entry[2]['script'])
+            if 'attacks' in entry[2]:
+                unit.attacks = list(entry[2]['attacks'])
+            for attack_id in entry[2].get('passives', ()):
+                attack = data.attacks.get(attack_id)
+                if attack:
+                    for effect, _, value in attack.effects:
+                        unit.passives[effect] = value
+        units.append(unit)
+    return scenario.Group(units)
 
 
 def load_state():
@@ -216,12 +264,29 @@ def run_job(job, state):
     party_spec, enemy_spec = job['party'], job['enemies']
     roles = party_spec.get('roles') or list(setup.composition)
     options = dict(job.get('options') or {})
-    saved_comp, saved_kit, saved_bag = setup.composition, setup.settings.get('kit_count'), setup.kit
+    saved_comp, saved_kit, saved_bag, saved_policies = setup.composition, setup.settings.get('kit_count'), setup.kit, setup.policies
+    saved_settings = {}
+    for name, value in (job.get('settings') or {}).items():       # settings of the model set for this job (restored after)
+        saved_settings[name] = (name in setup.settings, setup.settings.get(name))
+        setup.settings[name] = value
+    saved_flags = {}
+    for name, value in (job.get('flags') or {}).items():          # flags of the data set for this job (restored after)
+        saved_flags[name] = getattr(data, name, None)
+        setattr(data, name, value)
+    if job.get('policies'):
+        setup.policies = list(setup.policies) + [dict(r) for r in job['policies']]
     TRACER.reset(int(job.get('trace') or 0))
     EXTRA.clear()
     EXTRA.update({int(k): int(v) for k, v in (job.get('extra_skills') or {}).items()})
     EXTRA_ENCHANTS.clear()
     EXTRA_ENCHANTS.update({int(k): int(v) for k, v in (job.get('extra_enchants') or {}).items()})
+    EXTRA_MEMBER.clear()
+    EXTRA_PIECES.clear()
+    EXTRA_PIECES.update(party_spec.get('pieces') or {})
+    if party_spec.get('unique_level') is not None:
+        EXTRA_MEMBER['unique_level'] = int(party_spec['unique_level'])
+    if party_spec.get('passives') is not None:
+        EXTRA_MEMBER['passives'] = {int(k): v for k, v in party_spec['passives'].items()}
     runs = []
     try:
         if job.get('kit') is not None:
@@ -237,8 +302,15 @@ def run_job(job, state):
         if crown is None:
             crown = int(cp['Crown bonus'] or 0)
 
+        guest = party_spec.get('guest')
+
         def party_factory():
-            return scenario.reference_party(data, setup, cp['Chapter'], level, gear, crown, cp['Floor'])
+            party = scenario.reference_party(data, setup, cp['Chapter'], level, gear, crown, cp['Floor'])
+            if guest is not None:
+                # measures/mercenaries.py play: the members alone, a guest ally at the stage of the party's level in place of the summon
+                members = [u for u in party if u.kind == 'member']
+                party = members if guest == 'none' else members + [mercenaries.build(data, mercenaries.stage(data, guest, level))]
+            return party
 
         for k in range(int(job['runs'])):
             seed = int(job['seed']) + k
@@ -248,6 +320,22 @@ def run_job(job, state):
                 def enemy_factory():
                     return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
                 battle_setup = options
+            elif enemy_spec['kind'] == 'enemies':
+                def enemy_factory():
+                    return [make_group(data, group) for group in enemy_spec['groups']]
+                battle_setup = options
+            elif enemy_spec['kind'] == 'formation':
+                class Pick:                              # a generator that draws the formation asked for
+                    def __init__(self, index):
+                        self.index = index
+
+                    def choices(self, population, weights=None):
+                        return [population[self.index]]
+
+                def enemy_factory():
+                    zones = {z['name']: z for z in data.floors}
+                    return [measures.random_group(data, zones[name], Pick(index)) for name, index in enemy_spec['picks']]
+                battle_setup = dict(options, random_battle=True)
             elif enemy_spec['kind'] == 'fixed':
                 def enemy_factory():
                     return [scenario.fixed_battle(data, floor, number) for floor, number in enemy_spec['battles']]
@@ -267,9 +355,19 @@ def run_job(job, state):
     finally:
         EXTRA.clear()
         EXTRA_ENCHANTS.clear()
+        EXTRA_MEMBER.clear()
+        EXTRA_PIECES.clear()
         setup.composition = saved_comp
         setup.settings['kit_count'] = saved_kit
         setup.kit = saved_bag
+        setup.policies = saved_policies
+        for name, value in saved_flags.items():
+            setattr(data, name, value)
+        for name, (had, value) in saved_settings.items():
+            if had:
+                setup.settings[name] = value
+            else:
+                setup.settings.pop(name, None)
     summary = measures.summary([r['_raw'] for r in runs])
     for r in runs:
         del r['_raw']

@@ -60,6 +60,14 @@ namespace DtEngine.Tests
         }
 
         [Fact]
+        public void RoundingToDecimalsGivesWhatPythonGives()
+        {
+            var (n, errors) = SelfCheck.RoundCheck(Golden("engine_round_golden.json", "engine_cs/parity/round_golden.py"));
+            Assert.True(n >= 4000);
+            Assert.Empty(errors);
+        }
+
+        [Fact]
         public void PySumFollowsTheBuiltInSum()
         {
             // 0.1 + 0.2 + 0.3 with compensation is 0.6, where the plain sum gives 0.6000000000000001
@@ -81,6 +89,45 @@ namespace DtEngine.Tests
             var party = sc.PartyOfRoles("C10", snap.Setup.Composition, null, null);
             Assert.True(party.Count >= 4);
             foreach (var u in party) Assert.True(u.MaxHp > 0);
+        }
+
+        static Snapshot LoadSnapshot()
+        {
+            string path = Path.Combine(Root(), "build", "engine_snapshot.json");
+            if (!File.Exists(path)) Python("tools/engine_export.py");
+            return Snapshot.Load(path);
+        }
+
+        [Fact]
+        public void PartiesAndEnemiesMadeFromTemplatesPlayLikeFreshOnes()
+        {
+            // a job that comes after another one with the same party and enemies gets copies of what the first one built; the same job
+            // played alone builds its own. Their traces must be the same, line by line.
+            var snap = LoadSnapshot();
+            foreach (var side in new[] { "vanilla", "variant" })
+                foreach (var cid in new[] { "C06", "C24", "C40" })
+                {
+                    JobSpec Make(string id, ulong seed) => new JobSpec { Id = id, Side = side, Cid = cid, Runs = 1, Seed = seed, EnemyKind = "checkpoint", Trace = 1 };
+                    var after = JobRunner.Run(snap, new System.Collections.Generic.List<JobSpec> { Make("first", 5), Make("second", 100) }, 1);
+                    var alone = JobRunner.Run(snap, new System.Collections.Generic.List<JobSpec> { Make("second", 100) }, 1);
+                    Assert.Null(after[1].Error);
+                    Assert.NotEmpty(alone[0].TraceLines);
+                    Assert.Equal(alone[0].TraceLines, after[1].TraceLines);
+                }
+        }
+
+        [Fact]
+        public void GuestAlliesAndSummonsMatchPython()
+        {
+            string output = Python("engine_cs/parity/run_parity.py directed --only guests,summons --workers 4 --threads 2");
+            Assert.Contains(" 0 differences", output);
+        }
+
+        [Fact]
+        public void MeasuresMatchPython()
+        {
+            string output = Python("engine_cs/parity/run_measures.py --count 6 --workers 4 --threads 2");
+            Assert.Contains(" 0 differences", output);
         }
 
         [Fact]

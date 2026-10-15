@@ -48,6 +48,25 @@ namespace DtEngine
         public int ChantStat;              // 0 none, 1 int, 2 res, 3 agi
         public bool Chanted;
         public bool HasEffect(int id) { foreach (var e in Effects) if (e.Id == id) return true; return false; }
+
+        /// <summary>The effects at each level as arrays shared by the actions (Action.FxSet), made when first asked.</summary>
+        public Action.FxSet[] FxByLevel;
+
+        int takes;     // 0 not worked out, 1 yes, 2 no
+        /// <summary>Whether a figure of the skill takes something from its user (the bonus effects 128 - 130, 168, 272, 273).</summary>
+        public bool TakesFromUser
+        {
+            get
+            {
+                if (takes == 0)
+                {
+                    bool yes = false;
+                    foreach (var e in Effects) if (e.Id == 128 || e.Id == 129 || e.Id == 130 || e.Id == 168 || e.Id == 272 || e.Id == 273) yes = true;
+                    takes = yes ? 1 : 2;
+                }
+                return takes == 1;
+            }
+        }
     }
 
     public sealed class EnemyAttack
@@ -64,6 +83,7 @@ namespace DtEngine
         public bool Passive, Spell;
         public int ChantStat;
         public bool Chanted => ChantSpeed != 0;
+        public Action.FxSet Fx;       // the effects as arrays shared by the actions (made when first asked)
     }
 
     public sealed class Command
@@ -208,6 +228,17 @@ namespace DtEngine
         public Script Script;
     }
 
+    /// <summary>A guest ally at one stage of her growth (tools/npc_data.py).</summary>
+    public sealed class NpcRec
+    {
+        public int Id, Character, Level, Rank, Kind, Hp;
+        public string Name;
+        public int[] Attacks;
+        public int ExtraAttack = T.NONE;
+        public int[] Stats = new int[6];
+        public Script Script;
+    }
+
     public sealed class DollRec
     {
         public int Skill;
@@ -261,6 +292,7 @@ namespace DtEngine
         public Dictionary<(string, int), BattleCell[]> BattleCells = new Dictionary<(string, int), BattleCell[]>();
         public Dictionary<(string, int), ZoneFactors> ZoneFactorsMap = new Dictionary<(string, int), ZoneFactors>();
         public List<SummonForm> Summons = new List<SummonForm>();
+        public List<NpcRec> Npcs = new List<NpcRec>();
         public List<DollRec> Dolls = new List<DollRec>();
         public List<RandomMove> RandomMoves = new List<RandomMove>();
 

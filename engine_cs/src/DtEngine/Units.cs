@@ -27,6 +27,12 @@ namespace DtEngine
         public Status WithData(double data) { HasData = true; Data = data; return this; }
     }
 
+    /// <summary>What the lists of the units of a battle depend on: a number that rises each time a unit falls, rises or joins.</summary>
+    public sealed class Roster
+    {
+        public int Version;
+    }
+
     public sealed class Unit
     {
         public const int PARTY = 0, ENEMIES = 1;
@@ -57,6 +63,7 @@ namespace DtEngine
         public int StCount;
         // passives: NaN when the effect is not among them
         public double[] Pv = NoPassives;
+        public Action.FxSet PlainEffects;     // the effects of the plain attack of this unit (made when first asked)
         public bool[] PvInt;          // null: no passive is a whole number written as an int
         public int[] Enchants = NoEnchants;
 
@@ -66,7 +73,13 @@ namespace DtEngine
         public Script Script;
         public Piece Weapon;
         public int AttackRange = T.SHORT, AttackAttr = T.NEUTRAL;
-        public bool Alive = true;
+        bool alive = true;
+        public Roster Roster;
+        public bool Alive
+        {
+            get { return alive; }
+            set { if (alive != value) { alive = value; if (Roster != null) Roster.Version++; } }
+        }
         public double NextTime;
         public Action Chant;
         public List<string> Song = new List<string>(), Dance = new List<string>();
@@ -123,6 +136,23 @@ namespace DtEngine
             Weight = weight; Swing = swing; Race = race;
         }
 
+        /// <summary>A unit as it was when it was built, made from a unit that has not been in a battle: what is only read (passives,
+        /// enchantments, skills, attacks, script) is shared, what a battle changes is made new. The bag of items is left to the caller.</summary>
+        public Unit CloneFresh()
+        {
+            var c = (Unit)MemberwiseClone();
+            c.Base = (int[])Base.Clone();
+            c.ResistBase = (int[])ResistBase.Clone();
+            c.St = NoStatuses; c.stOrder = Array.Empty<int>(); c.StCount = 0;
+            pvShared = true; c.pvShared = true;
+            c.Song = new List<string>(); c.Dance = new List<string>();
+            c.Uses = new Dictionary<string, int>(); c.OnceDone = new HashSet<long>();
+            c.ProvokedBy = new List<(Unit, double)>();
+            c.Items = new Dictionary<int, int>(Items);
+            c.Chant = null; c.Owner = null; c.ShadowOf = null; c.AiTargets = null; c.Samsara = null; c.Roster = null;
+            return c;
+        }
+
         // --- statuses --------------------------------------------------------------------------------------
         public bool HasStatus(int e) => St[e] != null;
 
@@ -174,9 +204,17 @@ namespace DtEngine
         public bool HasPassive(int e) => !double.IsNaN(Pv[e]);
         public bool PassiveIsInt(int e) => PvInt != null && PvInt[e];
         public double Passive(int e, double dflt = 0.0) { double v = Pv[e]; return double.IsNaN(v) ? dflt : v; }
+        bool pvShared;          // Pv and PvInt belong to other units made from the same template: copied before they are changed
+
         public void SetPassive(int e, double v, bool isInt = false)
         {
             if (Pv == NoPassives) Pv = NewPassives();
+            else if (pvShared)
+            {
+                Pv = (double[])Pv.Clone();
+                if (PvInt != null) PvInt = (bool[])PvInt.Clone();
+                pvShared = false;
+            }
             Pv[e] = v;
             if (isInt) { if (PvInt == null) PvInt = new bool[GameData.MaxEffect]; PvInt[e] = true; }
             else if (PvInt != null) PvInt[e] = false;
@@ -351,7 +389,8 @@ namespace DtEngine
 
         public static Unit BuildMember(GameData data, Character character, int classId, int level, int previous, List<PieceUse> equipment,
                                        List<(int id, int level)> skills, int crownBonus, string name, bool front,
-                                       Dictionary<int, int> items, int sealbook, int[] partyEnchants, Dictionary<int, int> forged)
+                                       Dictionary<int, int> items, int sealbook, int[] partyEnchants, Dictionary<int, int> forged,
+                                       int? uniqueLevel = null, List<(int effect, double value, bool isInt)> passives = null)
         {
             int row = data.GrowthRowOf(classId, previous);
             int[] grown = data.Stats(row, level);
@@ -361,6 +400,16 @@ namespace DtEngine
             var passiveValues = new double[GameData.MaxEffect];
             Array.Fill(passiveValues, double.NaN);
             bool[] passiveInt = null;
+            if (passives != null)
+            {
+                // passive_values = dict(passives): a later entry of one effect replaces the earlier
+                foreach (var (effect, value, isInt) in passives)
+                {
+                    passiveValues[effect] = value;
+                    if (isInt) { if (passiveInt == null) passiveInt = new bool[GameData.MaxEffect]; passiveInt[effect] = true; }
+                    else if (passiveInt != null) passiveInt[effect] = false;
+                }
+            }
             if (skills != null)
             {
                 foreach (var (skillId, lv) in skills)
@@ -388,7 +437,7 @@ namespace DtEngine
             bool hasUnique = false;
             int uniqueEffect = 0;
             double uniqueValue = 0;
-            int rank = UniqueRank(level, crownBonus);
+            int rank = uniqueLevel ?? UniqueRank(level, crownBonus);
             if (character != null && character.UniqueSkill != T.NONE && rank > 0)
             {
                 if (data.Unique.TryGetValue(character.UniqueSkill, out var u))
@@ -509,6 +558,39 @@ namespace DtEngine
                     for (int k = 0; k < attack.EffId.Length; k++) unit.SetPassive(attack.EffId[k], attack.EffValue[k], attack.EffIsInt[k]);
             }
             return unit;
+        }
+
+        /// <summary>measures/mercenaries.py build: a guest ally as a unit of the party side, with the stats, the attacks and the
+        /// script of her record; the attack of her field 0x98 is taken as a passive when it is one.</summary>
+        public static Unit BuildGuest(GameData data, NpcRec record)
+        {
+            double weight = data.WeaponRanks.TryGetValue(record.Rank, out var w) ? w : 2.0;
+            var unit = new Unit(record.Name, Unit.PARTY, record.Level, record.Hp, 0, record.Stats, null, weight, 0.0, T.NONE, Kind.Summon);
+            unit.Attacks = record.Attacks;
+            unit.Script = record.Script;
+            if (record.ExtraAttack != T.NONE && data.Attacks.TryGetValue(record.ExtraAttack, out var extra) && extra.Passive)
+                for (int k = 0; k < extra.EffId.Length; k++) unit.SetPassive(extra.EffId[k], extra.EffValue[k], extra.EffIsInt[k]);
+            return unit;
+        }
+
+        /// <summary>measures/mercenaries.py stage: the record of the guest whose level is the highest not above the level, else her first.</summary>
+        public static NpcRec GuestStage(GameData data, string name, int level)
+        {
+            NpcRec under = null, first = null;
+            var mine = new List<NpcRec>();
+            foreach (var r in data.Npcs) if (r.Name == name) mine.Add(r);
+            // sorted by level (stable)
+            var sorted = new List<NpcRec>(mine);
+            for (int i = 1; i < sorted.Count; i++)
+            {
+                var x = sorted[i];
+                int j = i - 1;
+                while (j >= 0 && sorted[j].Level > x.Level) { sorted[j + 1] = sorted[j]; j--; }
+                sorted[j + 1] = x;
+            }
+            foreach (var r in sorted) { if (first == null) first = r; if (r.Level <= level) under = r; }
+            if (first == null) throw new InvalidOperationException("no guest " + name);
+            return under ?? first;
         }
 
         public static Unit BuildSummon(GameData data, SummonForm form, List<Unit> party, int hp)

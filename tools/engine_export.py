@@ -157,6 +157,11 @@ def side_json(data, flags):
                      'name': s['name'], 'factors': {k: v for k, v in s['factors'].items()},
                      'attacks': list(s['attacks']), 'passive': s['passive'], 'script': script_json(s['script'])}
                     for s in data.summons],
+        'npcs': [{'id': n['id'], 'character': n['character'], 'level': whole(n['level'], 'level of a guest'), 'raw_1c': n['raw_1c'],
+                  'name': n['name'], 'attacks': list(n['attacks']), 'kind': n['kind'], 'hp': whole(n['hp'], f"hp of guest {n['id']}"),
+                  'extra_attack': n['extra_attack'],
+                  **{s: whole(n[s], f"{s} of guest {n['id']}") for s in ('atk', 'def', 'int', 'res', 'dex', 'agi')},
+                  'script': script_json(n['script'])} for n in data.npcs],
         'dolls': [{'skill': d['skill'], 'effect': d['effect'], 'name': d['name'], 'range': d['range'],
                    'turns': whole_list(d['turns'], 'doll turns'),
                    'actions': [{'skill': a['skill']} for a in d['actions']]} for d in data.dolls],

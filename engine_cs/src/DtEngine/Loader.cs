@@ -80,6 +80,15 @@ namespace DtEngine
             throw new InvalidOperationException("not a number: " + (v ?? "None"));
         }
 
+        /// <summary>The same choices with other figures for some settings (a job that sets some of its own).</summary>
+        public Setup WithSettings(Dictionary<string, object> overrides)
+        {
+            var copy = (Setup)MemberwiseClone();
+            copy.Settings = new Dictionary<string, object>(Settings);
+            foreach (var kv in overrides) copy.Settings[kv.Key] = kv.Value;
+            return copy;
+        }
+
         public bool HasSetting(string key) => Settings.TryGetValue(key, out var v) && v != null;
         public object Setting(string key) => Settings.TryGetValue(key, out var v) ? v : null;
         public double SettingDouble(string key) => ToDouble(Settings[key]);
@@ -113,7 +122,7 @@ namespace DtEngine
         }
 
         // --- helpers ------------------------------------------------------------------------------------
-        static object Plain(JsonElement e)
+        public static object Plain(JsonElement e)
         {
             switch (e.ValueKind)
             {
@@ -128,7 +137,7 @@ namespace DtEngine
             }
         }
 
-        static Row ToRow(JsonElement e)
+        public static Row ToRow(JsonElement e)
         {
             var r = new Row();
             foreach (var p in e.EnumerateObject()) r.Cells[p.Name] = Plain(p.Value);
@@ -218,7 +227,7 @@ namespace DtEngine
             return list;
         }
 
-        static Script LoadScript(JsonElement e)
+        public static Script LoadScript(JsonElement e)
         {
             if (e.ValueKind == JsonValueKind.Null) return null;
             var s = new Script { Id = I(e.GetProperty("id")), Opening = LoadCommands(e.GetProperty("opening")) };
@@ -413,6 +422,19 @@ namespace DtEngine
                 string[] st = { "atk", "def", "int", "res", "dex", "agi" };
                 for (int i = 0; i < 6; i++) f.Factors[i] = D(s.GetProperty("factors").GetProperty(st[i]));
                 d.Summons.Add(f);
+            }
+            foreach (var n in e.GetProperty("npcs").EnumerateArray())
+            {
+                var npc = new NpcRec
+                {
+                    Id = I(n.GetProperty("id")), Character = I(n.GetProperty("character")), Level = I(n.GetProperty("level")),
+                    Rank = I(n.GetProperty("raw_1c")), Kind = I(n.GetProperty("kind")), Hp = I(n.GetProperty("hp")),
+                    Name = S(n.GetProperty("name")), Attacks = Ints(n.GetProperty("attacks")), ExtraAttack = I(n.GetProperty("extra_attack")),
+                    Script = LoadScript(n.GetProperty("script")),
+                };
+                string[] st = { "atk", "def", "int", "res", "dex", "agi" };
+                for (int i = 0; i < 6; i++) npc.Stats[i] = I(n.GetProperty(st[i]));
+                d.Npcs.Add(npc);
             }
             foreach (var x in e.GetProperty("dolls").EnumerateArray())
             {

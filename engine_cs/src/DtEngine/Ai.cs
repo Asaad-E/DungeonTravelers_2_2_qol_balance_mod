@@ -81,7 +81,8 @@ namespace DtEngine
                 if (command.Cmd == TARGET)
                 {
                     if (unit.AiTargets == null) unit.AiTargets = new List<(int, int)>();
-                    int at = unit.AiTargets.FindIndex(x => x.word == command.Args[0]);
+                    int at = -1;
+                    for (int q = 0; q < unit.AiTargets.Count; q++) if (unit.AiTargets[q].word == command.Args[0]) { at = q; break; }
                     if (at >= 0) unit.AiTargets[at] = (command.Args[0], command.Args[1]);
                     else unit.AiTargets.Add((command.Args[0], command.Args[1]));
                     continue;
@@ -175,7 +176,7 @@ namespace DtEngine
             }
             if (cid == 9)
             {
-                foreach (var u in battle.Allies(unit, false)) if (!u.Alive && u.Kind != Kind.Doll) return true;
+                foreach (var u in battle.AlliesArray(unit, false)) if (!u.Alive && u.Kind != Kind.Doll) return true;
                 return false;
             }
             return false;
@@ -183,8 +184,8 @@ namespace DtEngine
 
         static int SourceValue(Battle battle, Unit unit, int source)
         {
-            var allies = battle.Allies(unit);
-            var foes = battle.Targetable(battle.Opponents(unit));
+            var allies = battle.AlliesArray(unit);
+            var foes = battle.TargetableArray(1 - unit.Side);
             switch (source)
             {
                 case 0: return PyMath.Int(unit.HpRatio * 100);
@@ -247,8 +248,8 @@ namespace DtEngine
 
         static Unit PickByKind(Battle battle, Unit unit, int kind, EnemyAttack attack)
         {
-            var allies = battle.Allies(unit);
-            var foes = battle.Targetable(battle.Opponents(unit));
+            var allies = battle.AlliesArray(unit);
+            var foes = battle.TargetableArray(1 - unit.Side);
             switch (kind)
             {
                 case 0: return MinBy(allies, u => u.HpRatio);
@@ -274,12 +275,12 @@ namespace DtEngine
                 case 10: foreach (var u in foes) if (u.Front) return u; return null;
                 case 11: foreach (var u in foes) if (HasBuff(u)) return u; return null;
                 case 12: foreach (var u in allies) if (HasDebuff(u)) return u; return null;
-                case 15: foreach (var u in battle.Allies(unit, false)) if (!u.Alive) return u; return null;
+                case 15: foreach (var u in battle.AlliesArray(unit, false)) if (!u.Alive) return u; return null;
                 default: return null;
             }
         }
 
-        static Unit MinBy(List<Unit> list, Func<Unit, double> key)
+        static Unit MinBy(Unit[] list, Func<Unit, double> key)
         {
             Unit best = null; double bestKey = 0;
             foreach (var u in list)

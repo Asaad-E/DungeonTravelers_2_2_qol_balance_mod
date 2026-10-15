@@ -79,6 +79,32 @@ namespace DtEngine
         /// <summary>round(x) with half to even, as an int.</summary>
         public static int Round(double x) => (int)Math.Round(x, MidpointRounding.ToEven);
 
+        /// <summary>round(x, ndigits) of a float, as CPython does it: the exact value of x rounded half to even at ndigits decimals,
+        /// then the nearest float of that decimal.</summary>
+        public static double RoundTo(double x, int ndigits)
+        {
+            if (double.IsNaN(x) || double.IsInfinity(x) || x == 0.0) return x;
+            long bits = BitConverter.DoubleToInt64Bits(x);
+            bool negative = bits < 0;
+            int exponent = (int)((bits >> 52) & 0x7FF);
+            long fraction = bits & 0xFFFFFFFFFFFFFL;
+            System.Numerics.BigInteger mantissa;
+            if (exponent == 0) { mantissa = fraction; exponent = -1074; }
+            else { mantissa = fraction | (1L << 52); exponent -= 1075; }
+            // x = mantissa * 2^exponent ; scaled = x * 10^ndigits
+            var scale = System.Numerics.BigInteger.Pow(10, Math.Abs(ndigits));
+            System.Numerics.BigInteger numerator = mantissa, denominator = System.Numerics.BigInteger.One;
+            if (ndigits >= 0) numerator *= scale; else denominator *= scale;
+            if (exponent >= 0) numerator <<= exponent; else denominator <<= -exponent;
+            var quotient = System.Numerics.BigInteger.DivRem(numerator, denominator, out var remainder);
+            var twice = remainder * 2;
+            int cmp = twice.CompareTo(denominator);
+            if (cmp > 0 || (cmp == 0 && !quotient.IsEven)) quotient += 1;
+            if (quotient.IsZero) return negative ? -0.0 : 0.0;
+            string text = (negative ? "-" : "") + quotient.ToString() + "E" + (-ndigits).ToString(CultureInfo.InvariantCulture);
+            return double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture);
+        }
+
         public static int FloorDiv(int a, int b)
         {
             int q = a / b;

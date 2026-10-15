@@ -19,15 +19,26 @@ namespace DtEngine
         public Unit[] FixedTargets;
         public bool Chanting, Furious;
 
-        // the effects at the level of the action: id, kind, value; the first of each id is what value() finds
+        // the effects at the level of the action: id, kind, value; the first of each id is what value() finds. The arrays are shared
+        // between the actions that have the same effects (a skill at a level whose figures take nothing from the user, an enemy
+        // attack, the plain attack of a unit): they are never changed once made.
         int fxCount = -1;
         int[] fxId, fxKind;
         double[] fxVal;
         bool[] fxInt;
 
+        /// <summary>The effects of a skill at a level, or of an attack, as arrays (built once).</summary>
+        public sealed class FxSet
+        {
+            public int Count;
+            public int[] Id, Kind;
+            public double[] Val;
+            public bool[] IsInt;
+        }
+
         // expected damage on each target, worked out once per action (a policy asks for it many times in one decision, and
         // nothing changes between the questions)
-        public double[] EdValue;       // NaN: not worked out yet
+
 
         public Action(Unit actor, AKind kind, Skill skill = null, int level = 1, Unit target = null, int item = T.NONE, Unit[] fixedTargets = null)
         {
@@ -37,6 +48,13 @@ namespace DtEngine
         public Action(Unit actor, AKind kind, EnemyAttack atk, int level)
         {
             Actor = actor; Kind = kind; Atk = atk; Level = level;
+        }
+
+        /// <summary>Makes this object the action Action(actor, kind, skill, level) would be (to examine many options with one object).</summary>
+        public void Reset(Unit actor, AKind kind, Skill skill, int level)
+        {
+            Actor = actor; Kind = kind; Skill = skill; Atk = null; Level = level; Target = null; Item = T.NONE; FixedTargets = null;
+            Chanting = false; Furious = false; fxCount = -1;
         }
 
         public bool HasSource => Skill != null || Atk != null;
@@ -57,51 +75,84 @@ namespace DtEngine
             }
         }
 
-        void Add(int id, int kind, double value, bool isInt)
+        static FxSet MakeSet(int capacity) => new FxSet { Id = new int[capacity], Kind = new int[capacity], Val = new double[capacity], IsInt = new bool[capacity] };
+
+        static void AddTo(FxSet set, int id, int kind, double value, bool isInt)
         {
-            if (fxId == null) { fxId = new int[8]; fxKind = new int[8]; fxVal = new double[8]; fxInt = new bool[8]; }
-            if (fxCount == fxId.Length)
+            if (set.Count == set.Id.Length)
             {
-                Array.Resize(ref fxId, fxCount * 2); Array.Resize(ref fxKind, fxCount * 2); Array.Resize(ref fxVal, fxCount * 2);
-                Array.Resize(ref fxInt, fxCount * 2);
+                int n = Math.Max(4, set.Count * 2);
+                Array.Resize(ref set.Id, n); Array.Resize(ref set.Kind, n); Array.Resize(ref set.Val, n); Array.Resize(ref set.IsInt, n);
             }
-            fxId[fxCount] = id; fxKind[fxCount] = kind; fxVal[fxCount] = value; fxInt[fxCount] = isInt;
-            fxCount++;
+            set.Id[set.Count] = id; set.Kind[set.Count] = kind; set.Val[set.Count] = value; set.IsInt[set.Count] = isInt;
+            set.Count++;
+        }
+
+        FxSet SkillEffects()
+        {
+            var skill = Skill;
+            // the effects of a skill depend on the user only through the bonus effects
+            bool shareable = !skill.TakesFromUser;
+            if (shareable)
+            {
+                var cache = skill.FxByLevel;
+                if (cache != null && Level >= 1 && Level <= cache.Length && cache[Level - 1] != null) return cache[Level - 1];
+            }
+            var set = MakeSet(skill.Effects.Length);
+            foreach (var e in skill.Effects)
+            {
+                double v = e.Values[Math.Min(Level, e.Values.Length) - 1];
+                var bonus = ValueBonus(e.Id);
+                var sum = new PySum();
+                foreach (int b in bonus) sum.AddFloat(Actor.Passive(b, 0.0));
+                // sum() of nothing is the int 0
+                v = v + (bonus.Length == 0 ? 0.0 : sum.Result);
+                AddTo(set, e.Id, e.Kind, v, bonus.Length == 0 && e.IsInt[Math.Min(Level, e.Values.Length) - 1]);
+            }
+            if (shareable && Level >= 1)
+            {
+                lock (skill)
+                {
+                    if (skill.FxByLevel == null || skill.FxByLevel.Length < Level) { var bigger = new FxSet[Math.Max(Level, skill.Levels)]; if (skill.FxByLevel != null) Array.Copy(skill.FxByLevel, bigger, skill.FxByLevel.Length); skill.FxByLevel = bigger; }
+                    skill.FxByLevel[Level - 1] = set;
+                }
+            }
+            return set;
         }
 
         void Refresh()
         {
-            fxCount = 0;
-            if (Skill != null)
+            FxSet set;
+            if (Skill != null) set = SkillEffects();
+            else if (Atk != null) set = Atk.Fx ?? (Atk.Fx = MakeAttackSet(Atk));
+            else if (Kind == AKind.Attack) set = Actor.PlainEffects ?? (Actor.PlainEffects = MakePlainSet(Actor));
+            else set = Empty;
+            fxId = set.Id; fxKind = set.Kind; fxVal = set.Val; fxInt = set.IsInt; fxCount = set.Count;
+        }
+
+        static readonly FxSet Empty = MakeSet(0);
+
+        static FxSet MakeAttackSet(EnemyAttack atk)
+        {
+            var set = MakeSet(atk.EffId.Length);
+            for (int i = 0; i < atk.EffId.Length; i++) AddTo(set, atk.EffId[i], atk.EffKind[i], atk.EffValue[i], atk.EffIsInt[i]);
+            return set;
+        }
+
+        static FxSet MakePlainSet(Unit actor)
+        {
+            var set = MakeSet(4);
+            AddTo(set, PLAIN_HIT, 4, 1.0, false);
+            foreach (var (enchant, effect, value) in F.PLAIN_ATTACK_ENCHANTS)
             {
-                foreach (var e in Skill.Effects)
+                if (actor.Pieces(enchant) != 0)
                 {
-                    double v = e.Values[Math.Min(Level, e.Values.Length) - 1];
-                    var bonus = ValueBonus(e.Id);
-                    var sum = new PySum();
-                    foreach (int b in bonus) sum.AddFloat(Actor.Passive(b, 0.0));
-                    // sum() of nothing is the int 0
-                    v = v + (bonus.Length == 0 ? 0.0 : sum.Result);
-                    Add(e.Id, e.Kind, v, bonus.Length == 0 && e.IsInt[Math.Min(Level, e.Values.Length) - 1]);
+                    bool present = false;
+                    for (int i = 0; i < set.Count; i++) if (set.Id[i] == effect) { present = true; break; }
+                    if (!present) AddTo(set, effect, 4, value, false);
                 }
             }
-            else if (Atk != null)
-            {
-                for (int i = 0; i < Atk.EffId.Length; i++) Add(Atk.EffId[i], Atk.EffKind[i], Atk.EffValue[i], Atk.EffIsInt[i]);
-            }
-            else if (Kind == AKind.Attack)
-            {
-                Add(PLAIN_HIT, 4, 1.0, false);
-                foreach (var (enchant, effect, value) in F.PLAIN_ATTACK_ENCHANTS)
-                {
-                    if (Actor.Pieces(enchant) != 0)
-                    {
-                        bool present = false;
-                        for (int i = 0; i < fxCount; i++) if (fxId[i] == effect) { present = true; break; }
-                        if (!present) Add(effect, 4, value, false);
-                    }
-                }
-            }
+            return set;
         }
 
         public int Count { get { if (fxCount < 0) Refresh(); return fxCount; } }

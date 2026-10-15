@@ -13,6 +13,14 @@ namespace DtEngine
         public int Number = T.NONE;       // NONE for a random formation
     }
 
+    /// <summary>Arguments of build_member that a job gives to every member it builds (unique_level, passives).</summary>
+    public sealed class MemberExtras
+    {
+        public int? UniqueLevel;
+        public List<(int effect, double value, bool isInt)> Passives;
+        public Dictionary<string, string> Pieces;      // pieces that take the place of the role's own (column of the sheet Roles -> name)
+    }
+
     public sealed class RunResult
     {
         public bool Won, Lost;
@@ -48,10 +56,10 @@ namespace DtEngine
         Dictionary<string, (int level, string source)> levels;
         readonly Dictionary<string, int> gear = new Dictionary<string, int>();
 
-        public Scenario(GameData data, Setup setup)
+        public Scenario(GameData data, Setup setup, List<Row> extraPolicies = null)
         {
             Data = data; Setup = setup;
-            Policy = new Policy(setup.Policies, setup);
+            Policy = new Policy(extraPolicies == null || extraPolicies.Count == 0 ? setup.Policies : setup.Policies.Concat(extraPolicies).ToList(), setup);
             baseOptions = OptionsFrom(setup, null);
             maxTime = setup.HasSetting("max_time") ? Setup.ToDouble(setup.Setting("max_time")) : 400.0;
         }
@@ -315,7 +323,7 @@ namespace DtEngine
         // --- members --------------------------------------------------------------------------------------------------
         public Unit BuildRoleMember(string roleName, Character character, int level, int upgrade, int crown, bool forge,
                                     Dictionary<string, string> pieces, int[] partyEnchants, int sealbook, List<(int id, int level)> extra = null,
-                                    List<(int id, int pieces)> extraEnchants = null)
+                                    List<(int id, int pieces)> extraEnchants = null, MemberExtras more = null)
         {
             var role = Setup.Roles[roleName];
             string Cell(string column)
@@ -349,7 +357,7 @@ namespace DtEngine
             }
             bool front = role.Str("Row") == "front";
             var bare = UnitFactory.BuildMember(Data, character, cls, level, previous, equipment, null, crown, null, front, null, sealbook, partyEnchants,
-                                               MergeEnchants(null, extraEnchants));
+                                               MergeEnchants(null, extraEnchants), more?.UniqueLevel, more?.Passives);
             var skills = AllocateSkills(role, level, bare.MaxTp);
             if (extra != null)
             {
@@ -370,13 +378,21 @@ namespace DtEngine
             equipment = equipment.Where(u => !(u.Slot == 1 && Data.Equipment[u.EquipId].Category == 0 && !dual)).ToList();
             var forged = forge ? ForgeEnchants(roleName, equipment) : null;
             var unit = UnitFactory.BuildMember(Data, character, cls, level, previous, equipment, skills, crown, null, front, null, sealbook, partyEnchants,
-                                               MergeEnchants(forged, extraEnchants));
+                                               MergeEnchants(forged, extraEnchants), more?.UniqueLevel, more?.Passives);
             unit.Role = roleName;
             unit.HasRole = true;
             bool shield = false;
             foreach (var u in equipment) if (u.Slot == 1 && Data.Equipment[u.EquipId].Category == 1) shield = true;
             unit.Shield = shield;
             return unit;
+        }
+
+        static Dictionary<string, string> WithPieces(Dictionary<string, string> own, MemberExtras more)
+        {
+            if (more?.Pieces == null) return own;
+            var merged = new Dictionary<string, string>(own);
+            foreach (var kv in more.Pieces) merged[kv.Key] = kv.Value;
+            return merged;
         }
 
         static Dictionary<int, int> MergeEnchants(Dictionary<int, int> forged, List<(int id, int pieces)> extra)
@@ -472,9 +488,84 @@ namespace DtEngine
             return unit;
         }
 
+        // The party of a checkpoint is the same each time it is asked for with the same arguments: it is built once and each run gets a copy.
+        readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<Unit>> partyTemplates = new System.Collections.Concurrent.ConcurrentDictionary<string, List<Unit>>();
+        readonly System.Collections.Concurrent.ConcurrentDictionary<(int, bool), Unit> enemyTemplates = new System.Collections.Concurrent.ConcurrentDictionary<(int, bool), Unit>();
+
+        const int MAX_PARTY_TEMPLATES = 256;
+        int partyTemplateCount;
+
+        static string PartyKey(List<string> composition, string chapter, int level, int upgrade, int crown, string floor, int? kit,
+                               List<(int id, int level)> extra, List<int> bagOverride, List<(int id, int pieces)> extraEnchants, MemberExtras more)
+        {
+            var c = System.Globalization.CultureInfo.InvariantCulture;
+            var b = new System.Text.StringBuilder();
+            b.Append(string.Join("|", composition)).Append('#').Append(chapter).Append('#').Append(level).Append('#').Append(upgrade).Append('#').Append(crown)
+             .Append('#').Append(floor ?? "~").Append('#').Append(kit.HasValue ? kit.Value.ToString(c) : "~").Append('#');
+            if (extra != null) foreach (var (id, lv) in extra) b.Append(id).Append(':').Append(lv).Append(',');
+            b.Append('#');
+            if (bagOverride != null) { b.Append('b'); foreach (int id in bagOverride) b.Append(id).Append(','); }
+            b.Append('#');
+            if (extraEnchants != null) foreach (var (id, n) in extraEnchants) b.Append(id).Append(':').Append(n).Append(',');
+            b.Append('#');
+            if (more != null)
+            {
+                if (more.UniqueLevel.HasValue) b.Append('u').Append(more.UniqueLevel.Value);
+                if (more.Passives != null) foreach (var (e, v, w) in more.Passives) b.Append('p').Append(e).Append('=').Append(v.ToString("R", c)).Append(w ? "i" : "f");
+                if (more.Pieces != null) foreach (var kv in more.Pieces.OrderBy(x => x.Key, StringComparer.Ordinal)) b.Append('c').Append(kv.Key).Append('=').Append(kv.Value);
+            }
+            return b.ToString();
+        }
+
+        static List<Unit> CloneParty(List<Unit> template)
+        {
+            var bags = new Dictionary<Dictionary<int, int>, Dictionary<int, int>>(ReferenceComparer.Instance);
+            var party = new List<Unit>(template.Count);
+            foreach (var t in template)
+            {
+                var c = t.CloneFresh();
+                if (!bags.TryGetValue(t.Items, out var bag)) bags[t.Items] = bag = c.Items;
+                c.Items = bag;
+                party.Add(c);
+            }
+            return party;
+        }
+
+        sealed class ReferenceComparer : IEqualityComparer<Dictionary<int, int>>
+        {
+            public static readonly ReferenceComparer Instance = new ReferenceComparer();
+            public bool Equals(Dictionary<int, int> a, Dictionary<int, int> b) => ReferenceEquals(a, b);
+            public int GetHashCode(Dictionary<int, int> a) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(a);
+        }
+
+        /// <summary>An enemy as UnitFactory.BuildEnemy makes it: built once for each enemy and row, then copied.</summary>
+        public Unit EnemyUnit(int enemyId, bool front)
+        {
+            if (!enemyTemplates.TryGetValue((enemyId, front), out var template))
+                template = enemyTemplates.GetOrAdd((enemyId, front), UnitFactory.BuildEnemy(Data, enemyId, front));
+            return template.CloneFresh();
+        }
+
         public List<Unit> ReferenceParty(List<string> composition, string chapter, int level, int upgrade, int crown, string floor, int? kit = null,
                                          List<(int id, int level)> extra = null, List<int> bagOverride = null,
-                                         List<(int id, int pieces)> extraEnchants = null)
+                                         List<(int id, int pieces)> extraEnchants = null, MemberExtras more = null)
+        {
+            string key = PartyKey(composition, chapter, level, upgrade, crown, floor, kit, extra, bagOverride, extraEnchants, more);
+            if (!partyTemplates.TryGetValue(key, out var template))
+            {
+                // a great many different parties (random cases) would fill the memory with templates nobody asks for again
+                if (System.Threading.Interlocked.Increment(ref partyTemplateCount) > MAX_PARTY_TEMPLATES)
+                {
+                    partyTemplates.Clear();
+                    System.Threading.Interlocked.Exchange(ref partyTemplateCount, 1);
+                }
+                template = partyTemplates.GetOrAdd(key, BuildReferenceParty(composition, chapter, level, upgrade, crown, floor, kit, extra, bagOverride, extraEnchants, more));
+            }
+            return CloneParty(template);
+        }
+
+        List<Unit> BuildReferenceParty(List<string> composition, string chapter, int level, int upgrade, int crown, string floor, int? kit,
+                                       List<(int id, int level)> extra, List<int> bagOverride, List<(int id, int pieces)> extraEnchants, MemberExtras more)
         {
             var chars = new Dictionary<string, Character>();
             foreach (var c in Data.Characters) chars[c.Name] = c;
@@ -497,8 +588,8 @@ namespace DtEngine
                     if (pool.Contains(name) && !taken.Contains(name) && c != null && c.BaseClass == baseClass)
                     {
                         int joinLevel = LevelOfExp(c.StartExp);
-                        party.Add(BuildRoleMember(roleName, c, Math.Max(level, joinLevel), upgrade, crown, forge, UniquePieces(roleName, chapter, floor),
-                                                  partyEnchants, PersonalSealbook(roleName, chapter, floor), extra, extraEnchants));
+                        party.Add(BuildRoleMember(roleName, c, Math.Max(level, joinLevel), upgrade, crown, forge, WithPieces(UniquePieces(roleName, chapter, floor), more),
+                                                  partyEnchants, PersonalSealbook(roleName, chapter, floor), extra, extraEnchants, more));
                         taken.Add(name);
                         break;
                     }
@@ -515,8 +606,8 @@ namespace DtEngine
                     if (ClassId(role.Str("Base class")) == c.BaseClass)
                     {
                         int joinLevel = LevelOfExp(c.StartExp);
-                        party.Add(BuildRoleMember(roleName, c, Math.Max(level, joinLevel), upgrade, crown, forge, UniquePieces(roleName, chapter, floor),
-                                                  partyEnchants, PersonalSealbook(roleName, chapter, floor), extra, extraEnchants));
+                        party.Add(BuildRoleMember(roleName, c, Math.Max(level, joinLevel), upgrade, crown, forge, WithPieces(UniquePieces(roleName, chapter, floor), more),
+                                                  partyEnchants, PersonalSealbook(roleName, chapter, floor), extra, extraEnchants, more));
                         taken.Add(name);
                         break;
                     }
@@ -575,7 +666,7 @@ namespace DtEngine
         {
             var battle = Data.FindFixed(floor, number);
             var group = new Group();
-            foreach (var (enemy, front) in battle.Enemies) group.Units.Add(UnitFactory.BuildEnemy(Data, enemy, front));
+            foreach (var (enemy, front) in battle.Enemies) group.Units.Add(EnemyUnit(enemy, front));
             for (int i = 0; i < Math.Min(group.Units.Count, battle.Slots.Length); i++) group.Units[i].Slot = battle.Slots[i];
             group.Zone = BattleZone(floor, number);
             group.Floor = floor;
@@ -598,8 +689,40 @@ namespace DtEngine
             var weights = formations.Select(f => (double)Math.Max(1, (int)f.Chance)).ToArray();
             var pick = formations[rng.ChoicesIndex(weights)];
             var group = new Group();
-            foreach (var (e, front) in pick.Enemies) group.Units.Add(UnitFactory.BuildEnemy(Data, e, front));
+            foreach (var (e, front) in pick.Enemies) group.Units.Add(EnemyUnit(e, front));
             for (int i = 0; i < Math.Min(group.Units.Count, pick.Slots.Length); i++) group.Units[i].Slot = pick.Slots[i];
+            return group;
+        }
+
+        /// <summary>measures.random_group with the formation drawn already (index among the formations whose enemies are all known).</summary>
+        public Group RandomGroupAt(FloorZone zone, int index)
+        {
+            var formations = zone.Formations.Where(f => f.Enemies.All(e => Data.Enemies.ContainsKey(e.enemy))).ToList();
+            var pick = formations[index];
+            var group = new Group();
+            foreach (var (e, front) in pick.Enemies) group.Units.Add(EnemyUnit(e, front));
+            for (int i = 0; i < Math.Min(group.Units.Count, pick.Slots.Length); i++) group.Units[i].Slot = pick.Slots[i];
+            return group;
+        }
+
+        /// <summary>scenario.Group(build_enemy(...) for each enemy of the list): a battle away from any cell of the floor.</summary>
+        public Group CustomGroup(List<EnemySpec> enemies)
+        {
+            var group = new Group();
+            foreach (var spec in enemies)
+            {
+                var unit = EnemyUnit(spec.Enemy, spec.Front);
+                if (spec.HasScript) unit.Script = spec.Script;
+                if (spec.Attacks != null) unit.Attacks = spec.Attacks;
+                if (spec.Passives != null)
+                    foreach (int attackId in spec.Passives)
+                    {
+                        var attack = Data.GetAttack(attackId);
+                        if (attack != null)
+                            for (int k = 0; k < attack.EffId.Length; k++) unit.SetPassive(attack.EffId[k], attack.EffValue[k], attack.EffIsInt[k]);
+                    }
+                group.Units.Add(unit);
+            }
             return group;
         }
 
@@ -693,6 +816,63 @@ namespace DtEngine
                     enemies.Zone = changed;
                 }
             }
+        }
+
+        /// <summary>sim.scenario.walked_zones: the zones of a floor a party of this level walks (random battles, the strongest enemy at most
+        /// gear_level_margin levels above it); when the floor has none, the zones of its dungeon under the same rule.</summary>
+        public List<FloorZone> WalkedZones(string floorName, int level)
+        {
+            int margin = Setup.SettingInt("gear_level_margin");
+            bool Fits(FloorZone zone)
+            {
+                if (zone.Formations.Length == 0) return false;
+                int top = int.MinValue;
+                bool any = false;
+                foreach (var f in zone.Formations)
+                    foreach (var (e, _) in f.Enemies)
+                        if (Data.Enemies.TryGetValue(e, out var rec)) { top = Math.Max(top, rec.Level); any = true; }
+                if (!any) throw new InvalidOperationException("max() of an empty sequence");
+                return top <= level + margin;
+            }
+            string Head(string name)
+            {
+                int at = name.IndexOf(" zone", StringComparison.Ordinal);
+                return at < 0 ? name : name.Substring(0, at);
+            }
+            string Four(string name) => name.Length <= 4 ? name : name.Substring(0, 4);
+            var found = new List<FloorZone>();
+            foreach (var z in Data.Floors) if (Head(z.Name) == floorName && Fits(z)) found.Add(z);
+            if (found.Count > 0) return found;
+            foreach (var z in Data.Floors) if (Four(z.Name) == Four(floorName) && Fits(z)) found.Add(z);
+            return found;
+        }
+
+        /// <summary>sim.scenario.play with the options of the setup and a seed: the runs, in order (a run does not depend on the others).</summary>
+        public RunResult[] PlayRuns(Func<List<Unit>> partyFactory, Func<ulong, List<Group>> enemyFactoryFor, int runs, ulong seed, BattleOptions options,
+                                    int threads = 1)
+        {
+            var results = new RunResult[runs];
+            if (threads <= 1 || runs <= 1)
+                for (int k = 0; k < runs; k++) results[k] = PlayRun(partyFactory, () => enemyFactoryFor(seed + (ulong)k), seed + (ulong)k, options);
+            else
+                System.Threading.Tasks.Parallel.For(0, runs, new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = threads },
+                    k => results[k] = PlayRun(partyFactory, () => enemyFactoryFor(seed + (ulong)k), seed + (ulong)k, options));
+            return results;
+        }
+
+        /// <summary>sim.measures.play_checkpoint: the level of the party and the summary of its runs at the fixed battles of the checkpoint.</summary>
+        public (int level, Summary summary) PlayCheckpoint(string cid, int? runs, int threads = 1)
+        {
+            var cp = Setup.Checkpoint(cid);
+            int level = ReferenceLevels()[cid].level;
+            int gear = CheckpointGear(cid);
+            int crown = cp.Truthy("Crown bonus") ? cp.Int("Crown bonus") : 0;
+            int n = runs ?? Setup.SettingInt("runs");
+            ulong seed = (ulong)Setup.SettingInt("seed");
+            var results = PlayRuns(() => ReferenceParty(Setup.Composition, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor")),
+                                   s => BattleNumbers(cp).Select(number => FixedBattle(cp.Str("Floor"), number)).ToList(),
+                                   n, seed, OptionsFrom(Setup, null), threads);
+            return (level, Summary.Of(results.ToList()));
         }
 
         // --- play ------------------------------------------------------------------------------------------------------
