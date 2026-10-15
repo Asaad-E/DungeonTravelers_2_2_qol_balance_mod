@@ -53,6 +53,171 @@
    "lowest_hp": 0.8914312617702448,
    "hp_left": 0.931120527306968,
    "class": "Magic User"
+  },
+  "mage": {
+   "won": 1.0,
+   "time": 3.2086882708333335,
+   "time_won": 3.2086882708333335,
+   "share": 0.49920517879596293,
+   "character": "Melvy",
+   "level": 9,
+   "lowest_hp": 0.9217984934086629,
+   "hp_left": 0.9249058380414313,
+   "class": "Magic User"
+  },
+  "shooter": {
+   "won": 1.0,
+   "time": 3.900260708333333,
+   "time_won": 3.900260708333333,
+   "share": 0.4474493899777602,
+   "character": "Monica",
+   "level": 9,
+   "lowest_hp": 0.9108035714285714,
+   "hp_left": 0.9144642857142857,
+   "class": "Scout"
+  },
+  "dolls": {
+   "won": 1.0,
+   "time": 5.533680385416666,
+   "time_won": 5.533680385416666,
+   "share": 0.12385152228087563,
+   "character": "Lizerietta",
+   "level": 9,
+   "lowest_hp": 0.8527477477477478,
+   "hp_left": 0.87490990990991,
+   "class": "Spieler"
+  },
+  "diva": {
+   "won": 1.0,
+   "time": 6.119868364583334,
+   "time_won": 6.119868364583334,
+   "share": 0.016604557036641536,
+   "character": "Ist",
+   "level": 9,
+   "lowest_hp": 0.8603974121996304,
+   "hp_left": 0.8713493530499076,
+   "class": "Maid"
+  },
+  "dark lord": {
+   "won": 1.0,
+   "time": 3.611901104166667,
+   "time_won": 3.611901104166667,
+   "share": 0.416611999534341,
+   "character": "Yae",
+   "level": 9,
+   "lowest_hp": 0.919982847341338,
+   "hp_left": 0.925728987993139,
+   "class": "Fighter"
+  },
+  "papillon": {
+   "won": 1.0,
+   "time": 5.255434604166667,
+   "time_won": 5.255434604166667,
+   "share": 0.15760974326526359,
+   "character": "Lizerietta",
+   "level": 9,
+   "lowest_hp": 0.8461711711711711,
+   "hp_left": 0.8816666666666666,
+   "class": "Spieler"
+  },
+  "valkyrie": {
+   "won": 1.0,
+   "time": 3.8363029166666665,
+   "time_won": 3.8363029166666665,
+   "share": 0.2684859639365883,
+   "character": "Alisia",
+   "level": 9,
+   "lowest_hp": 0.939622641509434,
+   "hp_left": 0.939622641509434,
+   "class": "Fighter"
+  },
+  "treasure hunter": {
+   "won": 1.0,
+   "time": 5.1068003229166665,
+   "time_won": 5.1068003229166665,
+   "share": 0.18536653715540535,
+   "character": "Souffle",
+   "level": 9,
+   "lowest_hp": 0.8884375,
+   "hp_left": 0.9012946428571429,
+   "class": "Scout"
+  },
+  "soul summoner": {
+   "won": 1.0,
+   "time": 5.533680385416666,
+   "time_won": 5.533680385416666,
+   "share": 0.12385152228087563,
+   "character": "Lizerietta",
+   "level": 9,
+   "lowest_hp": 0.8527477477477478,
+   "hp_left": 0.87490990990991,
+   "class": "Spieler"
+  },
+  "magical princess": {
+   "won": 1.0,
+   "time": 3.5232319583333327,
+   "time_won": 3.5232319583333327,
+   "share": 0.46782312152794675,
+   "character": "Melvy",
+   "level": 9,
+   "lowest_hp": 0.8709039548022599,
+   "hp_left": 0.9398775894538607,
+   "class": "Magic User"
+  },
+  "sage": {
+   "won": 1.0,
+   "time": 4.039422895833333,
+   "time_won": 4.039422895833333,
+   "share": 0.3540989045504047,
+   "character": "Fiora",
+   "level": 9,
+   "lowest_hp": 0.8961393596986816,
+   "hp_left": 0.9129472693032016,
+   "class": "Magic User"
+  },
+  "kunoichi": {
+   "won": 1.0,
+   "time": 5.233542354166667,
+   "time_won": 5.233542354166667,
+   "share": 0.16442358731979925,
+   "character": "Monica",
+   "level": 9,
+   "lowest_hp": 0.8292857142857143,
+   "hp_left": 0.8645089285714287,
+   "class": "Scout"
+  },
+  "mistress": {
+   "won": 1.0,
+   "time": 6.128464614583333,
+   "time_won": 6.128464614583333,
+   "share": 0.021650787037070206,
+   "character": "Conette",
+   "level": 9,
+   "lowest_hp": 0.8340573012939002,
+   "hp_left": 0.857162661737523,
+   "class": "Maid"
+  },
+  "etoile": {
+   "won": 1.0,
+   "time": 5.740151604166667,
+   "time_won": 5.740151604166667,
+   "share": 0.06253499012848227,
+   "character": "Ist",
+   "level": 9,
+   "lowest_hp": 0.8510628465804067,
+   "hp_left": 0.8706099815157117,
+   "class": "Maid"
+  },
+  "joker": {
+   "won": 1.0,
+   "time": 4.392977370833333,
+   "time_won": 4.392977370833333,
+   "share": 0.41999347494031075,
+   "character": "Lizerietta",
+   "level": 9,
+   "lowest_hp": 0.8496396396396395,
+   "hp_left": 0.8731981981981981,
+   "class": "Spieler"
   }
  }
 }

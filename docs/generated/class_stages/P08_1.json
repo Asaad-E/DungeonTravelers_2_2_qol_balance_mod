@@ -53,6 +53,171 @@
    "lowest_hp": 0.8672469915170644,
    "hp_left": 1.0,
    "class": "Bishop"
+  },
+  "mage": {
+   "won": 1.0,
+   "time": 4.154872164479167,
+   "time_won": 4.154872164479167,
+   "share": 0.5170919642857144,
+   "character": "Melvy",
+   "level": 72,
+   "lowest_hp": 0.8658571139445457,
+   "hp_left": 1.0,
+   "class": "Witch"
+  },
+  "shooter": {
+   "won": 1.0,
+   "time": 5.9413528863010105,
+   "time_won": 5.9413528863010105,
+   "share": 0.3354901785714285,
+   "character": "Monica",
+   "level": 72,
+   "lowest_hp": 0.8527944886473898,
+   "hp_left": 0.998665825732583,
+   "class": "Sniper"
+  },
+  "dolls": {
+   "won": 1.0,
+   "time": 5.482417969808292,
+   "time_won": 5.482417969808292,
+   "share": 0.2577491071428571,
+   "character": "Lilian",
+   "level": 72,
+   "lowest_hp": 0.8673155339805826,
+   "hp_left": 0.9966310679611651,
+   "class": "Papillon"
+  },
+  "diva": {
+   "won": 1.0,
+   "time": 6.412431677253669,
+   "time_won": 6.412431677253669,
+   "share": 0.00040535714285714296,
+   "character": "Ist",
+   "level": 72,
+   "lowest_hp": 0.8812837162837163,
+   "hp_left": 0.9995654345654346,
+   "class": "Diva"
+  },
+  "dark lord": {
+   "won": 1.0,
+   "time": 4.701048714447567,
+   "time_won": 4.701048714447567,
+   "share": 0.27513035714285716,
+   "character": "Grishna",
+   "level": 72,
+   "lowest_hp": 0.9063743551952838,
+   "hp_left": 1.0,
+   "class": "Dark Lord"
+  },
+  "papillon": {
+   "won": 1.0,
+   "time": 5.416360756028368,
+   "time_won": 5.416360756028368,
+   "share": 0.3006214285714286,
+   "character": "Mefmera",
+   "level": 72,
+   "lowest_hp": 0.9002226093689508,
+   "hp_left": 0.9993466898954704,
+   "class": "Papillon"
+  },
+  "valkyrie": {
+   "won": 1.0,
+   "time": 5.426499534255212,
+   "time_won": 5.426499534255212,
+   "share": 0.11641428571428573,
+   "character": "Grishna",
+   "level": 72,
+   "lowest_hp": 0.9057081313947227,
+   "hp_left": 0.9947630586968229,
+   "class": "Valkyrie"
+  },
+  "treasure hunter": {
+   "won": 1.0,
+   "time": 4.655020769454573,
+   "time_won": 4.655020769454573,
+   "share": 0.35051874999999993,
+   "character": "Souffle",
+   "level": 72,
+   "lowest_hp": 0.8988852896341463,
+   "hp_left": 1.0,
+   "class": "Treasure Hunter"
+  },
+  "soul summoner": {
+   "won": 1.0,
+   "time": 4.870135887281897,
+   "time_won": 4.870135887281897,
+   "share": 0.3000160714285714,
+   "character": "Lilian",
+   "level": 72,
+   "lowest_hp": 0.8557093253968254,
+   "hp_left": 0.9988541666666666,
+   "class": "Soul Summoner"
+  },
+  "magical princess": {
+   "won": 1.0,
+   "time": 4.710830823290334,
+   "time_won": 4.710830823290334,
+   "share": 0.3240696428571429,
+   "character": "Melvy",
+   "level": 72,
+   "lowest_hp": 0.8830550839464252,
+   "hp_left": 0.9974627428787022,
+   "class": "Magical Princess"
+  },
+  "sage": {
+   "won": 1.0,
+   "time": 4.809416040596894,
+   "time_won": 4.809416040596894,
+   "share": 0.2061401785714286,
+   "character": "Fiora",
+   "level": 72,
+   "lowest_hp": 0.9176456215793589,
+   "hp_left": 0.9977228303362002,
+   "class": "Sage"
+  },
+  "kunoichi": {
+   "won": 1.0,
+   "time": 5.286566677481842,
+   "time_won": 5.286566677481842,
+   "share": 0.2378866071428572,
+   "character": "Tsurara",
+   "level": 72,
+   "lowest_hp": 0.8497548548356086,
+   "hp_left": 0.9997260142280331,
+   "class": "Kunoichi"
+  },
+  "mistress": {
+   "won": 1.0,
+   "time": 5.095852681989461,
+   "time_won": 5.095852681989461,
+   "share": 0.22891964285714286,
+   "character": "Conette",
+   "level": 72,
+   "lowest_hp": 0.8864128315132606,
+   "hp_left": 1.0,
+   "class": "Mistress"
+  },
+  "etoile": {
+   "won": 1.0,
+   "time": 5.929184720161887,
+   "time_won": 5.929184720161887,
+   "share": 0.001616071428571428,
+   "character": "Ist",
+   "level": 72,
+   "lowest_hp": 0.9479391560353287,
+   "hp_left": 1.0,
+   "class": "Etoile"
+  },
+  "joker": {
+   "won": 1.0,
+   "time": 5.353064179829402,
+   "time_won": 5.353064179829402,
+   "share": 0.2927923550649442,
+   "character": "Mefmera",
+   "level": 72,
+   "lowest_hp": 0.8378322419106317,
+   "hp_left": 0.9950982280431433,
+   "class": "Joker"
   }
  }
 }
