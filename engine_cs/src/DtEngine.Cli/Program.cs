@@ -20,6 +20,7 @@ namespace DtEngine.Cli
             int threads = int.Parse(Opt(args, "--threads", Environment.ProcessorCount.ToString()));
             var timer = System.Diagnostics.Stopwatch.StartNew();
             var snap = Snapshot.Load(snapshotPath);
+            if (Opt(args, "--extra") != null) snap.LoadExtra(Opt(args, "--extra"));
             double loaded = timer.Elapsed.TotalSeconds;
             var jobs = JobRunner.LoadJobs(jobsPath);
             timer.Restart();
@@ -51,6 +52,7 @@ namespace DtEngine.Cli
             int threads = int.Parse(Opt(args, "--threads", Environment.ProcessorCount.ToString()));
             var timer = System.Diagnostics.Stopwatch.StartNew();
             var snap = Snapshot.Load(snapshotPath);
+            if (Opt(args, "--extra") != null) snap.LoadExtra(Opt(args, "--extra"));
             double loaded = timer.Elapsed.TotalSeconds;
             timer.Restart();
             int count = Measures.RunFile(snap, jobsPath, outPath, threads, out int errors);

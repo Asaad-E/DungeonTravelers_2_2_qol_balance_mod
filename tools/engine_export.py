@@ -215,11 +215,29 @@ def snapshot():
             'setup': setup_json(setup_mod.load())}
 
 
+def text_of(obj):
+    """An exported side or setup as the text the engine reads."""
+    return json.dumps(obj, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
+
+
+def digest(text):
+    import hashlib
+    return hashlib.sha1(text.encode('utf-8')).hexdigest()
+
+
+def hashes_path(path):
+    return path + '.hashes'
+
+
 def write(path=DEFAULT_OUT):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     snap = snapshot()
     with open(path, 'w', encoding='utf-8', newline='\n') as f:
         json.dump(snap, f, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
+    # what the snapshot holds, by content: a tool that sends a side or a setup of its own sends only the ones that differ
+    with open(hashes_path(path), 'w', encoding='utf-8', newline='\n') as f:
+        json.dump({'sides': {name: digest(text_of(side)) for name, side in snap['sides'].items()},
+                   'setup': digest(text_of(snap['setup']))}, f)
     return path
 
 

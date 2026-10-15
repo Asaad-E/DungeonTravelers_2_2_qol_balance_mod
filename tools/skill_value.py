@@ -3,6 +3,8 @@ What each skill that deals no damage adds to a fight. Generated: docs/generated/
 
     python tools/skill_value.py all [k]    every such skill, in k processes at once (parallel_workers)
     python tools/skill_value.py report
+    python tools/skill_value.py engine [k/n]              the passes of `run` (k/n: a slice of the skills), played by the C# engine
+    python tools/skill_value.py engine-ailments [k/n]     the passes of `ailments`, played by the C# engine
 
 For each technique or spell usable in battle that deals no damage (none of the attacking options of
 tools/skill_worth.py), a role whose path passes through a class that learns it, at the first stage of the sheet
@@ -128,6 +130,87 @@ def play(data, setup, role, cid, skill, use, chain=0):
             'hp_left': sum(r['hp_left'] for r in res) / len(res)}
 
 
+def engine_job(data, setup, role, cid, skill, use, chain=0):
+    """The job of the C# engine that plays what play() plays."""
+    import engine_client as engine
+    cp = setup.checkpoint(cid)
+    level = scenario.reference_levels(data, setup)[cid][0]
+    extra = {skill.id: (skill.levels or 1) if use else 0}
+    zones = scenario.walked_zones(data, setup, cp['Floor'], level)
+    enemies = {'kind': 'chain', 'zones': [z['name'] for z in zones], 'seed': 7, 'battles': chain} if chain and zones else None
+    rows = None
+    if use:
+        saved = setup.policies
+        cond, act = rule_for(skill)
+        mine = sorted((r for r in saved if r['Role'] == role), key=lambda r: r['Order'])
+        cut = next((r['Order'] for r in mine if str(r['Action']).startswith('damage')), max([r['Order'] for r in mine] or [0]) + 1)
+        if chain and act.startswith('ailment:'):
+            cut = next((r['Order'] for r in mine if not str(r['Action']).startswith(('revive', 'heal', 'cure'))), cut)
+        moved = [dict(r, Order=r['Order'] + 1) if r['Role'] == role and r['Order'] >= cut else r for r in saved]
+        rows = moved + [{'Role': role, 'Order': cut, 'Condition': cond, 'Action': act}]
+    recipe = {'drop_last': True, 'items': 'first_kept',
+              'tested': [{'role': role, 'forge': bool(scenario.forge_open(setup, cp['Floor'])), 'unique_pieces': True,
+                          'extra_skills': {str(k): v for k, v in extra.items()}}]}
+    return engine.make_job(engine.side_of(data), cid, runs=int(setup.settings['check_runs']), crown=0, setup=engine.setup_of(setup),
+                           recipe=recipe, enemies=enemies, policy_rows=rows, name=f'{skill.name}|{role}|{cid}|{int(use)}|{chain}')
+
+
+def engine_figures(done):
+    res = done['runs']
+    won = [r for r in res if r['won']]
+    return {'won': len(won) / len(res), 'time_won': sum(r['time'] for r in won) / len(won) if won else None,
+            'hp_left': sum(r['hp_left'] for r in res) / len(res)}
+
+
+def play_engine(data, setup, role, cid, skill, use, chain=0):
+    """play(), played by the C# engine."""
+    import engine_client as engine
+    return engine_figures(engine.run_jobs([engine_job(data, setup, role, cid, skill, use, chain)])[0])
+
+
+def run_engine(part='1/1'):
+    """run(), played by the C# engine in one call."""
+    import time
+    import engine_client as engine
+    started = time.time()
+    k, n = (int(x) for x in part.split('/'))
+    data, setup = balance_data(game_data()), setup_mod.load()
+    every = candidates(data)
+    mine = every[(k - 1) * len(every) // n: k * len(every) // n]
+    count = int(setup.settings['skill_value_checkpoints'])
+    plan = []
+    for skill in mine:
+        found = place(data, setup, skill)
+        if found is None:
+            plan.append((skill, None, None, []))
+            continue
+        role, st = found
+        cids = [c.strip() for c in str(st['Checkpoints']).split(';')]
+        plan.append((skill, role, st, cids[:count] if count else cids))
+    jobs = [engine_job(data, setup, role, cid, skill, use) for skill, role, st, cids in plan if role is not None
+            for cid in cids for use in (False, True)]
+    done = iter(engine.run_jobs(jobs))
+    rows = []
+    for skill, role, st, cids in plan:
+        if role is None:
+            rows.append({'skill': skill.name, 'role': None})
+            continue
+        cells = []
+        for cid in cids:
+            without = engine_figures(next(done))
+            with_it = engine_figures(next(done))
+            cells.append({'checkpoint': cid, 'without': without, 'with': with_it})
+        rows.append({'skill': skill.name, 'role': role, 'stage': st['Stage'], 'rule': ' / '.join(rule_for(skill)), 'cells': cells})
+        print(skill.name, role, flush=True)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    if part == '1/1':
+        for name in os.listdir(OUT_DIR):
+            os.remove(os.path.join(OUT_DIR, name))
+    with open(os.path.join(OUT_DIR, f'part_{k}.json'), 'w', encoding='utf-8') as f:
+        json.dump(rows, f)
+    print(f'{len(rows)} skills in {time.time() - started:.0f} s')
+
+
 def run(part='1/1'):
     k, n = (int(x) for x in part.split('/'))
     data, setup = balance_data(game_data()), setup_mod.load()
@@ -196,6 +279,45 @@ def ailments(part='1/1'):
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, f'part_{k}.json'), 'w', encoding='utf-8') as f:
         json.dump(rows, f)
+
+
+def run_engine_ailments(part='1/1'):
+    """ailments(), played by the C# engine in one call."""
+    import time
+    import engine_client as engine
+    started = time.time()
+    k, n = (int(x) for x in part.split('/'))
+    data, setup = balance_data(game_data()), setup_mod.load()
+    every = hostile_skills(data)
+    chain = int(setup.settings['ailment_chain'])
+    plan = []
+    for skill in every[(k - 1) * len(every) // n: k * len(every) // n]:
+        found = place(data, setup, skill)
+        if found is None:
+            continue
+        role, st = found
+        plan.append((skill, role, st, [c.strip() for c in str(st['Checkpoints']).split(';')]))
+    jobs = [engine_job(data, setup, role, cid, skill, use, length) for skill, role, st, cids in plan
+            for cid in cids for context, length in (('boss', 0), ('random', chain)) for use in (False, True)]
+    done = iter(engine.run_jobs(jobs))
+    rows = []
+    for skill, role, st, cids in plan:
+        cells = []
+        for cid in cids:
+            for context, length in (('boss', 0), ('random', chain)):
+                without = engine_figures(next(done))
+                with_it = engine_figures(next(done))
+                cells.append({'checkpoint': cid, 'context': context, 'without': without, 'with': with_it})
+        rows.append({'skill': skill.name, 'role': role, 'stage': st['Stage'], 'rule': ' / '.join(rule_for(skill)), 'cells': cells})
+        print(skill.name, role, flush=True)
+    out = os.path.join(BASE_DIR, 'docs', 'generated', 'skill_ailments')
+    os.makedirs(out, exist_ok=True)
+    if part == '1/1':
+        for name in os.listdir(out):
+            os.remove(os.path.join(out, name))
+    with open(os.path.join(out, f'part_{k}.json'), 'w', encoding='utf-8') as f:
+        json.dump(rows, f)
+    print(f'{len(rows)} skills in {time.time() - started:.0f} s')
 
 
 def ailments_report():
@@ -273,5 +395,5 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'all': run_all, 'report': report, 'ailments': ailments,
-     'ailments_report': ailments_report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'report': report, 'ailments': ailments, 'ailments_report': ailments_report,
+     'engine': run_engine, 'engine-ailments': run_engine_ailments}[sys.argv[1]](*sys.argv[2:])

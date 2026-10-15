@@ -3,6 +3,7 @@ rows of eight in a row, as random_battles.py beside this file plays them, in van
 variant with the HP or the ATK and INT of the enemies of the floor's zones times a factor. A trial; nothing written.
 
     python random_parties.py C40 [rows] [party]
+    python random_parties.py C40 [rows] [party] --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import random
@@ -19,6 +20,7 @@ from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
 # label -> (factor on HP, factor on ATK and INT) of the enemies of the floor, over the variant
+ENGINE = False                               # --engine: the battles are played by the C# engine
 TRIALS = {'HP x1.15': (1.15, 1.0), 'HP x1.3': (1.3, 1.0), 'ATK and INT x1.1': (1.0, 1.1), 'ATK and INT x1.2': (1.0, 1.2),
           'HP x1.15, ATK and INT x1.1': (1.15, 1.1)}
 
@@ -49,11 +51,22 @@ def play(data, setup, cid, roles, rows):
     def enemies():
         return [measures.random_group(data, rng.choice(zones), rng) for _ in range(random_battles.CHAIN)]
 
-    res = scenario.play(data, setup, party, enemies, runs=rows)
+    if ENGINE:
+        import engine_client as engine
+        res = engine.play(engine.make_job(engine.side_of(data), cid, roles=roles, runs=rows, setup=engine.setup_of(setup),
+                                          name=f'{cid}|{roles}',
+                                          enemies={'kind': 'chain', 'zones': [z['name'] for z in zones], 'seed': 11,
+                                                   'battles': random_battles.CHAIN}))
+    else:
+        res = scenario.play(data, setup, party, enemies, runs=rows)
     return f"{sum(r['won'] for r in res) / len(res):.0%} / {sum(r['hp_left'] for r in res) / len(res):.0%}"
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     cid = sys.argv[1]
     rows = int(sys.argv[2]) if len(sys.argv) > 2 else 30
     vanilla, setup = game_data(), setup_mod.load()

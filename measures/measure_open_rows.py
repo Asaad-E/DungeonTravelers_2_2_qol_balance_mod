@@ -3,6 +3,7 @@ and without it, as tools/skill_value.py does, at the checkpoints of the stage wh
 needs a tome, so the Sage wears one for its measure; Support Shot is a passive, so no rule is added for it.
 
     python measure_open_rows.py "Roulette Circus"      one skill; writes open_rows_<skill>.json beside this file
+    python measure_open_rows.py "Roulette Circus" --engine     the same, played by the C# engine (engine_cs/)
 """
 import json
 import os
@@ -17,12 +18,17 @@ from sim import setup as setup_mod                        # noqa: E402
 from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 WEAPON = {'Bible Thump': 'Tome'}
 ROLE = {'Support Shot': 'shooter'}
 STAGE = {'Support Shot': 'advanced'}
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     name = sys.argv[1]
     data, setup = balance_data(game_data()), setup_mod.load()
     skill = next(s for s in data.skills.values() if s.name == name and s.classes)
@@ -45,7 +51,7 @@ def main():
                            if str(r['Action']).startswith('damage'))
                 skill_value.rule_for = lambda s, own=own: (own['Condition'], own['Action'])
             try:
-                cell['with' if use else 'without'] = skill_value.play(data, setup, role, cid, skill, use)
+                cell['with' if use else 'without'] = (skill_value.play_engine if ENGINE else skill_value.play)(data, setup, role, cid, skill, use)
             finally:
                 skill_value.rule_for = rule
         out['cells'].append(cell)

@@ -5,6 +5,7 @@ a figure of the program (lever L38). Nothing is written.
 
     python unique_trial.py Lilian 1.5 2 [runs]
     python unique_trial.py Siena 1.5 2 chance=25 [runs]
+    (add --engine to play the battles on the C# engine, engine_cs/)
 """
 import os
 import sys
@@ -25,6 +26,9 @@ def mean(cells, key):
 
 
 def main():
+    engine = '--engine' in sys.argv
+    if engine:
+        sys.argv.remove('--engine')
     girl = sys.argv[1]
     args = sys.argv[2:]
     chance = next((int(a.split('=')[1]) for a in args if a.startswith('chance=')), None)
@@ -42,8 +46,14 @@ def main():
         data = base if factor in (None, 1.0) else base.with_changes(
             [('unique', uid, 'values', [round(v * factor, 4) for v in values])])
         battle.ARCANE_CHANCE = roll if roll is not None else usual
-        cells = [unique_skills.play(data, setup, cid, crown, girl, factor is not None, runs)
-                 for cid, crown in unique_skills.PLACES]
+        if engine:
+            # the chance of the roll is a figure of the program; the data carry it as a flag when they hold one (sim.battle: the flag first)
+            flags = {'arcane_chance': roll} if roll is not None and not getattr(data, 'arcane_chance', None) else None
+            cells = [unique_skills.play_engine(data, setup, cid, crown, girl, factor is not None, runs, flags)
+                     for cid, crown in unique_skills.PLACES]
+        else:
+            cells = [unique_skills.play(data, setup, cid, crown, girl, factor is not None, runs)
+                     for cid, crown in unique_skills.PLACES]
         battle.ARCANE_CHANCE = usual
         times = [c['time'] for c in cells if c['time']]
         print(f"{girl} | {label} | wins " + ' '.join(f"{c['won']:.0%}" for c in cells) +

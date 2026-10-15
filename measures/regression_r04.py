@@ -7,6 +7,7 @@ party without that class that reaches the floor of the boss.
                                                 changed for each role of SUBSTITUTES, until one reaches the floor;
                                                 writes regression_r04_k.json beside this file
     python regression_r04.py report             REGRESSION_R04.md beside this file
+    python regression_r04.py play k/n [runs] --engine     the same as `play`, with the battles played by the C# engine (engine_cs/)
 """
 import glob
 import json
@@ -21,6 +22,7 @@ from sim import measures, scenario, setup as setup_mod    # noqa: E402
 from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 BATTERY = os.path.join(PROJECT, 'docs', 'generated', 'party_battery')
 # the roles tried in the place of a role whose class every winning party holds: its neighbours of the same job
 SUBSTITUTES = {'diva': ('etoile', 'mistress', 'healer', 'sage'), 'maid': ('etoile', 'mistress', 'healer', 'sage'),
@@ -104,7 +106,8 @@ def play(part, runs=60):
                 units = party()
                 if cls in {source.class_names.get(getattr(u, 'class_id', None)) for u in units}:
                     continue                                  # a fallback member brought the class back
-                won = measures.summary(scenario.play(source, setup, party, enemies, runs=int(runs)))['won']
+                won = (__import__('engine_client').summary_sim(source, setup, cid, trial, int(runs)) if ENGINE
+                       else measures.summary(scenario.play(source, setup, party, enemies, runs=int(runs))))['won']
                 if best is None or won > best[0]:
                     best = (won, f'{name} with {new} for {mine[0]}')
                 if won >= floor[cid]:
@@ -143,4 +146,7 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     {'witnesses': witnesses, 'play': play, 'report': report}[sys.argv[1]](*sys.argv[2:])

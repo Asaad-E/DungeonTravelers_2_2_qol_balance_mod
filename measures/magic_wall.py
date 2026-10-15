@@ -2,6 +2,7 @@
 the Dark Lord (value per time, the measure of tools/skill_worth.py), and the elemental resistances of the enemies.
 
     python magic_wall.py
+    python magic_wall.py --engine     the same, with the options scored by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -16,6 +17,7 @@ from sim import policy as P                               # noqa: E402
 from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 ELEMENTS = ('fire', 'water', 'wind', 'earth', 'lightning')
 
 
@@ -24,15 +26,22 @@ def best(data, setup, role, cid, policy):
     level = scenario.reference_levels(data, setup)[cid][0]
     gear = scenario.checkpoint_gear(data, setup, cid)
     boss = scenario.fixed_battle(data, cp['Floor'], scenario.battle_numbers(cp)[-1])
-    member = skill_worth.full_member(data, setup, role, level, gear, cp)
-    base = [u for u in scenario.reference_party(data, setup, cp['Chapter'], level, gear, 0, cp['Floor'])
-            if u.kind == 'member' and u.name != member.name][:4]
-    sc = skill_worth.scores(data, setup, member, base + [member], boss, policy)
+    if ENGINE:
+        sc = dict(__import__('engine_client').skill_scores([skill_worth.engine_item(data, setup, cid, role, 0)])[0]['contexts'][0])
+    else:
+        member = skill_worth.full_member(data, setup, role, level, gear, cp)
+        base = [u for u in scenario.reference_party(data, setup, cp['Chapter'], level, gear, 0, cp['Floor'])
+                if u.kind == 'member' and u.name != member.name][:4]
+        sc = skill_worth.scores(data, setup, member, base + [member], boss, policy)
     name = max(sc, key=sc.get)
     return name, sc[name], boss
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     setup = setup_mod.load()
     policy = P.Policy(P.load_rules(setup.policies), setup.settings)
     variants = (('vanilla', game_data()), ('mod', balance_data(game_data())))

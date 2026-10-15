@@ -3,6 +3,7 @@ the last place of the reference party with Waltz and Mazurka, and with Samba in 
 its value. Variant; nothing is written.
 
     python samba_trial.py C40 [runs]
+    python samba_trial.py C40 [runs] --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -17,22 +18,28 @@ from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
 FACTORS = (1.0, 1.5, 2.0, 2.5)
+ENGINE = False                               # --engine: the battles are played by the C# engine
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     cid = sys.argv[1]
     runs = int(sys.argv[2]) if len(sys.argv) > 2 else 100
     base, setup = balance_data(game_data()), setup_mod.load()
     usual = setup.policies
     second = [r for r in usual if r['Role'] == 'etoile' and str(r['Action']) == 'status:201'][0]
     key, skill = next((k, s) for k, s in base.skills.items() if s.name == 'Alluring Samba')
-    res = class_stages.play(base, setup, cid, 'etoile', runs)
+    play = class_stages.play_engine if ENGINE else class_stages.play
+    res = play(base, setup, cid, 'etoile', runs)
     print(f"{cid} | Waltz + Mazurka | won {res['won']:.0%} | length {res['time']:.1f}", flush=True)
     setup.policies = [dict(r, Action='status:196') if r is second else r for r in usual]
     for factor in FACTORS:
         data = base.with_changes([('skills', key, 'effects', [(e, k, [round(v * factor, 3) for v in vals] if e == 196 else vals)
                                                               for e, k, vals in skill.effects])])
-        res = class_stages.play(data, setup, cid, 'etoile', runs)
+        res = play(data, setup, cid, 'etoile', runs)
         print(f"{cid} | Waltz + Samba x{factor:g} ({skill.effects[0][2][-1] * factor:.0%} DEF at the top level) | "
               f"won {res['won']:.0%} | length {res['time']:.1f}", flush=True)
     setup.policies = usual

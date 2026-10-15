@@ -4,6 +4,8 @@ Generated: docs/generated/BOSS_FIT.md.
 
     python tools/boss_fit.py all        every checkpoint docs/generated/DIFFICULTY_CURVE data marks easier
     python tools/boss_fit.py report
+    python tools/boss_fit.py engine                 the same as `all`, played by the C# engine (engine_cs/) in one call
+    python tools/boss_fit.py gentle-engine [C26;C30]    the same as `gentle`, played by the C# engine
 
 For a checkpoint whose fights the variant made easier (tools/difficulty_curve.py), the enemies of its boss fights that
 appear in no random formation (so that common fights are not touched) get a factor on HP and a factor on ATK and INT.
@@ -113,6 +115,53 @@ def run(part='1/1'):
         json.dump(out, f)
 
 
+def scaled_changes(data, ids, hp, attack):
+    """scaled(), as the stats of the enemy records a job of the C# engine changes."""
+    return {e: {'hp': int(round(data.enemies[e]['hp'] * hp)), 'atk': int(round(data.enemies[e]['atk'] * attack)),
+                'int': int(round(data.enemies[e]['int'] * attack))} for e in ids}
+
+
+def run_engine():
+    """run(), played by the C# engine in one call: every pair of the grid for every checkpoint, and the first one inside the windows."""
+    import engine_client as engine
+    started = time.time()
+    data, setup = game_data(), setup_mod.load()
+    variant = balance_data(data)
+    side = engine.side_of(variant)
+    windows = {key: float(setup.settings[f'check_{key}_window']) for key in ('won', 'time', 'lowest_hp')}
+    hps = [float(x) for x in str(setup.settings['boss_fit_hp']).split(';')]
+    attacks = [float(x) for x in str(setup.settings['boss_fit_attack']).split(';')]
+    runs = int(setup.settings['check_runs'])
+    todo = easier(setup)
+    ids = {row['id']: boss_enemies(data, setup, row['id']) for row in todo}
+    grid = [(row, attack, hp) for row in todo for attack in attacks for hp in hps]
+    played = engine.play_checkpoints([(side, row['id'], runs, scaled_changes(variant, ids[row['id']], hp, attack), None)
+                                      for row, attack, hp in grid])
+    figures = {(row['id'], attack, hp): fig for (row, attack, hp), (_, fig) in zip(grid, played)}
+    out = []
+    for row in todo:
+        cid, vanilla = row['id'], row['vanilla']
+        found = None
+        for attack in attacks:
+            for hp in hps:
+                fig = figures[(cid, attack, hp)]
+                if inside(vanilla, fig, windows):
+                    found = {'hp': hp, 'attack': attack, 'figures': fig}
+                    break
+            if found:
+                break
+        out.append({'id': cid, 'enemies': ids[cid], 'names': [data.enemies[e]['name'] for e in ids[cid]],
+                    'vanilla': vanilla, 'variant': row['variant'], 'fit': found})
+        print(cid, found and (found['hp'], found['attack']), flush=True)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for name in os.listdir(OUT_DIR):
+        if name.startswith('part_'):
+            os.remove(os.path.join(OUT_DIR, name))
+    with open(os.path.join(OUT_DIR, 'part_1.json'), 'w', encoding='utf-8') as f:
+        json.dump(out, f)
+    print(f'{len(out)} checkpoints in {time.time() - started:.0f} s')
+
+
 def run_all():
     setup = setup_mod.load()
     n = int(setup.settings.get('parallel_workers', 1))
@@ -180,6 +229,50 @@ def gentle_run(part='1/1', only=None):
     # a part of one checkpoint played again is read after the parts of a whole run and takes their place
     with open(os.path.join(OUT_DIR, f"gentle_{'update_' if only else ''}{k}.json"), 'w', encoding='utf-8') as f:
         json.dump(out, f)
+
+
+def gentle_figures(data, setup, variant, tasks):
+    """For each task (row of the curve, pair of factors): the figures of the reference party and the share of wins of each party of the
+    battery, played by the C# engine. Returns [(figures, {party: share})]."""
+    import engine_client as engine
+    side = engine.side_of(variant)
+    runs, party_runs = int(setup.settings['check_runs']), int(setup.settings['boss_fit_party_runs'])
+    changes = [None if (hp, attack) == (1.0, 1.0) else scaled_changes(variant, boss_enemies(data, setup, row['id']), hp, attack)
+               for row, (hp, attack) in tasks]
+    checkpoints = engine.play_checkpoints([(side, row['id'], runs, change, None) for (row, _), change in zip(tasks, changes)])
+    jobs = [engine.make_job(side, row['id'], roles=list(roles), runs=party_runs, enemy_changes=change,
+                            name=f'{row["id"]}|{hp}|{attack}|{name}')
+            for (row, (hp, attack)), change in zip(tasks, changes) for name, (_, roles) in setup.battery.items()]
+    done = iter(engine.run_jobs(jobs))
+    out = []
+    for _, fig in checkpoints:
+        parties = {}
+        for name in setup.battery:
+            results = next(done)['runs']
+            parties[name] = sum(1 for r in results if r['won']) / len(results)
+        out.append((fig, parties))
+    return out
+
+
+def gentle_engine(only=None):
+    """gentle_all(), played by the C# engine in one call; the parts are one file."""
+    started = time.time()
+    data, setup = game_data(), setup_mod.load()
+    variant = balance_data(data)
+    wanted = {c.strip() for c in only.split(';')} if only else None
+    tasks = [(row, pair) for row in gentle_todo(setup) for pair in gentle_pairs(setup) if wanted is None or row['id'] in wanted]
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for name in os.listdir(OUT_DIR):
+        if name.startswith('gentle_update_') or (name.startswith('gentle_') and not only):
+            os.remove(os.path.join(OUT_DIR, name))
+    out = []
+    for (row, (hp, attack)), (fig, parties) in zip(tasks, gentle_figures(data, setup, variant, tasks)):
+        out.append({'id': row['id'], 'hp': hp, 'attack': attack, 'enemies': boss_enemies(data, setup, row['id']), 'figures': fig,
+                    'parties': parties})
+        print(row['id'], hp, attack, flush=True)
+    with open(os.path.join(OUT_DIR, f"gentle_{'update_' if only else ''}1.json"), 'w', encoding='utf-8') as f:
+        json.dump(out, f)
+    print(f'{len(out)} cells in {time.time() - started:.0f} s')
 
 
 def gentle_all(processes=None, only=None):
@@ -315,4 +408,4 @@ def report():
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
     {'run': run, 'all': run_all, 'report': report, 'gentle': gentle_all, 'gentle-run': gentle_run,
-     'gentle-report': gentle_report}[sys.argv[1]](*sys.argv[2:])
+     'gentle-report': gentle_report, 'engine': run_engine, 'gentle-engine': gentle_engine}[sys.argv[1]](*sys.argv[2:])

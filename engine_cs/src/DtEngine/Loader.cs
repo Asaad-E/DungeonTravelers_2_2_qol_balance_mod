@@ -89,6 +89,14 @@ namespace DtEngine
             return copy;
         }
 
+        /// <summary>The same choices with another sheet of policies (a job that replaces the rows).</summary>
+        public Setup WithPolicies(List<Row> rows)
+        {
+            var copy = (Setup)MemberwiseClone();
+            copy.Policies = rows;
+            return copy;
+        }
+
         public bool HasSetting(string key) => Settings.TryGetValue(key, out var v) && v != null;
         public object Setting(string key) => Settings.TryGetValue(key, out var v) ? v : null;
         public double SettingDouble(string key) => ToDouble(Settings[key]);
@@ -106,6 +114,29 @@ namespace DtEngine
     {
         public Dictionary<string, GameData> Sides = new Dictionary<string, GameData>();
         public Setup Setup;
+        public Dictionary<string, Setup> Setups = new Dictionary<string, Setup>();      // setups a job names (tools that change the sheets of the setup)
+
+        /// <summary>The setup a job names; the one of the snapshot when it names none.</summary>
+        public Setup SetupNamed(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return Setup;
+            if (!Setups.TryGetValue(name, out var s)) throw new InvalidOperationException("no setup " + name);
+            return s;
+        }
+
+        /// <summary>Adds the sides and setups of a second file ({"sides": {...}, "setups": {...}}) to the snapshot, under their own names.</summary>
+        public void LoadExtra(string path)
+        {
+            byte[] bytes = File.ReadAllBytes(path);
+            using (var doc = JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 256 }))
+            {
+                var root = doc.RootElement;
+                if (root.TryGetProperty("sides", out var sides))
+                    foreach (var side in sides.EnumerateObject()) Sides[side.Name] = LoadSide(side.Value);
+                if (root.TryGetProperty("setups", out var setups))
+                    foreach (var s in setups.EnumerateObject()) Setups[s.Name] = LoadSetup(s.Value);
+            }
+        }
 
         public static Snapshot Load(string path)
         {

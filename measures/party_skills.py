@@ -5,6 +5,7 @@ as the skill needs, the first of the party. The skill gives its bonus to the mem
 
     python party_skills.py run k/n [runs]     writes party_skills_k.json beside this file
     python party_skills.py report             PARTY_SKILLS.md beside this file
+    python party_skills.py engine k/n [runs]  the same as `run`, played by the C# engine (engine_cs/)
 """
 import glob
 import json
@@ -66,6 +67,41 @@ def play(data, setup, cid, skill, runs):
             'hp_left': sum(r['hp_left'] for r in res) / len(res)}
 
 
+def play_engine(data, setup, cid, skill, runs):
+    """play(), played by the C# engine."""
+    import engine_client as engine
+    recipe = {}
+    if skill:
+        count, bonus = SKILLS[skill]
+        one = {'count': count}
+        for what, amount in bonus.items():
+            if what in ('hp', 'tp'):
+                one[what] = amount
+            elif what in RESIST:
+                one.setdefault('resist', {})[str(RESIST[what])] = amount
+            else:
+                one.setdefault('stats', {})[what] = amount
+        recipe = {'bonuses': [one]}
+    job = engine.make_job(engine.side_of(data), cid, runs=runs, crown=0, setup=engine.setup_of(setup), recipe=recipe,
+                          name=f'{skill}|{cid}')
+    done = engine.run_jobs([job])[0]
+    res = done['runs']
+    won = [r for r in res if r['won']]
+    return {'won': len(won) / len(res), 'time': sum(r['time'] for r in won) / len(won) if won else None,
+            'hp_left': sum(r['hp_left'] for r in res) / len(res)}
+
+
+def run_engine(part, runs=100):
+    """run(), with every cell played by the C# engine."""
+    global play
+    played = play
+    play = play_engine
+    try:
+        run(part, runs)
+    finally:
+        play = played
+
+
 def run(part, runs=100):
     k, n = (int(x) for x in part.split('/'))
     data, setup = balance_data(game_data()), setup_mod.load()
@@ -109,4 +145,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

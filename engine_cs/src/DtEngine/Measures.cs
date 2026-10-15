@@ -136,11 +136,14 @@ namespace DtEngine
         }
 
         /// <summary>One measure job (JSON) played; the result is written as an object. {id, measure, side, ...}.</summary>
-        static void RunJob(Snapshot snap, Dictionary<string, Scenario> scenarios, JsonElement job, Utf8JsonWriter w, int threads)
+        static void RunJob(Snapshot snap, Func<string, string, Scenario> scenarios, JsonElement job, Utf8JsonWriter w, int threads)
         {
             string measure = Str(job, "measure");
             string side = Str(job, "side") ?? "variant";
-            var sc = scenarios[side];
+            string setupName = Str(job, "setup");
+            var sc = scenarios(side, setupName);
+            if (job.TryGetProperty("enemy_changes", out var enemyChanges) && enemyChanges.ValueKind == JsonValueKind.Object)
+                sc = new Scenario(sc.Data.WithEnemyStats(JobSpec.ParseEnemyChanges(enemyChanges)), sc.Setup);
             w.WriteString("measure", measure);
             switch (measure)
             {
@@ -162,6 +165,12 @@ namespace DtEngine
                         w.WriteEndArray();
                         break;
                     }
+                case "probe":
+                    Probe.WriteProbe(sc, job, w);
+                    break;
+                case "skill_scores":
+                    Analysis.WriteSkillScores(sc, job, w);
+                    break;
                 case "play_checkpoint":
                     {
                         var (level, summary) = sc.PlayCheckpoint(Str(job, "cid"), Int(job, "runs"), threads);
@@ -171,7 +180,7 @@ namespace DtEngine
                     }
                 case "check_change":
                     {
-                        var other = scenarios[Str(job, "changed_side") ?? "variant"];
+                        var other = scenarios(Str(job, "changed_side") ?? "variant", setupName);
                         var rows = CheckChange(sc, other, Strings(job, "checkpoints"), Int(job, "runs"), threads);
                         w.WriteStartArray("rows");
                         foreach (var row in rows)
@@ -198,8 +207,15 @@ namespace DtEngine
         /// <summary>dtcli measure: a file of measure jobs in, a file of results out (one object per job, in order).</summary>
         public static int RunFile(Snapshot snap, string jobsPath, string outPath, int threads, out int errors)
         {
-            var scenarios = new Dictionary<string, Scenario>();
-            foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
+            var known = new Dictionary<(string, string), Scenario>();
+            Func<string, string, Scenario> scenarios = (side, setupName) =>
+            {
+                lock (known)
+                {
+                    if (!known.TryGetValue((side, setupName ?? ""), out var sc)) known[(side, setupName ?? "")] = sc = new Scenario(snap.Sides[side], snap.SetupNamed(setupName));
+                    return sc;
+                }
+            };
             JsonDocument doc = JsonDocument.Parse(File.ReadAllBytes(jobsPath));
             var jobs = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement.EnumerateArray().ToList()
                                                                        : doc.RootElement.GetProperty("jobs").EnumerateArray().ToList();

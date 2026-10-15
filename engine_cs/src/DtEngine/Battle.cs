@@ -15,6 +15,7 @@ namespace DtEngine
         public bool? SurvivalGuard, InterruptProduct;
         public bool HasArcaneChance;
         public int ArcaneChance = T.NONE;
+        public bool Record;                 // keep the recorder of the battle (sim.battle.Recorder)
     }
 
     /// <summary>The zone of the cell a fixed battle is fought on.</summary>
@@ -50,6 +51,8 @@ namespace DtEngine
         public int EnemyDamage, EnemyActions, PartyMaxHp;
         public double HpLeft, TpLeft;
         public int Alive;
+        public Recorder Record;             // null unless the options ask for it
+        public List<Unit> RecordUnits;      // the units of the battle (the record names them by position)
     }
 
     public sealed class Battle
@@ -174,6 +177,9 @@ namespace DtEngine
         readonly HashSet<(Unit, int)> spent = new HashSet<(Unit, int)>();
         // Recorder, by position
         public int[] RecDamage = new int[64], RecActions = new int[64];
+        // the full recorder (null when nobody asks for it)
+        public Recorder Rec;
+        Dictionary<Unit, int> damageByTarget;
         // Cover: units with Cover that took a hit in place of another, in the order they did
         readonly List<(Unit unit, int count)> covered = new List<(Unit, int)>();
         readonly List<Unit> guarding = new List<Unit>();
@@ -193,6 +199,7 @@ namespace DtEngine
             Options = options ?? new BattleOptions();
             ZoneInfo = zone;
             MaxTime = maxTime;
+            if (Options.Record) Rec = new Recorder();
             if (RecDamage.Length < Units.Count + 16) { RecDamage = new int[Units.Count + 32]; RecActions = new int[Units.Count + 32]; }
         }
 
@@ -456,6 +463,7 @@ namespace DtEngine
             r.HpLeft = (double)hp / Math.Max(1L, maxHp);
             r.TpLeft = (double)tp / Math.Max(1L, maxTp);
             r.Alive = alive;
+            if (Rec != null) { r.Record = Rec; r.RecordUnits = Units; }
             return r;
         }
 
@@ -493,7 +501,7 @@ namespace DtEngine
             Lost lost = LostTurn(unit);
             if (lost != Lost.No)
             {
-                // record turns_lost: not kept
+                Rec?.TurnsLost.Add(new RecKey(unit), 1);
             }
             else
             {
@@ -573,17 +581,23 @@ namespace DtEngine
             }
         }
 
+        Lost Deny(Unit unit, Lost how)
+        {
+            if (unit.Side == Unit.ENEMIES) Rec?.Denied.Add(new RecKey(unit), 1);
+            return how;
+        }
+
         Lost LostTurn(Unit unit)
         {
             if (!unit.Alive) return Lost.Skip;
-            if (unit.St[120] != null || unit.St[116] != null) return Lost.Skip;
-            if (unit.St[115] != null && Rng.RandRange(100) < 30) return Lost.Skip;
+            if (unit.St[120] != null || unit.St[116] != null) return Deny(unit, Lost.Skip);
+            if (unit.St[115] != null && Rng.RandRange(100) < 30) return Deny(unit, Lost.Skip);
             foreach (var other in OpponentsArray(unit))
             {
-                if (other.Has(259) && Roll(other.Value(259))) return Lost.Empty;
-                if (other.Has(283) && Roll(other.Value(283))) return Lost.Skip;
+                if (other.Has(259) && Roll(other.Value(259))) return Deny(unit, Lost.Empty);
+                if (other.Has(283) && Roll(other.Value(283))) return Deny(unit, Lost.Skip);
             }
-            if (unit.Has(203) && Roll(unit.Value(203))) return Lost.Skip;
+            if (unit.Has(203) && Roll(unit.Value(203))) return Deny(unit, Lost.Skip);
             return Lost.No;
         }
 
@@ -594,6 +608,7 @@ namespace DtEngine
                 var chanted = unit.Chant;
                 unit.Chant = null;
                 chanted.Chanting = false;
+                Rec?.ChantsDone.Add(new RecKey(unit), 1);
                 return chanted;
             }
             if (unit.Kind == Kind.Doll) return DollAction(unit);
@@ -610,6 +625,7 @@ namespace DtEngine
                 Pay(action);
                 action.Chanting = true;
                 unit.Chant = action;
+                Rec?.ChantsStarted.Add(new RecKey(unit), 1);
                 return ChantOf(unit, action);
             }
             return action;
@@ -633,6 +649,7 @@ namespace DtEngine
             cost = Math.Max(1, cost);
             if (unit.Has(266)) cost = Math.Max(1, cost - PyMath.Int(Math.Ceiling(cost * unit.Value(266))));
             unit.Tp = Math.Max(0, unit.Tp - cost);
+            Rec?.TpSpent.Add(new RecKey(unit), cost);
         }
 
         readonly Dictionary<Unit, Action> lastAction = new Dictionary<Unit, Action>();
@@ -764,6 +781,7 @@ namespace DtEngine
             lastAction[unit] = action;
             Grow(unit.Position);
             RecActions[unit.Position]++;
+            Rec?.Actions.Add(new RecKey(unit), 1);
             Trace?.Perform(this, action);
             if (action.Kind == AKind.Chant)
             {
@@ -773,9 +791,14 @@ namespace DtEngine
             if (action.Kind == AKind.Defend) { unit.Defending = true; return; }
             if (action.Kind == AKind.Wait) return;
             if (action.Kind == AKind.Item) { UseItem(action); return; }
-            if (ZoneInfo != null && ZoneInfo.NoMagic && unit.Kind != Kind.Doll && action.Spell) return;
+            if (ZoneInfo != null && ZoneInfo.NoMagic && unit.Kind != Kind.Doll && action.Spell)
+            {
+                Rec?.SkillUses.Add(new RecKey(unit, "nullified in an anti-magic zone"), 1);
+                return;
+            }
             if (!action.Chanting && action.Kind == AKind.Skill && !action.ChantSpeed.HasValue) Pay(action);
             string key = action.SourceName ?? "Attack";
+            Rec?.SkillUses.Add(new RecKey(unit, key), 1);
             unit.LastSkillId = action.SourceId;
             unit.Uses.TryGetValue(key, out int used);
             unit.Uses[key] = used + 1;
@@ -841,6 +864,7 @@ namespace DtEngine
                 }
             }
             int index = 0;
+            damageByTarget = Rec != null ? new Dictionary<Unit, int>() : null;
             foreach (var target in targets)
             {
                 for (int h = 0; h < hits; h++)
@@ -861,6 +885,12 @@ namespace DtEngine
             }
             guarding.Clear();
             if (action.Has(SACRIFICE) && unit.Alive) LoseHp(unit, unit.MaxHp, unit);
+            if (damageByTarget != null)
+            {
+                foreach (var kv in damageByTarget)
+                    if (unit.Side == Unit.ENEMIES && kv.Key.Side == Unit.PARTY) Rec.LargestHit.Max(new RecKey(unit), kv.Value);
+                damageByTarget = null;
+            }
             if (action.Kind == AKind.Attack)
             {
                 foreach (var ally in AlliesArray(unit))
@@ -1147,6 +1177,7 @@ namespace DtEngine
             if (Aimed(action, target) && !action.Has(25) && (action.Physical || action.Magic))
             {
                 dealt = Damage(action, target, index);
+                if (damageByTarget != null) { damageByTarget.TryGetValue(target, out int sofar); damageByTarget[target] = sofar + dealt; }
             }
             AfterHit(action, target, dealt);
         }
@@ -1815,6 +1846,7 @@ namespace DtEngine
             {
                 Grow(unit.Position);
                 RecDamage[unit.Position] += Math.Min(before, amount);
+                Rec?.Damage.Add(new RecKey(unit), Math.Min(before, amount));
             }
             if (target.Alive && amount > 0)
             {
@@ -1856,6 +1888,8 @@ namespace DtEngine
             double chance = F.InterruptionChance(amount, target.MaxHp, target.Value(264), enchant, critical, physical, Options.InterruptProduct ?? Data.InterruptProduct);
             if (Rng.Random() < chance)
             {
+                if (target.Chant != null) Rec?.ChantsBroken.Add(new RecKey(target), 1);
+                if (Performing(target)) Rec?.PerformancesBroken.Add(new RecKey(target), 1);
                 target.Chant = null;
                 EndPerformances(target);
             }
@@ -1891,6 +1925,7 @@ namespace DtEngine
             unit.Alive = false;
             unit.Chant = null;
             unit.ClearStatuses();
+            if (Rec != null) { Rec.Deaths.Add(new RecKey(unit), 1); if (unit.Side == Unit.ENEMIES) Rec.Kills++; }
             var dolls = new List<Unit>();
             foreach (var u in Units) if (u.Owner == unit && u.Kind == Kind.Doll) dolls.Add(u);
             foreach (var d in dolls) RemoveDoll(d);
@@ -1986,12 +2021,20 @@ namespace DtEngine
                 if ((effect == 60 || effect == 61) && hostile)
                 {
                     double chance = 0.5 * (unit.Stat(Unit.DEX) + 50) / (target.Stat(Unit.AGI) + 50) * (action.Val(60, 0.0) + action.Val(61, 0.0));
-                    if (!target.Stolen && Rng.RandRange(100) < PyMath.Int(F.Clamp(chance, 0.05, 0.95) * 100)) target.Stolen = true;
+                    if (!target.Stolen && Rng.RandRange(100) < PyMath.Int(F.Clamp(chance, 0.05, 0.95) * 100))
+                    {
+                        target.Stolen = true;
+                        Rec?.ItemsUsed.Add(new RecKey(unit, true), 1);
+                    }
                     continue;
                 }
                 if (effect == 84 && hostile)
                 {
-                    if (target.Snack && target.Hp < PyMath.Int(target.MaxHp * 0.5) && Roll(value)) target.Alive = false;
+                    if (target.Snack && target.Hp < PyMath.Int(target.MaxHp * 0.5) && Roll(value))
+                    {
+                        target.Alive = false;
+                        if (Rec != null) Rec.Kills++;
+                    }
                     continue;
                 }
                 if (effect == 425)
@@ -2197,7 +2240,9 @@ namespace DtEngine
         void Stun(Unit target)
         {
             EndParts(target, PartsFor(118));
+            double lostTime = Time + 1.0 - target.NextTime;
             target.NextTime = Time + 1.0;
+            if (target.Side == Unit.ENEMIES && lostTime > 0) Rec?.Delayed.Add(new RecKey(target), lostTime, true);
         }
 
         void EndPerformances(Unit unit)
@@ -2249,6 +2294,7 @@ namespace DtEngine
                 double tmp = target.NextTime;
                 target.NextTime = nxt.NextTime;
                 nxt.NextTime = tmp;
+                Rec?.Denied.Add(new RecKey(target), 0.0, true);
             }
         }
 
@@ -2271,6 +2317,11 @@ namespace DtEngine
             foreach (int e in remove) target.PopStatus(e);
         }
 
+        void Healed(Unit unit, int gained)
+        {
+            Rec?.Healing.Add(new RecKey(unit), gained);
+        }
+
         void Heal(Action action, Unit target, int effect, double value)
         {
             var unit = action.Actor;
@@ -2288,15 +2339,15 @@ namespace DtEngine
                     double random = F.HEAL_RANDOM[Rng.ChoiceIndex(F.HEAL_RANDOM.Length)];
                     amount = F.Heal(unit.Stat(Unit.RES), coefficient, unit.Passive(245, 0.0), hasCap, cap, unit.Passive(317, 0.0), random);
                 }
-                Restore(target, amount);
+                Healed(unit, Restore(target, amount));
             }
             else if (effect == 9 && !action.Has(103))
             {
-                Restore(target, PyMath.Int(value));
+                Healed(unit, Restore(target, PyMath.Int(value)));
             }
             else if (effect == 104)
             {
-                Restore(target, target.MaxHp);
+                Healed(unit, Restore(target, target.MaxHp));
             }
             else if (effect == 105)
             {
@@ -2311,11 +2362,11 @@ namespace DtEngine
             {
                 int amount = PyMath.Int(target.MaxHp * value);
                 if (effect == 131 && hasCap) amount = Math.Min(amount, PyMath.Int(cap));
-                Restore(target, amount);
+                Healed(unit, Restore(target, amount));
             }
             else if (effect == 132)
             {
-                Restore(target, F.FractionRecovery(target.MaxHp, value, hasCap, cap));
+                Healed(unit, Restore(target, F.FractionRecovery(target.MaxHp, value, hasCap, cap)));
             }
             else if (effect == 129)
             {
@@ -2335,7 +2386,13 @@ namespace DtEngine
 
         void Counter(Unit unit, Unit attacker)
         {
-            if (unit.Alive && attacker.Alive) Resolve(new Action(unit, AKind.Attack), attacker, 0);
+            if (unit.Alive && attacker.Alive)
+            {
+                var saved = damageByTarget;              // the counter keeps a record of its own hits (sim: resolve(..., {}))
+                damageByTarget = null;
+                Resolve(new Action(unit, AKind.Attack), attacker, 0);
+                damageByTarget = saved;
+            }
         }
 
         // --- dolls, random moves, items --------------------------------------------------------------------------
@@ -2493,6 +2550,7 @@ namespace DtEngine
             if (item == null || !unit.Items.TryGetValue(action.Item, out int have) || have <= 0) return;
             unit.Items[action.Item] = have - 1;
             if (unit.Has(274) && Roll(unit.Value(274))) unit.Items[action.Item] += 1;
+            Rec?.ItemsUsed.Add(new RecKey(unit, item.Name), 1);
             var target = action.Target ?? unit;
             double mastery = unit.Passive(275, 0.0);
             for (int i = 0; i < item.Kinds.Length; i++)

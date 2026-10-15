@@ -117,6 +117,28 @@ namespace DtEngine.Tests
         }
 
         [Fact]
+        public void TheRecorderAddsUpToTheFiguresOfTheBattleAndDoesNotDependOnThreads()
+        {
+            var snap = LoadSnapshot();
+            JobSpec Make() => new JobSpec { Id = "rec", Side = "variant", Cid = "C24", Runs = 4, Seed = 7, EnemyKind = "checkpoint", Record = true };
+            var one = JobRunner.Run(snap, new System.Collections.Generic.List<JobSpec> { Make() }, 1)[0];
+            var many = JobRunner.Run(snap, new System.Collections.Generic.List<JobSpec> { Make() }, 4)[0];
+            Assert.Null(one.Error);
+            for (int k = 0; k < 4; k++)
+                for (int i = 0; i < one.Runs[k].Parts.Count; i++)
+                {
+                    var part = one.Runs[k].Parts[i];
+                    Assert.NotNull(part.Record);
+                    int damage = 0, actions = 0;
+                    for (int j = 0; j < part.Record.Damage.Count; j++) if (part.Record.Damage.Keys[j].Unit.Side == Unit.ENEMIES) damage += (int)part.Record.Damage.Values[j];
+                    for (int j = 0; j < part.Record.Actions.Count; j++) if (part.Record.Actions.Keys[j].Unit.Side == Unit.ENEMIES) actions += (int)part.Record.Actions.Values[j];
+                    Assert.Equal(part.EnemyDamage, damage);
+                    Assert.Equal(part.EnemyActions, actions);
+                    Assert.Equal(part.Record.TraceLine(), many.Runs[k].Parts[i].Record.TraceLine());
+                }
+        }
+
+        [Fact]
         public void GuestAlliesAndSummonsMatchPython()
         {
             string output = Python("engine_cs/parity/run_parity.py directed --only guests,summons --workers 4 --threads 2");

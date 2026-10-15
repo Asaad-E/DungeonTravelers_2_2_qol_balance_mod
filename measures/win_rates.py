@@ -6,6 +6,7 @@ for. Nothing is written but the result.
 
     python measures/win_rates.py run [processes]      writes win_rates.json beside this file
     python measures/win_rates.py report               WIN_RATES.md beside this file
+    python measures/win_rates.py engine               the same cells as `run`, played by the C# engine (engine_cs/) in one call
 
 A cell is flagged when the variant wins 15 points more than the game: below that, two shares of this many battles
 differ by chance (two standard errors of the difference are about 10 points at 200 battles, 14 at 100).
@@ -67,6 +68,30 @@ def run(processes=12):
     print(len(cells), 'cells')
 
 
+def cells_engine(tasks):
+    """cell() for each task (party, boss, side), played by the C# engine in one call."""
+    import engine_client as engine
+    jobs = [engine.make_job(side, cid, roles=[r.strip() for r in PARTIES[party][0].split(';')], runs=PARTIES[party][1],
+                            name=f'{party}|{cid}|{side}') for party, cid, side in tasks]
+    out = []
+    for (party, cid, side), done in zip(tasks, engine.run_jobs(jobs)):
+        res = done['runs']
+        won = [r for r in res if r['won']]
+        out.append({'party': party, 'id': cid, 'side': side, 'runs': len(res), 'won': len(won) / len(res),
+                    'time': sum(r['time'] for r in won) / len(won) if won else None})
+    return out
+
+
+def run_engine():
+    from sim import setup as setup_mod
+    bosses = [c.strip() for c in str(setup_mod.load().settings['battery_checkpoints']).split(';') if c.strip()]
+    tasks = [(p, c, s) for p in PARTIES for c in bosses for s in ('vanilla', 'variant')]
+    cells = cells_engine(tasks)
+    with open(OUT, 'w', encoding='utf-8') as f:
+        json.dump(cells, f, indent=1)
+    print(len(cells), 'cells')
+
+
 def report():
     with open(OUT, encoding='utf-8') as f:
         cells = json.load(f)
@@ -110,4 +135,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

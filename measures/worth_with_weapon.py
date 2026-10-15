@@ -4,6 +4,7 @@ usual weapon, to see what the change of weapon costs.
 
     python worth_with_weapon.py "Bible Thump" sage Tome
     python worth_with_weapon.py "Beast Binder" joker Whip
+    (add --engine to score the options on the C# engine, engine_cs/)
 """
 import os
 import random
@@ -21,7 +22,12 @@ from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
+
+
 def contexts(data, setup, role, cid, policy):
+    if ENGINE:
+        return skill_worth.contexts_engine(data, setup, cid, role)
     cp = setup.checkpoint(cid)
     level = scenario.reference_levels(data, setup)[cid][0]
     gear = scenario.checkpoint_gear(data, setup, cid)
@@ -40,6 +46,10 @@ def contexts(data, setup, role, cid, policy):
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     name, role, weapon = sys.argv[1:4]
     data, setup = balance_data(game_data()), setup_mod.load()
     policy = P.Policy(P.load_rules(setup.policies), setup.settings)

@@ -3,6 +3,7 @@ The story bosses against what the guide says of them. Generated: docs/generated/
 
     python tools/guide_curve.py run k/n      plays the k-th of n slices of the sheet, one process each
     python tools/guide_curve.py report       joins the slices into the checklist
+    python tools/guide_curve.py engine       the whole sheet played by the C# engine (engine_cs/) in one call; one part file
 
 The sheet GuideDifficulty of data_tables/sim_setup.xlsx gives each story checkpoint the class the GameFAQs guide
 gives its boss (easy, normal, hard). The reference party at the reference level of the checkpoint plays it on the
@@ -49,6 +50,28 @@ def run(part='1/1'):
         json.dump(out, f, indent=1)
 
 
+def run_engine():
+    """run(), played by the C# engine in one call: the whole sheet, written as the one part 1."""
+    import time
+    import engine_client as engine
+    started = time.time()
+    data, setup = game_data(), setup_mod.load()
+    rows = sheet(setup)
+    runs = int(setup.settings['check_runs'])
+    side = engine.side_of(data)
+    played = engine.play_checkpoints([(side, r['Checkpoint'], runs, None, engine.setup_of(setup)) for r in rows])
+    out = []
+    for r, (level, res) in zip(rows, played):
+        out.append({'id': r['Checkpoint'], 'level': level, 'won': res['won'], 'time': res.get('time'), 'lowest_hp': res['lowest_hp']})
+        print(r['Checkpoint'], level, f"won {res['won']:.0%}", flush=True)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for name in os.listdir(OUT_DIR):
+        os.remove(os.path.join(OUT_DIR, name))
+    with open(os.path.join(OUT_DIR, 'part_1.json'), 'w', encoding='utf-8') as f:
+        json.dump(out, f, indent=1)
+    print(f'{len(out)} checkpoints in {time.time() - started:.0f} s')
+
+
 def report():
     setup = setup_mod.load()
     rows = sheet(setup)
@@ -86,4 +109,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

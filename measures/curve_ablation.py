@@ -8,6 +8,7 @@ too. Nothing is written but the result.
     python curve_ablation.py run CASE       writes curve_ablation_CASE.json beside this file
     python curve_ablation.py all            every case, one process each
     python curve_ablation.py report         CURVE_ABLATION.md beside this file
+    python curve_ablation.py engine CASE    the same as `run`, played by the C# engine (engine_cs/); `engine all` plays every case
 """
 import json
 import os
@@ -64,6 +65,23 @@ def run(case, runs=None):
         json.dump(rows, f)
 
 
+def run_engine(case, runs=None):
+    """run(), played by the C# engine: the data of the case are sent to it, the checkpoints play in one call."""
+    if case == 'all':
+        for each in CASES:
+            run_engine(each, runs)
+        return
+    import engine_client as engine
+    data, changed = build(case)
+    setup = setup_mod.load()
+    rows = []
+    for cid, before, after, out in engine.check_change_sim(data, changed, setup, list(PLACES), runs=int(runs) if runs else None):
+        rows.append({'id': cid, 'vanilla': before, 'variant': after, 'out': out})
+        print(case, cid, out, flush=True)
+    with open(os.path.join(HERE, f"curve_ablation_{case.replace(' ', '_').replace(',', '_')}{'_' + str(runs) if runs else ''}.json"), 'w', encoding='utf-8') as f:
+        json.dump(rows, f)
+
+
 def run_all():
     procs = [subprocess.Popen([sys.executable, os.path.abspath(__file__), 'run', case], stdout=subprocess.DEVNULL)
              for case in CASES]
@@ -99,4 +117,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    {'run': run, 'all': run_all, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

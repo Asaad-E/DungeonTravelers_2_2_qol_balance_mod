@@ -133,6 +133,13 @@ namespace DtEngine
         public int[] Resist = new int[8];
         public int[] Attacks, Passives;
         public Script Script;
+        public object Clone()
+        {
+            var c = (EnemyRec)MemberwiseClone();
+            c.Stats = (int[])Stats.Clone();
+            c.Resist = (int[])Resist.Clone();
+            return c;
+        }
     }
 
     public sealed class Piece
@@ -299,6 +306,31 @@ namespace DtEngine
         // flags of the variant
         public int ArcaneChance = T.NONE;
         public bool InterruptProduct, SurvivalGuard;
+
+        /// <summary>The same data with the stats of some enemy records changed (GameData.with_changes on 'enemies'): a copy that shares everything else.
+        /// changes: enemy id -> field -> value; the fields are those of the record (hp, atk, def, int, res, dex, agi, res_slash ... res_lightning).</summary>
+        public GameData WithEnemyStats(List<(int id, Dictionary<string, double> fields)> changes)
+        {
+            var copy = (GameData)MemberwiseClone();
+            copy.Enemies = new Dictionary<int, EnemyRec>(Enemies);
+            string[] stats = { "atk", "def", "int", "res", "dex", "agi" };
+            string[] resists = { "res_slash", "res_stab", "res_bash", "res_fire", "res_water", "res_wind", "res_earth", "res_lightning" };
+            foreach (var (id, fields) in changes)
+            {
+                var rec = (EnemyRec)Enemies[id].Clone();
+                foreach (var kv in fields)
+                {
+                    int value = (int)kv.Value;
+                    int s = Array.IndexOf(stats, kv.Key), r = Array.IndexOf(resists, kv.Key);
+                    if (kv.Key == "hp") rec.Hp = value;
+                    else if (s >= 0) rec.Stats[s] = value;
+                    else if (r >= 0) rec.Resist[r] = value;
+                    else throw new InvalidOperationException("no enemy field " + kv.Key);
+                }
+                copy.Enemies[id] = rec;
+            }
+            return copy;
+        }
 
         public Skill GetSkill(string category, int id) => Skills.TryGetValue((category, id), out var s) ? s : null;
         public Skill ById(int id) => SkillById.TryGetValue(id, out var s) ? s : null;

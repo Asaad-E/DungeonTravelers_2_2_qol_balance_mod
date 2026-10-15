@@ -36,6 +36,28 @@ def plain(result):
     return out
 
 
+RECORD_TABLES = ('damage', 'healing', 'actions', 'skill_uses', 'tp_spent', 'items_used', 'chants_started', 'chants_done',
+                 'chants_broken', 'performances_broken', 'turns_lost', 'denied', 'delayed', 'largest_hit', 'deaths')
+
+
+def unit_view(u):
+    owner = getattr(u, 'owner', None)
+    return (u.position, u.name, u.kind, u.side, u.level, getattr(u, 'role', None), None if owner is None else owner.position)
+
+
+def key_view(key):
+    if isinstance(key, tuple):
+        return tuple(('stolen' if k == 'stolen' else unit_view(k) if not isinstance(k, str) else k) for k in key)
+    return unit_view(key)
+
+
+def record_view(record):
+    """A recorder as plain data, each table in the order its keys were added; the units as the engine names them."""
+    out = {name: [(key_view(k), v) for k, v in getattr(record, name).items()] for name in RECORD_TABLES}
+    out['kills'] = record.kills
+    return out
+
+
 def shape(value):
     """The value with the type of each figure, to compare both."""
     if isinstance(value, dict):
@@ -57,6 +79,55 @@ class EngineClientTest(unittest.TestCase):
             mine = engine.play_party(side, cid, roles, runs)
             theirs = [plain(r) for r in scenario.play_party(state()['sides'][side], setup, cid, roles, runs)]
             self.assertEqual(shape(mine), shape(theirs), f'{side} {cid}')
+
+    def test_record_equals_sim(self):
+        from sim import scenario
+        setup = state()['setup']
+        cases = [('vanilla', 'C06', None, 3), ('variant', 'C17', None, 3), ('variant', 'C24', ['attacker', 'diva', 'mage'], 4),
+                 ('vanilla', 'C40', None, 2), ('variant', 'P24', None, 2), ('variant', 'C30', ['soul summoner', 'mistress', 'healer'], 3)]
+        for side, cid, roles, runs in cases:
+            roles = [r for r in (roles or list(setup.composition)) if r in setup.roles] or list(setup.composition)
+            job = engine.make_job(side, cid, roles=roles, runs=runs, record=True)
+            mine = engine.play(job)
+            theirs = scenario.play_party(state()['sides'][side], setup, cid, roles, runs)
+            for a, b in zip(mine, theirs):
+                self.assertEqual(shape(record_view(a['record'])), shape(record_view(b['record'])), f'{side} {cid}')
+                for pa, pb in zip(a['parts'], b['parts']):
+                    self.assertEqual(shape(record_view(pa['record'])), shape(record_view(pb['record'])), f'{side} {cid} part')
+
+    def test_data_of_the_tool_equals_sim(self):
+        """A side changed in Python, and a setup changed in Python, go to the engine with the call."""
+        from sim import measures, scenario
+        setup = state()['setup']
+        variant = state()['sides']['variant']
+        changed = variant.with_changes([('enemies', e, 'hp', variant.enemies[e]['hp'] * 2) for e in list(variant.enemies)[:40]])
+        cid = 'C12'
+        mine = engine.play_checkpoint_sim(changed, setup, cid, 6)
+        theirs = measures.play_checkpoint(changed, setup, cid, 6)
+        self.assertEqual(shape(mine), shape(theirs))
+        saved = setup.policies
+        try:
+            setup.policies = [dict(r) for r in saved if r['Role'] != 'diva']
+            mine = engine.play_party_sim(variant, setup, 'C24', ['diva', 'attacker', 'mage'], 5)
+            theirs = scenario.play_party(variant, setup, 'C24', ['diva', 'attacker', 'mage'], 5)
+        finally:
+            setup.policies = saved
+        self.assertEqual(shape(mine), shape([plain(r) for r in theirs]))
+
+    def test_recipe_and_chain_equal_sim(self):
+        """The tested member of class_stages.py and a row of random battles shared by the runs (tools/skill_value.py)."""
+        import class_stages
+        import skill_value
+        data, setup = state()['sides']['variant'], state()['setup']
+        for cid, role in (('C10', 'healer'), ('C24', 'tank'), ('C36', None)):
+            self.assertEqual(shape(class_stages.play_engine(data, setup, cid, role, 6)), shape(class_stages.play(data, setup, cid, role, 6)))
+        skill = next(s for s in skill_value.candidates(data) if skill_value.place(data, setup, s))
+        role, st = skill_value.place(data, setup, skill)
+        cid = [c.strip() for c in str(st['Checkpoints']).split(';')][0]
+        setup.settings['check_runs'] = 6
+        for use in (False, True):
+            self.assertEqual(shape(skill_value.play_engine(data, setup, role, cid, skill, use, 5)),
+                             shape(skill_value.play(data, setup, role, cid, skill, use, 5)))
 
     def test_summary_equals_sim(self):
         from sim import measures, scenario

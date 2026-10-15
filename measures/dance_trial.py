@@ -3,6 +3,7 @@ as the program does (docs/FORMULAS.md 12.8): parties with an Etoile who keeps Fa
 on the variant, and on the variant with those two dances at the values of the game or halfway. Nothing is written.
 
     python measures/dance_trial.py C26;C30;C36;C38;C40 150
+    python measures/dance_trial.py C26;C30;C36;C38;C40 150 --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -17,6 +18,7 @@ PARTIES = {'Juggernaut': ['tank', 'attacker', 'dark lord', 'kunoichi', 'etoile']
            'Physical, Diva': ['tank', 'attacker', 'dark lord', 'etoile', 'diva']}
 CASES = {'game': None, 'variant': 1.0, 'variant, dances halfway': 0.5, 'variant, dances of the game': 0.0}
 DANCES = {'Fascinating Waltz': 195, 'Dumbing Mazurka': 201}
+ENGINE = False                               # --engine: the battles are played by the C# engine
 _STATE = {}
 
 
@@ -48,7 +50,7 @@ def cell(task):
             old = next(v for e, _, v in base.effects if e == effect)
             mine.effects = [(e, k, [o + (x - o) * share for x, o in zip(v, old)] if e == effect else v) for e, k, v in mine.effects]
     try:
-        res = scenario.play_party(data, state['setup'], cid, PARTIES[party], runs)
+        res = (__import__('engine_client').play_party_sim if ENGINE else scenario.play_party)(data, state['setup'], cid, PARTIES[party], runs)
     finally:
         for name, effects in kept.items():
             skill(data, name).effects = effects
@@ -57,9 +59,13 @@ def cell(task):
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     bosses, runs = sys.argv[1].split(';'), int(sys.argv[2])
     tasks = [(p, c, k, runs) for p in PARTIES for c in bosses for k in CASES]
-    with ProcessPoolExecutor(12) as pool:
+    with (__import__('engine_client').SerialPool() if ENGINE else ProcessPoolExecutor(12)) as pool:
         at = {(p, c, k): (w, t) for p, c, k, w, t in pool.map(cell, tasks)}
     for p in PARTIES:
         print(p, PARTIES[p])

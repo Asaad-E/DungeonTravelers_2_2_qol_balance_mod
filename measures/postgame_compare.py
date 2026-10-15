@@ -9,6 +9,7 @@ choice, not a reading; the report says the step of each boss.
 
     python postgame_compare.py run k/n      one slice; writes postgame_compare_k.json beside this file
     python postgame_compare.py report       POSTGAME_COMPARE.md beside this file
+    python postgame_compare.py engine k/n   the same as `run`, played by the C# engine (engine_cs/)
 """
 import json
 import os
@@ -38,6 +39,24 @@ def play(data, setup, cid, crown, runs):
         return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
 
     return measures.summary(scenario.play(data, setup, party, enemies, runs=runs))
+
+
+def play_engine(data, setup, cid, crown, runs):
+    """play(), played by the C# engine."""
+    import engine_client as engine
+    job = engine.make_job(engine.side_of(data), cid, runs=runs, crown=crown, setup=engine.setup_of(setup), name=f'{cid}|{crown}')
+    return engine.run_jobs([job])[0]['summary']
+
+
+def run_engine(part):
+    """run(), with every cell played by the C# engine."""
+    global play
+    played = play
+    play = play_engine
+    try:
+        run(part)
+    finally:
+        play = played
 
 
 def run(part):
@@ -97,4 +116,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

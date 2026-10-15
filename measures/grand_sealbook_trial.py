@@ -4,6 +4,7 @@ enchantment of a grand sealbook acts for every member (docs/FORMULAS.md 16.1). V
 written.
 
     python measures/grand_sealbook_trial.py 955 P24 150
+    python measures/grand_sealbook_trial.py 955 P24 150 --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -18,6 +19,9 @@ from sim.variant import balance_data                      # noqa: E402
 
 
 def main():
+    engine = '--engine' in sys.argv
+    if engine:
+        sys.argv.remove('--engine')
     book, cid, runs = int(sys.argv[1]), sys.argv[2], int(sys.argv[3])
     vanilla, setup = game_data(), setup_mod.load()
     data = balance_data(vanilla)
@@ -26,7 +30,7 @@ def main():
     name = data.sealbooks[book]['name']
     for label, enchants in (('one enchantment', list(vanilla.sealbooks[book]['enchants'])), ('two', both)):
         data.sealbooks[book]['enchants'] = enchants
-        _, res = measures.play_checkpoint(data, setup, cid, runs)
+        _, res = (__import__('engine_client').play_checkpoint_sim if engine else measures.play_checkpoint)(data, setup, cid, runs)
         print(f"{name} {cid} | {label} {enchants} | won {res['won']:.0%} | length {res['time']:.1f} | lowest HP "
               f"{res['lowest_hp']:.0%}", flush=True)
 

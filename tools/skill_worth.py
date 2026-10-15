@@ -4,6 +4,7 @@ Generated: docs/generated/SKILL_WORTH.md.
 
     python tools/skill_worth.py all        every stage of the sheet ClassStages, one process each
     python tools/skill_worth.py report     joins them
+    python tools/skill_worth.py engine     every stage played by the C# engine (engine_cs/) in one call
 
 On the Balance variant, at each checkpoint of a stage, for each role of the sheet Roles: the member of that role (the
 class its path gives at the reference level) knows every technique and spell of the classes of her path so far at
@@ -126,6 +127,85 @@ def run(stage):
         json.dump(rows, f)
 
 
+def engine_item(data, setup, cid, role, groups, side=None, setup_name=None):
+    """The analysis for the C# engine of one role at one checkpoint: the item for engine_client.skill_scores, whose contexts are the boss
+    fight and, when groups > 0 and the floor has zones, that many random groups."""
+    import engine_client as engine
+    side = side or engine.side_of(data)
+    setup_name = setup_name if setup_name is not None else engine.setup_of(setup)
+    chars = {c['name']: c for c in data.characters}
+    cp = setup.checkpoint(cid)
+    level = scenario.reference_levels(data, setup)[cid][0]
+    zones = [z for z in data.floors if z['name'].split(' zone')[0] == cp['Floor'] and z['formations']] or \
+            [z for z in data.floors if z['name'][:4] == cp['Floor'][:4] and z['formations']]
+    contexts = [{'kind': 'fixed', 'floor': cp['Floor'], 'number': scenario.battle_numbers(cp)[-1]}]
+    if zones and groups:
+        contexts.append({'kind': 'draws', 'zones': [z['name'] for z in zones], 'seed': 1, 'count': groups})
+    row = setup.roles[role]
+    who = [n.strip() for n in str(row['Characters (order of preference)']).split(';')][0]
+    learnable = set(scenario.classes_so_far(data, row, level))
+    extra = {s.id: s.levels or 1 for s in data.skills.values()
+             if s.category in ('Technique', 'Magic') and set(s.classes or []) & learnable and P.usable_in_battle(s)}
+    recipe = {'name_not': chars[who]['name'], 'first': 4, 'drop_others': True,
+              'tested': [{'role': role, 'character': who, 'level': level, 'forge': bool(scenario.forge_open(setup, cp['Floor'])),
+                          'unique_pieces': True, 'extra_skills': {str(k): v for k, v in extra.items()}}]}
+    job = engine.make_job(side, cid, runs=1, crown=0, setup=setup_name, recipe=recipe, name=f'{cid}|{role}')
+    return {'side': side, 'setup': setup_name, 'job': job, 'contexts': contexts, 'zone': True}
+
+
+def engine_items(data, setup, stage):
+    """For each (checkpoint, role) of a stage: the analysis for the C# engine."""
+    import engine_client as engine
+    side, setup_name = engine.side_of(data), engine.setup_of(setup)
+    st = next(s for s in class_stages.stages(setup) if s['Stage'] == stage)
+    groups = int(setup.settings['skill_worth_groups'])
+    plan = []
+    for cid in [c.strip() for c in str(st['Checkpoints']).split(';')]:
+        level = scenario.reference_levels(data, setup)[cid][0]
+        for role in setup.roles:
+            plan.append((cid, role, level, engine_item(data, setup, cid, role, groups, side, setup_name)))
+    return plan
+
+
+def contexts_engine(data, setup, cid, role):
+    """[('boss', {name: value}), ('random', {...}), ...]: what scores() gives for the boss and each random group, played by the C# engine."""
+    import engine_client as engine
+    done = engine.skill_scores([engine_item(data, setup, cid, role, int(setup.settings['skill_worth_groups']))])[0]
+    return [('boss', dict(done['contexts'][0]))] + [('random', dict(c)) for c in done['contexts'][1:]]
+
+
+def run_engine_stage(data, setup, stage):
+    """run(stage), played by the C# engine: the rows of the stage."""
+    import engine_client as engine
+    plan = engine_items(data, setup, stage)
+    played = engine.skill_scores([item for _, _, _, item in plan])
+    rows = []
+    for (cid, role, level, _), done in zip(plan, played):
+        cls = data.class_names.get(scenario.class_path(data, setup.roles[role], level)[0])
+        contexts = [('boss', dict(done['contexts'][0]))] + [('random', dict(c)) for c in done['contexts'][1:]]
+        for name, sc in contexts:
+            best = max(sc.values()) if sc else 0.0
+            for skill, value in sc.items():
+                rows.append({'checkpoint': cid, 'role': role, 'class': cls, 'context': name,
+                             'skill': skill, 'ratio': value / best if best else 0.0,
+                             'best': max(sc, key=sc.get)})
+    return rows
+
+
+def run_engine():
+    """run_all(), played by the C# engine in one call."""
+    import time
+    started = time.time()
+    data, setup = changed(balance_data(game_data()), os.environ.get('SKILL_WORTH_SPEC')), setup_mod.load()
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for st in class_stages.stages(setup):
+        rows = run_engine_stage(data, setup, st['Stage'])
+        with open(os.path.join(OUT_DIR, f"{st['Stage']}.json"), 'w', encoding='utf-8') as f:
+            json.dump(rows, f)
+        print(st['Stage'], len(rows), 'rows', flush=True)
+    print(f'{time.time() - started:.0f} s')
+
+
 def run_all():
     import subprocess
     setup = setup_mod.load()
@@ -172,4 +252,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'all': run_all, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

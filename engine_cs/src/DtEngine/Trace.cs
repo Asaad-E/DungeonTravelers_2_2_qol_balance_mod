@@ -104,6 +104,7 @@ namespace DtEngine
         {
             Lines.Add("E " + (r.Won ? 1 : 0) + " " + (r.Lost ? 1 : 0) + " " + N(r.Time) + " " + r.Actions + " " + N(r.LowestHp) + " " + N(r.HpLeft) + " " +
                       N(r.TpLeft) + " " + r.Alive + " " + r.EnemyDamage + " " + r.EnemyActions + " " + r.PartyMaxHp);
+            if (r.Record != null) Lines.Add(r.Record.TraceLine());
         }
 
         public void Perform(Battle b, Action a)

@@ -5,6 +5,7 @@ but the result.
 
     python measures/win_causes.py run Meta C26;C30;C38 200 [processes]     writes win_causes_<party>.json
     python measures/win_causes.py report Meta
+    python measures/win_causes.py run Meta C26;C30;C38 200 --engine     the same, played by the C# engine (engine_cs/)
 """
 import collections
 import json
@@ -19,6 +20,7 @@ sys.path.insert(0, os.path.join(PROJECT, 'tools'))
 sys.path.insert(0, HERE)
 import win_rates                                          # noqa: E402
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 _STATE = {}
 
 
@@ -46,7 +48,7 @@ def cell(task):
         data.arcane_chance = variant.arcane_chance()
         data.interrupt_product = variant.interrupt_product()
     roles = [r.strip() for r in win_rates.PARTIES[party][0].split(';')]
-    res = scenario.play_party(data, state['setup'], cid, roles, runs)
+    res = (__import__('engine_client').play_party_sim if ENGINE else scenario.play_party)(data, state['setup'], cid, roles, runs)
     won = [r for r in res if r['won']]
     return {'id': cid, 'family': family, 'won': len(won) / len(res), 'time': sum(r['time'] for r in won) / len(won) if won else None}
 
@@ -56,7 +58,7 @@ def run(party, bosses, runs=200, processes=12):
     letters = sorted({str(r['ID'])[0] for r in state['rows']})
     families = ['game', 'variant'] + letters + ['only ' + k for k in letters]
     tasks = [(party, c.strip(), f, int(runs)) for f in families for c in bosses.split(';')]
-    with ProcessPoolExecutor(int(processes)) as pool:
+    with (__import__('engine_client').SerialPool() if ENGINE else ProcessPoolExecutor(int(processes))) as pool:
         cells = list(pool.map(cell, tasks))
     counts = collections.Counter(str(r['ID'])[0] for r in state['rows'])
     tables = {k: sorted({str(r['Table']) for r in state['rows'] if str(r['ID']).startswith(k)}) for k in counts}
@@ -83,4 +85,7 @@ def report(party):
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])

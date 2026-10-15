@@ -5,6 +5,8 @@ Audit of the simulator: does every rule it holds actually act? Generated: docs/g
                                                           (k/n: the k-th of n slices, one process each)
     python tools/sim_audit.py usage [k/n]   the skills of each role's plan it never uses, and why
     python tools/sim_audit.py report        joins the parts written so far into SIM_AUDIT.md
+    python tools/sim_audit.py passives-engine | usage-engine | actives-engine [k/n]
+                                            the same phases played by the C# engine (engine_cs/) in one call
 
 Each phase writes its part to docs/generated/sim_audit/<phase>.md and runs in its own process, so memory is freed
 between phases. A check that comes out "no effect seen" is not a verdict: it is a row to read by hand, and its reading
@@ -142,6 +144,150 @@ def passives(part='1/1'):
           f'{sum(r[-1] == "acts" for r in rows)} act, {sum(r[-1] == "no effect seen" for r in rows)} no effect seen, '
           f'{sum(r[-1] == "outside battle" for r in rows)} outside battle, {sum(r[-1] == "no role learns it" for r in rows)} '
           f'with no role, of {len(rows)} passive skills')
+
+
+def fights_job(data, setup, role, character, level, cid, extra, name):
+    """The job of the C# engine that plays what fights() plays: factories(), then six seeds."""
+    import engine_client as engine
+    cp = setup.checkpoint(cid)
+    recipe = {'name_not': character, 'place': 'replace_role', 'items': 'all_first',
+              'tested': [{'role': role, 'character': character, 'level': level, 'forge': bool(scenario.forge_open(setup, cp['Floor'])),
+                          'extra_skills': {str(k): v for k, v in (extra or {}).items()}}]}
+    return engine.make_job(engine.side_of(data), cid, runs=SEEDS, level=level, crown=0, record=True, setup=engine.setup_of(setup),
+                           recipe=recipe, name=name)
+
+
+def fights_engine(data, setup, requests):
+    """fights() for each request (role, character, level, cid, extra), played by the C# engine in one call."""
+    import engine_client as engine
+    jobs = [fights_job(data, setup, *request, name=f'fights{k}') for k, request in enumerate(requests)]
+    return [d['runs'] for d in engine.run_jobs(jobs)]
+
+
+def passives_engine(part='1/1'):
+    """passives(), played by the C# engine in one call."""
+    k, n = (int(x) for x in part.split('/'))
+    data, setup = game_data(), setup_mod.load()
+    outside = {e for e, where in HANDLED.items() if where.startswith('outside battle')}
+    every = [(cat, sid) for (cat, sid) in sorted(data.skills, key=lambda x: x[1]) if cat == 'Passive']
+    mine = set(every[(k - 1) * len(every) // n: k * len(every) // n])
+    plan, requests = [], []
+    for (cat, sid), skill in sorted(data.skills.items(), key=lambda x: x[0][1]):
+        if cat != 'Passive' or (cat, sid) not in mine:
+            continue
+        effects = [e for e, _, _ in skill.effects]
+        if effects and all(e in outside for e in effects):
+            plan.append((sid, skill.name, effects, '-', 'outside battle', None))
+            continue
+        found = None
+        for class_id in skill.classes or []:
+            found = role_for(setup, data, class_id)
+            if found:
+                break
+        if not found:
+            plan.append((sid, skill.name, effects, '-', 'no role learns it', None))
+            continue
+        role, level, cid = found
+        names = [n.strip() for n in str(setup.roles[role]['Characters (order of preference)']).split(';')]
+        character = names[0]
+        top = skill.levels or 1
+        requests += [(role, character, level, cid, {sid: top}), (role, character, level, cid, {sid: 0})]
+        plan.append((sid, skill.name, effects, f'{role} ({character}, {level}, {cid})', None, len(requests) - 2))
+    played = fights_engine(data, setup, requests)
+    rows = []
+    for sid, name, effects, how, result, at in plan:
+        if at is not None:
+            result = 'no effect seen' if fingerprint(played[at]) == fingerprint(played[at + 1]) else 'acts'
+        rows.append((sid, name, effects, how, result))
+        print(sid, name, rows[-1][-1], flush=True)
+    write('passives' if n == 1 else f'passives_{k}', ['| Passive | Effects | Tested as | Result |', '|---|---|---|---|'] +
+          [f'| {sid} {name} | {", ".join(map(str, eff))} | {how} | {res} |' for sid, name, eff, how, res in rows],
+          f'{sum(r[-1] == "acts" for r in rows)} act, {sum(r[-1] == "no effect seen" for r in rows)} no effect seen, '
+          f'{sum(r[-1] == "outside battle" for r in rows)} outside battle, {sum(r[-1] == "no role learns it" for r in rows)} '
+          f'with no role, of {len(rows)} passive skills')
+
+
+def usage_engine(part='1/1'):
+    """usage(), played by the C# engine: the fights in one call, the scores of the options in another."""
+    import engine_client as engine
+    from sim.policy import usable_in_battle, weapon_allows, puts, EVERY_ROLE
+    k, n = (int(x) for x in part.split('/'))
+    data, setup = game_data(), setup_mod.load()
+    chars = {c['name']: c for c in data.characters}
+    roles = list(setup.roles.items())[(k - 1) * len(setup.roles) // n: k * len(setup.roles) // n]
+    cells = []
+    for role, row in roles:
+        character = [x.strip() for x in str(row['Characters (order of preference)']).split(';')][0]
+        if character not in chars:
+            continue
+        for level, cid in [(lv, c) for _, lv, c in TIERS] + [LATE]:
+            cells.append((role, character, level, cid))
+    requests = [(role, character, level, cid, None) for role, character, level, cid in cells]
+    fought = fights_engine(data, setup, requests)
+    items = []
+    for k_, (role, character, level, cid) in enumerate(cells):
+        cp = setup.checkpoint(cid)
+        items.append({'side': engine.side_of(data), 'setup': engine.setup_of(setup), 'job': fights_job(data, setup, *requests[k_], name=f'scores{k_}'),
+                      'contexts': [{'kind': 'fixed', 'floor': cp['Floor'], 'number': scenario.battle_numbers(cp)[0]}],
+                      'zone': False, 'attack_first': True})
+    scored = engine.skill_scores(items)
+    rows = []
+    at = 0
+    for role, row in roles:
+        character = [x.strip() for x in str(row['Characters (order of preference)']).split(';')][0]
+        if character not in chars:
+            continue
+        rules = [r for r in setup.policies if r['Role'] in (role, EVERY_ROLE)]
+        status_rules = {int(str(r['Action']).split(':')[1]) for r in rules if str(r['Action']).startswith('status:')}
+        for level, cid in [(lv, c) for _, lv, c in TIERS] + [LATE]:
+            res = fought[at]
+            used = set()
+            for r in res:
+                for p in r['parts']:
+                    for (u, name), _ in p['record'].skill_uses.items():
+                        if getattr(u, 'role', None) == role and u.name == character:
+                            used.add(name)
+            party_fn, enemies_fn = factories(data, setup, role, character, level, cid, None)
+            party = party_fn()
+            member = next(u for u in party if getattr(u, 'role', None) == role and u.name == character)
+            scores = dict(scored[at]['contexts'][0])
+            at += 1
+            best_name = max(scores, key=scores.get) if scores else None
+            for sid, lv in member.skills.items():
+                skill = data.skill_by_id.get(sid)
+                if skill is None or not usable_in_battle(skill) or skill.name in used:
+                    continue
+                effects = {e for e, _, _ in skill.effects}
+                if not weapon_allows(member, skill):
+                    why = 'not usable with the weapon of the role'
+                elif skill.name in scores:
+                    share = scores[skill.name] / scores[best_name] if scores.get(best_name) else 0.0
+                    why = f'dominated: {share:.0%} of the best ({best_name}) at the start of the fight'
+                elif effects & {104, 105}:
+                    why = 'situational: a revive'
+                elif effects & {103, 9, 128, 130, 131, 132, 133}:
+                    why = 'situational: a heal (another heal or the songs come first)'
+                elif effects & {106, 235}:
+                    why = 'situational: a cure'
+                elif effects & {129, 426}:
+                    why = 'situational: TP'
+                elif 74 in effects:
+                    why = 'situational: a dispel'
+                elif any(puts(skill, e) for e in effects):
+                    kept = sorted(e for e in effects if puts(skill, e) and e in status_rules)
+                    why = (f'a rule keeps effect {kept[0]} up: another skill gives it first' if kept
+                           else 'no rule of the role uses it')
+                else:
+                    why = 'other'
+                rows.append((role, character, level, cid, skill.name, why))
+            print(role, level, cid, 'unused', sum(1 for r in rows if r[:4] == (role, character, level, cid)), flush=True)
+    counts = {}
+    for r in rows:
+        key = r[-1].split(':')[0]
+        counts[key] = counts.get(key, 0) + 1
+    write('usage' if n == 1 else f'usage_{k}', ['| Role | Level | Fight | Skill never used | Why |', '|---|---|---|---|---|'] +
+          [f'| {role} ({who}) | {lv} | {cid} | {name} | {why} |' for role, who, lv, cid, name, why in rows],
+          f'{len(rows)} skills of a plan never used: ' + ', '.join(f'{v} {k}' for k, v in sorted(counts.items())))
 
 
 def usage(part='1/1'):
@@ -334,6 +480,79 @@ def actives(part='1/1'):
           f'{len(rows) - flagged} act as their effects say, {flagged} to read, of {len(rows)} active skills')
 
 
+def actives_engine(part='1/1'):
+    """actives(), played by the C# engine in one call: the engine performs each skill on the prepared battles, this tool says what it expects."""
+    import engine_client as engine
+    from sim.battle import AILMENTS
+    from sim.policy import usable_in_battle
+    k, n = (int(x) for x in part.split('/'))
+    data, setup = game_data(), setup_mod.load()
+    chars = {c['name']: c for c in data.characters}
+    cp = setup.checkpoint(LATE[1])
+    every = sorted((s for (cat, _), s in data.skills.items() if cat in ('Technique', 'Magic') and usable_in_battle(s)),
+                   key=lambda s: s.id)
+    mine = every[(k - 1) * len(every) // n: k * len(every) // n]
+    side, setup_name = engine.side_of(data), engine.setup_of(setup)
+    prelude = {'halve': True, 'user_max_tp': 9999, 'user_tp': 4999, 'fallen': 0, 'statuses': [[1, 113, 0, 3], [1, 116, 0, 3]],
+               'foes': [[ACTIVES_ENEMY, True], [ACTIVES_ENEMY, False]], 'foe_status': [161, 0.2, 3], 'next_time': 0.5}
+    party_job = engine.make_job(side, LATE[1], runs=1, level=LATE[0], crown=0, setup=setup_name, name='actives')
+    plan = []
+    for skill in mine:
+        role = who = None
+        for class_id in skill.classes or []:
+            found = role_for(setup, data, class_id)
+            if found:
+                role = found[0]
+                who = [x.strip() for x in str(setup.roles[role]['Characters (order of preference)']).split(';')][0]
+                break
+        if role is None:
+            # a hidden skill (the action of a doll, a result of a random skill) belongs to no class: any member performs it
+            role = ACTIVES_FALLBACK
+            who = [x.strip() for x in str(setup.roles[role]['Characters (order of preference)']).split(';')][0]
+        kinds = {(e, kind) for e, kind, _ in skill.effects}
+        expect = {}
+        if any((e in (0, 1) and kind == 4) or e in (8, 12, 138, 140, 141, 142, 434, 435) for e, kind in kinds):
+            expect['damage'] = False
+        for e, kind in kinds:
+            if kind == 4 and e in AILMENTS:
+                expect[f'ailment {e}'] = False
+            if kind == 5:
+                expect[f'status {e}'] = False
+        if not expect:
+            expect['anything'] = False
+        tests = []
+        for key in expect:
+            if key == 'damage':
+                tests.append({'key': key, 'test': 'hp_lost'})
+            elif key == 'anything':
+                tests.append({'key': key, 'test': 'changed'})
+            else:
+                e = int(key.split()[1])
+                test = {'key': key, 'test': 'ailment' if key.startswith('ailment') else 'status', 'effect': e}
+                if key.startswith('ailment'):
+                    # stun is no status: the gauge goes to 0 (Battle.stun); instant death leaves no status either
+                    test.update({'gauge_above': prelude['next_time'] if e == 118 else None, 'fell': e == 119})
+                tests.append(test)
+        user = {'role': role, 'character': who, 'level': LATE[0], 'forge': False}
+        plan.append((skill, role, expect, {'side': side, 'setup': setup_name, 'job': party_job, 'user': user, 'skill': skill.id,
+                                           'level': skill.levels or 1, 'expect': tests, 'tries': ACTIVE_TRIES, 'prelude': prelude}))
+    played = engine.probe([item for *_, item in plan])
+    rows = []
+    for (skill, role, expect, _), done in zip(plan, played):
+        if done['crash'] is not None:
+            expect = {'crash ' + done['crash']: False}
+            missed = list(expect)
+        else:
+            missed = [key for key in expect if key in set(done['missed'])]
+        rows.append((skill, role, 'acts' if not missed else 'not seen: ' + ', '.join(missed)))
+        print(skill.id, skill.name, rows[-1][-1], flush=True)
+    flagged = sum(1 for r in rows if r[-1] != 'acts')
+    write('actives' if n == 1 else f'actives_{k}', ['| Skill | Effects | Performed by | Result |', '|---|---|---|---|'] +
+          [f'| {s.id} {s.name} | {", ".join(f"{e}/{kd}" for e, kd, _ in s.effects)} | {role} | {res} |'
+           for s, role, res in rows],
+          f'{len(rows) - flagged} act as their effects say, {flagged} to read, of {len(rows)} active skills')
+
+
 def write(phase, lines, summary):
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, phase + '.md'), 'w', encoding='utf-8') as f:
@@ -373,4 +592,5 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'passives': passives, 'usage': usage, 'actives': actives, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'passives': passives, 'usage': usage, 'actives': actives, 'report': report, 'passives-engine': passives_engine,
+     'usage-engine': usage_engine, 'actives-engine': actives_engine}[sys.argv[1]](*sys.argv[2:])

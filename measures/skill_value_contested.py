@@ -6,6 +6,7 @@ party ends with counts too.
 
     python skill_value_contested.py run k/n [runs]     writes skill_value_contested_k.json beside this file
     python skill_value_contested.py report             SKILL_VALUE_CONTESTED.md beside this file
+    python skill_value_contested.py engine k/n [runs]  the same as `run`, played by the C# engine (engine_cs/)
 """
 import glob
 import json
@@ -25,6 +26,7 @@ from sim.variant import balance_data                      # noqa: E402
 CONTESTED = ('C30', 'C38', 'C40', 'P24')     # the reference party wins 92%, 92%, 92% and 98% of them on the variant
 NOT_BATTLE = {'Gold Steal': 'gold, not the fight', 'Item Steal': 'drops, not the fight',
               'Experience Paean': 'EXP, not the fight'}
+ENGINE = False                               # `engine`: the battles are played by the C# engine
 WINS, LENGTH, HP = 0.08, 0.03, 0.03          # what counts as serving: 8 points of wins, 3% of length, 3 points of HP left
 
 
@@ -57,13 +59,22 @@ def run(part, runs=30):
                 learnable = set(scenario.classes_so_far(data, setup.roles[role], levels[cid][0]))
                 if not set(skill.classes) & learnable:
                     continue
-                without = skill_value.play(data, setup, role, cid, skill, False)
-                with_it = skill_value.play(data, setup, role, cid, skill, True)
+                without = (skill_value.play_engine if ENGINE else skill_value.play)(data, setup, role, cid, skill, False)
+                with_it = (skill_value.play_engine if ENGINE else skill_value.play)(data, setup, role, cid, skill, True)
                 row['cells'].append({'checkpoint': cid, 'without': without, 'with': with_it})
         out.append(row)
         print(name, role, len(row['cells']), flush=True)
     with open(os.path.join(HERE, f'skill_value_contested_{k}.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, indent=1)
+
+
+def run_engine(part, runs=30):
+    global ENGINE
+    ENGINE = True
+    try:
+        run(part, runs)
+    finally:
+        ENGINE = False
 
 
 def report():
@@ -106,4 +117,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

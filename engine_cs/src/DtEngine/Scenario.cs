@@ -34,7 +34,7 @@ namespace DtEngine
     }
 
     /// <summary>sim/scenario.py and the parts of sim/measures.py that build a party and its enemies and play runs.</summary>
-    public sealed class Scenario
+    public sealed partial class Scenario
     {
         static readonly (int level, string label)[] STAGES = { (30, "Lv30 class"), (15, "Lv15 class"), (1, "Base class") };
         static readonly int[] ONE_PER_PIECE = { 6, 9, 12, 15, 18, 21 };

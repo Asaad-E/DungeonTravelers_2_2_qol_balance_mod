@@ -3,6 +3,7 @@ chance when one crosses its window by little. The same measure and windows as to
 written.
 
     python measures/curve_recheck.py C15;C17;C28;C39;C40 200
+    python measures/curve_recheck.py C15;C17;C28;C39;C40 200 --engine      the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -34,10 +35,22 @@ def fmt(v, key):
     return f'{v:.0%}' if key in ('won', 'lowest_hp') else f'{v:.2f}' if key == 'pressure' else f'{v:.1f}'
 
 
+def rows_engine(bosses, runs):
+    """cell() for each boss, played by the C# engine in one call (the game and the Balance variant of the snapshot)."""
+    import engine_client as engine
+    return engine.check_change(*bosses, runs=runs)
+
+
 def main():
+    engine = '--engine' in sys.argv
+    if engine:
+        sys.argv.remove('--engine')
     bosses, runs = sys.argv[1].split(';'), int(sys.argv[2])
-    with ProcessPoolExecutor(min(12, len(bosses))) as pool:
-        rows = list(pool.map(cell, [(c, runs) for c in bosses]))
+    if engine:
+        rows = rows_engine(bosses, runs)
+    else:
+        with ProcessPoolExecutor(min(12, len(bosses))) as pool:
+            rows = list(pool.map(cell, [(c, runs) for c in bosses]))
     print(f'{runs} battles: the game > the variant | wins | length | lowest HP | pressure | out of the window')
     for cid, before, after, out in rows:
         print(f'{cid} | ' + ' | '.join(f'{fmt(before[k], k)} > {fmt(after[k], k)}' for k in KEYS) + f" | {', '.join(out) or 'within'}")

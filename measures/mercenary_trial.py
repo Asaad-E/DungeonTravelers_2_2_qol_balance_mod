@@ -6,6 +6,7 @@ Variant; nothing is written.
     python mercenary_trial.py Marion C40 100 atk=1.5 dex=1.5
     python mercenary_trial.py Natalia C40 100 without=diva
     python mercenary_trial.py none C40 100 without=diva
+    (add --engine to play the battles on the C# engine, engine_cs/)
 """
 import os
 import sys
@@ -22,6 +23,9 @@ from sim.variant import balance_data                      # noqa: E402
 
 
 def main():
+    engine = '--engine' in sys.argv
+    if engine:
+        sys.argv.remove('--engine')
     name, cid, runs = sys.argv[1], sys.argv[2], int(sys.argv[3])
     factors = dict(a.split('=') for a in sys.argv[4:])
     without = factors.pop('without', None)
@@ -44,7 +48,13 @@ def main():
     def enemies():
         return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
 
-    res = scenario.play(data, setup, party, enemies, runs=runs)
+    if engine:
+        import engine_client
+        res = engine_client.play(engine_client.make_job(
+            engine_client.side_of(data), cid, runs=runs, crown=0, setup=engine_client.setup_of(setup), name=f'{name}|{cid}',
+            guest=None if name == 'summon' else 'none' if name == 'none' else name, recipe={'role_not': without} if without else None))
+    else:
+        res = scenario.play(data, setup, party, enemies, runs=runs)
     won = [r for r in res if r['won']]
     print(f"{name} {cid} {' '.join(sys.argv[4:]) or 'as she is'} | won {len(won) / len(res):.0%} | length "
           f"{sum(r['time'] for r in won) / len(won) if won else 0:.1f} | HP left "

@@ -35,21 +35,46 @@ namespace DtEngine
         public List<int> Bag;                      // item ids that replace the sheet Kit (one share each); null: the sheet
         public Dictionary<string, object> Options = new Dictionary<string, object>();
         public int Trace;
+        public bool Record;                         // return the recorder of every battle
         public bool? SurvivalGuard, InterruptProduct;          // flags of the data set for this job
         public bool HasArcaneChance;
         public int ArcaneChance = T.NONE;
         public Dictionary<string, object> Settings;            // settings of the model that this job sets for itself
+        public List<(int id, Dictionary<string, double> fields)> EnemyChanges;    // stats of enemy records for this job (GameData.with_changes)
+        public List<Row> PolicyRows;               // the rows of the sheet Policies for this job, in place of the ones of the setup
         public List<Row> Policies;                 // rows added to the sheet Policies for this job (they sort by role and order with the others)
         public string Guest;                       // null: the party as built; "none": its members only; else the name of a guest ally who replaces the summon
         public Exception OwnError;                 // why the scenario of the job could not be made
         public Scenario Own;                       // the scenario of a job with rows of its own (made by JobRunner.Run)
+        public string SetupName;                   // a setup of the snapshot's extra file, by name; null: the setup of the snapshot
+        public PartyRecipe Recipe;                 // what is done to the reference party before it is played
+        public Lazy<List<Unit>> RecipeTemplate;    // the party of the recipe, built once (made by JobRunner.Run)
+        public List<string> TestedNames = new List<string>();     // the characters the tested members were given
+        public List<string> ChainZones;            // kind chain: the zones a row of random battles draws from, by name
+        public ulong ChainSeed;                    // kind chain: the generator shared by all the runs, in the order they play
+        public int ChainCount;                     // kind chain: battles in a row
+        public List<List<(FloorZone zone, int index)>> ChainPicks;  // kind chain: the formations drawn for each run (made by JobRunner.Run)
         public MemberExtras More;                  // unique_level and passives given to every member built
+
+        public static List<(int id, Dictionary<string, double> fields)> ParseEnemyChanges(JsonElement changes)
+        {
+            var list = new List<(int, Dictionary<string, double>)>();
+            foreach (var p in changes.EnumerateObject())
+            {
+                var fields = new Dictionary<string, double>();
+                foreach (var f in p.Value.EnumerateObject()) fields[f.Name] = f.Value.GetDouble();
+                list.Add((int.Parse(p.Name), fields));
+            }
+            return list;
+        }
 
         public static JobSpec FromJson(JsonElement e)
         {
             var j = new JobSpec { Id = e.GetProperty("id").GetString(), Side = e.GetProperty("side").GetString() };
             var party = e.GetProperty("party");
             j.Cid = party.GetProperty("cid").GetString();
+            if (e.TryGetProperty("setup", out var setupName) && setupName.ValueKind == JsonValueKind.String) j.SetupName = setupName.GetString();
+            if (party.TryGetProperty("recipe", out var recipe) && recipe.ValueKind == JsonValueKind.Object) j.Recipe = PartyRecipe.FromJson(recipe);
             if (party.TryGetProperty("roles", out var roles) && roles.ValueKind == JsonValueKind.Array)
                 j.Roles = roles.EnumerateArray().Select(x => x.GetString()).ToList();
             if (party.TryGetProperty("level", out var level) && level.ValueKind == JsonValueKind.Number) j.Level = level.GetInt32();
@@ -83,6 +108,10 @@ namespace DtEngine
                 j.Settings = new Dictionary<string, object>();
                 foreach (var p in set.EnumerateObject()) j.Settings[p.Name] = Snapshot.Plain(p.Value);
             }
+            if (e.TryGetProperty("enemy_changes", out var changes) && changes.ValueKind == JsonValueKind.Object)
+                j.EnemyChanges = ParseEnemyChanges(changes);
+            if (e.TryGetProperty("policy_rows", out var polRows) && polRows.ValueKind == JsonValueKind.Array)
+                j.PolicyRows = polRows.EnumerateArray().Select(Snapshot.ToRow).ToList();
             if (e.TryGetProperty("policies", out var pol) && pol.ValueKind == JsonValueKind.Array)
                 j.Policies = pol.EnumerateArray().Select(Snapshot.ToRow).ToList();
             if (party.TryGetProperty("pieces", out var pcs) && pcs.ValueKind == JsonValueKind.Object)
@@ -106,6 +135,12 @@ namespace DtEngine
                 j.Formations = new List<(string, int)>();
                 foreach (var f in en.GetProperty("picks").EnumerateArray()) j.Formations.Add((f[0].GetString(), f[1].GetInt32()));
             }
+            if (j.EnemyKind == "chain")
+            {
+                j.ChainZones = en.GetProperty("zones").EnumerateArray().Select(x => x.GetString()).ToList();
+                j.ChainSeed = en.GetProperty("seed").GetUInt64();
+                j.ChainCount = en.GetProperty("battles").GetInt32();
+            }
             if (j.EnemyKind == "zone")
             {
                 j.ZoneName = en.GetProperty("floor").GetString();
@@ -123,6 +158,7 @@ namespace DtEngine
                 foreach (var p in opts.EnumerateObject())
                     j.Options[p.Name] = p.Value.ValueKind == JsonValueKind.True ? (object)true : p.Value.ValueKind == JsonValueKind.False ? false
                         : p.Value.ValueKind == JsonValueKind.Number ? (object)p.Value.GetDouble() : p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() : null;
+            if (e.TryGetProperty("record", out var rec) && (rec.ValueKind == JsonValueKind.True || rec.ValueKind == JsonValueKind.False)) j.Record = rec.GetBoolean();
             if (e.TryGetProperty("trace", out var tr) && tr.ValueKind == JsonValueKind.Number) j.Trace = tr.GetInt32();
             return j;
         }
@@ -173,6 +209,7 @@ namespace DtEngine
             var cp = setup.Checkpoint(job.Cid);
             ulong seed = job.Seed + (ulong)k;
             var options = Scenario.OptionsFrom(setup, job.Options);
+            options.Record = job.Record || job.Trace > 0;
             options.SurvivalGuard = job.SurvivalGuard;
             options.InterruptProduct = job.InterruptProduct;
             options.HasArcaneChance = job.HasArcaneChance;
@@ -183,7 +220,8 @@ namespace DtEngine
                 int level = job.Level ?? sc.ReferenceLevels()[job.Cid].level;
                 int gear = sc.CheckpointGear(job.Cid);
                 int crown = job.Crown ?? (cp.Truthy("Crown bonus") ? cp.Int("Crown bonus") : 0);
-                var built = sc.ReferenceParty(roles, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor"), job.Kit, job.ExtraSkills, job.Bag, job.ExtraEnchants, job.More);
+                var built = job.RecipeTemplate != null ? Scenario.CloneOf(job.RecipeTemplate.Value)
+                          : sc.ReferenceParty(roles, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor"), job.Kit, job.ExtraSkills, job.Bag, job.ExtraEnchants, job.More);
                 if (job.Guest != null)
                 {
                     // measures/mercenaries.py play: the members alone, with a guest ally at the stage of the party's level in place of the summon
@@ -199,6 +237,8 @@ namespace DtEngine
                 enemyFactory = () => job.Battles.Select(b => sc.FixedBattle(b.floor, b.number)).ToList();
             else if (job.EnemyKind == "enemies")
                 enemyFactory = () => job.Groups.Select(g => sc.CustomGroup(g)).ToList();
+            else if (job.EnemyKind == "chain")
+                enemyFactory = () => job.ChainPicks[k].Select(p => sc.RandomGroupAt(p.zone, p.index)).ToList();
             else if (job.EnemyKind == "formation")
             {
                 options.RandomBattle = true;
@@ -239,13 +279,46 @@ namespace DtEngine
         {
             var scenarios = new Dictionary<string, Scenario>();
             foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
+            var named = new Dictionary<(string, string), Scenario>();
             foreach (var j in jobs)
-                if ((j.Policies != null && j.Policies.Count > 0) || (j.Settings != null && j.Settings.Count > 0))
+            {
+                try
                 {
-                    // a rule the policy does not know stops this job only
-                    try { j.Own = new Scenario(snap.Sides[j.Side], j.Settings != null ? snap.Setup.WithSettings(j.Settings) : snap.Setup, j.Policies); }
-                    catch (Exception ex) { j.OwnError = ex; }
+                    if ((j.Policies != null && j.Policies.Count > 0) || (j.Settings != null && j.Settings.Count > 0) || j.PolicyRows != null || j.EnemyChanges != null)
+                    {
+                        // a rule the policy does not know stops this job only
+                        var basis = snap.SetupNamed(j.SetupName);
+                        if (j.PolicyRows != null) basis = basis.WithPolicies(j.PolicyRows);
+                        var data = j.EnemyChanges != null ? snap.Sides[j.Side].WithEnemyStats(j.EnemyChanges) : snap.Sides[j.Side];
+                        j.Own = new Scenario(data, j.Settings != null ? basis.WithSettings(j.Settings) : basis, j.Policies);
+                    }
+                    else if (!string.IsNullOrEmpty(j.SetupName))
+                    {
+                        if (!named.TryGetValue((j.Side, j.SetupName), out var sc0)) named[(j.Side, j.SetupName)] = sc0 = new Scenario(snap.Sides[j.Side], snap.SetupNamed(j.SetupName));
+                        j.Own = sc0;
+                    }
+                    var own = j.Own ?? scenarios[j.Side];
+                    if (j.Recipe != null) j.RecipeTemplate = new Lazy<List<Unit>>(() => own.RecipeParty(j, j.Recipe, j.TestedNames));
+                    if (j.EnemyKind == "chain")
+                    {
+                        // one generator for all the runs, drawn in the order the runs are played (the tools make the enemies of a run one after the other)
+                        var zones = j.ChainZones.Select(own.FindZone).ToList();
+                        var rng = new PyRandom(j.ChainSeed);
+                        j.ChainPicks = new List<List<(FloorZone, int)>>();
+                        for (int run = 0; run < j.Runs; run++)
+                        {
+                            var picks = new List<(FloorZone, int)>();
+                            for (int i = 0; i < j.ChainCount; i++)
+                            {
+                                var zone = zones[rng.ChoiceIndex(zones.Count)];
+                                picks.Add((zone, own.RandomIndex(zone, rng)));
+                            }
+                            j.ChainPicks.Add(picks);
+                        }
+                    }
                 }
+                catch (Exception ex) { j.OwnError = ex; }
+            }
             var results = jobs.Select(j => new JobResult { Spec = j, Runs = new RunResult[j.Runs] }).ToList();
             // work items: (job, run); traced jobs run whole, in one piece, so that their lines stay in order
             var items = new List<(int job, int run)>();
@@ -286,8 +359,9 @@ namespace DtEngine
 
         // --- results as json -----------------------------------------------------------------------------------
         static void WritePart(Utf8JsonWriter w, double time, bool won, bool lost, int actions, double lowest, int enemyDamage, int enemyActions,
-                              int partyMaxHp, double hpLeft, double tpLeft, int alive)
+                              int partyMaxHp, double hpLeft, double tpLeft, int alive, BattleResult part = null)
         {
+            if (part != null && part.Record != null) part.Record.Write(w, part.RecordUnits);
             w.WriteBoolean("won", won);
             w.WriteBoolean("lost", lost);
             w.WriteNumber("time", time);
@@ -312,6 +386,12 @@ namespace DtEngine
                     w.WriteStartObject();
                     w.WriteString("id", r.Spec.Id);
                     if (r.Error != null) { w.WriteString("error", r.Error); w.WriteEndObject(); continue; }
+                    if (r.Spec.TestedNames.Count > 0)
+                    {
+                        w.WriteStartArray("tested");
+                        foreach (var n in r.Spec.TestedNames) w.WriteStringValue(n);
+                        w.WriteEndArray();
+                    }
                     w.WriteNumber("seconds", r.Seconds);
                     w.WriteNumber("battles", r.Battles);
                     w.WriteStartArray("runs");
@@ -323,7 +403,7 @@ namespace DtEngine
                         foreach (var p in run.Parts)
                         {
                             w.WriteStartObject();
-                            WritePart(w, p.Time, p.Won, p.Lost, p.Actions, p.LowestHp, p.EnemyDamage, p.EnemyActions, p.PartyMaxHp, p.HpLeft, p.TpLeft, p.Alive);
+                            WritePart(w, p.Time, p.Won, p.Lost, p.Actions, p.LowestHp, p.EnemyDamage, p.EnemyActions, p.PartyMaxHp, p.HpLeft, p.TpLeft, p.Alive, p);
                             w.WriteEndObject();
                         }
                         w.WriteEndArray();

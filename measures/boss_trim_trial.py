@@ -4,6 +4,7 @@ the variant as it is, then each case of the command line. A case is a list of fi
 of the variant, `atk=game` puts back the value of the game. Nothing is written.
 
     python measures/boss_trim_trial.py C30 200 "hp*1.15" "atk=game,int=game" "hp*1.15,atk=game,int=game"
+    (add --engine to play the cells on the C# engine, engine_cs/)
 """
 import os
 import sys
@@ -16,6 +17,7 @@ sys.path.insert(0, os.path.join(PROJECT, 'tools'))
 sys.path.insert(0, HERE)
 import win_rates                                          # noqa: E402
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 _STATE = {}
 
 
@@ -57,10 +59,10 @@ def cell(task):
     try:
         if party == 'reference':
             from sim import measures
-            res = measures.play_checkpoint(data, setup, cid, runs)[1]
+            res = (__import__('engine_client').play_checkpoint_sim if ENGINE else measures.play_checkpoint)(data, setup, cid, runs)[1]
             return party, case, res['won'], res['time'] or 0
         roles = [r.strip() for r in win_rates.PARTIES[party][0].split(';')]
-        res = scenario.play_party(data, setup, cid, roles, runs)
+        res = (__import__('engine_client').play_party_sim if ENGINE else scenario.play_party)(data, setup, cid, roles, runs)
     finally:
         for i in ids:
             data.enemies[i].update(kept[i])
@@ -69,10 +71,14 @@ def cell(task):
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     cid, runs, cases = sys.argv[1], int(sys.argv[2]), [''] + sys.argv[3:]
     parties = ['reference'] + list(win_rates.PARTIES)
     tasks = [(p, cid, k, runs) for p in parties for k in cases]
-    with ProcessPoolExecutor(12) as pool:
+    with (__import__('engine_client').SerialPool() if ENGINE else ProcessPoolExecutor(12)) as pool:
         at = {(p, k): (w, t) for p, k, w, t in pool.map(cell, tasks)}
     print(cid, '| ' + ' | '.join(k or 'variant' for k in cases))
     for p in parties:

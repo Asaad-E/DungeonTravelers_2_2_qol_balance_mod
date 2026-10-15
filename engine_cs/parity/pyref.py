@@ -73,6 +73,29 @@ def unit_line(u):
         sl='-' if slot is None else slot)
 
 
+RECORD_TABLES = ('damage', 'healing', 'actions', 'skill_uses', 'tp_spent', 'items_used', 'chants_started', 'chants_done',
+                 'chants_broken', 'performances_broken', 'turns_lost', 'denied', 'delayed', 'largest_hit', 'deaths')
+
+
+def record_key(key):
+    """A key of the recorder as the trace writes it: a unit, a unit and a name, or the thief of a stolen item."""
+    if isinstance(key, tuple):
+        if key[0] == 'stolen':
+            return f'stolen/u{key[1].position}'
+        return f'u{key[0].position}/{key[1]}'
+    return f'u{key.position}'
+
+
+def record_line(record):
+    """The line the trace carries after the end of a battle (engine_cs/src/DtEngine/Recorder.cs TraceLine)."""
+    parts = ['C']
+    for name in RECORD_TABLES:
+        table = getattr(record, name)
+        parts.append(name + ':' + ','.join(f'{record_key(k)}={fmt_num(v)}' for k, v in table.items()))
+    parts.append(f'kills:{record.kills}')
+    return ' '.join(parts)
+
+
 def _flush_rng(battle):
     rng = battle.rng
     log = getattr(rng, 'log', None)
@@ -106,6 +129,7 @@ def install():
             int(result['won']), int(result['lost']), fmt_num(result['time']), result['actions'], fmt_num(result['lowest_hp']),
             fmt_num(result['hp_left']), fmt_num(result['tp_left']), result['alive'], result['enemy_damage'],
             result['enemy_actions'], result['party_max_hp']))
+        t.lines.append(record_line(result['record']))
         t.battle_index += 1
         return result
 

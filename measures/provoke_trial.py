@@ -5,6 +5,7 @@ to 100) plus that value on the enemy she provoked (docs/FORMULAS.md 9.1), so the
 draws is (her share + value) / (100 + value). Variant for everything else; nothing is written.
 
     python measures/provoke_trial.py C30 100 250,325,400,500,600
+    python measures/provoke_trial.py C30 100 250,325,400,500,600 --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -18,11 +19,16 @@ from sim import setup as setup_mod                        # noqa: E402
 from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 PROVOKE, ENMITY = ('Technique', 0), 170
 VANILLA = [250, 250, 250, 250, 250]
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     cid, runs = sys.argv[1], int(sys.argv[2])
     tried = [[float(x) for x in arg.split(',')] for arg in sys.argv[3:]]
     data, setup = balance_data(game_data()), setup_mod.load()
@@ -30,7 +36,7 @@ def main():
     built = next(list(values) for effect, _, values in skill.effects if effect == ENMITY)
     for label, values in [('as the game has it', VANILLA), ('as the variant has it', built)] + [(str(t), t) for t in tried]:
         skill.effects = [(e, k, list(values) if e == ENMITY else v) for e, k, v in skill.effects]
-        res = class_stages.play(data, setup, cid, 'tank', runs)
+        res = (class_stages.play_engine if ENGINE else class_stages.play)(data, setup, cid, 'tank', runs)
         share = ' / '.join(f'{(20 + v) / (100 + v):.0%}' for v in values)
         print(f"{cid} | {label} | she draws {share} | won {res['won']:.0%} | length {res['time']:.1f}", flush=True)
 

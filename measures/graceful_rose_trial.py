@@ -2,6 +2,7 @@
 Papillon alone in the reference party (tools/class_stages.py), on the variant with each power given. Nothing is written.
 
     python measures/graceful_rose_trial.py C26;C29;C30;C38;C40 200 0.8 0.6 0.5 0.2
+    (add --engine to play the cells on the C# engine, engine_cs/)
 """
 import os
 import sys
@@ -15,6 +16,7 @@ sys.path.insert(0, HERE)
 import win_rates                                          # noqa: E402
 
 SKILL, POWER = 'Graceful Rose', 26
+ENGINE = False                               # --engine: the battles are played by the C# engine
 _STATE = {}
 
 
@@ -39,11 +41,11 @@ def cell(task):
     try:
         if who == 'Meta':
             roles = [r.strip() for r in win_rates.PARTIES[who][0].split(';')]
-            res = scenario.play_party(data, setup, cid, roles, runs)
+            res = (__import__('engine_client').play_party_sim if ENGINE else scenario.play_party)(data, setup, cid, roles, runs)
             won = [r for r in res if r['won']]
             out = len(won) / len(res), sum(r['time'] for r in won) / len(won) if won else 0
         else:
-            res = class_stages.play(data, setup, cid, who, runs)
+            res = (class_stages.play_engine if ENGINE else class_stages.play)(data, setup, cid, who, runs)
             out = res['won'], res['time']
     finally:
         skill.effects = kept
@@ -51,9 +53,13 @@ def cell(task):
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     bosses, runs, powers = sys.argv[1].split(';'), int(sys.argv[2]), [float(x) for x in sys.argv[3:]]
     tasks = [(w, c, p, runs) for w in ('Meta', 'papillon') for c in bosses for p in powers]
-    with ProcessPoolExecutor(12) as pool:
+    with (__import__('engine_client').SerialPool() if ENGINE else ProcessPoolExecutor(12)) as pool:
         at = {(w, c, p): out for w, c, p, out in pool.map(cell, tasks)}
     for w in ('Meta', 'papillon'):
         print(w)

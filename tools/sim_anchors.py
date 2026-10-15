@@ -2,6 +2,7 @@
 The boss fights whose level the guides state, played by the reference party: docs/generated/SIM_ANCHORS.md.
 
     python tools/sim_anchors.py
+    python tools/sim_anchors.py engine       the same rows, played by the C# engine (engine_cs/)
 
 Each row of the sheet Anchors of data_tables/sim_setup.xlsx names a checkpoint (and, if it says so, other battles of
 its floor), a party level and the share of wins the words of the guide stand for. The tool plays anchor_runs battles
@@ -73,5 +74,31 @@ def main():
     print(f'anchors met {met}/{len(rows)}, known limits {len(limits)}; written {OUTPUT}')
 
 
+def play_anchor_engine(data, setup, row, runs):
+    """play_anchor(), played by the C# engine."""
+    import engine_client as engine
+    cid = row['Checkpoint']
+    cp = setup.checkpoint(cid)
+    level = row['Level (blank: reference level)']
+    level = int(level) if level is not None else scenario.reference_levels(data, setup)[cid][0]
+    battles = row['Battles (blank: those of the checkpoint)']
+    numbers = [int(n) for n in str(battles).split('+')] if battles else scenario.battle_numbers(cp)
+    job = engine.make_job(engine.side_of(data), cid, runs=runs, level=level, setup=engine.setup_of(setup),
+                          enemies={'kind': 'fixed', 'battles': [[cp['Floor'], n] for n in numbers]})
+    results = engine.play(job)
+    return level, numbers, sum(r['won'] for r in results) / runs
+
+
+def main_engine():
+    """main(), with the anchors played by the C# engine."""
+    global play_anchor
+    played = play_anchor
+    play_anchor = play_anchor_engine
+    try:
+        main()
+    finally:
+        play_anchor = played
+
+
 if __name__ == '__main__':
-    main()
+    main_engine() if sys.argv[1:] == ['engine'] else main()

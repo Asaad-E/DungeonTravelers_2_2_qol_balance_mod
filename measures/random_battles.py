@@ -5,6 +5,7 @@ sim/measures.py random_group draws them, the same rows on both sides).
 
     python random_battles.py run k/n [rows]     writes random_battles_k.json beside this file
     python random_battles.py report             RANDOM_BATTLES.md beside this file
+    python random_battles.py engine [rows]      the same as `run` for every floor, played by the C# engine (engine_cs/) in one call
 """
 import glob
 import json
@@ -53,6 +54,64 @@ def play(data, setup, cid, rows):
             'hp_left': sum(r['hp_left'] for r in res) / len(res)}
 
 
+def zones_of(data, setup, cid):
+    """The zones play() draws from (None when the floor has none)."""
+    cp = setup.checkpoint(cid)
+    level = scenario.reference_levels(data, setup)[cid][0]
+    zones = [z for z in data.floors if z['name'].split(' zone')[0] == cp['Floor'] and z['formations']] or \
+            [z for z in data.floors if z['name'][:4] == cp['Floor'][:4] and z['formations']]
+    if not zones:
+        return None
+    probe = random.Random(5)
+    near = [z for z in zones if max(u.level for _ in range(12) for u in measures.random_group(data, z, probe)) <= level + AHEAD]
+    return near or zones
+
+
+def jobs_engine(data, setup, cid, rows, side, name):
+    """The job of the C# engine that plays what play() plays (None when the floor has no zone)."""
+    import engine_client as engine
+    zones = zones_of(data, setup, cid)
+    if zones is None:
+        return None
+    return engine.make_job(side, cid, runs=rows, setup=engine.setup_of(setup), name=name,
+                           enemies={'kind': 'chain', 'zones': [z['name'] for z in zones], 'seed': 11, 'battles': CHAIN})
+
+
+def figures_engine(data, setup, cid, done):
+    res = done['runs']
+    won = [r for r in res if r['won']]
+    return {'level': scenario.reference_levels(data, setup)[cid][0], 'won': len(won) / len(res),
+            'time': sum(r['time'] for r in won) / len(won) / CHAIN if won else None,
+            'hp_left': sum(r['hp_left'] for r in res) / len(res)}
+
+
+def run_engine(rows=20):
+    """run() for every floor, played by the C# engine; written as the one part 1."""
+    import engine_client as engine
+    vanilla, setup = game_data(), setup_mod.load()
+    variant = balance_data(vanilla)
+    rows = int(rows)
+    ids = difficulty_curve.checkpoints(setup)
+    jobs, index = [], {}
+    for cid in ids:
+        for tag, data in (('vanilla', vanilla), ('variant', variant)):
+            job = jobs_engine(data, setup, cid, rows, engine.side_of(data), f'{cid}|{tag}')
+            if job is not None:
+                index[(cid, tag)] = len(jobs)
+                jobs.append(job)
+    done = engine.run_jobs(jobs)
+    out = []
+    for cid in ids:
+        a = figures_engine(vanilla, setup, cid, done[index[(cid, 'vanilla')]]) if (cid, 'vanilla') in index else None
+        b = figures_engine(variant, setup, cid, done[index[(cid, 'variant')]]) if (cid, 'variant') in index else None
+        out.append({'id': cid, 'vanilla': a, 'variant': b})
+        print(cid, a, b, flush=True)
+    for name in glob.glob(os.path.join(HERE, 'random_battles_*.json')):
+        os.remove(name)
+    with open(os.path.join(HERE, 'random_battles_1.json'), 'w', encoding='utf-8') as f:
+        json.dump(out, f, indent=1)
+
+
 def run(part, rows=20):
     k, n = (int(x) for x in part.split('/'))
     vanilla, setup = game_data(), setup_mod.load()
@@ -96,4 +155,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

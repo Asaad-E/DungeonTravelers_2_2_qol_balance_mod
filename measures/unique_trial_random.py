@@ -2,6 +2,7 @@
 random_parties.py keeps), the girl in the last place of the reference party. Nothing is written.
 
     python unique_trial_random.py Lilian C36 2 3 [rows]
+    (add --engine to play the battles on the C# engine, engine_cs/)
 """
 import os
 import random
@@ -21,7 +22,21 @@ from sim.variant import balance_data                      # noqa: E402
 CHAIN = 8
 
 
+def engine_runs(data, setup, cid, girl, role, factor, zones, rows):
+    """The runs scenario.play gives for one trial, played by the C# engine."""
+    import engine_client as engine
+    cp = setup.checkpoint(cid)
+    tested = {'role': role, 'character': girl, 'no_unique': factor is None, 'forge': bool(scenario.forge_open(setup, cp['Floor']))}
+    recipe = {'name_not': girl, 'first': 4, 'items': 'first_kept', 'tested': [tested]}
+    return engine.play(engine.make_job(engine.side_of(data), cid, runs=rows, crown=0, setup=engine.setup_of(setup), recipe=recipe,
+                                       name=f'{girl}|{cid}|{factor}',
+                                       enemies={'kind': 'chain', 'zones': [z['name'] for z in zones], 'seed': 11, 'battles': CHAIN}))
+
+
 def main():
+    engine = '--engine' in sys.argv
+    if engine:
+        sys.argv.remove('--engine')
     girl, cid = sys.argv[1], sys.argv[2]
     numbers = [float(a) for a in sys.argv[3:]]
     rows = int(numbers[-1]) if numbers and numbers[-1] > 10 else 60
@@ -52,7 +67,7 @@ def main():
         def enemies():
             return [measures.random_group(data, rng.choice(zones), rng) for _ in range(CHAIN)]
 
-        res = scenario.play(data, setup, party, enemies, runs=rows)
+        res = engine_runs(data, setup, cid, girl, role, factor, zones, rows) if engine else scenario.play(data, setup, party, enemies, runs=rows)
         won = [r for r in res if r['won']]
         length = sum(r['time'] for r in won) / len(won) / CHAIN if won else 0.0
         print(f"{girl} {cid} | {label} | rows survived {len(won) / len(res):.0%} | length of a battle {length:.2f} | "

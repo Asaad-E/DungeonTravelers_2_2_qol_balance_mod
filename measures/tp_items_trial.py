@@ -2,6 +2,7 @@
 its Diva, on the variant, with more TP fruit in the bag and with the fruit eaten sooner. Nothing is written.
 
     python tp_items_trial.py C30 [runs]
+    python tp_items_trial.py C30 [runs] --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -14,6 +15,7 @@ from sim import measures, scenario, setup as setup_mod    # noqa: E402
 from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 FRUIT = 20                       # Fairy Apple, TP 50 to one member
 # label -> (fruit in the bag, share of TP under which a member is fed, TP a fruit gives)
 TRIALS = {'8 fruit of 60 TP (the build, the bag of the sheets)': (8, 0.15, 60), '16 fruit of 60 TP': (16, 0.15, 60),
@@ -21,6 +23,10 @@ TRIALS = {'8 fruit of 60 TP (the build, the bag of the sheets)': (8, 0.15, 60), 
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     cid = sys.argv[1]
     runs = int(sys.argv[2]) if len(sys.argv) > 2 else 40
     setup = setup_mod.load()
@@ -46,7 +52,12 @@ def main():
         def enemies():
             return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
 
-        res = measures.summary(scenario.play(data, setup, party, enemies, runs=runs))
+        if ENGINE:
+            import engine_client as engine
+            res = engine.run_jobs([engine.make_job(engine.side_of(data), cid, roles=roles, runs=runs, setup=engine.setup_of(setup),
+                                                    recipe={'bag_set': {str(FRUIT): count}}, name=label)])[0]['summary']
+        else:
+            res = measures.summary(scenario.play(data, setup, party, enemies, runs=runs))
         print(f"{cid} | {label} | {res['won']:.0%} | {res.get('time') or 0:.1f}", flush=True)
     setup.policies = usual
 

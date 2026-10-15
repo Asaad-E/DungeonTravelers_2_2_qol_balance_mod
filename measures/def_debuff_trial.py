@@ -4,6 +4,7 @@ modifiers add with no floor (docs/FORMULAS.md 2.3), so the last case gives Samba
 Penetration together, as if both were kept up. Nothing is written.
 
     python measures/def_debuff_trial.py C30;C36;C38;C40 150 [processes]
+    (add --engine to play the cells on the C# engine, engine_cs/)
 """
 import os
 import sys
@@ -19,6 +20,7 @@ PARTIES = {'Physical': ['tank', 'attacker', 'dark lord', 'etoile', 'diva'],
 CASES = ('game, usual dances', 'game, Samba', 'variant, usual dances', 'variant, Samba', 'variant, Samba of the game',
          'variant, Samba + Armor Penetration')
 SAMBA, PIERCE, DEF_DOWN, USUAL = 'Alluring Samba', 'Armor Penetration', 196, ('status:195', 'status:201')
+ENGINE = False                               # --engine: the battles are played by the C# engine
 _STATE = {}
 
 
@@ -60,7 +62,7 @@ def cell(task):
                           for r in setup.policies]
         setup.roles['etoile'] = dict(kept[2], **{'Skill priority': SAMBA + '; ' + str(kept[2]['Skill priority'])})
     try:
-        res = scenario.play_party(data, setup, cid, PARTIES[party], runs)
+        res = (__import__('engine_client').play_party_sim if ENGINE else scenario.play_party)(data, setup, cid, PARTIES[party], runs)
         level = scenario.allocate_skills(data, setup.roles['etoile'], scenario.reference_levels(data, setup)[cid][0]).get(samba.id, 0)
     finally:
         samba.effects, setup.policies, setup.roles['etoile'] = kept
@@ -69,9 +71,13 @@ def cell(task):
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     bosses, runs = sys.argv[1].split(';'), int(sys.argv[2])
     tasks = [(p, c, k, runs) for p in PARTIES for c in bosses for k in CASES]
-    with ProcessPoolExecutor(int(sys.argv[3]) if len(sys.argv) > 3 else 12) as pool:
+    with (__import__('engine_client').SerialPool() if ENGINE else ProcessPoolExecutor(int(sys.argv[3]) if len(sys.argv) > 3 else 12)) as pool:
         at = {(p, c, k): (w, t, lv) for p, c, k, w, t, lv in pool.map(cell, tasks)}
     for p in PARTIES:
         print(p, PARTIES[p])

@@ -7,6 +7,7 @@ say hers stays high while she fights). Nothing is written but the result.
 
     python unique_skills.py run k/n [runs]     writes unique_skills_k.json beside this file
     python unique_skills.py report             UNIQUE_SKILLS.md beside this file
+    python unique_skills.py engine k/n [runs]  the same as `run`, played by the C# engine (engine_cs/)
 """
 import glob
 import json
@@ -59,6 +60,35 @@ def play(data, setup, cid, crown, girl, with_skill, runs):
     won = [r for r in res if r['won']]
     return {'won': len(won) / len(res), 'time': sum(r['time'] for r in won) / len(won) if won else None,
             'hp_left': sum(r['hp_left'] for r in res) / len(res)}
+
+
+def play_engine(data, setup, cid, crown, girl, with_skill, runs, flags=None):
+    """play(), played by the C# engine."""
+    import engine_client as engine
+    cp = setup.checkpoint(cid)
+    tested = {'role': ROLES[girl], 'character': girl, 'no_unique': not with_skill, 'forge': bool(scenario.forge_open(setup, cp['Floor'])),
+              'unique_pieces': True}
+    if girl in PEP:
+        tested['pep'] = PEP[girl]
+    recipe = {'name_not': girl, 'first': 4, 'items': 'first_kept', 'tested': [tested]}
+    job = engine.make_job(engine.side_of(data), cid, runs=runs, crown=crown, setup=engine.setup_of(setup), recipe=recipe, flags=flags,
+                          name=f'{girl}|{cid}|{crown}|{int(with_skill)}')
+    done = engine.run_jobs([job])[0]
+    res = done['runs']
+    won = [r for r in res if r['won']]
+    return {'won': len(won) / len(res), 'time': sum(r['time'] for r in won) / len(won) if won else None,
+            'hp_left': sum(r['hp_left'] for r in res) / len(res)}
+
+
+def run_engine(part, runs=60):
+    """run(), with every cell played by the C# engine."""
+    global play
+    played = play
+    play = play_engine
+    try:
+        run(part, runs)
+    finally:
+        play = played
 
 
 def run(part, runs=60):
@@ -116,4 +146,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    {'run': run, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

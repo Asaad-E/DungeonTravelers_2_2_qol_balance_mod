@@ -5,6 +5,8 @@ docs/generated/CLASS_STAGES.md.
     python tools/class_stages.py all [stage]          every checkpoint, slices in parallel processes
     python tools/class_stages.py run <checkpoint> [k/n]  one checkpoint (or a slice of its roles)
     python tools/class_stages.py report               joins the checkpoints measured
+    python tools/class_stages.py engine [stage]       the same passes as `all`, played by the C# engine (engine_cs/) in one call; one
+                                                      file a checkpoint
 
 The sheet ClassStages of data_tables/sim_setup.xlsx names the stages (base, intermediate, advanced, late) and their
 checkpoints; a role has at each checkpoint the class its path gives at the reference level (scenario.class_path: the
@@ -84,6 +86,82 @@ def play(data, setup, cid, role, runs):
             'time_won': sum(r['time'] for r in won) / len(won) if won else None,
             'share': share / runs, 'character': tested_name[0], 'level': level,
             'lowest_hp': sum(r['lowest_hp'] for r in res) / runs, 'hp_left': sum(r['hp_left'] for r in res) / runs}
+
+
+def engine_jobs(data, setup, cid, role, runs):
+    """The job of the C# engine that plays what play() plays: the reference party of the checkpoint with the last member
+    replaced by the member of the role (none: the party as it is), against the boss fights."""
+    import engine_client as engine
+    cp = setup.checkpoint(cid)
+    recipe = None
+    if role is not None:
+        recipe = {'drop_last': True, 'items': 'first_kept',
+                  'tested': [{'role': role, 'forge': bool(scenario.forge_open(setup, cp['Floor']))}]}
+    return engine.make_job(engine.side_of(data), cid, runs=runs, crown=0, record=True, setup=engine.setup_of(setup), recipe=recipe,
+                           name=f'{cid}|{role}')
+
+
+def figures(res, runs, tested_name, level, role):
+    """The dictionary play() returns, from the results of the runs (with their records)."""
+    share = 0.0
+    for r in res:
+        for p in r['parts']:
+            dmg = p['record'].damage
+            total = sum(v for u, v in dmg.items() if u.side == PARTY) or 1
+            mine = sum(v for u, v in dmg.items() if u.side == PARTY and
+                       (getattr(u, 'owner', None) or u).name == tested_name and
+                       getattr(getattr(u, 'owner', None) or u, 'role', None) == role)
+            share += mine / total / len(r['parts'])
+    won = [r for r in res if r['won']]
+    return {'won': len(won) / runs, 'time': sum(r['time'] for r in res) / runs,
+            'time_won': sum(r['time'] for r in won) / len(won) if won else None,
+            'share': share / runs, 'character': tested_name, 'level': level,
+            'lowest_hp': sum(r['lowest_hp'] for r in res) / runs, 'hp_left': sum(r['hp_left'] for r in res) / runs}
+
+
+def play_engine(data, setup, cid, role, runs):
+    """play(), played by the C# engine."""
+    import engine_client as engine
+    level = scenario.reference_levels(data, setup)[cid][0]
+    done = engine.run_jobs([engine_jobs(data, setup, cid, role, runs)])[0]
+    return figures(done['runs'], runs, done['tested'][0] if done['tested'] else None, level, role)
+
+
+def run_engine(stage=None):
+    """The passes of run_all, played by the C# engine in one call; one file a checkpoint, with every role of the checkpoint."""
+    import time
+    import engine_client as engine
+    started = time.time()
+    setup = setup_mod.load()
+    if PROPOSED:
+        from sim.variant import apply, rows
+        data = apply(game_data(), rows(states=('decided', 'built', 'checked', 'proposed')))
+    else:
+        data = balance_data(game_data())
+    runs = int(setup.settings['check_runs'])
+    cids = [c.strip() for st in stages(setup) if stage in (None, st['Stage']) for c in str(st['Checkpoints']).split(';')]
+    jobs = [engine_jobs(data, setup, cid, role, runs) for cid in cids for role in [None] + list(setup.roles)]
+    done = iter(engine.run_jobs(jobs))
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for cid in cids:
+        level = scenario.reference_levels(data, setup)[cid][0]
+        out = {'base': None, 'roles': {}}
+        for role in [None] + list(setup.roles):
+            d = next(done)
+            r = figures(d['runs'], runs, d['tested'][0] if d['tested'] else None, level, role)
+            if role is None:
+                out['base'] = r
+                continue
+            cls, _ = scenario.class_path(data, setup.roles[role], level)
+            r['class'] = data.class_names.get(cls)
+            out['roles'][role] = r
+            print(cid, role, r['class'], f"won {r['won']:.0%} t {r['time']:.1f} share {r['share']:.0%}", flush=True)
+        for name in os.listdir(OUT_DIR):
+            if name.startswith(cid + '_') and name.endswith('.json'):
+                os.remove(os.path.join(OUT_DIR, name))
+        with open(os.path.join(OUT_DIR, f'{cid}_1.json'), 'w', encoding='utf-8') as f:
+            json.dump(out, f, indent=1)
+    print(f'{len(cids)} checkpoints in {time.time() - started:.0f} s')
 
 
 def run(cid, part='1/1'):
@@ -227,4 +305,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'all': run_all, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

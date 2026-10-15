@@ -85,8 +85,31 @@ stage of her growth for the level of the party, as `measures/mercenaries.py` doe
 ## Bridge for the Python tools
 
 `tools/engine_client.py` exports the snapshot when it is stale, builds `dtcli` when a source is newer, runs it and gives back the
-dictionaries of `sim.scenario.play`, `sim.measures.summary` and `sim.measures.play_checkpoint` (a result has no `record`: the
-recorder of the battle is not ported). No tool uses it yet.
+dictionaries of `sim.scenario.play` (with `record` when the job says `record: true`), `sim.measures.summary` and
+`sim.measures.play_checkpoint`. A side (a `GameData`) or a setup (a `Setup`) that the snapshot does not hold, because a tool changed it
+in its own process, goes with the call: `side_of(data)` and `setup_of(setup)` give the name to put in a job (`vanilla` and `variant` when the
+snapshot holds the same content; the content is compared by hash), and the engine reads the others from a second file (`--extra`).
+The tools that play on the engine are listed in `engine_cs/parity/gate_tools.py`, each with a gate that compares it with its Python path.
+
+## Recorder
+
+A job with `record: true` gets, for each battle (`parts[k].record`), the tables of `sim.battle.Recorder` (damage, healing, actions,
+skill uses, TP spent, items used, chants, performances broken, turns lost, denied, delayed, largest hit, deaths, kills) with the units
+that name them (position, name, kind, side, role, owner, level); `result['record']` is that of the first battle, as in `sim.scenario.play`.
+The trace carries one line `C ...` after the `E` line of each battle, so the parity tests compare the recorder with every case.
+
+## Party recipe, enemies and more fields of a job
+
+`party.recipe` says what a tool does to the reference party of the checkpoint: `bonuses` (hp, tp, resist, stats on the first members),
+`bag_set`, `name_not` / `role_not` / `drop_last` / `first` (which members stay), `drop_others` (no summon), `tested` (members built by role:
+`role`, `character` or the first of the preference not in the party, `level`, `crown`, `forge`, `extra_skills`, `unique_pieces`,
+`no_unique`, `passives_add`, `pep`), `place` (`append` or `replace_role`) and `items` (`first_kept`, `all_first`). The characters the tested
+members were given come back as `tested`. `enemies.kind: chain` (`zones`, `seed`, `battles`) draws rows of random battles from one generator
+shared by all the runs, in the order they are played. Also: `setup` (a name from `setup_of`), `policy_rows` (the whole sheet Policies for the job),
+`enemy_changes` (stats of enemy records) and `flags`.
+
+`dtcli measure` also plays `skill_scores` (the options of a member scored by damage per time and TP, the analysis of `tools/skill_worth.py` and
+`tools/sim_audit.py` usage) and `probe` (a skill performed into a battle prepared by hand, `tools/sim_audit.py` actives).
 
 ## Trace
 
@@ -96,10 +119,6 @@ Level 2 adds every draw. A header describes every unit before the battle starts.
 
 ## Not ported
 
-The recorder of a battle (`result['record']`: damage, healing, skill uses by unit), which `tools/class_stages.py`,
-`tools/sim_audit.py` and a few scripts of `measures/` read; `measures.slot_share`, `measures.weapon_band` and `measures.touched` (and
-`GameData.with_changes`), which nothing calls; the analysis calls on a `Battle` made by hand (`expected_damage`, `time_of`) that
-`tools/sim_audit.py` and `tools/skill_worth.py` use to score options; the tools that change the data or the sheet Policies in their
-own process (`measures/mercenary_trial.py`, the trials that patch `Battle` methods). The parties that those tools build by
-replacing a member with a "tested" one are built in the tools, not in `sim/`: a job gives the reference party, the guest ally, the
-extra skills and the other fields above.
+`measures.slot_share`, `measures.weapon_band` and `measures.touched` (nothing calls them). `GameData.with_changes` is not ported: a tool
+that changes the data in Python sends the changed data as a side of its own (`engine_client.side_of`), or, for the stats of enemy
+records, gives `enemy_changes` in the job. The text log of a battle (`Battle.log`, read by `measures/mercenary_log.py`) is not ported.

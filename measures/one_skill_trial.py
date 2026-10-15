@@ -3,6 +3,7 @@ at its top level, at the bosses given. A skill used in battle gets the rule tool
 gets none. Balance variant; nothing is written.
 
     python measures/one_skill_trial.py mistress Ecstasy C26;C30;C36;C38;C40 150
+    python measures/one_skill_trial.py mistress Ecstasy C26;C30;C36;C38;C40 150 --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -13,6 +14,7 @@ PROJECT = os.path.dirname(HERE)
 sys.path.insert(0, PROJECT)
 sys.path.insert(0, os.path.join(PROJECT, 'tools'))
 
+ENGINE = False                               # --engine: the battles are played by the C# engine
 _STATE = {}
 
 
@@ -30,17 +32,21 @@ def cell(task):
     if skill.category == 'Passive':
         kept, skill_value.rule_for = skill_value.rule_for, lambda s: ('ally_down', 'revive')
         try:
-            res = skill_value.play(data, setup, role, cid, skill, use)
+            res = (skill_value.play_engine if ENGINE else skill_value.play)(data, setup, role, cid, skill, use)
         finally:
             skill_value.rule_for = kept
     else:
-        res = skill_value.play(data, setup, role, cid, skill, use)
+        res = (skill_value.play_engine if ENGINE else skill_value.play)(data, setup, role, cid, skill, use)
     return cid, use, res
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     role, name, bosses, runs = sys.argv[1], sys.argv[2], sys.argv[3].split(';'), int(sys.argv[4])
-    with ProcessPoolExecutor(12) as pool:
+    with (__import__('engine_client').SerialPool() if ENGINE else ProcessPoolExecutor(12)) as pool:
         at = {(c, u): r for c, u, r in pool.map(cell, [(role, name, c, u, runs) for c in bosses for u in (False, True)])}
     print(f'{name} ({role}), {runs} battles: without > with | wins | length of the won fights | HP left')
     for c in bosses:

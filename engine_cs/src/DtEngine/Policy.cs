@@ -304,7 +304,7 @@ namespace DtEngine
             return casts * min;
         }
 
-        double TpPenalty(Unit unit, Action action)
+        public double TpPenalty(Unit unit, Action action)
         {
             if (unit.MaxTp == 0) return 1.0;
             return 1.0 + tpWeight * action.TpCost / unit.MaxTp;

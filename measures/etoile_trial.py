@@ -3,6 +3,7 @@ dances, Fascinating Waltz (the ATK of the enemies) and Dumbing Mazurka (their IN
 Meta party with her in the place of the Diva then wins on the variant. Nothing is written.
 
     python etoile_trial.py C40 [runs]
+    python etoile_trial.py C40 [runs] --engine    the battles are played by the C# engine (engine_cs/)
     python etoile_trial.py C40 [runs] primevil    the same with Primevil (her dance that heals, cures and revives the
                                                   party, 50 TP) first in her skills and used when the party is low
 """
@@ -19,6 +20,7 @@ from sim.variant import balance_data                      # noqa: E402
 
 DANCES = {'Fascinating Waltz': 195, 'Dumbing Mazurka': 201}
 FACTORS = (1.0, 1.5)
+ENGINE = False                               # --engine: the battles are played by the C# engine
 
 
 def stronger(data, factor):
@@ -32,6 +34,10 @@ def stronger(data, factor):
 
 
 def main():
+    global ENGINE
+    ENGINE = '--engine' in sys.argv
+    if ENGINE:
+        sys.argv.remove('--engine')
     cid = sys.argv[1]
     runs = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 60
     setup = setup_mod.load()
@@ -54,7 +60,8 @@ def main():
             def enemies():
                 return [scenario.fixed_battle(source, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
 
-            res = measures.summary(scenario.play(source, setup, party, enemies, runs=runs))
+            res = (__import__('engine_client').summary_sim(source, setup, cid, roles, runs) if ENGINE
+                   else measures.summary(scenario.play(source, setup, party, enemies, runs=runs)))
             cells.append(f"x{factor} {res['won']:.0%} / {res.get('time') or 0:.1f}")
         print(f'{cid} | {label} | ' + ' | '.join(cells), flush=True)
 

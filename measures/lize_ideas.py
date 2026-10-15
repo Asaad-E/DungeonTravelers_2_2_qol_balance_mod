@@ -5,6 +5,7 @@ doll role, with no unique skill, with the one she has, and with each idea (the f
 the passives of her class give. Variant; nothing is written.
 
     python lize_ideas.py dolls C18 [runs]
+    python lize_ideas.py dolls C18 [runs] --engine     the same, played by the C# engine (engine_cs/)
 """
 import os
 import sys
@@ -24,7 +25,23 @@ IDEAS = (('no unique skill', None), ('as built', 'own'),
          ('survives a killing blow 0.50', (254, 0.50)))
 
 
+def engine_runs(data, setup, cid, role, idea, runs):
+    """The runs scenario.play gives for one idea, played by the C# engine."""
+    import engine_client as engine
+    cp = setup.checkpoint(cid)
+    tested = {'role': role, 'character': GIRL, 'no_unique': idea != 'own', 'forge': bool(scenario.forge_open(setup, cp['Floor'])),
+              'unique_pieces': True}
+    if isinstance(idea, tuple):
+        tested['passives_add'] = {str(idea[0]): idea[1]}
+    recipe = {'name_not': GIRL, 'first': 4, 'items': 'first_kept', 'tested': [tested]}
+    return engine.play(engine.make_job(engine.side_of(data), cid, runs=runs, crown=0, setup=engine.setup_of(setup), recipe=recipe,
+                                       name=f'{role}|{cid}|{idea}'))
+
+
 def main():
+    engine = '--engine' in sys.argv
+    if engine:
+        sys.argv.remove('--engine')
     role, cid = sys.argv[1], sys.argv[2]
     runs = int(sys.argv[3]) if len(sys.argv) > 3 else 100
     data, setup = balance_data(game_data()), setup_mod.load()
@@ -49,7 +66,7 @@ def main():
         def enemies():
             return [scenario.fixed_battle(data, cp['Floor'], n) for n in scenario.battle_numbers(cp)]
 
-        res = scenario.play(data, setup, party, enemies, runs=runs)
+        res = engine_runs(data, setup, cid, role, idea, runs) if engine else scenario.play(data, setup, party, enemies, runs=runs)
         won = [r for r in res if r['won']]
         print(f"{role} {cid} | {label} | won {len(won) / len(res):.0%} | length "
               f"{sum(r['time'] for r in won) / len(won) if won else 0:.1f} | HP left "
