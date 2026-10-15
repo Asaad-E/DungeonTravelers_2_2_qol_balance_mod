@@ -94,6 +94,37 @@ def run_all(processes=None, only=None):
     print(f'{n} parts in {time.time() - started:.0f} s')
 
 
+def run_engine(threads=None):
+    """The same pass as run_all, played by the C# engine (engine_cs/) in one call; writes the one part file."""
+    import engine_client
+    data, setup = game_data(), setup_mod.load()
+    variant = balance_data(data)
+    runs = int(setup.settings['battery_runs'])
+    started = time.time()
+    tasks = [(cid, name, side) for cid in checkpoints(setup) for name in setup.battery for side in ('vanilla', 'variant')]
+    jobs = [engine_client.make_job(side, cid, roles=list(setup.battery[name][1]), runs=runs, name=f'{cid}|{name}|{side}')
+            for cid, name, side in tasks]
+    played = engine_client.play_jobs(jobs, threads)
+    cells = {}
+    for (cid, name, side), (results, _) in zip(tasks, played):
+        source = data if side == 'vanilla' else variant
+        party = [u for u in scenario.party_of_roles(source, setup, cid, setup.battery[name][1]) if u.kind == 'member']
+        won = [r for r in results if r['won']]
+        cells[(cid, name, side)] = {'runs': len(results), 'wins': len(won),
+                                    'time': sum(r['time'] for r in won) / len(won) if won else None,
+                                    'lowest_hp': sum(r['lowest_hp'] for r in results) / len(results),
+                                    'tp_left': sum(r['tp_left'] for r in won) / len(won) if won else None,
+                                    'members': [f'{u.name} ({u.role})' for u in party]}
+    rows = [{'id': cid, 'party': name, 'vanilla': cells[(cid, name, 'vanilla')], 'variant': cells[(cid, name, 'variant')]}
+            for cid in checkpoints(setup) for name in setup.battery]
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for name in os.listdir(OUT_DIR):
+        os.remove(os.path.join(OUT_DIR, name))
+    with open(os.path.join(OUT_DIR, 'part_1.json'), 'w', encoding='utf-8') as f:
+        json.dump(rows, f)
+    print(f'{len(rows)} cells in {time.time() - started:.0f} s')
+
+
 def run_only(only, processes=None):
     run_all(processes, only)
 
@@ -193,4 +224,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'all': run_all, 'only': run_only, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'only': run_only, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

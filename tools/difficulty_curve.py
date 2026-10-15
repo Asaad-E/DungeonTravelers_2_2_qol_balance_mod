@@ -66,6 +66,21 @@ def run_all():
     print(f'{n} parts in {time.time() - started:.0f} s')
 
 
+def run_engine(threads=None):
+    """The same pass as run_all, played by the C# engine (engine_cs/) in one call; writes the one part file."""
+    import engine_client
+    setup = setup_mod.load()
+    started = time.time()
+    rows = [{'id': cid, 'vanilla': before, 'variant': after, 'out': out}
+            for cid, before, after, out in engine_client.check_change(*checkpoints(setup), threads=threads)]
+    os.makedirs(OUT_DIR, exist_ok=True)
+    for name in os.listdir(OUT_DIR):
+        os.remove(os.path.join(OUT_DIR, name))
+    with open(os.path.join(OUT_DIR, 'part_1.json'), 'w', encoding='utf-8') as f:
+        json.dump(rows, f)
+    print(f'{len(rows)} checkpoints in {time.time() - started:.0f} s')
+
+
 def fmt(v, key):
     if v is None:
         return '-'
@@ -110,4 +125,4 @@ def report():
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
-    {'run': run, 'all': run_all, 'report': report}[sys.argv[1]](*sys.argv[2:])
+    {'run': run, 'all': run_all, 'engine': run_engine, 'report': report}[sys.argv[1]](*sys.argv[2:])

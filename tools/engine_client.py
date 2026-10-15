@@ -204,10 +204,10 @@ def walked_zones(side, floor, level):
 def check_change(*checkpoints, side='vanilla', changed_side='variant', runs=None, threads=None):
     """sim.measures.check_change with the data already changed: [(checkpoint, figures before, figures after, windows left)];
     the figures hold the level of the party as sim/ puts it there."""
-    job = {'id': 'cc', 'measure': 'check_change', 'side': side, 'changed_side': changed_side, 'checkpoints': list(checkpoints),
-           'runs': runs}
+    jobs = [{'id': f'cc-{cid}', 'measure': 'check_change', 'side': side, 'changed_side': changed_side, 'checkpoints': [cid],
+             'runs': runs} for cid in checkpoints]             # one job a checkpoint, so that they run in parallel
     out = []
-    for row in _measure([job], threads)[0]['rows']:
+    for row in (row for raw in _measure(jobs, threads) for row in raw['rows']):
         before = dict(_summary(row['before']), level=int(row['level_before']))
         after = dict(_summary(row['after']), level=int(row['level_after']))
         out.append((row['cid'], before, after, list(row['out'])))
