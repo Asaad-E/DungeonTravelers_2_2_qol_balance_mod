@@ -19,8 +19,8 @@ from sim.data import game_data                            # noqa: E402
 from sim.variant import balance_data                      # noqa: E402
 
 ENGINE = False                               # --engine: the battles are played by the C# engine
-DANCES = {'Waltz': 195, 'Samba': 196, 'Tango': 197, 'Polka': 198, 'Mazurka': 201}
-PAIRS = (('Waltz', 'Mazurka'), ('Samba', 'Waltz'), ('Samba', 'Mazurka'), ('Tango', 'Waltz'), ('Polka', 'Waltz'),
+DANCES = {'Waltz': 195, 'Samba': 196, 'Tango': 197, 'Polka': 198, 'Salsa': 199, 'Mazurka': 201}
+PAIRS = (('Waltz', 'Mazurka'), ('Waltz', 'Salsa'), ('Salsa', 'Mazurka'), ('Samba', 'Waltz'), ('Samba', 'Mazurka'), ('Tango', 'Waltz'), ('Polka', 'Waltz'),
          ('Samba', 'Tango'))
 
 
