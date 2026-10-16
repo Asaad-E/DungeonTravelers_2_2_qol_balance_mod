@@ -104,12 +104,29 @@ namespace DtEngine.Suite
                                            { "extra_skills", new Obj { { e.Skill.Id.ToString(), (long)(use ? levels : 0) } } },
                                            { "pieces", e.Weapon == null ? new Obj() : new Obj { { "Weapon", e.Weapon } } } }) },
             };
-            var rows = use && e.Rule.HasValue ? SkillValue.RowsWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain, true) : null;
-            return Jb.Make(c, "variant", cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, policyRows: rows,
+            string setupName = use && e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
+            return Jb.Make(c, "variant", cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName,
                            name: e.Skill.Name + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
         }
 
         /// <summary>The cells played in batches and judged at once; the runs are let go, only the figures stay.</summary>
+        static readonly Dictionary<string, string> setups = new Dictionary<string, string>();
+
+        /// <summary>The sheet Policies with the rule of a skill, as a setup of its own that every job with the same rule shares (one scenario for
+        /// all of them; a job that carries its rows builds a scenario of its own).</summary>
+        static string SetupWithRule(Ctx c, string role, string cond, string act, int chain)
+        {
+            string key = role + "|" + cond + "|" + act + "|" + (chain > 0);
+            if (setups.TryGetValue(key, out var name)) return name;
+            var rows = SkillValue.RowsWithRule(c, role, cond, act, chain, true).Select(o =>
+            {
+                using (var doc = System.Text.Json.JsonDocument.Parse(PyJson.Dump(o))) return Snapshot.ToRow(doc.RootElement.Clone());
+            }).ToList();
+            name = c.AddSetup(c.Setup.WithPolicies(rows));
+            setups[key] = name;
+            return name;
+        }
+
         static void Play(Ctx c, List<Cell> cells, int runs, int batch, Obj cfg)
         {
             for (int start = 0; start < cells.Count; start += batch)

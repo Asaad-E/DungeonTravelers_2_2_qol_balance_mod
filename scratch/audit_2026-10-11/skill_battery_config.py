@@ -19,7 +19,7 @@ SECTION = {
     'scan_runs': 20,
     'confirm_runs': 200,
     'confirm_cells': 3,
-    'batch': 5000,
+    'batch': 2000,
     'wins': 0.08,
     'length': 0.03,
     'hp': 0.03,
