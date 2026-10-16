@@ -17,7 +17,7 @@ namespace DtEngine.Suite
         public readonly int Threads;
         /// <summary>The section "measures" of the snapshot: the sheets and constants the measures take from the workbooks and the Python readers.</summary>
         public readonly Obj Inputs;
-        readonly Dictionary<string, Scenario> scenarios = new Dictionary<string, Scenario>();
+        readonly ConcurrentDictionary<string, Scenario> scenarios = new ConcurrentDictionary<string, Scenario>();   // measures run side by side and add to it
         public readonly ConcurrentDictionary<string, double> Seconds = new ConcurrentDictionary<string, double>();
         readonly object console = new object();
 
@@ -34,16 +34,16 @@ namespace DtEngine.Suite
         /// <summary>Adds data a trial has changed as a side of its own and gives its name for the jobs (call it before the jobs that use it are played).</summary>
         public string AddSide(GameData data)
         {
-            string name = "trial-side-" + (++trialSides);
+            string name = "trial-side-" + System.Threading.Interlocked.Increment(ref trialSides);
             Snap.Sides[name] = data;
-            lock (scenarios) scenarios[name] = new Scenario(data, Snap.Setup);
+            scenarios[name] = new Scenario(data, Snap.Setup);
             return name;
         }
 
         /// <summary>Adds choices of the model a trial has changed as a setup of its own and gives its name for the jobs.</summary>
         public string AddSetup(Setup setup)
         {
-            string name = "trial-setup-" + (++trialSetups);
+            string name = "trial-setup-" + System.Threading.Interlocked.Increment(ref trialSetups);
             Snap.Setups[name] = setup;
             return name;
         }

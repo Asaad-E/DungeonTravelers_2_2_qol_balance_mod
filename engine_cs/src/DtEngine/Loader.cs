@@ -112,9 +112,9 @@ namespace DtEngine
     /// <summary>Reads the snapshot written by tools/engine_export.py.</summary>
     public sealed class Snapshot
     {
-        public Dictionary<string, GameData> Sides = new Dictionary<string, GameData>();
+        public System.Collections.Concurrent.ConcurrentDictionary<string, GameData> Sides = new System.Collections.Concurrent.ConcurrentDictionary<string, GameData>();   // added to while measures of the suite read it
         public Setup Setup;
-        public Dictionary<string, Setup> Setups = new Dictionary<string, Setup>();      // setups a job names (tools that change the sheets of the setup)
+        public System.Collections.Concurrent.ConcurrentDictionary<string, Setup> Setups = new System.Collections.Concurrent.ConcurrentDictionary<string, Setup>();      // setups a job names (tools that change the sheets of the setup)
         public Suite.Obj MeasureInputs;      // the section "measures": sheets and constants the measures of the suite take from the workbooks and readers
 
         /// <summary>The setup a job names; the one of the snapshot when it names none.</summary>

@@ -205,7 +205,7 @@ namespace DtEngine
         }
 
         /// <summary>Measure jobs (JSON elements) played, one answer (the bytes of a json object) for each, in order.</summary>
-        public static byte[][] RunJobs(Snapshot snap, List<JsonElement> jobs, int threads, Dictionary<string, Scenario> shared = null)
+        public static byte[][] RunJobs(Snapshot snap, List<JsonElement> jobs, int threads, IDictionary<string, Scenario> shared = null)
         {
             var known = new Dictionary<(string, string), Scenario>();
             Func<string, string, Scenario> scenarios = (side, setupName) =>

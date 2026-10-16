@@ -202,7 +202,7 @@ namespace DtEngine
     public static class JobRunner
     {
         /// <summary>Runs one run of a job (run number k), with an optional trace.</summary>
-        public static RunResult RunOne(Snapshot snap, Dictionary<string, Scenario> scenarios, JobSpec job, int k, TextTrace trace)
+        public static RunResult RunOne(Snapshot snap, IDictionary<string, Scenario> scenarios, JobSpec job, int k, TextTrace trace)
         {
             var sc = job.Own ?? scenarios[job.Side];
             var setup = sc.Setup;
@@ -275,12 +275,12 @@ namespace DtEngine
         }
 
         /// <summary>digestOnly: a traced job keeps the SHA-256 of its trace instead of its lines (to compare two builds of the engine on a great many jobs).</summary>
-        public static List<JobResult> Run(Snapshot snap, List<JobSpec> jobs, int threads, bool digestOnly = false, Dictionary<string, Scenario> shared = null)
+        public static List<JobResult> Run(Snapshot snap, List<JobSpec> jobs, int threads, bool digestOnly = false, IDictionary<string, Scenario> shared = null)
         {
             var scenarios = shared;
             if (scenarios == null)
             {
-                scenarios = new Dictionary<string, Scenario>();
+                scenarios = new System.Collections.Concurrent.ConcurrentDictionary<string, Scenario>();
                 foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
             }
             var named = new Dictionary<(string, string), Scenario>();
