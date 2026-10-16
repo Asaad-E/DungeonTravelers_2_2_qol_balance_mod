@@ -12,7 +12,7 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 | C28 | hp x1.10 | 94% / 12.6 / 36% | 96% / 9.8 / 41% | within | 96% / 8.7 / 44% | time | needed |
 | C30 | atk x0.92; hp x1.26; int x0.92 | 98% / 38.9 / 49% | 98% / 39.6 / 54% | within | 99% / 27.3 / 54% | time | needed |
 | C31 | hp x1.30 | 100% / 17.9 / 73% | 100% / 16.7 / 74% | within | 100% / 12.2 / 76% | time | needed |
-| C34 | hp x1.30 | 100% / 42.0 / 60% | 100% / 33.7 / 60% | within | 100% / 22.4 / 64% | time | needed |
+| C34 | hp x1.15 | 100% / 42.0 / 60% | 100% / 27.7 / 62% | time | 100% / 22.4 / 64% | time | no better with them |
 | C36 | atk x1.20 | 90% / 17.1 / 0% | 92% / 14.3 / 1% | within | 98% / 13.3 / 2% | within | not needed: within without them |
 | C38 | hp x1.15 | 64% / 18.3 / 28% | 90% / 12.6 / 49% | won, time, lowest_hp | 94% / 11.0 / 53% | won, time, lowest_hp | no better with them |
 | C40 | hp x1.20 | 88% / 32.2 / 32% | 96% / 29.7 / 40% | within | 96% / 23.0 / 42% | time | needed |
