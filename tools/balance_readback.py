@@ -23,8 +23,8 @@ import enemy_ai                                          # noqa: E402
 import enemy_data                                        # noqa: E402
 import npc_data                                          # noqa: E402
 import extract_vanilla                                   # noqa: E402
-from sim import data as sim_data                         # noqa: E402
-from sim.variant import balance_data                     # noqa: E402
+from gamedata import data as sim_data                         # noqa: E402
+from gamedata.variant import balance_data                     # noqa: E402
 
 BALANCE_DIR = os.path.join(BASE_DIR, 'build', 'balance')
 BUILT_DIR = os.path.join(BALANCE_DIR, 'base')

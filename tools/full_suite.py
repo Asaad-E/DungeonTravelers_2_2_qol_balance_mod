@@ -33,8 +33,9 @@ def command_of(step):
     """The command line of a step: a Python script, or the engine's program."""
     if step[0] == '@dtcli':
         sys.path.insert(0, os.path.join(PROJECT, 'tools'))
-        import engine_client
-        return ['dotnet', engine_client.ensure_built(), *step[1:], '--snapshot', engine_client.SNAPSHOT, '--root', PROJECT]
+        import engine_golden
+        return ['dotnet', engine_golden.dtcli(), *step[1:], '--snapshot', os.path.join(PROJECT, 'build', 'engine_snapshot.json'),
+                '--root', PROJECT]
     return [sys.executable, *step]
 
 

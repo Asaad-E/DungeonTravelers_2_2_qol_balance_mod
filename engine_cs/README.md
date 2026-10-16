@@ -1,63 +1,37 @@
 # engine_cs: the battle engine in C#
 
-Since 2026-10-16 `sim/` is frozen and the engine is the reference: a change of its code is checked with `python tools/engine_golden.py
-check` (its own recorded traces, about 12,700 jobs in seconds); the parity tools below are the record of how it was proven equal to `sim/`.
+The battle engine of the project and every measure that plays battles: battle loop, party policy, enemy AI, formulas, units,
+the building of a party and its enemies, the guest allies, the runs of a checkpoint, the measures around a battle, and the 22
+measures of the suite (`src/DtEngine/Suite`). It reads one snapshot of the data written by `tools/engine_export.py` and holds no
+value of the mod (configuration: `data_tables/measure_config.json`, `data_tables/engine_coverage.json` and the workbooks).
 
-A 1-to-1 port of the battle side of `sim/` (battle loop, party policy, enemy AI, formulas, units, the building of a party and
-its enemies, the guest allies, the runs of a checkpoint and the measures around a battle). It reads one snapshot of the data
-written by Python (`tools/engine_export.py`) and holds no value of the mod. `sim/` stays the reference: the parity tests play the
-same cases in both and compare the traces.
+It began as a 1-to-1 port of a Python simulator and was proven equal to it, trace line by trace line, on 2026-10-16 (a corpus of
+every checkpoint and fixed battle, 3,000 random cases, a directed case for every skill, enemy, item, enchantment, piece of gear,
+guest and summon, and the measures: 0 differences). That simulator was then removed; the engine is the reference. A change of its
+code is checked against its own recorded traces: `python tools/engine_golden.py check` (12,731 jobs in about 11 s, part of
+`tools/full_suite.py`); after a change meant to move results, `record` again and say so in the commit.
 
 | Folder | What it holds |
 |---|---|
-| `src/DtEngine` | the library: `PyRandom` (CPython's generator), `Formulas`, `Units`, `Battle`, `Policy`, `Ai`, `Scenario`, `Measures`, `Jobs`, `Trace` |
+| `src/DtEngine` | the library: `PyRandom` (CPython's generator), `Formulas`, `Units`, `Battle`, `Policy`, `Ai`, `Scenario`, `Measures`, `Jobs`, `Trace`, `Suite/` |
 | `src/DtEngine.Cli` | the command-line program `dtcli` (server garbage collector: `runtimeconfig.template.json`) |
-| `tests/DtEngine.Tests` | xunit tests: generator, formulas, rounding, snapshot, templates, guests, measures, traces of a few fixed cases |
-| `parity/` | the Python side of the parity tests (traced runs of `sim/`, the case generators, the comparison, the speed test) |
-| `parity/cases/failing` | cases that did not match, saved with all their inputs; replay with `run_parity.py replay` |
-| `parity/cases/regression` | cases that once failed (or are kept for good); played by every `corpus` run |
-
-`tools/engine_client.py` is the bridge for the Python tools (see below).
+| `tests/DtEngine.Tests` | xunit tests: generator, formulas, rounding and number text against recorded golden files (`golden/`), snapshot, templates, recorder, and the calibration against what players measured (`CalibrationTests.cs`) |
 
 ## Commands
 
 ```bash
 python tools/engine_export.py                                   # the snapshot: build/engine_snapshot.json
 dotnet build engine_cs/src/DtEngine.Cli -c Release              # the program: engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll
-dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll run --snapshot build/engine_snapshot.json --jobs jobs.json --out results.json [--threads N] [--trace-out trace.txt | --trace-digest digest.txt]
-dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll measure --snapshot build/engine_snapshot.json --jobs measures.json --out results.json [--threads N]
-dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll trace --snapshot build/engine_snapshot.json --job job.json --out trace.txt [--level 1|2]
-dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll profile --snapshot build/engine_snapshot.json --jobs jobs.json [--repeat N]   # time, bytes allocated and by which types, on one thread
+dtcli suite [--only a,b] | dtcli <measure> | dtcli <trial> ARGS  # with --snapshot build/engine_snapshot.json --root .
+dtcli run --snapshot build/engine_snapshot.json --jobs jobs.json --out results.json [--threads N] [--trace-out trace.txt | --trace-digest digest.txt]
+dtcli measure --snapshot build/engine_snapshot.json --jobs measures.json --out results.json [--threads N]
+dtcli trace --snapshot build/engine_snapshot.json --job job.json --out trace.txt [--level 1|2]
+dtcli profile --snapshot build/engine_snapshot.json --jobs jobs.json [--repeat N]   # time, bytes allocated and by which types, on one thread
 dotnet test engine_cs                                           # the xunit tests
-
-python engine_cs/parity/rng_golden.py                                         # golden files of the generator, of the formulas and of round(x, n) (the tests write them when missing)
-python engine_cs/parity/formulas_golden.py
-python engine_cs/parity/round_golden.py
-dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll check-rng build/engine_rng_golden.json
-dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll check-formulas build/engine_formulas_golden.json
-dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll check-round build/engine_round_golden.json
-
-python engine_cs/parity/run_parity.py corpus --seeds 20261005,7,123456 --runs 2 --fixed   # the fixed corpus (add --only smoke for a few cases)
-python engine_cs/parity/run_parity.py random --count 3000                     # new random cases; prints the seed of the generator
-python engine_cs/parity/run_parity.py directed                                # one case for each skill, enemy, formation, item, enchantment, piece of gear, guest ally, summon, enemy attack, heal and status, and made-up AI scripts
-python engine_cs/parity/run_parity.py replay engine_cs/parity/cases/failing/x.json
-python engine_cs/parity/run_parity.py determinism                             # sim/ against itself, in two sets of processes
-python engine_cs/parity/run_measures.py --count 150                           # expedition, play_checkpoint, check_change, walked_zones against sim/
-python engine_cs/parity/coverage_run.py --count 1500 --corpus --directed --measures 12   # which lines of sim/ the cases reach
-python engine_cs/parity/bench.py [--threads 1,4,12] [--cli earlier/dtcli.dll]  # battles per second of both engines
-python -m unittest discover -s engine_cs/parity -p "test_engine_client.py"   # the bridge against sim/
+python tools/engine_golden.py check | record                    # the engine against its own recorded traces
 ```
 
-The corpus is every checkpoint of the setup on both sides with the reference party, the parties of `measures/win_rates.py` at
-its 17 bosses, every fixed battle of the game (with `--fixed`, which also plays every guest ally at three checkpoints and the
-arguments `unique_level` and `passives`), and the cases of `parity/cases/regression`. A random case is a random party (roles of
-the sheet Roles, a level near a random checkpoint or near the enemies, sometimes skills, enchantments, items, other gear, guest
-allies, passives, rules of the policy or flags of the data added on top of the plan) against a random fixed battle or random
-formations of a random floor zone.
-
-`dump_jobs.py` writes all of these jobs to one file. After a change that must not change a result (an optimisation), run that
-file through `dtcli run --trace-digest` before and after and compare the digests with `dump_jobs.py --check`: the C# engine is
-then checked against itself on some 12,000 jobs in seconds, and `run_parity.py` against `sim/` once at the end.
+`dtcli` stands for `dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll`.
 
 ## Jobs
 
@@ -80,23 +54,21 @@ stage of her growth for the level of the party, as `measures/mercenaries.py` doe
 
 ## Measures
 
-`dtcli measure` plays the measures of `sim/measures.py` and `sim/scenario.py` that go around a battle, from a file of jobs
+`dtcli measure` plays the measures that go around a battle, from a file of jobs
 `{id, measure, side, ...}`: `expedition` (`floor`, `level`, `cid`, `roles`, `battles`, `runs`, `kit`), `play_checkpoint` (`cid`,
 `runs`), `check_change` (`checkpoints`, `runs`; `side` is the data before the change, `changed_side` the data after), and
-`walked_zones` (`floor`, `level`; the result is the names of the zones). The figures are the same as Python's value by value.
+`walked_zones` (`floor`, `level`; the result is the names of the zones). They were proven equal to the removed Python simulator, value by value.
 
 ## The measures in C# (`dtcli suite`)
 
 Every measure of the project that plays battles runs in `src/DtEngine/Suite`: the choice of cells, the parties and their recipes, the jobs, the
-aggregation and the report writers, with the same outputs, at the same paths, as the Python script each one stands for (which stays as the reference).
+aggregation and the report writers, with the same outputs, at the same paths, as the Python script each one stands for (those scripts were removed on 2026-10-16).
 A measure reads what it needs of the workbooks from the section `measures` of the snapshot (`tools/engine_export.py`: sheets as rows, the constants of
 the scripts, the rows of balance_changes.xlsx that name a boss, the maps, the meals); it holds no value of the mod.
 
 ```bash
 dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll suite [--only a,b] [--threads N] [--snapshot S] [--root R]     # every measure, in parallel
 dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll difficulty-curve                                              # one measure alone
-python engine_cs/parity/gate_suite.py          # the suite against the files of the last commit (git diff --ignore-cr-at-eol: none left)
-python engine_cs/parity/gate_trials.py         # the trial commands against their Python scripts
 ```
 
 The measures: `difficulty-curve`, `party-battery`, `class-stages`, `skill-value`, `skill-ailments`, `boss-fit`, `skill-worth`, `guide-curve`,
@@ -115,26 +87,14 @@ tools/engine_sides.py rows P031,P032` or `ablation` writes those sides to build/
 
 `Suite/Py.cs` holds what Python does that the reports depend on and C# does not: `%.nf`, `:.n%` and `repr` of a float, `statistics.mean` and
 `median`, `json.dump` with and without `indent`. `dtcli check-pyformat build/engine_pyformat_golden.json` compares them with Python on some 25,000
-cases (`parity/py_format_golden.py` writes the file; `dotnet test` does both).
-
-## Bridge for the Python tools
-
-Historical: the Python measures played their battles here before every measure moved into `src/DtEngine/Suite`. It is
-kept with the Python scripts as the reference they were proven against; measures are run with `dtcli`.
-
-`tools/engine_client.py` exports the snapshot when it is stale, builds `dtcli` when a source is newer, runs it and gives back the
-dictionaries of `sim.scenario.play` (with `record` when the job says `record: true`), `sim.measures.summary` and
-`sim.measures.play_checkpoint`. A side (a `GameData`) or a setup (a `Setup`) that the snapshot does not hold, because a tool changed it
-in its own process, goes with the call: `side_of(data)` and `setup_of(setup)` give the name to put in a job (`vanilla` and `variant` when the
-snapshot holds the same content; the content is compared by hash), and the engine reads the others from a second file (`--extra`).
-The tools that play on the engine are listed in `engine_cs/parity/gate_tools.py`, each with a gate that compares it with its Python path.
+cases (the file is kept in `tests/DtEngine.Tests/golden/`; `dotnet test` reads it).
 
 ## Recorder
 
 A job with `record: true` gets, for each battle (`parts[k].record`), the tables of `sim.battle.Recorder` (damage, healing, actions,
 skill uses, TP spent, items used, chants, performances broken, turns lost, denied, delayed, largest hit, deaths, kills) with the units
 that name them (position, name, kind, side, role, owner, level); `result['record']` is that of the first battle, as in `sim.scenario.play`.
-The trace carries one line `C ...` after the `E` line of each battle, so the parity tests compare the recorder with every case.
+The trace carries one line `C ...` after the `E` line of each battle, so the recorded traces of `tools/engine_golden.py` cover the recorder.
 
 ## Party recipe, enemies and more fields of a job
 
@@ -157,10 +117,4 @@ Level 2 adds every draw. A header describes every unit before the battle starts.
 
 ## Not ported
 
-`measures.slot_share`, `measures.weapon_band` and `measures.touched` (nothing calls them). `GameData.with_changes` is not ported: a tool
-that changes the data in Python sends the changed data as a side of its own (`engine_client.side_of`), or, for the stats of enemy
-records, gives `enemy_changes` in the job. The text log of a battle (`Battle.log`, read by `measures/mercenary_log.py`) is not ported.
-
-Of the scripts of measures/ and tools/ that play battles, these have no command: `mercenary_log` (reads the text log of a battle), `win_causes`, `record_causes`,
-`graceful_rose_trial`, `unique_trial`, `unique_trial_random` and `random_parties` (trials that no document or row of a workbook cites; the first two also take
-rows of balance_changes.xlsx out by family and so need sides built by `tools/engine_sides.py`). `status_value_getters` and `installer_trial` play no battle.
+The text log of a battle (the `log` of the removed simulator) has no counterpart: the trace is the record of a battle.

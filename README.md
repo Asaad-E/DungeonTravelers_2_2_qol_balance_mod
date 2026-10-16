@@ -106,7 +106,7 @@ files, and refuses to finish if any number shown in a text does not match the da
 
 The battle formulas were read from the game's executable and are documented in [docs/FORMULAS.md](docs/FORMULAS.md).
 Balance changes were tested with a battle engine built on those formulas (`engine_cs/`, in C#; the Python simulator
-it was proven against, `sim/`, is kept as its historical reference).
+it was proven against was removed once the two gave the same figures).
 
 More in [docs/](docs/README.md). To change the mod, read [CONTRIBUTING.md](CONTRIBUTING.md).
 

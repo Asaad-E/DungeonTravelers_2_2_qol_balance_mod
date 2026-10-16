@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 import enemy_data                      # noqa: E402
 import floor_data                      # noqa: E402
-from sim import progression            # noqa: E402
+from gamedata import progression            # noqa: E402
 
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'CATCH_UP_OPTIONS.md')

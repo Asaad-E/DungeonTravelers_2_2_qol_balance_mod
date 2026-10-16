@@ -12,7 +12,7 @@ and the engine they rest on:
     builds    the roles of the sheet Roles with a reference build of the guides (a skill plan or priority, and a source)
     tests     the calibration tests of the sheet Calibration that exist in tests/
     anchors   the boss fights of the sheet Anchors the reference party wins as the guides say, as last written by
-              tools/sim_anchors.py (it plays battles, so it runs apart)
+              dtcli sim-anchors (it plays battles, so it runs apart)
     check     the check of a change (sim/measures.py, function check_change)
     postgame  the checkpoints of the postgame and the superbosses (rows of the sheet Checkpoints) against the bosses the
               postgame pages of the GameFAQs guide list (sheet PostgameBosses)
@@ -21,7 +21,9 @@ Phase 1 is closed when every count of the table "To close" is at its target. The
 are the checklist of phase 2, written by tools/verdicts.py.
 """
 import ast
+import json
 import os
+import re
 import sys
 
 import openpyxl
@@ -34,8 +36,7 @@ SETUP = os.path.join(BASE_DIR, 'data_tables', 'sim_setup.xlsx')
 TESTS = os.path.join(BASE_DIR, 'tests')
 
 import enemy_ai                                        # noqa: E402  (tools/ is on the path through sim.data)
-from sim import ai, battle, measures                   # noqa: E402
-from sim.data import game_data                         # noqa: E402
+from gamedata.data import game_data                         # noqa: E402
 
 
 def rows(path, sheet):
@@ -51,7 +52,7 @@ def optional_rows(path, sheet):
 
 
 def anchors_count():
-    """The count of anchors met that tools/sim_anchors.py wrote last, or None when it has not run."""
+    """The count of anchors met that dtcli sim-anchors wrote last, or None when it has not run."""
     path = os.path.join(BASE_DIR, 'docs', 'generated', 'SIM_ANCHORS.md')
     if not os.path.exists(path):
         return None
@@ -73,23 +74,16 @@ def player_effects(data):
     return used
 
 
+def coverage():
+    """data_tables/engine_coverage.json: what the battle engine acts on (effects handled and assumed, enemy AI branches)."""
+    with open(os.path.join(BASE_DIR, 'data_tables', 'engine_coverage.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
 def ai_parts():
-    """The commands, sources and target kinds sim/ai.py has a branch for, read from its source."""
-    source = open(ai.__file__, encoding='utf-8').read()
-    tree = ast.parse(source)
-    commands, sources, targets = set(), set(), set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name in ('passes', 'source_value', 'pick_by_kind'):
-            found = {'passes': commands, 'source_value': sources, 'pick_by_kind': targets}[node.name]
-            for sub in ast.walk(node):
-                if isinstance(sub, ast.Compare):
-                    for comp in sub.comparators:
-                        if isinstance(comp, ast.Constant) and isinstance(comp.value, int):
-                            found.add(comp.value)
-                        if isinstance(comp, ast.Tuple):
-                            found.update(e.value for e in comp.elts if isinstance(e, ast.Constant))
-    commands |= {enemy_ai.SET, enemy_ai.TARGET}                     # handled in run()
-    return commands, sources, targets
+    """The commands, sources and target kinds the engine's enemy AI has a branch for."""
+    ai = coverage()['ai']
+    return set(ai['commands']), set(ai['sources']), set(ai['targets'])
 
 
 def script_gaps(data, commands, sources, targets):
@@ -119,17 +113,28 @@ def test_names():
             for node in tree.body:
                 if isinstance(node, ast.ClassDef):
                     found.add(f'{module}.{node.name}')
+    # the tests of the battle engine (engine_cs/tests): "engine_cs Class.Method"
+    folder = os.path.join(BASE_DIR, 'engine_cs', 'tests', 'DtEngine.Tests')
+    for name in os.listdir(folder) if os.path.isdir(folder) else []:
+        if name.endswith('.cs'):
+            text = open(os.path.join(folder, name), encoding='utf-8').read()
+            cls = re.search(r'public class (\w+)', text)
+            for method in re.findall(r'public void (\w+)\(', text):
+                found.add(f'engine_cs {cls.group(1)}.{method}')
     return found
 
 
 def main():
     sys.stdout.reconfigure(encoding='utf-8')
     data = game_data()
+    cov = coverage()
+    HANDLED = {int(e): w for e, w in cov['handled'].items()}
+    ASSUMED = {int(e): t for e, t in cov['assumed'].items()}
     used = player_effects(data)
     names = data.effect_names
-    exact = sorted(e for e in used if e in battle.HANDLED and e not in battle.ASSUMED)
-    assumed = sorted(e for e in used if e in battle.ASSUMED)
-    missing = sorted(e for e in used if e not in battle.HANDLED)
+    exact = sorted(e for e in used if e in HANDLED and e not in ASSUMED)
+    assumed = sorted(e for e in used if e in ASSUMED)
+    missing = sorted(e for e in used if e not in HANDLED)
 
     commands, sources, targets = ai_parts()
     all_commands = set(enemy_ai.COMMANDS)
@@ -139,16 +144,16 @@ def main():
 
     roles = rows(SETUP, 'Roles')
     with_build = [r for r in roles if (r.get('Skill plan') or r.get('Skill priority')) and r.get('Source')]
-    has_check = hasattr(measures, 'check_change')
+    has_check = bool(cov.get('check_change'))
     checkpoints = rows(SETUP, 'Checkpoints')
     postgame_bosses = optional_rows(SETUP, 'PostgameBosses')
     postgame = [r for r in checkpoints if r['ID'] in {b['ID'] for b in postgame_bosses}]
 
     calibration = rows(SETUP, 'Calibration')
     tests = test_names()
-    # a row checked by playing battles names tools/sim_anchors.py and its anchors instead of a test class
-    calibrated = [r for r in calibration if r['Test in tests/'] in tests
-                  or str(r['Test in tests/'] or '').startswith('tools/sim_anchors.py')]
+    # a row checked by playing battles names dtcli sim-anchors and its anchors instead of a test class
+    calibrated = [r for r in calibration if all(t.strip() in tests for t in str(r['Test in tests/'] or '-').split(';'))
+                  or str(r['Test in tests/'] or '').startswith('dtcli sim-anchors')]
     anchors_total = len(optional_rows(SETUP, 'Anchors'))
     anchors_met, anchors_limits = anchors_count() or (None, 0)
     assumptions = rows(SETUP, 'Assumptions')
@@ -167,7 +172,7 @@ def main():
            f'| Enemy scripts that use nothing the runner lacks | {scripts - len(gap_scripts)} of {scripts} | all |',
            f'| Roles with a reference build of the guides (sheet `Roles`) | {len(with_build)} of {len(roles)} | all |',
            f'| Calibration tests written | {len(calibrated)} of {len(calibration)} | all |',
-           f'| Boss anchors met (`docs/generated/SIM_ANCHORS.md`, run `tools/sim_anchors.py`) | '
+           f'| Boss anchors met (`docs/generated/SIM_ANCHORS.md`, run `dtcli sim-anchors`) | '
            f'{"?" if anchors_met is None else anchors_met} of {anchors_total}, known limits {anchors_limits} | all, or met '
            f'plus known limits the user confirms |',
            f'| Check of a change (`sim/measures.py`, `check_change`) | {"yes" if has_check else "no"} | yes |',
@@ -178,7 +183,7 @@ def main():
     out += ['## Effects the battle does not act on yet', '', '| Effect | Name | Used by |', '|---|---|---|']
     out += [f'| {e} | {names.get(e) or ""} | {", ".join(sorted(set(used[e]))[:4])} |' for e in missing] or ['| - | - | - |']
     out += ['', '## Effects acted on with an assumption', '', '| Effect | Name | Assumption |', '|---|---|---|']
-    out += [f'| {e} | {names.get(e) or ""} | {battle.ASSUMED[e]} |' for e in assumed] or ['| - | - | - |']
+    out += [f'| {e} | {names.get(e) or ""} | {ASSUMED[e]} |' for e in assumed] or ['| - | - | - |']
     out += ['', '## Assumptions', '', '| ID | State | Rule |', '|---|---|---|']
     out += [f'| {r["ID"]} | {r["State"]} | {r["Rule used by the model"]} |' for r in assumptions]
     out += ['', '## Enemy scripts the runner cannot follow in full', '', '| Enemy | What |', '|---|---|']

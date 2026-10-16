@@ -33,8 +33,7 @@ docs/                    the documents above
 data_tables/             every value, rule and wording of the mod (below)
 tools/                   the tools (below)
 engine_cs/               the battle engine and every measure that plays battles, in C# (engine_cs/README.md)
-sim/                     the Python battle simulator the engine was ported from and proven against; kept as the
-                         historical reference, not used to measure
+gamedata/                the readers of the game files and the workbooks (build, checklists, the engine's snapshot)
 tests/                   the unittest suite
 installer/               the README of each variant for players, and the template of the program patch
 measures/                the measures and readings a row of a workbook or a document cites: each script says

@@ -48,7 +48,7 @@ Nothing works without it, including the tests.
 | `data_tables/` | Every value, rule and line of text of the mod, as spreadsheets. Also what is particular to this game: `game_profile.json` (folder and file names) and `record_layouts.json` (where each field sits in each record) |
 | `tools/` | Builders, readers of the game files and of the executable, measures |
 | `engine_cs/` | The battle engine and every measure that plays battles, in C# (`engine_cs/README.md`) |
-| `sim/` | The Python battle simulator the engine was proven against; frozen since 2026-10-16 (`sim/README.md`), not used by any measure |
+| `gamedata/` | The readers of the game files and the workbooks the build, the checklists and the engine's snapshot use |
 | `tests/` | The test suite |
 | `installer/` | What goes into the player zips: the installer script and the player READMEs |
 | `measures/` | Measures and readings that a spreadsheet row or a document cites |
@@ -85,7 +85,7 @@ For the reasoning behind these, see `docs/philosophy.md`.
 
 **A balance value.** Add or edit a row in `data_tables/balance_changes.xlsx` (sheet `Changes`). The column `Lever`
 names the kind of change, listed in the sheet `Levers` of `balance_criteria.xlsx`. If the kind is new, the writer for
-it goes in `tools/balance_values.py`, and the simulator must read it too (`sim/variant.py`).
+it goes in `tools/balance_values.py`, and the engine's data must read it too (`gamedata/variant.py`, exported by `tools/engine_export.py`).
 
 **A value of a dungeon floor** (the chance of a wandering shop). Same sheet, table `zones`. The packs of the dungeons
 are too large to copy, so these rows are written in place into the game and put back the same way
@@ -95,7 +95,7 @@ are too large to copy, so these rows are written in place into the game and put 
 Balance variant needs a different wording, it goes in `balance_skill_text.xlsx`.
 
 **A formula or a rule of the simulator.** Read it in the executable first (`tools/exe_dis.py` and the other `exe_*`
-tools), write it in `docs/FORMULAS.md` with its address, then change `sim/`.
+tools), write it in `docs/FORMULAS.md` with its address, then change the engine (`engine_cs/src/DtEngine`).
 
 After any change:
 
@@ -124,9 +124,8 @@ A change that affects difficulty should be measured before it is proposed:
 `dtcli` is `dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll`, with `--snapshot build/engine_snapshot.json
 --root .` (`python tools/full_suite.py` exports the snapshot and builds the program first). Every measure that plays
 battles runs in C#; what a measure is configured with (parties, places, thresholds) is in
-`data_tables/measure_config.json` and the workbooks. The Python simulator of `sim/` and the Python measure scripts are
-kept only as the historical reference the engine was proven against (`engine_cs/parity/`, value by value): do not use
-them to measure. A change of the engine's code is checked against its own recorded traces: `python tools/engine_golden.py
+`data_tables/measure_config.json` and the workbooks. The engine began as a port of a Python simulator, proven equal
+to it value by value and then removed (2026-10-16). A change of the engine's code is checked against its own recorded traces: `python tools/engine_golden.py
 check` (part of `full_suite.py`); after a change meant to move results, `record` again and say so in the commit.
 
 The curve runs 40 battles per boss. Bosses that sit on the edge of a window can move in or out by chance; before

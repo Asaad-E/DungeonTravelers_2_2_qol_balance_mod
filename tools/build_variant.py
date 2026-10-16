@@ -1047,8 +1047,8 @@ def prepare_values(name, variant, problems):
     import generate_qol_enemy_attack_text
     import generate_qol_item_text
     import generate_qol_party_skill_text
-    from sim import data as sim_data
-    from sim.variant import balance_data
+    from gamedata import data as sim_data
+    from gamedata.variant import balance_data
     base = os.path.join(BUILD_DIR, name, 'base')
     tables = os.path.join(BUILD_DIR, name, 'tables')
     rows = balance_values.live_rows()
@@ -1307,8 +1307,8 @@ def main():
         # the last check, on the packs that would be installed: read back with their texts, they still hold what the
         # simulator plays
         import balance_readback
-        from sim import data as sim_data
-        from sim.variant import balance_data
+        from gamedata import data as sim_data
+        from gamedata.variant import balance_data
         base, tables = os.path.join(BUILD_DIR, args.variant, 'base'), os.path.join(BUILD_DIR, args.variant, 'tables')
         final_source = os.path.join(tables, 'final_source_of_truth.xlsx')
         problems.extend(f'extraction of the delivered packs: {p}' for p in balance_readback.extract_final(base, out_dir, final_source))

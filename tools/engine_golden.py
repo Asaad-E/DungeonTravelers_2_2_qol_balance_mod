@@ -1,18 +1,18 @@
 """
-The check of the C# engine against itself. The engine was proven equal to the Python simulator of sim/ trace line by trace
-line (engine_cs/parity/) up to 2026-10-16; sim/ is frozen since and is not run any more. From then on a change of the engine
-is checked here: a bank of some 12,000 jobs (the parity corpus, the fixed battles, the directed cases and 3,000 random cases)
-played on a frozen copy of the snapshot, its traces compared job by job with the traces recorded when the engine was last
-known good. A balance change does not move them (the snapshot is frozen); only a change of the engine's code does.
+The check of the C# engine against itself. The engine was proven equal to the Python simulator trace line by trace line on
+2026-10-16; that simulator was removed the same day. A change of the engine is checked here: a bank of 12,731 jobs (the
+parity corpus, the fixed battles, the directed cases and 3,000 random cases) played on a frozen copy of the snapshot, its
+traces compared job by job with the traces recorded when the engine was last known good. A balance change does not move
+them (the snapshot is frozen); only a change of the engine's code does.
 
     python tools/engine_golden.py check      plays the bank and compares; exit 1 and the jobs that differ when one does
-    python tools/engine_golden.py record     records the bank and its traces: once, and again after a change of the engine
-                                             that is meant to change results (say which in the commit)
+    python tools/engine_golden.py record     records the traces again, after a change of the engine that is meant to change
+                                             results (say which in the commit)
 
-The bank, the frozen snapshot and the traces live in build/golden/ (local: they hold figures of the game).
+The bank, the frozen snapshot and the traces live in build/golden/ (local: they hold figures of the game). The bank was made
+once by the parity tools of the removed simulator and cannot be made again; keep that folder.
 """
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -23,13 +23,31 @@ GOLDEN = os.path.join(PROJECT, 'build', 'golden')
 SNAPSHOT = os.path.join(GOLDEN, 'snapshot.json')
 JOBS = os.path.join(GOLDEN, 'bank_jobs.json')
 REFERENCE = os.path.join(GOLDEN, 'bank_digest.txt')
-sys.path.insert(0, HERE)
+SRC = os.path.join(PROJECT, 'engine_cs', 'src')
+PROGRAM = os.path.join(SRC, 'DtEngine.Cli', 'bin', 'Release', 'net10.0', 'dtcli.dll')
+
+
+def dtcli():
+    """The engine's program, built first when a source of engine_cs/src is newer."""
+    newest = 0.0
+    for folder, dirs, files in os.walk(SRC):
+        dirs[:] = [d for d in dirs if d not in ('bin', 'obj')]
+        for name in files:
+            if name.endswith(('.cs', '.csproj', '.json')):
+                newest = max(newest, os.path.getmtime(os.path.join(folder, name)))
+    if not os.path.exists(PROGRAM) or os.path.getmtime(PROGRAM) < newest:
+        built = subprocess.run(['dotnet', 'build', os.path.join(SRC, 'DtEngine.Cli'), '-c', 'Release', '-nologo', '-v', 'q'],
+                               capture_output=True, text=True)
+        if built.returncode != 0:
+            raise SystemExit('dtcli did not build:\n' + built.stdout + built.stderr)
+    return PROGRAM
 
 
 def play(digest_path):
-    import engine_client
+    if not (os.path.exists(JOBS) and os.path.exists(SNAPSHOT)):
+        raise SystemExit(f'no bank in {GOLDEN}: it was made once and cannot be made again')
     started = time.time()
-    run = subprocess.run(['dotnet', engine_client.ensure_built(), 'run', '--snapshot', SNAPSHOT, '--jobs', JOBS,
+    run = subprocess.run(['dotnet', dtcli(), 'run', '--snapshot', SNAPSHOT, '--jobs', JOBS,
                           '--out', os.path.join(GOLDEN, 'bank_results.json'), '--trace-digest', digest_path],
                          capture_output=True, text=True)
     # three directed jobs give the policy rules it does not know, and must fail: dtcli then exits 1 with the digest written
@@ -44,13 +62,6 @@ def lines(path):
 
 
 def record():
-    import engine_client
-    os.makedirs(GOLDEN, exist_ok=True)
-    shutil.copyfile(engine_client.ensure_snapshot(), SNAPSHOT)
-    done = subprocess.run([sys.executable, os.path.join(PROJECT, 'engine_cs', 'parity', 'dump_jobs.py'), '--out', JOBS],
-                          capture_output=True, text=True)
-    if done.returncode != 0:
-        raise SystemExit('dump_jobs.py failed:\n' + done.stdout + done.stderr)
     seconds = play(REFERENCE)
     print(f'recorded {len(lines(REFERENCE))} jobs in {seconds:.0f} s: {GOLDEN}')
 

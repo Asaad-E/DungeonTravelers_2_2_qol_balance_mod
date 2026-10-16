@@ -218,7 +218,7 @@ def measure_config():
 def measure_inputs(setup, vanilla, variant):
     """What the measures of the suite (engine_cs/src/DtEngine/Suite) take from the workbooks and from
     data_tables/measure_config.json: sheets as rows, lists of parties, names of things. The measures themselves hold none of it."""
-    from sim import setup as setup_mod
+    from gamedata import setup as setup_mod
     config = measure_config()
     out = {
         'class_stages': rows_json(sheet_rows(setup_mod.SETUP, 'ClassStages', filled=True)),
@@ -272,7 +272,7 @@ def boss_rows_inputs(vanilla, variant, config):
     the stats of the enemy records on the variant with those rows taken out, as the changes from the variant. The export stops when
     the variant of these rows is not the variant of the snapshot, or when the changes do not give back the data without the rows."""
     import re
-    from sim import variant as variant_mod
+    from gamedata import variant as variant_mod
     rows = variant_mod.rows()
     found = {}
     for row in rows:
@@ -320,9 +320,9 @@ def flags_of(data):
 
 
 def snapshot():
-    from sim import setup as setup_mod
-    from sim.data import game_data
-    from sim.variant import balance_data
+    from gamedata import setup as setup_mod
+    from gamedata.data import game_data
+    from gamedata.variant import balance_data
     vanilla = game_data()
     variant = balance_data(vanilla)
     return {'format': FORMAT,

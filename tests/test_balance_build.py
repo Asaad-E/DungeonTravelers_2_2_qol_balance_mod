@@ -14,8 +14,8 @@ import _paths  # noqa: F401
 import balance_readback
 import balance_values
 from pck_handler import PckArchive
-from sim import data as sim_data
-from sim.variant import balance_data
+from gamedata import data as sim_data
+from gamedata.variant import balance_data
 
 
 class BalanceValues(unittest.TestCase):

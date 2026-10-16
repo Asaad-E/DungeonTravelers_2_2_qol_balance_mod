@@ -34,8 +34,8 @@ def side_of(data):
 
 def rows_without(ids):
     """The variant built from the rows of the workbook but those named (the variant of the snapshot is the one with every row)."""
-    from sim import variant
-    from sim.data import game_data
+    from gamedata import variant
+    from gamedata.data import game_data
     wanted = set(ids)
     data = variant.apply(game_data(), [r for r in variant.rows() if str(r['ID']) not in wanted])
     data.arcane_chance = variant.arcane_chance()

@@ -15,8 +15,8 @@ import sys
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
-from sim.data import game_data                      # noqa: E402
-from sim import setup as setup_mod, scenario        # noqa: E402
+from gamedata.data import game_data                      # noqa: E402
+from gamedata import setup as setup_mod, levels as scenario   # noqa: E402
 
 OUTPUT = os.path.join(BASE_DIR, 'docs', 'generated', 'CHECKPOINT_LEVELS.md')
 SOURCES = {'guide': 'guide', 'zone': 'zone', 'before': 'checkpoint before'}

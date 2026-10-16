@@ -34,7 +34,7 @@ import summon_data
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
-from sim import progression
+from gamedata import progression
 TABLES_DIR = os.path.join(BASE_DIR, 'data_tables')
 OUTPUT_PATH = os.path.join(BASE_DIR, 'docs', 'generated', 'BALANCE_BASELINE.md')
 BANDS = ((1, 14), (15, 29), (30, 49), (50, 69), (70, 84), (85, 98), (99, 99))    # class changes at 15 and 30

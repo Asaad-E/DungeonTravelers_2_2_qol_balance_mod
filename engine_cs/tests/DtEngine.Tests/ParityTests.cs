@@ -7,7 +7,8 @@ using Xunit;
 namespace DtEngine.Tests
 {
     /// <summary>
-    /// The tests of the engine against sim/. The golden files and the traces come from Python (engine_cs/parity/); a test writes
+    /// The tests of the engine. The golden files were recorded from CPython and the Python formulas before sim/ was removed (2026-10-16)
+    /// and are kept in golden/; earlier, a test wrote
     /// them first when they are not there. Python 3 with the dependencies of the repository must be on the path.
     /// </summary>
     public class ParityTests
@@ -36,18 +37,18 @@ namespace DtEngine.Tests
             }
         }
 
+        /// <summary>A golden file of the tests: what CPython and the Python formulas gave, recorded once (a fixed sample, kept with
+        /// the tests since the Python simulator was removed on 2026-10-16).</summary>
         static string Golden(string name, string script)
         {
-            string path = Path.Combine(Root(), "build", name);
-            if (!File.Exists(path)) Python(script + " " + path);
-            return path;
+            return Path.Combine(Root(), "engine_cs", "tests", "DtEngine.Tests", "golden", name);
         }
 
         [Fact]
         public void RandomGeneratorGivesWhatCPythonGives()
         {
             var (n, errors) = SelfCheck.RngCheck(Golden("engine_rng_golden.json", "engine_cs/parity/rng_golden.py"));
-            Assert.True(n >= 50000);
+            Assert.True(n >= 10000);   // the stored sample: 5 seeds
             Assert.Empty(errors);
         }
 
@@ -55,7 +56,7 @@ namespace DtEngine.Tests
         public void FormulasGiveWhatPythonGives()
         {
             var (n, errors) = FormulaCheck.Run(Golden("engine_formulas_golden.json", "engine_cs/parity/formulas_golden.py"));
-            Assert.True(n >= 50000);
+            Assert.True(n >= 5000);    // the stored sample: 6,000 cases over every formula
             Assert.Empty(errors);
         }
 
@@ -146,26 +147,7 @@ namespace DtEngine.Tests
                 }
         }
 
-        [Fact(Skip = "sim/ is frozen since 2026-10-16, after the engine was proven equal to it; the engine is checked against its own recorded traces: python tools/engine_golden.py check")]
-        public void GuestAlliesAndSummonsMatchPython()
-        {
-            string output = Python("engine_cs/parity/run_parity.py directed --only guests,summons --workers 4 --threads 2");
-            Assert.Contains(" 0 differences", output);
-        }
 
-        [Fact(Skip = "sim/ is frozen since 2026-10-16, after the engine was proven equal to it; the engine is checked against its own recorded traces: python tools/engine_golden.py check")]
-        public void MeasuresMatchPython()
-        {
-            string output = Python("engine_cs/parity/run_measures.py --count 6 --workers 4 --threads 2");
-            Assert.Contains(" 0 differences", output);
-        }
 
-        [Fact(Skip = "sim/ is frozen since 2026-10-16, after the engine was proven equal to it; the engine is checked against its own recorded traces: python tools/engine_golden.py check")]
-        public void TracesOfTheFixedCasesMatchPython()
-        {
-            // the regression cases and one checkpoint of each side, compared line by line by the Python driver
-            string output = Python("engine_cs/parity/run_parity.py corpus --seeds 20261005 --runs 1 --trace 1 --workers 4 --threads 2 --only smoke");
-            Assert.Contains(" 0 differences", output);
-        }
     }
 }
