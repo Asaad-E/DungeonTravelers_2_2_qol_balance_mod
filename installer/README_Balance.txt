@@ -23,7 +23,8 @@ What changes
 * Common enemies of the last dungeons resist physical damage a little less.
 * Quests pay more gold. Seven rare drops fall a little more often, and four strong common enemies
   can be robbed.
-* The bosses the stronger party made too easy hold more HP, the last boss of the story among them.
+* The bosses the stronger party made too easy hold more HP, the last boss of the story among them;
+  Demon God Fried hits harder instead.
 * The unique skills of the girls that did little do more (Third Eye Wide, Arcane Shield, Alter
   Fate, Tranquil Song). Lizerietta has a new one, No Miracles Needed: she may hold on with 1 HP
   when a hit would fell her.
@@ -33,8 +34,8 @@ What changes
   mercenary, heals more.
 * Every level gives one more skill point up to level 40.
 * Provoke draws more attacks as it is raised; Magic Barrier cuts more magic damage; First Grid
-  comes up more often; the Kunoichi may use her Stings and Phoenix
-  with a dagger or a projectile.
+  comes up more often; the Kunoichi may use her Stings and Phoenix with a dagger or a projectile,
+  and her Barrage strikes twice more often (30% at its first level, 50% at its last).
 * Three grand sealbooks of the postgame (Melek Taus, Genbu, Murasaki Shikibu) carry a second
   enchantment. One postgame superboss no longer opens with a spell that can fell the party.
 * The party buffs of the Enchantress and the Sage (Circle Brave, Circle Protect, Sun Veil) are
