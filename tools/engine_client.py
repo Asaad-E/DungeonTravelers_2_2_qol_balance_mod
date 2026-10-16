@@ -16,8 +16,10 @@ Python path, value by value.
 A job is the dictionary of the engine (engine_cs/README.md, "Jobs"). `sides` are 'vanilla' and 'variant' (the Balance variant).
 Differences from sim/: a result has a 'record' only when the job asks (record=True); walked_zones returns the names of the zones.
 """
+import hashlib
 import json
 import os
+import pickle
 import subprocess
 import sys
 import tempfile
@@ -84,6 +86,7 @@ def ensure_built():
 # --- sides and setups of the tools' own ------------------------------------------------------------------------------------
 _EXTRA = {'sides': {}, 'setups': {}}        # name -> the text of the side or the setup
 _NAMES = {}                                  # content hash -> name in the snapshot
+_BY_STATE = {}                               # hash of the pickled GameData -> its name
 
 
 def _known():
@@ -101,13 +104,19 @@ def _known():
 def side_of(data):
     """The name of a GameData for the jobs: 'vanilla' or 'variant' when the snapshot holds the same data, else it is sent with the next call."""
     import engine_export
+    # the whole state of the object, cheaper to take than its side: the same state gives the same name without building it again
+    state = hashlib.sha1(pickle.dumps(data, protocol=5)).hexdigest()
+    if state in _BY_STATE:
+        return _BY_STATE[state]
     text = engine_export.text_of(engine_export.side_json(data, engine_export.flags_of(data)))
     digest = engine_export.digest(text)
     known = _known()
     if digest in known and known[digest] is not None:
-        return known[digest]
-    name = 'side-' + digest[:16]
-    _EXTRA['sides'][name] = text
+        name = known[digest]
+    else:
+        name = 'side-' + digest[:16]
+        _EXTRA['sides'][name] = text
+    _BY_STATE[state] = name
     return name
 
 
@@ -147,23 +156,57 @@ def settings():
     return _SETTINGS
 
 
-def _call(command, jobs, threads, errors=False):
+_SERVER = []                                 # the dtcli process of this Python process, started at the first call
+
+
+def _serve(command, jobs_path, out_path, threads, extra):
+    """Plays one request on the dtcli of this process (`dtcli serve`): the runtime starts and the snapshot loads once, not at every
+    call, so a tool that calls the engine once a cell pays no start-up for each."""
+    if not _SERVER or _SERVER[0].poll() is not None:
+        _SERVER[:] = [subprocess.Popen(['dotnet', CLI_DLL, 'serve', '--snapshot', SNAPSHOT], stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, bufsize=1)]
+    server = _SERVER[0]
+    server.stdin.write('\t'.join([command, jobs_path, out_path, str(threads or ''), extra or '']) + '\n')
+    server.stdin.flush()
+    answer = server.stdout.readline().strip()
+    if not answer.startswith('done'):
+        raise RuntimeError('dtcli failed: ' + (answer or 'the engine process ended'))
+
+
+def all_parts(script, parts, command='engine', extra=()):
+    """Runs `python script command k/n` for every part k at once (n: setting parallel_workers) and waits: the whole of a measure
+    whose cells are split in parts, each part a process with its own engine. parts: the glob of the part files the script writes,
+    removed first so that no part of an earlier pass with another n is read with the new ones. The snapshot and the build are made
+    first, once."""
+    import glob
+    for name in glob.glob(parts):
+        os.remove(name)
     ensure_snapshot()
     ensure_built()
+    n = int(settings().get('parallel_workers', 1))
+    procs = [subprocess.Popen([sys.executable, os.path.abspath(script), command, f'{k}/{n}', *map(str, extra)], stdout=subprocess.DEVNULL)
+             for k in range(1, n + 1)]
+    failed = [k for k, p in enumerate(procs, 1) if p.wait() != 0]
+    if failed:
+        raise RuntimeError(f'parts {failed} of {os.path.basename(script)} failed')
+    return n
+
+
+_READY = []                                  # the snapshot and the build are checked once a process
+
+
+def _call(command, jobs, threads, errors=False):
+    if not _READY:
+        ensure_snapshot()
+        ensure_built()
+        _READY.append(True)
     os.makedirs(WORK, exist_ok=True)
     folder = tempfile.mkdtemp(dir=WORK)
     jobs_path, out_path = os.path.join(folder, 'jobs.json'), os.path.join(folder, 'results.json')
     with open(jobs_path, 'w', encoding='utf-8') as f:
         json.dump(jobs, f)
-    cmd = ['dotnet', CLI_DLL, command, '--snapshot', SNAPSHOT, '--jobs', jobs_path, '--out', out_path]
     extra = _extra_file(jobs, folder)
-    if extra:
-        cmd += ['--extra', extra]
-    if threads:
-        cmd += ['--threads', str(threads)]
-    run = subprocess.run(cmd, capture_output=True, text=True)
-    if run.returncode != 0 and not os.path.exists(out_path):
-        raise RuntimeError('dtcli failed:\n' + run.stdout + run.stderr)
+    _serve(command, jobs_path, out_path, threads, extra)
     with open(out_path, encoding='utf-8') as f:
         results = json.load(f)
     for name in (jobs_path, out_path, extra):

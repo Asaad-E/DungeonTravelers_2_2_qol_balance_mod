@@ -80,8 +80,12 @@ def play_engine(data, setup, cid, crown, girl, with_skill, runs, flags=None):
             'hp_left': sum(r['hp_left'] for r in res) / len(res)}
 
 
-def run_engine(part, runs=60):
+def run_engine(part='all', runs=60):
     """run(), with every cell played by the C# engine."""
+    if part == 'all':                          # every part at once, one process each
+        import engine_client
+        engine_client.all_parts(__file__, os.path.join(HERE, 'unique_skills_*.json'), extra=(runs, ))
+        return
     global play
     played = play
     play = play_engine

@@ -109,9 +109,14 @@ A change that affects difficulty should be measured before it is proposed:
 
 | Command | What it measures |
 |---|---|
-| `python tools/difficulty_curve.py all` then `report` | Every boss, mod against original |
-| `python tools/party_battery.py all 12` then `report` | Several party types against 17 bosses |
-| `python tools/class_stages.py all` then `report` | Each class at each stage of the game |
+| `python tools/full_suite.py` | Everything below and every other measure, report and checklist, then the tests (about 6 minutes) |
+| `python tools/difficulty_curve.py engine` then `report` | Every boss, mod against original |
+| `python tools/party_battery.py engine` then `report` | Several party types against 17 bosses |
+| `python tools/class_stages.py engine` then `report` | Each class at each stage of the game |
+
+The `engine` commands play the battles on the C# engine of `engine_cs/` (it needs the .NET SDK 10), which gives the same
+figures as the Python simulator of `sim/`, value by value (`engine_cs/parity/`), many times faster. The Python paths (`all`)
+are kept as the reference.
 
 The curve runs 40 battles per boss. Bosses that sit on the edge of a window can move in or out by chance; before
 blaming a change, run those bosses again with more battles (`measures/curve_ablation.py`).

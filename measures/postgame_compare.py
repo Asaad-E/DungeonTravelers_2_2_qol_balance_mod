@@ -48,8 +48,12 @@ def play_engine(data, setup, cid, crown, runs):
     return engine.run_jobs([job])[0]['summary']
 
 
-def run_engine(part):
+def run_engine(part='all'):
     """run(), with every cell played by the C# engine."""
+    if part == 'all':                          # every part at once, one process each
+        import engine_client
+        engine_client.all_parts(__file__, os.path.join(HERE, 'postgame_compare_*.json'), extra=())
+        return
     global play
     played = play
     play = play_engine

@@ -132,6 +132,48 @@ namespace DtEngine.Cli
             return results.Exists(r => r.Error != null) ? 1 : 0;
         }
 
+        /// <summary>dtcli serve --snapshot S: loads the snapshot once, then plays requests read from standard input, one a line:
+        /// "run|measure TAB jobs TAB out TAB threads TAB extra" (extra may be empty). Answers each with one line, "done N" (N errors) or
+        /// "fail message". Ends at the end of the input. Saves the start of the runtime and the load of the snapshot on every call.</summary>
+        static int ServeCommand(string[] args)
+        {
+            var snap = Snapshot.Load(Opt(args, "--snapshot"));
+            var loadedExtras = new HashSet<string>();
+            var output = Console.Out;
+            Console.SetOut(TextWriter.Null);                    // nothing but the answers reaches standard output
+            string line;
+            while ((line = Console.In.ReadLine()) != null)
+            {
+                if (line.Length == 0) continue;
+                try
+                {
+                    string[] f = line.Split('\t');
+                    string command = f[0], jobsPath = f[1], outPath = f[2];
+                    int threads = f.Length > 3 && f[3].Length > 0 ? int.Parse(f[3]) : Environment.ProcessorCount;
+                    string extra = f.Length > 4 && f[4].Length > 0 ? f[4] : null;
+                    if (extra != null && loadedExtras.Add(File.ReadAllText(extra))) snap.LoadExtra(extra);
+                    int errors;
+                    if (command == "run")
+                    {
+                        var results = JobRunner.Run(snap, JobRunner.LoadJobs(jobsPath), threads);
+                        JobRunner.WriteResults(outPath, results);
+                        errors = results.FindAll(r => r.Error != null).Count;
+                    }
+                    else if (command == "measure")
+                        Measures.RunFile(snap, jobsPath, outPath, threads, out errors);
+                    else
+                        throw new ArgumentException("unknown command " + command);
+                    output.WriteLine("done " + errors);
+                }
+                catch (Exception e)
+                {
+                    output.WriteLine("fail " + e.GetType().Name + ": " + e.Message.Replace('\n', ' ').Replace('\r', ' '));
+                }
+                output.Flush();
+            }
+            return 0;
+        }
+
         public static int Main(string[] args)
         {
             if (args.Length == 0) { Console.Error.WriteLine("usage: dtengine <command> ..."); return 2; }
@@ -159,6 +201,8 @@ namespace DtEngine.Cli
                     return MeasureCommand(args);
                 case "profile":
                     return ProfileCommand(args);
+                case "serve":
+                    return ServeCommand(args);
                 case "check-round":
                     {
                         var (n, errors) = SelfCheck.RoundCheck(args[1]);

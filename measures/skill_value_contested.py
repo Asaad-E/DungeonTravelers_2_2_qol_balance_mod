@@ -68,7 +68,11 @@ def run(part, runs=30):
         json.dump(out, f, indent=1)
 
 
-def run_engine(part, runs=30):
+def run_engine(part='all', runs=30):
+    if part == 'all':                          # every part at once, one process each
+        import engine_client
+        engine_client.all_parts(__file__, os.path.join(HERE, 'skill_value_contested_*.json'), extra=(runs, ))
+        return
     global ENGINE
     ENGINE = True
     try:
