@@ -4,23 +4,23 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 
 | Party skill | Members | Bonus at every proof | Wins | Fights shorter | HP left |
 |---|---|---|---|---|---|
-| Vigor Trio | 3 | atk +32 | +2 | +13% | +3 |
-| Board Members | 3 | dex +20, agi +20 | +1 | +12% | +2 |
-| Vagabonds | 3 | agi +20 | +0 | +12% | +1 |
-| Mission Ongoing | 4 | fire +10, atk +20 | +2 | +10% | +2 |
-| NegaPosi | 4 | hp +50, tp +50 | +0 | +6% | +1 |
-| Sales Experience | 4 | wind +20, agi +10 | -0 | +6% | +0 |
-| Kindred Spirits | 4 | tp +50, fire +20 | +0 | +5% | +0 |
-| The New Magi | 3 | tp +50, fire +20 | +1 | +4% | +2 |
-| Eccentrics | 3 | dex +32 | +0 | +2% | +1 |
-| Graceful Agers | 4 | lightning +20, hp +50 | +0 | +2% | +1 |
-| Flawless Poise | 3 | water +20, earth +20 | +0 | +0% | +0 |
-| Full of Guts | 4 | hp +100 | -1 | +2% | -0 |
-| Natural Klutzes | 2 | bash +20 | -0 | +1% | +0 |
+| Vigor Trio | 3 | atk +32 | +3 | +13% | +3 |
+| Board Members | 3 | dex +20, agi +20 | +1 | +13% | +2 |
+| Vagabonds | 3 | agi +20 | +1 | +13% | +2 |
+| Mission Ongoing | 4 | fire +10, atk +20 | +3 | +9% | +3 |
+| Sales Experience | 4 | wind +20, agi +10 | -0 | +6% | +1 |
+| The New Magi | 3 | tp +50, fire +20 | +1 | +5% | +0 |
+| Kindred Spirits | 4 | tp +50, fire +20 | -0 | +6% | -1 |
+| NegaPosi | 4 | hp +50, tp +50 | -1 | +6% | -1 |
+| Eccentrics | 3 | dex +32 | +1 | +3% | +1 |
+| Graceful Agers | 4 | lightning +20, hp +50 | +1 | +2% | +1 |
+| Attentive | 3 | int +20 | +0 | +1% | +1 |
+| Flawless Poise | 3 | water +20, earth +20 | +1 | +0% | +1 |
+| Full of Guts | 4 | hp +100 | -1 | +1% | +0 |
+| Libra Guard | 3 | def +25 | -1 | +1% | +0 |
+| Natural Klutzes | 2 | bash +20 | +0 | +0% | -0 |
 | Celebrities | 3 | lightning +50 | +0 | -0% | +0 |
-| Attentive | 3 | int +20 | -1 | +1% | -0 |
-| Libra Guard | 3 | def +25 | -2 | +1% | -1 |
 | Veteran Soldiers | 2 | slash +25 | +0 | -0% | +0 |
 | Beyond Human | 3 | stab +20 | -1 | +1% | -0 |
-| Royal Squadron | 4 | bash +10, earth +20 | -1 | +0% | -0 |
+| Royal Squadron | 4 | bash +10, earth +20 | +1 | -1% | +0 |
 | Dark and Light | 3 | res +20 | -1 | +0% | -1 |

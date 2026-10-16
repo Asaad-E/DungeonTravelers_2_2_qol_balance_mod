@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 18 of 24 such pairs on the variant, 25 of 31 in vanilla.**
+**A party without the class reaches the floor at 19 of 25 such pairs on the variant, 25 of 31 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -53,7 +53,8 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C36 | vanilla | Dark Lord | 50% | Meta with attacker for dark lord | 87% |
 | C36 | vanilla | Diva | 50% | Meta with mistress for diva | 75% |
 | C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 85% |
-| C36 | variant | Diva | 50% | Meta with etoile for diva | 58% |
+| C36 | variant | Diva | 50% | Meta with mistress for diva | 68% |
+| C36 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 82% |
 | C38 | vanilla | Bishop | 80% | Dual-Support with sage for healer | 87% |
 | C38 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 92% |
 | C38 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 95% |
