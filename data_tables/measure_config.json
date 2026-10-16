@@ -929,6 +929,7 @@
   "time": 0.6,
   "vanilla_win": 0.8,
   "vanilla_length": 1.5,
-  "drop": 0.1
+  "drop": 0.1,
+  "fast_share": 0.05
  }
 }
