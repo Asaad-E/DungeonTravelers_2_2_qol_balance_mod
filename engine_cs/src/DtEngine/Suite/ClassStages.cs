@@ -126,7 +126,7 @@ namespace DtEngine.Suite
                 if (measured.Count == 0) { text.Add("Not measured yet."); text.Add(""); continue; }
                 Func<string, Obj> rolesOf = cid => measured.First(m => m.cid == cid).roles;
                 Func<string, double> medianWon = cid => Median(rolesOf(cid).Select(kv => ((Obj)kv.Value).Get("won")));
-                var hard = measured.Where(m => medianWon(m.cid) < 0.5).Select(m => m.cid).ToList();
+                var hard = measured.Where(m => medianWon(m.cid) < c.In("class_stages_report").D("hard_below")).Select(m => m.cid).ToList();
                 var usable = measured.Select(m => m.cid).Where(x => !hard.Contains(x)).ToList();
                 var contested = usable.Where(x => medianWon(x) < 1.0).ToList();
                 var attMedian = new Dictionary<string, double?>();

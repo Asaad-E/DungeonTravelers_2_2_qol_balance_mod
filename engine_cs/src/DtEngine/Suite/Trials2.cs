@@ -22,8 +22,10 @@ namespace DtEngine.Suite
             string cid = a[0]; int runs = a.Length > 1 ? int.Parse(a[1]) : 100;
             var factors = new[] { 1.0, 1.5, 2.0, 2.5 };
             var usual = c.Setup.Policies;
-            int second = usual.FindIndex(r => r.Str("Role") == "etoile" && r.Str("Action") == "status:201");
-            if (second < 0) throw new InvalidOperationException("the sheet Policies has no rule of the etoile with status:201");
+            // her second dance, whichever the sheet gives her (measure_config.json, trials, samba_trial)
+            var dances = Trials.Strings(Inp(c, "samba_trial").Get("second"));
+            int second = usual.FindIndex(r => r.Str("Role") == "etoile" && dances.Contains(r.Str("Action")));
+            if (second < 0) throw new InvalidOperationException("the sheet Policies has no rule of the etoile with " + string.Join(" or ", dances));
             var baseData = c.Data("variant");
             var skill = Kit.SkillNamed(baseData, "Alluring Samba");
             Func<string, string, Obj> play = (side, setupName) => PlayRole(c, side, setupName, cid, "etoile", runs);

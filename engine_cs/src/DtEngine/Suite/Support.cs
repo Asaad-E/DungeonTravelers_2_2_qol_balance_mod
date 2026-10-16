@@ -110,7 +110,7 @@ namespace DtEngine.Suite
                 var zones = sc.WalkedZones(cp.Str("Floor"), level);
                 var recipe = new Obj { { "drop_last", true }, { "items", "first_kept" }, { "tested", Jb.L(new Obj { { "role", role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) } }) } };
                 jobs.Add(Jb.Make(c, "variant", cid, runs: runs, crown: 0, recipe: recipe, options: new Obj { { "random_battle", true } }, name: cid + "|" + role + "|" + chain,
-                                 enemies: Jb.Chain(zones.Select(z => z.Name), 7, chain)));
+                                 enemies: Jb.Chain(zones.Select(z => z.Name), (int)c.In("support_chains").D("chain_seed"), chain)));
             }
             var done = c.Run(jobs);
             var at = new Dictionary<(string, string), (double won, double hp, double tp)>();

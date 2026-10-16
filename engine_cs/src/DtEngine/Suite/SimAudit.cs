@@ -8,10 +8,22 @@ namespace DtEngine.Suite
     /// <summary>tools/sim_audit.py: does every rule of the simulator actually act? Passives, usage and actives; docs/generated/SIM_AUDIT.md.</summary>
     public static class SimAudit
     {
-        static readonly int[] Revive = { 104, 105 }, HealAgain = { 103, 9, 128, 130, 131, 132, 133 }, Cure = { 106, 235 }, TpEffects = { 129, 426 };
         const string EveryRole = "*";
 
         static Obj Inp(Ctx c) => c.In("sim_audit");
+
+        static HashSet<int> Ints(IEnumerable<object> list) => new HashSet<int>(list.Select(x => (int)Py.Num(x)));
+
+        /// <summary>Why a skill a plan never uses is situational, by the first group of measure_config.json (sim_audit, situational) it shares an effect with; null if none.</summary>
+        static string Situational(Ctx c, HashSet<int> effects)
+        {
+            foreach (var g in Inp(c).A("situational"))
+            {
+                var group = (Obj)g;
+                if (Ints(group.A("effects")).Overlaps(effects)) return group.S("why");
+            }
+            return null;
+        }
         static List<(string column, int level, string cid)> Tiers(Ctx c) =>
             Inp(c).A("tiers").Cast<List<object>>().Select(t => ((string)t[0], (int)Py.Num(t[1]), (string)t[2])).ToList();
         static (int level, string cid) Late(Ctx c) { var l = Inp(c).A("late"); return ((int)Py.Num(l[0]), (string)l[1]); }
@@ -171,11 +183,7 @@ namespace DtEngine.Suite
                             double share = best != 0 ? mine / best : 0.0;
                             why = "dominated: " + Py.Pct(share, 0) + " of the best (" + bestName + ") at the start of the fight";
                         }
-                        else if (Revive.Any(effects.Contains)) why = "situational: a revive";
-                        else if (HealAgain.Any(effects.Contains)) why = "situational: a heal (another heal or the songs come first)";
-                        else if (Cure.Any(effects.Contains)) why = "situational: a cure";
-                        else if (TpEffects.Any(effects.Contains)) why = "situational: TP";
-                        else if (effects.Contains(74)) why = "situational: a dispel";
+                        else if (Situational(c, effects) is string because) why = because;
                         else if (effects.Any(e => Policy.Puts(skill, e)))
                         {
                             var kept = effects.Where(e => Policy.Puts(skill, e) && statusRules.Contains(e)).OrderBy(e => e).ToList();
@@ -237,7 +245,8 @@ namespace DtEngine.Suite
                 var kinds = new List<(int e, int kind)>();
                 foreach (var ef in skill.Effects) if (!kinds.Contains((ef.Id, ef.Kind))) kinds.Add((ef.Id, ef.Kind));
                 var expect = new List<string>();
-                if (kinds.Any(k => ((k.e == 0 || k.e == 1) && k.kind == 4) || new[] { 8, 12, 138, 140, 141, 142, 434, 435 }.Contains(k.e))) expect.Add("damage");
+                var damageEffects = Ints(Inp(c).A("damage_effects"));
+                if (kinds.Any(k => ((k.e == 0 || k.e == 1) && k.kind == 4) || damageEffects.Contains(k.e))) expect.Add("damage");
                 foreach (var (e, kind) in kinds)
                 {
                     if (kind == 4 && SkillValue.IsAilment(e)) expect.Add("ailment " + e);

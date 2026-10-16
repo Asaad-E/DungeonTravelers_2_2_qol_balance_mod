@@ -198,119 +198,80 @@ def setup_json(setup):
     }
 
 
+MEASURE_CONFIG = os.path.join(PROJECT, 'data_tables', 'measure_config.json')
+TRUTH = os.path.join(PROJECT, 'data_tables', 'vanilla_source_of_truth.xlsx')
+
+
+def sheet_rows(path, name, filled=False):
+    """The rows of a sheet as dictionaries by its header; filled: only those whose first cell holds something."""
+    import openpyxl
+    rows = list(openpyxl.load_workbook(path, read_only=True)[name].iter_rows(values_only=True))
+    return [dict(zip(rows[0], r)) for r in rows[1:] if r[0] or not filled]
+
+
+def measure_config():
+    """data_tables/measure_config.json: parties, places, cases, thresholds and wordings of the measures of the suite."""
+    with open(MEASURE_CONFIG, encoding='utf-8') as f:
+        return json.load(f)
+
+
 def measure_inputs(setup, vanilla, variant):
-    """What the measures of the suite (engine_cs/src/DtEngine/Suite) take from the workbooks and from the constants of the
-    Python readers: sheets as rows, lists of parties, names of things. The measures themselves hold none of it."""
-    import class_stages
-    import guide_curve
+    """What the measures of the suite (engine_cs/src/DtEngine/Suite) take from the workbooks and from
+    data_tables/measure_config.json: sheets as rows, lists of parties, names of things. The measures themselves hold none of it."""
+    from sim import setup as setup_mod
+    config = measure_config()
     out = {
-        'class_stages': rows_json(class_stages.stages(setup)),
-        'class_kinds': class_stages.kinds(),
-        'guide_sheet': rows_json(guide_curve.sheet(setup)),
+        'class_stages': rows_json(sheet_rows(setup_mod.SETUP, 'ClassStages', filled=True)),
+        'class_kinds': {r[0]: r[1] for r in (list(x.values()) for x in sheet_rows(setup_mod.SETUP, 'ClassKinds', filled=True))},
+        'guide_sheet': rows_json(sheet_rows(setup_mod.SETUP, 'GuideDifficulty', filled=True)),
         'guide_difficulty': dict(setup.guide_difficulty),
         'anchors': rows_json(setup.anchors),
         'audit_readings': rows_json(setup.audit_readings),
     }
-    sys.path.insert(0, os.path.join(PROJECT, 'measures'))
-    import win_rates
-    out['win_rates'] = {'parties': {k: [v[0], v[1], v[2]] for k, v in win_rates.PARTIES.items()}, 'flag': win_rates.FLAG}
-    import sim_audit
-    from sim.battle import HANDLED
-    out['sim_audit'] = {'tiers': [list(t) for t in sim_audit.TIERS], 'late': list(sim_audit.LATE), 'seeds': sim_audit.SEEDS,
-                        'enemy': sim_audit.ACTIVES_ENEMY, 'tries': sim_audit.ACTIVE_TRIES, 'fallback': sim_audit.ACTIVES_FALLBACK,
-                        'outside': sorted(e for e, where in HANDLED.items() if where.startswith('outside battle'))}
-    import mercenaries
-    import party_skills
-    import postgame_compare
-    import unique_skills
-    import skill_value_contested
-    import random_battles
-    import regression_r04
-    out['mercenaries'] = {'places': list(mercenaries.PLACES)}
-    out['party_skills'] = {'places': list(party_skills.PLACES), 'resist': dict(party_skills.RESIST),
-                           'skills': {k: [v[0], dict(v[1])] for k, v in party_skills.SKILLS.items()}}
-    out['postgame_compare'] = {'steps': list(postgame_compare.STEPS)}
-    out['unique_skills'] = {'roles': dict(unique_skills.ROLES), 'places': [list(p) for p in unique_skills.PLACES], 'pep': dict(unique_skills.PEP),
-                            'skills': {str(k): {'name': v['name'], 'values': list(v['values'])} for k, v in variant.unique.items()}}
-    out['skill_value_contested'] = {'contested': list(skill_value_contested.CONTESTED), 'not_battle': dict(skill_value_contested.NOT_BATTLE),
-                                    'wins': skill_value_contested.WINS, 'length': skill_value_contested.LENGTH, 'hp': skill_value_contested.HP}
-    out['random_battles'] = {'chain': random_battles.CHAIN, 'ahead': random_battles.AHEAD}
-    out['regression_r04'] = {'substitutes': {k: list(v) for k, v in regression_r04.SUBSTITUTES.items()}}
-    out['boss_rows_check'] = boss_rows_inputs(vanilla, variant)
-    out['design_rows'] = design_rows_inputs(vanilla)
-    out['trials'] = trial_inputs(vanilla)
+    for key in ('win_rates', 'sim_audit', 'skill_value', 'support_chains', 'class_stages_report', 'mercenaries', 'party_skills',
+                'postgame_compare', 'skill_value_contested', 'random_battles', 'regression_r04'):
+        out[key] = config[key]
+    out['unique_skills'] = dict(config['unique_skills'],
+                                skills={str(k): {'name': v['name'], 'values': list(v['values'])} for k, v in variant.unique.items()})
+    out['boss_rows_check'] = boss_rows_inputs(vanilla, variant, config['boss_rows_check'])
+    out['design_rows'] = design_rows_inputs(vanilla, config['design_rows'])
+    out['trials'] = dict(config['trials'], sealbook_names={str(k): v['name'] for k, v in vanilla.sealbooks.items()})
     return out
 
 
-def design_rows_inputs(vanilla):
+def design_rows_inputs(vanilla, config):
     """measures/design_rows.py: the rows it reads of the vanilla workbook, the cells of the maps, what the floors hold that the battle does not
     need (encounter rate, the lowering factors of a zone), and the buff of each kind of meal."""
-    import design_rows
     import item_effect_data
     import map_data
     columns = {'Equipment': ('Upgrade_Rate', 'Category', 'ATK', 'Type_Code', 'Name', 'Enchant_Count'), 'Items': ('Name', 'Buy_Price'),
                'FoodMenu': ('Name', 'Price') + tuple(f'Eff{k}_ID' for k in range(1, 6))}
-    sheets = {name: [{c: row.get(c) for c in cols} for row in design_rows.sheet(name)] for name, cols in columns.items()}
+    sheets = {name: [{c: row.get(c) for c in cols} for row in sheet_rows(TRUTH, name)] for name, cols in columns.items()}
     buffs = {}
     for kind, (skill, level) in item_effect_data.meal_buffs().items():
         found = vanilla.skill_by_id[skill]
         buffs[str(kind)] = {'skill': skill, 'name': found.name, 'level': level, 'turns': found.turns[level - 1]}
-    return {'swaps': dict(design_rows.SWAPS), 'no_magic': design_rows.NO_MAGIC, 'down': list(design_rows.DOWN), 'steps_a_turn': design_rows.STEPS_A_TURN,
+    return {'swaps': config['swaps'], 'no_magic': config['no_magic'], 'down': config['down'], 'steps_a_turn': config['steps_a_turn'],
             'sheets': sheets, 'buffs': buffs,
             'maps': {name: [list(c['slots']) for c in m['cells']] for name, m in map_data.maps().items()},
             'floors': [{'encounter': f['encounter'], 'down': [f['zone_factors']['down_a'], f['zone_factors']['down_b']] if f.get('zone_factors') else None}
                        for f in vanilla.floors]}
 
 
-def trial_inputs(vanilla):
-    """The constants of the trial scripts of measures/ that dtcli plays as commands: their parties, cases and names."""
-    import dance_trial
-    import def_debuff_trial
-    import etoile_dances
-    import etoile_trial
-    import lize_ideas
-    import magic_wall
-    import measure_open_rows
-    import provoke_trial
-    import sage_buffs_trial
-    import tp_items_trial
-    import curve_ablation
-
-    def lists(table):
-        return {k: list(v) for k, v in table.items()}
-
-    return {
-        'dance_trial': {'parties': lists(dance_trial.PARTIES), 'cases': dict(dance_trial.CASES), 'dances': dict(dance_trial.DANCES)},
-        'def_debuff_trial': {'parties': lists(def_debuff_trial.PARTIES), 'cases': list(def_debuff_trial.CASES), 'samba': def_debuff_trial.SAMBA,
-                             'pierce': def_debuff_trial.PIERCE, 'def_down': def_debuff_trial.DEF_DOWN, 'usual': list(def_debuff_trial.USUAL)},
-        'etoile_dances': {'dances': dict(etoile_dances.DANCES), 'pairs': [list(p) for p in etoile_dances.PAIRS]},
-        'etoile_trial': {'dances': dict(etoile_trial.DANCES), 'factors': list(etoile_trial.FACTORS)},
-        'lize_ideas': {'girl': lize_ideas.GIRL, 'ideas': [[label, list(idea) if isinstance(idea, tuple) else idea] for label, idea in lize_ideas.IDEAS]},
-        'magic_wall': {'elements': list(magic_wall.ELEMENTS)},
-        'measure_open_rows': {'weapon': dict(measure_open_rows.WEAPON), 'role': dict(measure_open_rows.ROLE), 'stage': dict(measure_open_rows.STAGE)},
-        'provoke_trial': {'provoke': list(provoke_trial.PROVOKE), 'enmity': provoke_trial.ENMITY, 'vanilla': list(provoke_trial.VANILLA)},
-        'sage_buffs_trial': {'chanted': list(sage_buffs_trial.CHANTED), 'sized': dict(sage_buffs_trial.SIZED), 'extra_rules': list(sage_buffs_trial.EXTRA_RULES)},
-        'tp_items_trial': {'fruit': tp_items_trial.FRUIT, 'trials': lists(tp_items_trial.TRIALS)},
-        'curve_ablation': {'places': list(curve_ablation.PLACES), 'cases': list(curve_ablation.CASES)},
-        'sealbook_names': {str(k): v['name'] for k, v in vanilla.sealbooks.items()},
-    }
-
-
 ENEMY_FIELDS = ('hp', 'atk', 'def', 'int', 'res', 'dex', 'agi', 'res_slash', 'res_stab', 'res_bash', 'res_fire', 'res_water', 'res_wind',
                 'res_earth', 'res_lightning')
 
 
-def boss_rows_inputs(vanilla, variant):
+def boss_rows_inputs(vanilla, variant, config):
     """measures/boss_rows_check.py: the live rows of enemy stats by the checkpoint written in their record, and for each such checkpoint
     the stats of the enemy records on the variant with those rows taken out, as the changes from the variant. The export stops when
     the variant of these rows is not the variant of the snapshot, or when the changes do not give back the data without the rows."""
     import re
-    import boss_rows_check
     from sim import variant as variant_mod
     rows = variant_mod.rows()
     found = {}
     for row in rows:
-        if row['Table'] == 'enemies' and row['Field'] in boss_rows_check.FIELDS:
+        if row['Table'] == 'enemies' and row['Field'] in config['fields']:
             where = re.search(r'\(([CP]\d+a?)\)', str(row['Record']))
             if where:
                 found.setdefault(where.group(1), []).append(row)
@@ -342,7 +303,7 @@ def boss_rows_inputs(vanilla, variant):
             if diff:
                 changes[str(e)] = diff
         without[cid] = changes
-    return {'fields': list(boss_rows_check.FIELDS), 'keys': list(boss_rows_check.KEYS),
+    return {'fields': config['fields'], 'keys': config['keys'],
             'rows': {cid: [{'ID': r['ID'], 'Field': r['Field'], 'New': r['New'], 'Vanilla': r['Vanilla']} for r in mine] for cid, mine in found.items()},
             'without': without}
 

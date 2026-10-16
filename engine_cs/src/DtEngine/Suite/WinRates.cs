@@ -38,7 +38,7 @@ namespace DtEngine.Suite
         public static void Report(Ctx c)
         {
             var parties = Parties(c);
-            double flag = c.In("win_rates").D("flag");
+            double flag = c.In("win_rates").D("flag"), lowBelow = c.In("win_rates").D("low_below");
             var cells = ((List<object>)c.ReadJson(c.Path("measures", "win_rates.json"))).Cast<Obj>().ToList();
             var at = new Dictionary<(string, string, string), Obj>();
             foreach (var cell in cells) at[(cell.S("party"), cell.S("id"), cell.S("side"))] = cell;
@@ -72,11 +72,11 @@ namespace DtEngine.Suite
             foreach (var p in parties)
             {
                 var rows = summary[p.name];
-                var low = rows.Where(r => r.a < 0.5).ToList();
+                var low = rows.Where(r => r.a < lowBelow).ToList();
                 var lengths = rows.Where(r => Py.Truthy(r.ta) && Py.Truthy(r.tb)).Select(r => 1 - r.tb.Value / r.ta.Value).ToList();
                 lines.Add("| " + p.name + " | " + (p.counted ? "yes" : "no") + " | " + Py.Pct(Py.Sum(rows.Select(r => r.a)) / rows.Count, 0) + " | "
                           + Py.Pct(Py.Sum(rows.Select(r => r.b)) / rows.Count, 0) + " | " + rows.Count(r => r.b - r.a >= flag) + " | " + low.Count + " | "
-                          + low.Count(r => r.b >= 0.5) + " | " + Py.Pct(Py.Sum(lengths) / lengths.Count, 0, true) + " |");
+                          + low.Count(r => r.b >= lowBelow) + " | " + Py.Pct(Py.Sum(lengths) / lengths.Count, 0, true) + " |");
             }
             Func<int, double> se = n => Math.Sqrt(2 * 0.25 / n);
             lines.Add("");

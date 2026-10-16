@@ -1,0 +1,4 @@
+# Text files are stored and checked out with LF line ends on every machine; workbooks stay binary.
+* text=auto eol=lf
+*.xlsx binary
+*.ps1 text eol=crlf

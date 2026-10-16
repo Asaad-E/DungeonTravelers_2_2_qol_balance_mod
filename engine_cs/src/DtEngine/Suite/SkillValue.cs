@@ -9,19 +9,20 @@ namespace DtEngine.Suite
     /// (docs/generated/SKILL_AILMENTS.md).</summary>
     public static class SkillValue
     {
-        static readonly int[] Heals = { 103, 9, 104, 128, 130, 131, 132, 133 };
-        static readonly int[] Attacking = { 0, 1, 8, 12, 138, 140, 141, 142, 434, 435 };
 
         public static bool IsAilment(int effect) => Array.IndexOf(Battle.AILMENT_IDS, effect) >= 0;
 
         /// <summary>(condition, action) of the rule that makes a member use the skill where it serves.</summary>
-        public static (string cond, string act) RuleFor(Skill skill)
+        public static (string cond, string act) RuleFor(Ctx c, Skill skill)
         {
             var effects = skill.Effects;
-            if (effects.Any(e => e.Id == 105)) return ("ally_down", "revive");
-            if (effects.Any(e => e.Id == 106 || e.Id == 235)) return ("ally_ailing", "cure");
-            if (effects.Any(e => Array.IndexOf(Heals, e.Id) >= 0)) return ("ally_hp_below:0.7", "heal:0.7");
-            if (effects.Any(e => e.Id == 129 || e.Id == 426)) return ("ally_tp_below:0.5", "tp:0.5");
+            // the rules of measure_config.json (skill_value, rules), in order: the first whose effects the skill has
+            foreach (var r in c.In("skill_value").A("rules"))
+            {
+                var rule = (Obj)r;
+                var ids = new HashSet<int>(rule.A("effects").Select(x => (int)Py.Num(x)));
+                if (effects.Any(e => ids.Contains(e.Id))) return (rule.S("condition"), rule.S("action"));
+            }
             var ailment = effects.FirstOrDefault(e => IsAilment(e.Id) && e.Kind != 2);
             if (ailment != null) return ("always", "ailment:" + ailment.Id);
             var status = effects.FirstOrDefault(e => (e.Kind == 4 || e.Kind == 5) && !IsAilment(e.Id));
@@ -44,23 +45,24 @@ namespace DtEngine.Suite
             return null;
         }
 
-        public static List<Skill> Candidates(GameData data)
+        public static List<Skill> Candidates(Ctx c, GameData data)
         {
+            var attackingEffects = new HashSet<int>(c.In("skill_value").A("attacking").Select(x => (int)Py.Num(x)));
             var found = new List<Skill>();
             foreach (var s in data.SkillList.OrderBy(x => x.Id))
             {
                 if (!(s.Category == "Technique" || s.Category == "Magic") || s.Classes.Length == 0 || !Policy.UsableInBattle(s)) continue;
-                bool attacking = s.Effects.Any(e => Array.IndexOf(Attacking, e.Id) >= 0 && (e.Kind == 2 || e.Kind == 4))
+                bool attacking = s.Effects.Any(e => attackingEffects.Contains(e.Id) && (e.Kind == 2 || e.Kind == 4))
                                  || s.Effects.Any(e => Array.IndexOf(Battle.RANDOM_MOVES, e.Id) >= 0);
                 if (!attacking) found.Add(s);
             }
             return found;
         }
 
-        public static List<Skill> Hostile(GameData data)
+        public static List<Skill> Hostile(Ctx c, GameData data)
         {
             var found = new List<Skill>();
-            foreach (var s in Candidates(data))
+            foreach (var s in Candidates(c, data))
             {
                 bool enemy = s.Target >= T.SINGLE && s.Target <= T.ALL;
                 bool ailment = s.Effects.Any(e => IsAilment(e.Id) && e.Kind != 2);
@@ -81,11 +83,11 @@ namespace DtEngine.Suite
             int levels = skill.Levels != 0 ? skill.Levels : 1;
             var extra = new Dictionary<int, int> { { skill.Id, use ? levels : 0 } };
             var zones = sc.WalkedZones(cp.Str("Floor"), level);
-            Obj enemies = chain > 0 && zones.Count > 0 ? Jb.Chain(zones.Select(z => z.Name), 7, chain) : null;
+            Obj enemies = chain > 0 && zones.Count > 0 ? Jb.Chain(zones.Select(z => z.Name), (int)c.In("skill_value").D("chain_seed"), chain) : null;
             List<object> rows = null;
             if (use)
             {
-                var (cond, act) = rule ?? RuleFor(skill);
+                var (cond, act) = rule ?? RuleFor(c, skill);
                 var saved = c.Setup.Policies;
                 var mine = saved.Where(r => r.Str("Role") == role).OrderBy(r => Py.Num(r.Get("Order"))).ToList();
                 object cut = null;
@@ -138,7 +140,7 @@ namespace DtEngine.Suite
             string dir = c.Path("docs", "generated", "skill_value");
             var data = c.Data("variant");
             int runs = c.SetInt("check_runs");
-            var every = Candidates(data);
+            var every = Candidates(c, data);
             int count = c.SetInt("skill_value_checkpoints");
             var plan = new List<(Skill skill, string role, Obj st, List<string> cids)>();
             foreach (var skill in every)
@@ -162,7 +164,7 @@ namespace DtEngine.Suite
                     var without = Figures(done[at++]); var withIt = Figures(done[at++]);
                     cells.Add(new Obj { { "checkpoint", cid }, { "without", without }, { "with", withIt } });
                 }
-                var (cond, act) = RuleFor(p.skill);
+                var (cond, act) = RuleFor(c, p.skill);
                 rows.Add(new Obj { { "skill", p.skill.Name }, { "role", p.role }, { "stage", p.st.S("Stage") }, { "rule", cond + " / " + act }, { "cells", cells } });
             }
             Directory.CreateDirectory(dir);
@@ -177,7 +179,7 @@ namespace DtEngine.Suite
             int runs = c.SetInt("check_runs");
             int chain = c.SetInt("ailment_chain");
             var plan = new List<(Skill skill, string role, Obj st, List<string> cids)>();
-            foreach (var skill in Hostile(data))
+            foreach (var skill in Hostile(c, data))
             {
                 var found = Place(c, data, skill);
                 if (found == null) continue;
@@ -199,7 +201,7 @@ namespace DtEngine.Suite
                         var without = Figures(done[at++]); var withIt = Figures(done[at++]);
                         cells.Add(new Obj { { "checkpoint", cid }, { "context", context }, { "without", without }, { "with", withIt } });
                     }
-                var (cond, act) = RuleFor(p.skill);
+                var (cond, act) = RuleFor(c, p.skill);
                 rows.Add(new Obj { { "skill", p.skill.Name }, { "role", p.role }, { "stage", p.st.S("Stage") }, { "rule", cond + " / " + act }, { "cells", cells } });
             }
             Directory.CreateDirectory(dir);

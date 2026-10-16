@@ -1,0 +1,766 @@
+{
+ "about": "The configuration of the measures of the C# suite (engine_cs/src/DtEngine/Suite), read by tools/engine_export.py into the snapshot. Taken on 2026-10-16 from the constants of the Python scripts of measures/ and tools/ (kept there as the historical reference); change it here.",
+ "win_rates": {
+  "parties": {
+   "Meta": [
+    "valkyrie; dark lord; treasure hunter; papillon; diva",
+    200,
+    true
+   ],
+   "Dual-Support": [
+    "tank; dark lord; shooter; healer; diva",
+    200,
+    true
+   ],
+   "Mage-Heavy": [
+    "tank; mage; sage; healer; maid",
+    200,
+    true
+   ],
+   "Juggernaut": [
+    "tank; attacker; dark lord; kunoichi; etoile",
+    100,
+    false
+   ],
+   "Juggernaut-Plus": [
+    "tank; attacker; dark lord; kunoichi; diva",
+    100,
+    false
+   ],
+   "Anti-Meta": [
+    "magical princess; mistress; soul summoner; joker; dolls",
+    100,
+    false
+   ],
+   "Anti-Meta-Plus": [
+    "magical princess; mistress; soul summoner; dolls; diva",
+    100,
+    false
+   ]
+  },
+  "flag": 0.15,
+  "low_below": 0.5
+ },
+ "sim_audit": {
+  "tiers": [
+   [
+    "Base class",
+    14,
+    "C11"
+   ],
+   [
+    "Lv15 class",
+    29,
+    "C18"
+   ],
+   [
+    "Lv30 class",
+    62,
+    "C38"
+   ]
+  ],
+  "late": [
+   90,
+   "P24"
+  ],
+  "seeds": 6,
+  "enemy": 510,
+  "tries": 30,
+  "fallback": "papillon",
+  "outside": [
+   17,
+   18,
+   20,
+   22,
+   107,
+   108,
+   218,
+   269,
+   270,
+   271,
+   272,
+   273,
+   282,
+   306,
+   428,
+   433
+  ],
+  "damage_effects": [
+   8,
+   12,
+   138,
+   140,
+   141,
+   142,
+   434,
+   435
+  ],
+  "situational": [
+   {
+    "effects": [
+     104,
+     105
+    ],
+    "why": "situational: a revive"
+   },
+   {
+    "effects": [
+     103,
+     9,
+     128,
+     130,
+     131,
+     132,
+     133
+    ],
+    "why": "situational: a heal (another heal or the songs come first)"
+   },
+   {
+    "effects": [
+     106,
+     235
+    ],
+    "why": "situational: a cure"
+   },
+   {
+    "effects": [
+     129,
+     426
+    ],
+    "why": "situational: TP"
+   },
+   {
+    "effects": [
+     74
+    ],
+    "why": "situational: a dispel"
+   }
+  ]
+ },
+ "skill_value": {
+  "rules": [
+   {
+    "effects": [
+     105
+    ],
+    "condition": "ally_down",
+    "action": "revive"
+   },
+   {
+    "effects": [
+     106,
+     235
+    ],
+    "condition": "ally_ailing",
+    "action": "cure"
+   },
+   {
+    "effects": [
+     103,
+     9,
+     104,
+     128,
+     130,
+     131,
+     132,
+     133
+    ],
+    "condition": "ally_hp_below:0.7",
+    "action": "heal:0.7"
+   },
+   {
+    "effects": [
+     129,
+     426
+    ],
+    "condition": "ally_tp_below:0.5",
+    "action": "tp:0.5"
+   }
+  ],
+  "attacking": [
+   0,
+   1,
+   8,
+   12,
+   138,
+   140,
+   141,
+   142,
+   434,
+   435
+  ],
+  "chain_seed": 7
+ },
+ "support_chains": {
+  "chain_seed": 7
+ },
+ "class_stages_report": {
+  "hard_below": 0.5
+ },
+ "mercenaries": {
+  "places": [
+   "C36",
+   "C40",
+   "P24"
+  ]
+ },
+ "party_skills": {
+  "places": [
+   "C36",
+   "C38",
+   "C40",
+   "P24"
+  ],
+  "resist": {
+   "slash": 0,
+   "stab": 1,
+   "bash": 2,
+   "fire": 3,
+   "water": 4,
+   "wind": 5,
+   "earth": 6,
+   "lightning": 7
+  },
+  "skills": {
+   "Full of Guts": [
+    4,
+    {
+     "hp": 100
+    }
+   ],
+   "Vigor Trio": [
+    3,
+    {
+     "atk": 32
+    }
+   ],
+   "Kindred Spirits": [
+    4,
+    {
+     "tp": 50,
+     "fire": 20
+    }
+   ],
+   "Veteran Soldiers": [
+    2,
+    {
+     "slash": 25
+    }
+   ],
+   "Attentive": [
+    3,
+    {
+     "int": 20
+    }
+   ],
+   "Libra Guard": [
+    3,
+    {
+     "def": 25
+    }
+   ],
+   "Vagabonds": [
+    3,
+    {
+     "agi": 20
+    }
+   ],
+   "Beyond Human": [
+    3,
+    {
+     "stab": 20
+    }
+   ],
+   "NegaPosi": [
+    4,
+    {
+     "hp": 50,
+     "tp": 50
+    }
+   ],
+   "Dark and Light": [
+    3,
+    {
+     "res": 20
+    }
+   ],
+   "Natural Klutzes": [
+    2,
+    {
+     "bash": 20
+    }
+   ],
+   "Eccentrics": [
+    3,
+    {
+     "dex": 32
+    }
+   ],
+   "Flawless Poise": [
+    3,
+    {
+     "water": 20,
+     "earth": 20
+    }
+   ],
+   "Celebrities": [
+    3,
+    {
+     "lightning": 50
+    }
+   ],
+   "Sales Experience": [
+    4,
+    {
+     "wind": 20,
+     "agi": 10
+    }
+   ],
+   "Royal Squadron": [
+    4,
+    {
+     "bash": 10,
+     "earth": 20
+    }
+   ],
+   "Graceful Agers": [
+    4,
+    {
+     "lightning": 20,
+     "hp": 50
+    }
+   ],
+   "Mission Ongoing": [
+    4,
+    {
+     "fire": 10,
+     "atk": 20
+    }
+   ],
+   "Board Members": [
+    3,
+    {
+     "dex": 20,
+     "agi": 20
+    }
+   ],
+   "The New Magi": [
+    3,
+    {
+     "tp": 50,
+     "fire": 20
+    }
+   ]
+  }
+ },
+ "postgame_compare": {
+  "steps": [
+   0,
+   10,
+   20,
+   30,
+   40,
+   50
+  ],
+  "flag": 0.15
+ },
+ "unique_skills": {
+  "roles": {
+   "Luco": "dark lord",
+   "Yae": "dark lord",
+   "Grishna": "attacker",
+   "Alisia": "attacker",
+   "Siena": "magical princess",
+   "Irena": "mage",
+   "Eltricia": "magical princess",
+   "Fiora": "healer",
+   "Melvy": "magical princess",
+   "Tsurara": "treasure hunter",
+   "Monica": "shooter",
+   "Souffle": "treasure hunter",
+   "Yuni": "diva",
+   "Conette": "mistress",
+   "Ist": "etoile",
+   "Lizerietta": "papillon",
+   "Mefmera": "papillon",
+   "Lilian": "soul summoner"
+  },
+  "places": [
+   [
+    "C36",
+    0
+   ],
+   [
+    "C38",
+    0
+   ],
+   [
+    "C40",
+    0
+   ],
+   [
+    "P24",
+    0
+   ],
+   [
+    "P27",
+    50
+   ]
+  ],
+  "pep": {
+   "Alisia": 130.0
+  }
+ },
+ "skill_value_contested": {
+  "contested": [
+   "C30",
+   "C38",
+   "C40",
+   "P24"
+  ],
+  "not_battle": {
+   "Gold Steal": "gold, not the fight",
+   "Item Steal": "drops, not the fight",
+   "Experience Paean": "EXP, not the fight"
+  },
+  "wins": 0.08,
+  "length": 0.03,
+  "hp": 0.03
+ },
+ "random_battles": {
+  "chain": 8,
+  "ahead": 12
+ },
+ "regression_r04": {
+  "substitutes": {
+   "diva": [
+    "etoile",
+    "mistress",
+    "healer",
+    "sage"
+   ],
+   "maid": [
+    "etoile",
+    "mistress",
+    "healer",
+    "sage"
+   ],
+   "tank": [
+    "attacker",
+    "dark lord",
+    "kunoichi"
+   ],
+   "valkyrie": [
+    "attacker",
+    "dark lord",
+    "kunoichi"
+   ],
+   "dark lord": [
+    "attacker",
+    "shooter",
+    "kunoichi"
+   ],
+   "healer": [
+    "sage",
+    "diva",
+    "etoile"
+   ],
+   "treasure hunter": [
+    "shooter",
+    "kunoichi",
+    "attacker"
+   ],
+   "papillon": [
+    "joker",
+    "kunoichi",
+    "attacker"
+   ]
+  }
+ },
+ "boss_rows_check": {
+  "fields": [
+   "hp",
+   "atk",
+   "def",
+   "int"
+  ],
+  "keys": [
+   "won",
+   "time",
+   "lowest_hp",
+   "pressure"
+  ]
+ },
+ "design_rows": {
+  "swaps": {
+   "Meta": "valkyrie; dark lord; treasure hunter; papillon; diva",
+   "Meta, an attacker in her place": "valkyrie; dark lord; attacker; papillon; diva",
+   "Dual-Support": "tank; dark lord; shooter; healer; diva",
+   "Dual-Support, she in the place of the shooter": "tank; dark lord; treasure hunter; healer; diva"
+  },
+  "no_magic": 2,
+  "down": [
+   5,
+   6
+  ],
+  "steps_a_turn": 5
+ },
+ "trials": {
+  "dance_trial": {
+   "parties": {
+    "Juggernaut": [
+     "tank",
+     "attacker",
+     "dark lord",
+     "kunoichi",
+     "etoile"
+    ],
+    "Physical, Diva": [
+     "tank",
+     "attacker",
+     "dark lord",
+     "etoile",
+     "diva"
+    ]
+   },
+   "cases": {
+    "game": null,
+    "variant": 1.0,
+    "variant, dances halfway": 0.5,
+    "variant, dances of the game": 0.0
+   },
+   "dances": {
+    "Fascinating Waltz": 195,
+    "Dumbing Mazurka": 201
+   }
+  },
+  "def_debuff_trial": {
+   "parties": {
+    "Physical": [
+     "tank",
+     "attacker",
+     "dark lord",
+     "etoile",
+     "diva"
+    ],
+    "Meta, Etoile for Papillon": [
+     "valkyrie",
+     "dark lord",
+     "treasure hunter",
+     "etoile",
+     "diva"
+    ]
+   },
+   "cases": [
+    "game, usual dances",
+    "game, Samba",
+    "variant, usual dances",
+    "variant, Samba",
+    "variant, Samba of the game",
+    "variant, Samba + Armor Penetration"
+   ],
+   "samba": "Alluring Samba",
+   "pierce": "Armor Penetration",
+   "def_down": 196,
+   "usual": [
+    "status:195",
+    "status:199"
+   ]
+  },
+  "samba_trial": {
+   "second": [
+    "status:199",
+    "status:201"
+   ]
+  },
+  "etoile_dances": {
+   "dances": {
+    "Waltz": 195,
+    "Samba": 196,
+    "Tango": 197,
+    "Polka": 198,
+    "Salsa": 199,
+    "Mazurka": 201
+   },
+   "pairs": [
+    [
+     "Waltz",
+     "Mazurka"
+    ],
+    [
+     "Waltz",
+     "Salsa"
+    ],
+    [
+     "Salsa",
+     "Mazurka"
+    ],
+    [
+     "Samba",
+     "Waltz"
+    ],
+    [
+     "Samba",
+     "Mazurka"
+    ],
+    [
+     "Tango",
+     "Waltz"
+    ],
+    [
+     "Polka",
+     "Waltz"
+    ],
+    [
+     "Samba",
+     "Tango"
+    ]
+   ]
+  },
+  "etoile_trial": {
+   "dances": {
+    "Fascinating Waltz": 195,
+    "Dumbing Mazurka": 201
+   },
+   "factors": [
+    1.0,
+    1.5
+   ]
+  },
+  "lize_ideas": {
+   "girl": "Lizerietta",
+   "ideas": [
+    [
+     "no unique skill",
+     null
+    ],
+    [
+     "as built",
+     "own"
+    ],
+    [
+     "survives a killing blow 0.20",
+     [
+      254,
+      0.2
+     ]
+    ],
+    [
+     "survives a killing blow 0.35",
+     [
+      254,
+      0.35
+     ]
+    ],
+    [
+     "survives a killing blow 0.50",
+     [
+      254,
+      0.5
+     ]
+    ]
+   ]
+  },
+  "magic_wall": {
+   "elements": [
+    "fire",
+    "water",
+    "wind",
+    "earth",
+    "lightning"
+   ]
+  },
+  "measure_open_rows": {
+   "weapon": {
+    "Bible Thump": "Tome"
+   },
+   "role": {
+    "Support Shot": "shooter"
+   },
+   "stage": {
+    "Support Shot": "advanced"
+   }
+  },
+  "provoke_trial": {
+   "provoke": [
+    "Technique",
+    0
+   ],
+   "enmity": 170,
+   "vanilla": [
+    250,
+    250,
+    250,
+    250,
+    250
+   ]
+  },
+  "sage_buffs_trial": {
+   "chanted": [
+    "Circle Brave",
+    "Circle Protect",
+    "Sun Veil",
+    "Amplify",
+    "Accelerator"
+   ],
+   "sized": {
+    "Circle Brave": 161,
+    "Circle Protect": 162,
+    "Sun Veil": 163
+   },
+   "extra_rules": [
+    "status:163",
+    "status:172",
+    "status:168"
+   ]
+  },
+  "tp_items_trial": {
+   "fruit": 20,
+   "trials": {
+    "8 fruit of 60 TP (the build, the bag of the sheets)": [
+     8,
+     0.15,
+     60
+    ],
+    "16 fruit of 60 TP": [
+     16,
+     0.15,
+     60
+    ],
+    "24 fruit of 60 TP": [
+     24,
+     0.15,
+     60
+    ],
+    "24 fruit of 50 TP (before the raise)": [
+     24,
+     0.15,
+     50
+    ]
+   }
+  },
+  "curve_ablation": {
+   "places": [
+    "C12",
+    "C14",
+    "C15",
+    "C17",
+    "C20",
+    "C28",
+    "C39",
+    "P24"
+   ],
+   "cases": [
+    "now",
+    "then",
+    "samba",
+    "third eye",
+    "lize",
+    "arcane shield",
+    "alter fate",
+    "tranquil song",
+    "interruption"
+   ]
+  }
+ }
+}
