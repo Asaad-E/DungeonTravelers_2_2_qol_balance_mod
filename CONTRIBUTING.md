@@ -48,7 +48,7 @@ Nothing works without it, including the tests.
 | `data_tables/` | Every value, rule and line of text of the mod, as spreadsheets. Also what is particular to this game: `game_profile.json` (folder and file names) and `record_layouts.json` (where each field sits in each record) |
 | `tools/` | Builders, readers of the game files and of the executable, measures |
 | `engine_cs/` | The battle engine and every measure that plays battles, in C# (`engine_cs/README.md`) |
-| `sim/` | The Python battle simulator, kept as the historical reference of the engine; not used by any measure |
+| `sim/` | The Python battle simulator the engine was proven against; frozen since 2026-10-16 (`sim/README.md`), not used by any measure |
 | `tests/` | The test suite |
 | `installer/` | What goes into the player zips: the installer script and the player READMEs |
 | `measures/` | Measures and readings that a spreadsheet row or a document cites |
@@ -125,7 +125,8 @@ A change that affects difficulty should be measured before it is proposed:
 battles runs in C#; what a measure is configured with (parties, places, thresholds) is in
 `data_tables/measure_config.json` and the workbooks. The Python simulator of `sim/` and the Python measure scripts are
 kept only as the historical reference the engine was proven against (`engine_cs/parity/`, value by value): do not use
-them to measure.
+them to measure. A change of the engine's code is checked against its own recorded traces: `python tools/engine_golden.py
+check` (part of `full_suite.py`); after a change meant to move results, `record` again and say so in the commit.
 
 The curve runs 40 battles per boss. Bosses that sit on the edge of a window can move in or out by chance; before
 blaming a change, run those bosses again with more battles (`dtcli curve-recheck "C15;C36" 400`).

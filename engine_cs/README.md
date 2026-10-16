@@ -1,5 +1,8 @@
 # engine_cs: the battle engine in C#
 
+Since 2026-10-16 `sim/` is frozen and the engine is the reference: a change of its code is checked with `python tools/engine_golden.py
+check` (its own recorded traces, about 12,700 jobs in seconds); the parity tools below are the record of how it was proven equal to `sim/`.
+
 A 1-to-1 port of the battle side of `sim/` (battle loop, party policy, enemy AI, formulas, units, the building of a party and
 its enemies, the guest allies, the runs of a checkpoint and the measures around a battle). It reads one snapshot of the data
 written by Python (`tools/engine_export.py`) and holds no value of the mod. `sim/` stays the reference: the parity tests play the

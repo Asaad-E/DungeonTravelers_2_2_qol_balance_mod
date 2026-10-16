@@ -146,21 +146,21 @@ namespace DtEngine.Tests
                 }
         }
 
-        [Fact]
+        [Fact(Skip = "sim/ is frozen since 2026-10-16, after the engine was proven equal to it; the engine is checked against its own recorded traces: python tools/engine_golden.py check")]
         public void GuestAlliesAndSummonsMatchPython()
         {
             string output = Python("engine_cs/parity/run_parity.py directed --only guests,summons --workers 4 --threads 2");
             Assert.Contains(" 0 differences", output);
         }
 
-        [Fact]
+        [Fact(Skip = "sim/ is frozen since 2026-10-16, after the engine was proven equal to it; the engine is checked against its own recorded traces: python tools/engine_golden.py check")]
         public void MeasuresMatchPython()
         {
             string output = Python("engine_cs/parity/run_measures.py --count 6 --workers 4 --threads 2");
             Assert.Contains(" 0 differences", output);
         }
 
-        [Fact]
+        [Fact(Skip = "sim/ is frozen since 2026-10-16, after the engine was proven equal to it; the engine is checked against its own recorded traces: python tools/engine_golden.py check")]
         public void TracesOfTheFixedCasesMatchPython()
         {
             // the regression cases and one checkpoint of each side, compared line by line by the Python driver
