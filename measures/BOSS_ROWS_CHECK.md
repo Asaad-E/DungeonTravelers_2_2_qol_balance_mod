@@ -9,10 +9,10 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 | C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.4 / 95% | 100% / 1.4 / 95% | within | 100% / 1.4 / 96% | pressure | needed |
 | C21 | hp x1.30 | 100% / 26.2 / 66% | 100% / 24.2 / 66% | within | 100% / 10.2 / 67% | time | needed |
 | C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.3 / 65% | 100% / 5.3 / 67% | within | 100% / 4.4 / 68% | time | needed |
-| C28 | hp x1.10 | 94% / 12.6 / 36% | 96% / 9.8 / 41% | within | 96% / 8.7 / 44% | time | needed |
-| C30 | atk x0.92; hp x1.26; int x0.92 | 98% / 38.9 / 49% | 98% / 39.6 / 54% | within | 99% / 27.3 / 54% | time | needed |
-| C31 | hp x1.30 | 100% / 17.9 / 73% | 100% / 16.7 / 74% | within | 100% / 12.2 / 76% | time | needed |
-| C34 | def x1.15; hp x1.15 | 100% / 42.0 / 60% | 100% / 34.4 / 60% | within | 100% / 22.4 / 64% | time | needed |
-| C36 | atk x1.20 | 90% / 17.1 / 0% | 92% / 14.3 / 1% | within | 98% / 13.3 / 2% | within | not needed: within without them |
-| C38 | hp x1.15 | 64% / 18.3 / 28% | 90% / 12.6 / 49% | won, time, lowest_hp | 94% / 11.0 / 53% | won, time, lowest_hp | no better with them |
-| C40 | hp x1.20 | 88% / 32.2 / 32% | 96% / 29.7 / 40% | within | 96% / 23.0 / 42% | time | needed |
+| C28 | hp x1.10 | 88% / 11.8 / 33% | 95% / 9.3 / 43% | within | 94% / 8.3 / 44% | time, lowest_hp | needed |
+| C30 | atk x0.92; hp x1.26; int x0.92 | 99% / 35.2 / 51% | 100% / 36.5 / 55% | within | 100% / 23.9 / 55% | time | needed |
+| C31 | hp x1.30 | 100% / 17.1 / 73% | 100% / 16.1 / 75% | within | 100% / 11.7 / 76% | time | needed |
+| C34 | def x1.15; hp x1.15 | 100% / 42.7 / 60% | 100% / 37.3 / 61% | within | 100% / 22.1 / 65% | time | needed |
+| C36 | atk x1.20 | 94% / 15.8 / 2% | 94% / 13.7 / 1% | within | 95% / 12.9 / 3% | within | not needed: within without them |
+| C38 | hp x1.15 | 55% / 16.3 / 26% | 92% / 12.0 / 50% | won, time, lowest_hp | 93% / 10.4 / 53% | won, time, lowest_hp | no better with them |
+| C40 | hp x1.20 | 93% / 29.7 / 34% | 98% / 28.0 / 40% | within | 98% / 21.4 / 44% | time | needed |

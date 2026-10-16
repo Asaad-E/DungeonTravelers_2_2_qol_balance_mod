@@ -1,6 +1,6 @@
 ## passives
 
-51 act, 14 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
+53 act, 12 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
 
 | Passive | Effects | Tested as | Result |
 |---|---|---|---|
@@ -65,12 +65,12 @@
 | 299 Song Mastery | 279 | maid (Conette, 29, C18) | acts |
 | 300 Dance Mastery | 280 | etoile (Ist, 29, C18) | acts |
 | 301 Doll Mastery | 286 | dolls (Lizerietta, 29, C18) | acts |
-| 302 Barrage | 251 | kunoichi (Tsurara, 62, C38) | no effect seen |
+| 302 Barrage | 251 | kunoichi (Tsurara, 62, C38) | acts |
 | 303 Fast Talk | 281 | maid (Conette, 62, C38) | acts |
 | 304 Negotiate | 282 | - | outside battle |
 | 305 Magnificent Steps | 283 | etoile (Ist, 62, C38) | acts |
 | 306 Elegant Dancing | 285 | dolls (Lizerietta, 62, C38) | acts |
-| 307 Triple Joker | 315 | joker (Lizerietta, 62, C38) | no effect seen |
+| 307 Triple Joker | 315 | joker (Lizerietta, 62, C38) | acts |
 | 308 Counter Whip | 303 | mistress (Conette, 62, C38) | acts |
 | 309 First Grid | 300 | dark lord (Yae, 62, C38) | acts |
 | 310 Critical Magic | 301 | mage (Melvy, 29, C18) | acts |
