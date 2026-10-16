@@ -69,7 +69,8 @@ These are checked by the build or the tests wherever possible.
 3. **On-screen text never speaks from outside the game.** No sources, caveats or notes to the reader in anything the
    player sees. Use the game's own terms.
 4. **Text must match the data.** The build compares every number in a text with the built file and fails if they
-   differ. A box has at most 3 lines of 85 characters.
+   differ. A box has at most 3 lines of 85 characters, counted with single spaces around
+   each `|`; the box then widens the separators to three spaces, so a line may hold up to some 95 characters.
 5. **Nothing about the game's files is hard-coded either.** A folder name or the offset of a field goes in
    `game_profile.json` or `record_layouts.json`, read through `tools/game_profile.py`.
 6. **Prefer plain value changes.** Changing a number inside an existing record is safe. Changing the executable is
