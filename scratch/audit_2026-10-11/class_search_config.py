@@ -30,6 +30,17 @@ SECTION = {
     'vanilla_length': 1.5,
     'drop': 0.10,
     'fast_share': 0.05,   # the fastest share of the parties of a target, for the class table
+    # named searches: dtcli class-search preset=NAME [more arguments, which win]
+    'presets': {
+        'dolls': {'about': 'parties of two Soul Summoners or more at the bosses where the doll line was fastest',
+                  'stage': 'final', 'cids': 'C34,C38', 'context': 'boss', 'with': 'Soul Summoner*2'},
+        'dark_lord': {'about': 'parties with a Dark Lord, the class Power Charge serves', 'stage': 'final', 'cids': 'C34,C38',
+                      'context': 'boss', 'with': 'Dark Lord'},
+        'no_maid_line': {'about': 'parties without a Maid-line member at the long bosses (the TP of a healer runs out)',
+                         'stage': 'final', 'cids': 'C30,C34,C38,C40', 'context': 'boss', 'without': 'Diva+Mistress+Etoile'},
+        'quick': {'about': 'a look at every boss and floor of the final classes: 1,000 parties a target, fewer runs',
+                  'stage': 'final', 'sample': '1000', 'scan': '10', 'confirm': '100'},
+    },
 }
 
 with open(PATH, encoding='utf-8') as f:

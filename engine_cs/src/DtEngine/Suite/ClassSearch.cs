@@ -5,8 +5,10 @@ using System.Linq;
 
 namespace DtEngine.Suite
 {
-    /// <summary>dtcli class-search STAGE [scan=N] [confirm=N] [cids=C34,C38] [context=boss|random|all] [with=Class*2+Class] [compare=vanilla|variant]
-    /// [enemy=1036.hp=8800,1037.def=201] [trial=Skill:e191*1.1;Skill:turns+1] [kit=N] [out=NAME]: every party of the classes of a stage (a class may
+    /// <summary>dtcli class-search [STAGE] [preset=NAME] [scan=N] [confirm=N] [cids=C34,C38] [context=boss|random|all] [with=Class*2+Class]
+    /// [without=Class+Class] [sample=N] [compare=vanilla|variant] [enemy=1036.hp=8800,1037.def=201] [trial=Skill:e191*1.1;Skill:turns+1] [kit=N]
+    /// [out=NAME]: preset= takes the arguments of a preset of the configuration (presets), the others given override them; without= leaves out
+    /// the parties that hold any of those classes; sample= plays N parties of each target drawn at random (seed of the configuration). Every party of the classes of a stage (a class may
     /// repeat; no more members of a line than characters of that line have joined; with= keeps the parties that hold those classes), played on two
     /// sides with the same seeds, A and B: vanilla and the variant, or with compare=variant the variant and the variant with the trial values (enemy=
     /// stats of enemies and trial= values of skills go to B; kit= is the bag of both). At every story boss of the stage at its reference level and on a
@@ -43,6 +45,9 @@ namespace DtEngine.Suite
             public int? Scan, Confirm, Kit;
             public HashSet<string> Cids;
             public List<(string cls, int count)> With = new List<(string, int)>();
+            public List<string> Without = new List<string>();
+            public int? Sample;
+            public string Preset = "";
             public string SideA, SideB;
             public Obj EnemyChanges = new Obj();
             public string LabelA => Compare == "variant" ? "variant" : "vanilla";
@@ -101,12 +106,31 @@ namespace DtEngine.Suite
 
         static Plan Parse(Ctx c, Obj cfg, string[] args)
         {
-            var p = new Plan { Stage = args.Length > 0 && !args[0].Contains('=') ? args[0] : cfg.A("stages").Cast<Obj>().First().S("name") };
-            foreach (var arg in args.Skip(args.Length > 0 && !args[0].Contains('=') ? 1 : 0))
+            // the arguments as key=value pairs: those of the preset first, then the ones given (a later key wins)
+            var given = new List<(string key, string value)>();
+            string stage = args.Length > 0 && !args[0].Contains('=') ? args[0] : null;
+            foreach (var arg in args.Skip(stage != null ? 1 : 0))
             {
                 int eq = arg.IndexOf('=');
                 if (eq <= 0) throw new InvalidOperationException("argument '" + arg + "': write it as key=value");
-                string key = arg.Substring(0, eq).Trim(), value = arg.Substring(eq + 1).Trim();
+                given.Add((arg.Substring(0, eq).Trim(), arg.Substring(eq + 1).Trim()));
+            }
+            var pairs = new List<(string key, string value)>();
+            var preset = given.Where(g => g.key == "preset").Select(g => g.value).LastOrDefault();
+            if (preset != null)
+            {
+                var presets = cfg.O("presets");
+                if (!presets.Has(preset)) throw new InvalidOperationException("no preset " + preset + " (presets: " + string.Join(", ", presets.Keys) + ")");
+                foreach (var kv in (Obj)presets.Get(preset))
+                {
+                    if (kv.Key == "stage") stage = stage ?? Py.Str(kv.Value);
+                    else if (kv.Key != "about") pairs.Add((kv.Key, Py.Str(kv.Value)));
+                }
+            }
+            pairs.AddRange(given.Where(g => g.key != "preset"));
+            var p = new Plan { Stage = stage ?? cfg.A("stages").Cast<Obj>().First().S("name"), Preset = preset ?? "" };
+            foreach (var (key, value) in pairs)
+            {
                 switch (key)
                 {
                     case "scan": p.Scan = int.Parse(value); break;
@@ -118,6 +142,8 @@ namespace DtEngine.Suite
                     case "trial": p.Trial = value; break;
                     case "kit": p.Kit = int.Parse(value); break;
                     case "out": p.Out = value; break;
+                    case "sample": p.Sample = int.Parse(value); break;
+                    case "without": p.Without = value.Split('+').Select(x => x.Trim()).Where(x => x.Length > 0).ToList(); break;
                     case "with":
                         foreach (var part in value.Split('+').Select(x => x.Trim()).Where(x => x.Length > 0))
                         {
@@ -125,7 +151,7 @@ namespace DtEngine.Suite
                             p.With.Add(star > 0 ? (part.Substring(0, star).Trim(), int.Parse(part.Substring(star + 1))) : (part, 1));
                         }
                         break;
-                    default: throw new InvalidOperationException("unknown argument '" + key + "' (scan, confirm, cids, context, with, compare, enemy, trial, kit, out)");
+                    default: throw new InvalidOperationException("unknown argument '" + key + "' (preset, scan, confirm, cids, context, with, without, sample, compare, enemy, trial, kit, out)");
                 }
             }
             if (p.Context != "all" && p.Context != "boss" && p.Context != "random") throw new InvalidOperationException("context must be boss, random or all");
@@ -150,7 +176,17 @@ namespace DtEngine.Suite
                            enemyChanges: sideB ? p.EnemyChanges : null);
         }
 
-        static bool Holds(List<string> party, List<(string cls, int count)> with) => with.All(w => party.Count(x => x == w.cls) >= w.count);
+        static bool Holds(List<string> party, List<(string cls, int count)> with, List<string> without) =>
+            with.All(w => party.Count(x => x == w.cls) >= w.count) && !without.Any(party.Contains);
+
+        /// <summary>n parties of the list drawn at random with the seed (the same draw every time), in their order.</summary>
+        static List<List<string>> Sampled(List<List<string>> parties, int n, long seed)
+        {
+            if (n >= parties.Count) return parties;
+            var rng = new Random((int)(seed % int.MaxValue));
+            var keys = parties.Select((x, i) => (key: rng.NextDouble(), i)).OrderBy(k => k.key).Take(n).Select(k => k.i).OrderBy(i => i).ToList();
+            return keys.Select(i => parties[i]).ToList();
+        }
 
         public static void Run(Ctx c, string[] args)
         {
@@ -179,6 +215,7 @@ namespace DtEngine.Suite
                 lineOf[cls] = c.Setup.Roles[role].Str("Base class");
             }
             foreach (var w in p.With) if (!roleOf.ContainsKey(w.cls)) throw new InvalidOperationException("with: no class " + w.cls + " at the stage " + p.Stage);
+            foreach (var w in p.Without) if (!roleOf.ContainsKey(w)) throw new InvalidOperationException("without: no class " + w + " at the stage " + p.Stage);
             var classes = roleOf.Keys.OrderBy(x => x, StringComparer.Ordinal).ToList();
             var baseOf = data.Characters.ToDictionary(ch => ch.Name, ch => data.ClassName(ch.BaseClass));
 
@@ -195,7 +232,8 @@ namespace DtEngine.Suite
                 var joined = sc.Available(cp.Str("Chapter")).Where(baseOf.ContainsKey).ToList();
                 var limits = joined.GroupBy(n => baseOf[n]).ToDictionary(g => g.Key, g => g.Count());
                 int size = Math.Min((int)Py.Num(cfg.Get("party_size")), joined.Count);
-                var parties = Multisets(classes, lineOf, limits, size).Where(x => Holds(x, p.With)).ToList();
+                var parties = Multisets(classes, lineOf, limits, size).Where(x => Holds(x, p.With, p.Without)).ToList();
+                if (p.Sample.HasValue) parties = Sampled(parties, p.Sample.Value, seed);
                 if (contexts.Contains("boss"))
                     targets.Add(new Target { Id = cid, Cid = cid, Context = "boss", Floor = cp.Str("Floor"), Size = size, Parties = parties });
                 string floorKey = cp.Str("Floor") + "|" + level;
@@ -286,6 +324,9 @@ namespace DtEngine.Suite
             if (p.Enemy.Length > 0) trial.Add("enemies " + p.Enemy);
             if (p.Kit.HasValue) trial.Add("kit " + p.Kit + " on both sides");
             if (p.With.Count > 0) trial.Add("parties with " + string.Join(" + ", p.With.Select(w => w.cls + (w.count > 1 ? " x" + w.count : ""))));
+            if (p.Without.Count > 0) trial.Add("parties without " + string.Join(", ", p.Without));
+            if (p.Sample.HasValue) trial.Add("a sample of " + p.Sample + " parties a target");
+            if (p.Preset.Length > 0) trial.Add("preset " + p.Preset);
             var text = new List<string>
             {
                 "# Every party of the " + p.Stage + " classes (generated)", "",
@@ -294,7 +335,8 @@ namespace DtEngine.Suite
                     + "of RoleOrder that has it), on two sides with the same seeds: A " + A + ", B " + B + "; at every story boss of the stage at its reference level "
                     + "(boss) and on a row of " + chain + " random battles of each floor of the stage (random). Scan: " + scanRuns + " runs a cell; the candidates again at "
                     + confirmRuns + " runs (at most " + Py.Num(cfg.Get("confirm_max")) + " of each kind). Section class_search of data_tables/measure_config.json.", "",
-                trial.Count > 0 ? "**Trial: " + string.Join("; ", trial) + ".** Skill and enemy values go to B, which is not built." : "No trial values.", "",
+                trial.Count > 0 ? "**This search: " + string.Join("; ", trial) + ".**" + (p.Trial.Length > 0 || p.Enemy.Length > 0 ? " Skill and enemy values go to B, which is not built." : "")
+                                : "Every party, no trial values.", "",
                 "Dominant: B wins " + Py.Pct(win, 0) + " or more in under " + Py.Pct(cfg.D("time"), 0) + " of the median length of the target's parties on B, "
                     + "where A won under " + Py.Pct(cfg.D("vanilla_win"), 0) + " or took " + Py.F(cfg.D("vanilla_length"), 1) + " times as long. Drop: B wins "
                     + Py.Pct(drop, 0) + " points fewer than A. Beyond A: shorter than the shortest party of A at the target that wins " + Py.Pct(win, 0) + " or more.", "",

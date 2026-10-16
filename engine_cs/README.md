@@ -88,11 +88,15 @@ Three mass tests run on demand and are not part of the suite (their configuratio
 ```bash
 dtcli skill-battery [names|*] [scan runs] [confirm runs]     # every skill with and without, in the battery parties; docs/generated/SKILL_BATTERY.md
 dtcli support-battery [runs] [stage]                         # each support and tank against an attacker in its place, boss / walk / walk then boss; docs/generated/SUPPORT_BATTERY.md
-dtcli class-search STAGE [scan=N] [confirm=N] [cids=C34,C38] [context=boss|random|all] [with=Soul Summoner*2+Witch]
+dtcli class-search [STAGE] [preset=NAME] [scan=N] [confirm=N] [cids=C34,C38] [context=boss|random|all] [with=Soul Summoner*2+Witch]
+                  [without=Diva+Mistress] [sample=N]
                   [compare=vanilla|variant] [enemy=1036.hp=8800,...] [trial="Power Charge:e191*1.1;..."] [kit=N] [out=NAME]
                                                              # every party of the classes of a stage on two sides, A and B: vanilla and the
                                                              # variant, or (compare=variant) the variant and the variant with the trial values;
                                                              # with= keeps the parties that hold those classes; a table by class, A > B;
+                                                             # without= leaves out parties that hold any of those classes; sample=N plays
+                                                             # N parties of each target drawn with the seed; preset= the named arguments of
+                                                             # class_search.presets (dolls, dark_lord, no_maid_line, quick), the others win;
                                                              # measures/CLASS_SEARCH_<STAGE>[_<OUT>].md (scan=0: the plan only)
 ```
 
