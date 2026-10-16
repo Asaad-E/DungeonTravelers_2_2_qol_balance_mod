@@ -36,6 +36,7 @@ namespace DtEngine.Suite
                 new MeasureDef { Name = "support-stages", Run = c => SupportStages.Run(c) },
                 new MeasureDef { Name = "design-rows", Run = c => DesignRows.Run(c) },
                 new MeasureDef { Name = "win-rates", Run = c => { WinRates.Run(c); WinRates.Report(c); } },
+                new MeasureDef { Name = "class-balance", Run = c => ClassSearch.Run(c, new[] { "preset=balance" }) },
             };
         }
 

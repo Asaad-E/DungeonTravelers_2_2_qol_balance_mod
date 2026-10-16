@@ -55,14 +55,14 @@
    "class": "Bishop"
   },
   "mage": {
-   "won": 0.725,
-   "time": 17.047951099503994,
-   "time_won": 17.720604259180103,
-   "share": 0.5424939545135214,
+   "won": 0.7,
+   "time": 18.720036929874645,
+   "time_won": 19.00281494073492,
+   "share": 0.4517029027267828,
    "character": "Melvy",
    "level": 64,
-   "lowest_hp": 0.2927580275229358,
-   "hp_left": 0.6994266055045871,
+   "lowest_hp": 0.2763876146788991,
+   "hp_left": 0.6816915137614679,
    "class": "Witch"
   },
   "shooter": {
@@ -143,14 +143,14 @@
    "class": "Treasure Hunter"
   },
   "soul summoner": {
-   "won": 0.875,
-   "time": 19.398737161086718,
-   "time_won": 20.3117843273348,
-   "share": 0.359492392512679,
+   "won": 0.775,
+   "time": 15.979634265351851,
+   "time_won": 16.948662323593084,
+   "share": 0.4253256843120842,
    "character": "Lilian",
    "level": 64,
-   "lowest_hp": 0.3621603413429149,
-   "hp_left": 0.8407758814282505,
+   "lowest_hp": 0.3220939226519337,
+   "hp_left": 0.7623314917127072,
    "class": "Soul Summoner"
   },
   "magical princess": {

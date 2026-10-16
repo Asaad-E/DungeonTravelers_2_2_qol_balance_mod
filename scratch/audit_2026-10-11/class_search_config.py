@@ -30,8 +30,14 @@ SECTION = {
     'vanilla_length': 1.5,
     'drop': 0.10,
     'fast_share': 0.05,   # the fastest share of the parties of a target, for the class table
+    # the band of the classes in the report (section Balance of the classes): a class may be better or worse than another; it is out
+    # of the band only as an outlier, more than z standard deviations from the mean of the classes in wins or in speed (2026-10-16)
+    'band': {'z': 2.0},
     # named searches: dtcli class-search preset=NAME [more arguments, which win]
     'presets': {
+        'balance': {'about': 'the checklist of the suite (dtcli suite, class-balance): every boss of the final classes, a sample, no confirmation',
+                    'stage': 'final', 'context': 'boss', 'sample': '400', 'scan': '10', 'confirm': '0', 'out': 'balance',
+                    'report': 'docs/generated/CLASS_BALANCE.md'},
         'dolls': {'about': 'parties of two Soul Summoners or more at the bosses where the doll line was fastest',
                   'stage': 'final', 'cids': 'C34,C38', 'context': 'boss', 'with': 'Soul Summoner*2'},
         'dark_lord': {'about': 'parties with a Dark Lord, the class Power Charge serves', 'stage': 'final', 'cids': 'C34,C38',

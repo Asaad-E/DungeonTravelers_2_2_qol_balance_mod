@@ -41,7 +41,7 @@ namespace DtEngine.Suite
         /// <summary>The choices of one search, from the arguments.</summary>
         sealed class Plan
         {
-            public string Stage, Context = "all", Compare = "vanilla", Enemy = "", Trial = "", Out = "";
+            public string Stage, Context = "all", Compare = "vanilla", Enemy = "", Trial = "", Out = "", ReportPath = "";
             public int? Scan, Confirm, Kit;
             public HashSet<string> Cids;
             public List<(string cls, int count)> With = new List<(string, int)>();
@@ -142,6 +142,7 @@ namespace DtEngine.Suite
                     case "trial": p.Trial = value; break;
                     case "kit": p.Kit = int.Parse(value); break;
                     case "out": p.Out = value; break;
+                    case "report": p.ReportPath = value; break;
                     case "sample": p.Sample = int.Parse(value); break;
                     case "without": p.Without = value.Split('+').Select(x => x.Trim()).Where(x => x.Length > 0).ToList(); break;
                     case "with":
@@ -151,7 +152,7 @@ namespace DtEngine.Suite
                             p.With.Add(star > 0 ? (part.Substring(0, star).Trim(), int.Parse(part.Substring(star + 1))) : (part, 1));
                         }
                         break;
-                    default: throw new InvalidOperationException("unknown argument '" + key + "' (preset, scan, confirm, cids, context, with, without, sample, compare, enemy, trial, kit, out)");
+                    default: throw new InvalidOperationException("unknown argument '" + key + "' (preset, scan, confirm, cids, context, with, without, sample, compare, enemy, trial, kit, out, report)");
                 }
             }
             if (p.Context != "all" && p.Context != "boss" && p.Context != "random") throw new InvalidOperationException("context must be boss, random or all");
@@ -400,6 +401,7 @@ namespace DtEngine.Suite
                          + Py.Pct(fastNB > 0 ? (double)inFastB / fastNB : 0, 0) + " | " + Py.F(100 * (wb - wa) / n, 1, true) + " | " + worst + " | " + Py.F(100 * worstChange, 1, true) + " |");
             }
 
+            text.InsertRange(text.IndexOf("## Confirmed dominant parties"), BandSection(cfg, p, targets, win));
             text.AddRange(new[] { "", "## Targets", "", "| Target | Parties | Median length (" + B + ") | Best party of " + B + ": wins / length | Shortest of " + A + " at " + Py.Pct(win, 0)
                                   + " | Dominant candidates | Drop candidates |", "|---|---|---|---|---|---|---|" });
             foreach (var t in targets)
@@ -410,7 +412,8 @@ namespace DtEngine.Suite
                          + candidates.Count(x => x.T == t && x.Kind == "dominant") + " | " + candidates.Count(x => x.T == t && x.Kind == "drop") + " |");
             }
             string suffix = p.Out.Length > 0 ? "_" + p.Out : "";
-            c.WriteText(c.Path("measures", "CLASS_SEARCH_" + p.Stage.ToUpperInvariant() + suffix.ToUpperInvariant() + ".md"), M.Lines(text), true);
+            c.WriteText(p.ReportPath.Length > 0 ? c.Path(p.ReportPath.Split('/'))
+                        : c.Path("measures", "CLASS_SEARCH_" + p.Stage.ToUpperInvariant() + suffix.ToUpperInvariant() + ".md"), M.Lines(text), true);
 
             var raw = new Obj
             {
@@ -422,6 +425,71 @@ namespace DtEngine.Suite
             };
             c.WriteText(c.Path("build", "class_search", p.Stage + suffix + ".json"), PyJson.Dump(raw), true);
             c.Say("class-search: written measures/CLASS_SEARCH_" + p.Stage.ToUpperInvariant() + suffix.ToUpperInvariant() + ".md (" + dominant.Count + " dominant, " + drops.Count + " drops confirmed)");
+        }
+
+        /// <summary>The balance of the classes over the bosses of the search, on B. Wins: the mean share of wins of the parties that hold the
+        /// class. Speed: how many times more often a party with one member of the class is among the fastest parties of a boss than among
+        /// all its parties (a party of several of the class is counted apart, as a stack). A class may be better or worse than another;
+        /// it is out of the band only as an outlier, more than band.z standard deviations from the mean of the classes in wins or in
+        /// speed (section class_search of measure_config.json).</summary>
+        static List<string> BandSection(Obj cfg, Plan p, List<Target> targets, double win)
+        {
+            double zMax = cfg.O("band").D("z"), fastShare = cfg.D("fast_share");
+            var bosses = targets.Where(t => t.Context == "boss").ToList();
+            var wins = new Dictionary<string, List<double>>();
+            var oneTop = new Dictionary<string, int>(); var oneAll = new Dictionary<string, int>();
+            var manyTop = new Dictionary<string, int>(); var manyAll = new Dictionary<string, int>();
+            int topN = 0, allN = 0;
+            void Add(Dictionary<string, int> d, string k) => d[k] = d.GetValueOrDefault(k) + 1;
+            foreach (var t in bosses)
+            {
+                var ok = Enumerable.Range(0, t.Parties.Count).Where(i => t.B[i].Won >= win && !double.IsNaN(t.B[i].Time)).OrderBy(i => t.B[i].Time).ToList();
+                var fastest = new HashSet<int>(ok.Take(Math.Max(1, (int)Math.Ceiling(ok.Count * fastShare))));
+                topN += fastest.Count; allN += t.Parties.Count;
+                for (int i = 0; i < t.Parties.Count; i++)
+                    foreach (var cls in t.Parties[i].Distinct())
+                    {
+                        if (!wins.ContainsKey(cls)) wins[cls] = new List<double>();
+                        wins[cls].Add(t.B[i].Won);
+                        bool one = t.Parties[i].Count(x => x == cls) == 1;
+                        Add(one ? oneAll : manyAll, cls);
+                        if (fastest.Contains(i)) Add(one ? oneTop : manyTop, cls);
+                    }
+            }
+            var lines = new List<string> { "## Balance of the classes", "" };
+            if (bosses.Count == 0 || wins.Count < 3 || topN == 0) { lines.AddRange(new[] { "Too few bosses or classes in this search.", "" }); return lines; }
+            double Ratio(Dictionary<string, int> top, Dictionary<string, int> all, string k) =>
+                all.GetValueOrDefault(k) == 0 ? double.NaN : ((double)top.GetValueOrDefault(k) / topN) / ((double)all[k] / allN);
+            var means = wins.ToDictionary(kv => kv.Key, kv => kv.Value.Average());
+            var speed = means.Keys.ToDictionary(k => k, k => Ratio(oneTop, oneAll, k));
+            (double mean, double sd) Stats(IEnumerable<double> xs)
+            {
+                var l = xs.Where(x => !double.IsNaN(x)).ToList(); double m = l.Average();
+                return (m, Math.Sqrt(l.Sum(x => (x - m) * (x - m)) / (l.Count - 1)));
+            }
+            var (mw, sw) = Stats(means.Values);
+            var (ms, ss) = Stats(speed.Values);
+            var rows = means.OrderByDescending(kv => kv.Value).Select(kv =>
+            {
+                double zw = sw > 0 ? (kv.Value - mw) / sw : 0, zs = ss > 0 && !double.IsNaN(speed[kv.Key]) ? (speed[kv.Key] - ms) / ss : 0;
+                string verdict = zw > zMax ? "too strong" : zw < -zMax ? "too weak" : zs > zMax ? "too fast" : "yes";
+                return (cls: kv.Key, wins: kv.Value, zw, speed: speed[kv.Key], zs, stack: Ratio(manyTop, manyAll, kv.Key), verdict);
+            }).ToList();
+            lines.Add("Over the " + bosses.Count + " bosses of the search, on " + p.LabelB + ". Wins: the mean share of wins of the parties that hold each "
+                      + "class (the classes: mean " + Py.Pct(mw, 1) + ", standard deviation " + Py.F(100 * sw, 1) + " points). Speed: how many times more often "
+                      + "a party with one member of the class is among the fastest " + Py.Pct(fastShare, 0) + " of the parties of a boss than among all of them "
+                      + "(mean x" + Py.F(ms, 2) + ", deviation " + Py.F(ss, 2) + "); a party of several of the class is a stack, shown apart. A class may be "
+                      + "better or worse than another; out of the band is an outlier, more than " + Py.F(zMax, 1) + " deviations from the mean in wins or in speed.");
+            lines.Add("");
+            lines.Add("**" + rows.Count(r => r.verdict == "yes") + " of " + rows.Count + " classes in the band.**");
+            lines.Add("");
+            lines.Add("| Class | Wins | Deviations | Speed (one of the class) | Deviations | A stack of the class | In the band |");
+            lines.Add("|---|---|---|---|---|---|---|");
+            foreach (var r in rows)
+                lines.Add("| " + r.cls + " | " + Py.Pct(r.wins, 1) + " | " + Py.F(r.zw, 1, true) + " | x" + Py.F(r.speed, 2) + " | " + Py.F(r.zs, 1, true) + " | "
+                          + (double.IsNaN(r.stack) ? "-" : "x" + Py.F(r.stack, 1)) + " | " + r.verdict + " |");
+            lines.Add("");
+            return lines;
         }
 
         static Obj FigObj(Fig f) => new Obj { { "won", f.Won }, { "time", double.IsNaN(f.Time) ? null : (object)f.Time }, { "lowest_hp", f.Low } };

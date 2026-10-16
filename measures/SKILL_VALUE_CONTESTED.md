@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**44 serves; 28 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 85).**
+**46 serves; 27 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 86).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -55,6 +55,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Light Scroll | kunoichi | P24: wins +7%, length -21%, HP left +5 points | serves |
 | Lightning Enchant | sage | C38: wins +7%, length -1%, HP left +9 points | serves |
 | Limit Field | dolls | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
+| Loose Spirit | mage | P24: wins +7%, length +14%, HP left +9 points | serves |
 | Materialize | dolls | C38: wins -10%, length +7%, HP left -10 points | serves |
 | Mini Circle Nurse | sage | C30: wins +0%, length +1%, HP left -0 points | nothing shown |
 | Moon Curtain | tank | C30: wins +0%, length +2%, HP left +1 points | nothing shown |
@@ -62,7 +63,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Oracles | dolls | C40: wins +7%, length -25%, HP left +6 points | serves |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
 | Parry | tank | C30: wins +0%, length +2%, HP left +0 points | nothing shown |
-| Perdurabo | soul summoner | P24: wins +3%, length -18%, HP left +2 points | nothing shown |
+| Perdurabo | soul summoner | P24: wins +3%, length -9%, HP left +3 points | serves |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Power Charge | dark lord | C40: wins +3%, length +12%, HP left +5 points | serves |
 | Primevil | etoile | C38: wins +0%, length -3%, HP left +2 points | nothing shown |

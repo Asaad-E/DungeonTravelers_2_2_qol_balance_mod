@@ -931,7 +931,20 @@
   "vanilla_length": 1.5,
   "drop": 0.1,
   "fast_share": 0.05,
+  "band": {
+   "z": 2.0
+  },
   "presets": {
+   "balance": {
+    "about": "the checklist of the suite (dtcli suite, class-balance): every boss of the final classes, a sample, no confirmation",
+    "stage": "final",
+    "context": "boss",
+    "sample": "400",
+    "scan": "10",
+    "confirm": "0",
+    "out": "balance",
+    "report": "docs/generated/CLASS_BALANCE.md"
+   },
    "dolls": {
     "about": "parties of two Soul Summoners or more at the bosses where the doll line was fastest",
     "stage": "final",
