@@ -82,6 +82,38 @@ stage of her growth for the level of the party, as `measures/mercenaries.py` doe
 `runs`), `check_change` (`checkpoints`, `runs`; `side` is the data before the change, `changed_side` the data after), and
 `walked_zones` (`floor`, `level`; the result is the names of the zones). The figures are the same as Python's value by value.
 
+## The measures in C# (`dtcli suite`)
+
+Every measure of the project that plays battles runs in `src/DtEngine/Suite`: the choice of cells, the parties and their recipes, the jobs, the
+aggregation and the report writers, with the same outputs, at the same paths, as the Python script each one stands for (which stays as the reference).
+A measure reads what it needs of the workbooks from the section `measures` of the snapshot (`tools/engine_export.py`: sheets as rows, the constants of
+the scripts, the rows of balance_changes.xlsx that name a boss, the maps, the meals); it holds no value of the mod.
+
+```bash
+dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll suite [--only a,b] [--threads N] [--snapshot S] [--root R]     # every measure, in parallel
+dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll difficulty-curve                                              # one measure alone
+python engine_cs/parity/gate_suite.py          # the suite against the files of the last commit (git diff --ignore-cr-at-eol: none left)
+python engine_cs/parity/gate_trials.py         # the trial commands against their Python scripts
+```
+
+The measures: `difficulty-curve`, `party-battery`, `class-stages`, `skill-value`, `skill-ailments`, `boss-fit`, `skill-worth`, `guide-curve`,
+`sim-anchors`, `sim-audit` (passives, usage, actives), `win-rates`, `mercenaries`, `party-skills`, `postgame-compare`, `unique-skills`,
+`skill-value-contested`, `random-battles`, `regression-r04`, `boss-rows-check`, `design-rows`, `support-chains`, `support-stages`. They start
+together; one that reads the files of another waits for it (`boss-fit` for `difficulty-curve`, `regression-r04` for `party-battery`,
+`skill-value-contested` for `skill-value`). `python tools/full_suite.py` exports the snapshot, runs `dtcli suite`, then the checklists that play no
+battle and the tests, which stay in Python.
+
+The trial scripts of measures/ are commands too, with the arguments of their script and the lines it prints: `curve-recheck`, `etoile-dances`,
+`magic-wall`, `measure-open-rows`, `samba-trial`, `etoile-trial`, `dance-trial`, `def-debuff-trial`, `sage-buffs-trial`, `provoke-trial`,
+`boss-trim-trial`, `grand-sealbook-trial`, `lize-ideas`, `mercenary-trial`, `one-skill-trial`, `tp-items-trial`, `worth-with-weapon`. The data a trial
+changes (a value of a skill, an item, a guest, a sealbook, a column of a role, rows of policies) is changed in C# on a copy (`Suite/Kit.cs`).
+`rows-trial` and `curve-ablation` need the game built from other rows of balance_changes.xlsx than the variant of the snapshot: `python
+tools/engine_sides.py rows P031,P032` or `ablation` writes those sides to build/engine_extra_*.json and `--extra <file>` brings them in.
+
+`Suite/Py.cs` holds what Python does that the reports depend on and C# does not: `%.nf`, `:.n%` and `repr` of a float, `statistics.mean` and
+`median`, `json.dump` with and without `indent`. `dtcli check-pyformat build/engine_pyformat_golden.json` compares them with Python on some 25,000
+cases (`parity/py_format_golden.py` writes the file; `dotnet test` does both).
+
 ## Bridge for the Python tools
 
 `tools/engine_client.py` exports the snapshot when it is stale, builds `dtcli` when a source is newer, runs it and gives back the
@@ -122,3 +154,7 @@ Level 2 adds every draw. A header describes every unit before the battle starts.
 `measures.slot_share`, `measures.weapon_band` and `measures.touched` (nothing calls them). `GameData.with_changes` is not ported: a tool
 that changes the data in Python sends the changed data as a side of its own (`engine_client.side_of`), or, for the stats of enemy
 records, gives `enemy_changes` in the job. The text log of a battle (`Battle.log`, read by `measures/mercenary_log.py`) is not ported.
+
+Of the scripts of measures/ and tools/ that play battles, these have no command: `mercenary_log` (reads the text log of a battle), `win_causes`, `record_causes`,
+`graceful_rose_trial`, `unique_trial`, `unique_trial_random` and `random_parties` (trials that no document or row of a workbook cites; the first two also take
+rows of balance_changes.xlsx out by family and so need sides built by `tools/engine_sides.py`). `status_value_getters` and `installer_trial` play no battle.

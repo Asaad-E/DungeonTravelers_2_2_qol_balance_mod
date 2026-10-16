@@ -109,12 +109,13 @@ A change that affects difficulty should be measured before it is proposed:
 
 | Command | What it measures |
 |---|---|
-| `python tools/full_suite.py` | Everything below and every other measure, report and checklist, then the tests (about 6 minutes) |
+| `python tools/full_suite.py` | The snapshot, every measure that plays battles (`dtcli suite`, in C#, all at once), then the checklists and the tests (about 1.5 minutes) |
+| `dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll suite --only difficulty-curve,party-battery` | Some of the measures alone (`dtcli <name>` for one) |
 | `python tools/difficulty_curve.py engine` then `report` | Every boss, mod against original |
 | `python tools/party_battery.py engine` then `report` | Several party types against 17 bosses |
 | `python tools/class_stages.py engine` then `report` | Each class at each stage of the game |
 
-The `engine` commands play the battles on the C# engine of `engine_cs/` (it needs the .NET SDK 10), which gives the same
+The measures run on the C# engine of `engine_cs/` (`dtcli suite`, `engine_cs/README.md`). The `engine` commands of the Python tools play the battles on it too (it needs the .NET SDK 10), which gives the same
 figures as the Python simulator of `sim/`, value by value (`engine_cs/parity/`), many times faster. The Python paths (`all`)
 are kept as the reference.
 

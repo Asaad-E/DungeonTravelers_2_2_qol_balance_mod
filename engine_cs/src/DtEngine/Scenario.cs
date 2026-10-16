@@ -101,7 +101,7 @@ namespace DtEngine
             return level;
         }
 
-        (int cls, int previous) ClassPath(Row role, int level)
+        public (int cls, int previous) ClassPath(Row role, int level)
         {
             string b = role.Str("Base class"), l15 = role.Str("Lv15 class"), l30 = role.Str("Lv30 class");
             if (level >= 30) return (ClassId(l30), ClassId(l15));
@@ -109,7 +109,7 @@ namespace DtEngine
             return (ClassId(b), T.NONE);
         }
 
-        List<int> ClassesSoFar(Row role, int level)
+        public List<int> ClassesSoFar(Row role, int level)
         {
             var names = new List<string> { role.Str("Base class") };
             if (level >= 15) names.Add(role.Str("Lv15 class"));
@@ -313,7 +313,7 @@ namespace DtEngine
             return found;
         }
 
-        bool ForgeOpen(string floor)
+        public bool ForgeOpen(string floor)
         {
             if (floor == null) return false;
             int from = Setup.HasSetting("forge_from_dungeon") ? Setup.SettingInt("forge_from_dungeon") : 99;

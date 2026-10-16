@@ -204,23 +204,20 @@ namespace DtEngine
             }
         }
 
-        /// <summary>dtcli measure: a file of measure jobs in, a file of results out (one object per job, in order).</summary>
-        public static int RunFile(Snapshot snap, string jobsPath, string outPath, int threads, out int errors)
+        /// <summary>Measure jobs (JSON elements) played, one answer (the bytes of a json object) for each, in order.</summary>
+        public static byte[][] RunJobs(Snapshot snap, List<JsonElement> jobs, int threads, Dictionary<string, Scenario> shared = null)
         {
             var known = new Dictionary<(string, string), Scenario>();
             Func<string, string, Scenario> scenarios = (side, setupName) =>
             {
+                if (shared != null && string.IsNullOrEmpty(setupName) && shared.TryGetValue(side, out var own)) return own;
                 lock (known)
                 {
                     if (!known.TryGetValue((side, setupName ?? ""), out var sc)) known[(side, setupName ?? "")] = sc = new Scenario(snap.Sides[side], snap.SetupNamed(setupName));
                     return sc;
                 }
             };
-            JsonDocument doc = JsonDocument.Parse(File.ReadAllBytes(jobsPath));
-            var jobs = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement.EnumerateArray().ToList()
-                                                                       : doc.RootElement.GetProperty("jobs").EnumerateArray().ToList();
             var outputs = new byte[jobs.Count][];
-            int failed = 0;
             Parallel.For(0, jobs.Count, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Math.Min(threads, jobs.Count)) }, i =>
             {
                 string id = jobs[i].GetProperty("id").GetString();
@@ -241,10 +238,20 @@ namespace DtEngine
                 }
                 catch (Exception ex)
                 {
-                    System.Threading.Interlocked.Increment(ref failed);
                     outputs[i] = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new Dictionary<string, string> { { "id", id }, { "error", ex.GetType().Name + ": " + ex.Message } }));
                 }
             });
+            return outputs;
+        }
+
+        /// <summary>dtcli measure: a file of measure jobs in, a file of results out (one object per job, in order).</summary>
+        public static int RunFile(Snapshot snap, string jobsPath, string outPath, int threads, out int errors)
+        {
+            JsonDocument doc = JsonDocument.Parse(File.ReadAllBytes(jobsPath));
+            var jobs = doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement.EnumerateArray().ToList()
+                                                                       : doc.RootElement.GetProperty("jobs").EnumerateArray().ToList();
+            var outputs = RunJobs(snap, jobs, threads);
+            errors = outputs.Count(o => Encoding.UTF8.GetString(o).Contains("\"error\""));
             using (var f = File.Create(outPath))
             {
                 f.WriteByte((byte)'[');
@@ -255,7 +262,6 @@ namespace DtEngine
                 }
                 f.WriteByte((byte)']');
             }
-            errors = failed;
             return jobs.Count;
         }
     }

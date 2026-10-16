@@ -203,6 +203,13 @@ namespace DtEngine.Cli
                     return ProfileCommand(args);
                 case "serve":
                     return ServeCommand(args);
+                case "check-pyformat":
+                    {
+                        var (n, errors) = DtEngine.Suite.PyFormatCheck.Run(args[1]);
+                        Console.WriteLine("pyformat: " + n + " cases compared, " + errors.Count + " differences");
+                        foreach (var e in errors) Console.WriteLine("  " + e);
+                        return errors.Count == 0 ? 0 : 1;
+                    }
                 case "check-round":
                     {
                         var (n, errors) = SelfCheck.RoundCheck(args[1]);
@@ -211,6 +218,7 @@ namespace DtEngine.Cli
                         return errors.Count == 0 ? 0 : 1;
                     }
                 default:
+                    if (DtEngine.Suite.SuiteRunner.Knows(args[0])) return DtEngine.Suite.SuiteRunner.Main(args[0], args);
                     Console.Error.WriteLine("unknown command " + args[0]);
                     return 2;
             }

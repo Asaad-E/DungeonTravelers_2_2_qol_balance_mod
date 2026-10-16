@@ -1,13 +1,15 @@
 """
-Every measure of the project played on the C# engine (engine_cs/), then the reports, the generated checklists and the tests: the
-whole of docs/generated/ and of the figures of measures/ written again from the current data and model.
+Every measure of the project played on the C# engine (engine_cs/), then the generated checklists and the tests: the whole of
+docs/generated/ and of the figures of measures/ written again from the current data and model.
 
     python tools/full_suite.py            the whole suite, with the time of each step and the total
     python tools/full_suite.py --list     the steps, without running them
 
-Each step is a command of a tool that also runs alone (`python tools/class_stages.py engine`, `python measures/unique_skills.py
-engine`, ...): those commands play their battles in one process with one engine, or split their cells in parts that run at once.
-The Python paths of the tools (`all`, `run`) are not used here and stay as they were.
+The steps: the snapshot of the data (tools/engine_export.py); `dtcli suite`, which runs every measure that plays battles (the choice of
+cells, the parties, the battles, the aggregation and the reports, all in C#) at once, the measures side by side and the battles of each
+in parallel; then the checklists that play no battle and the tests, which stay in Python. One measure alone is `dtcli <name>`
+(`dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll difficulty-curve`); `dtcli suite --only a,b` runs some. The scripts
+of tools/ and measures/ that play battles keep their own `engine` and `--engine` commands (the reference: the Python path of each).
 """
 import os
 import subprocess
@@ -16,51 +18,43 @@ import time
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+SUITE = ['@dtcli', 'suite']             # one process: every measure that plays battles
+
 STEPS = [
     ['tools/engine_export.py'],
-    ['tools/difficulty_curve.py', 'engine'], ['tools/difficulty_curve.py', 'report'],
-    ['tools/party_battery.py', 'engine'], ['tools/party_battery.py', 'report'],
-    ['tools/class_stages.py', 'engine'], ['tools/class_stages.py', 'report'],
-    ['tools/skill_value.py', 'engine'], ['tools/skill_value.py', 'report'],
-    ['tools/skill_value.py', 'engine-ailments'], ['tools/skill_value.py', 'ailments_report'],
-    ['tools/boss_fit.py', 'gentle-engine'], ['tools/boss_fit.py', 'gentle-report'],
-    ['tools/skill_worth.py', 'engine'], ['tools/skill_worth.py', 'report'],
-    ['tools/guide_curve.py', 'engine'], ['tools/guide_curve.py', 'report'],
-    ['tools/sim_anchors.py', 'engine'],
-    ['tools/sim_audit.py', 'passives-engine'], ['tools/sim_audit.py', 'usage-engine'], ['tools/sim_audit.py', 'actives-engine'],
-    ['tools/sim_audit.py', 'report'],
-    ['measures/win_rates.py', 'engine'], ['measures/win_rates.py', 'report'],
-    ['measures/mercenaries.py', 'engine'], ['measures/mercenaries.py', 'report'],
-    ['measures/party_skills.py', 'engine'], ['measures/party_skills.py', 'report'],
-    ['measures/postgame_compare.py', 'engine'], ['measures/postgame_compare.py', 'report'],
-    ['measures/unique_skills.py', 'engine'], ['measures/unique_skills.py', 'report'],
-    ['measures/skill_value_contested.py', 'engine'], ['measures/skill_value_contested.py', 'report'],
-    ['measures/random_battles.py', 'engine'], ['measures/random_battles.py', 'report'],
-    ['measures/regression_r04.py', 'witnesses'], ['measures/regression_r04.py', 'play', '1/1', '--engine'],
-    ['measures/regression_r04.py', 'report'],
-    ['measures/boss_rows_check.py', '--engine'], ['measures/design_rows.py', '--engine'],
-    ['measures/support_chains.py', '--engine'], ['measures/support_stages.py', '--engine'],
+    SUITE,
     ['tools/balance_baseline.py'], ['tools/checkpoint_levels.py'], ['tools/sim_coverage.py'], ['tools/verdicts.py'],
     ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py'],
 ]
 
 
+def command_of(step):
+    """The command line of a step: a Python script, or the engine's program."""
+    if step[0] == '@dtcli':
+        sys.path.insert(0, os.path.join(PROJECT, 'tools'))
+        import engine_client
+        return ['dotnet', engine_client.ensure_built(), *step[1:], '--snapshot', engine_client.SNAPSHOT, '--root', PROJECT]
+    return [sys.executable, *step]
+
+
 def main(args):
     if '--list' in args:
         for step in STEPS:
-            print('python', ' '.join(step))
+            print('dtcli' if step[0] == '@dtcli' else 'python', ' '.join(step[1:] if step[0] == '@dtcli' else step))
         return 0
     env = dict(os.environ, PYTHONIOENCODING='utf-8')
     started, failed = time.time(), []
     for step in STEPS:
         began = time.time()
-        run = subprocess.run([sys.executable, *step], cwd=PROJECT, env=env, capture_output=True, text=True, encoding='utf-8',
-                             errors='replace')
-        tail = [line for line in (run.stdout + run.stderr).strip().splitlines() if line.strip()][-1:] or ['']
+        run = subprocess.run(command_of(step), cwd=PROJECT, env=env, capture_output=True, text=True, encoding='utf-8', errors='replace')
+        lines = [line for line in (run.stdout + run.stderr).strip().splitlines() if line.strip()]
         mark = '' if run.returncode == 0 else '  FAILED'
-        print(f'{time.time() - began:6.0f} s  python {" ".join(step)}{mark}\n          {tail[0][:150]}', flush=True)
+        name = ('dtcli ' + ' '.join(step[1:])) if step[0] == '@dtcli' else 'python ' + ' '.join(step)
+        print(f'{time.time() - began:6.0f} s  {name}{mark}', flush=True)
+        for line in (lines if step[0] == '@dtcli' else lines[-1:]):
+            print('          ' + line[:150], flush=True)
         if run.returncode:
-            failed.append(' '.join(step))
+            failed.append(name)
     print(f'total {time.time() - started:.0f} s; {len(STEPS) - len(failed)} of {len(STEPS)} steps passed'
           + (f'; failed: {"; ".join(failed)}' if failed else ''))
     return 1 if failed else 0

@@ -68,6 +68,14 @@ namespace DtEngine.Tests
         }
 
         [Fact]
+        public void TheTextOfFloatsMeansAndJsonIsWhatPythonGives()
+        {
+            var (n, errors) = DtEngine.Suite.PyFormatCheck.Run(Golden("engine_pyformat_golden.json", "engine_cs/parity/py_format_golden.py"));
+            Assert.True(n >= 20000);
+            Assert.Empty(errors);
+        }
+
+        [Fact]
         public void PySumFollowsTheBuiltInSum()
         {
             // 0.1 + 0.2 + 0.3 with compensation is 0.6, where the plain sum gives 0.6000000000000001

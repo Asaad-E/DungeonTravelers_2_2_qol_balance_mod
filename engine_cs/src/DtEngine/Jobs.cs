@@ -275,10 +275,14 @@ namespace DtEngine
         }
 
         /// <summary>digestOnly: a traced job keeps the SHA-256 of its trace instead of its lines (to compare two builds of the engine on a great many jobs).</summary>
-        public static List<JobResult> Run(Snapshot snap, List<JobSpec> jobs, int threads, bool digestOnly = false)
+        public static List<JobResult> Run(Snapshot snap, List<JobSpec> jobs, int threads, bool digestOnly = false, Dictionary<string, Scenario> shared = null)
         {
-            var scenarios = new Dictionary<string, Scenario>();
-            foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
+            var scenarios = shared;
+            if (scenarios == null)
+            {
+                scenarios = new Dictionary<string, Scenario>();
+                foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
+            }
             var named = new Dictionary<(string, string), Scenario>();
             foreach (var j in jobs)
             {

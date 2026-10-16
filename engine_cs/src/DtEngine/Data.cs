@@ -52,6 +52,9 @@ namespace DtEngine
         /// <summary>The effects at each level as arrays shared by the actions (Action.FxSet), made when first asked.</summary>
         public Action.FxSet[] FxByLevel;
 
+        /// <summary>A copy that shares the effects, with the caches empty (a trial changes the copy).</summary>
+        public Skill Copy() { var c = (Skill)MemberwiseClone(); c.FxByLevel = null; c.takes = 0; return c; }
+
         int takes;     // 0 not worked out, 1 yes, 2 no
         /// <summary>Whether a figure of the skill takes something from its user (the bonus effects 128 - 130, 168, 272, 273).</summary>
         public bool TakesFromUser
@@ -244,6 +247,7 @@ namespace DtEngine
         public int ExtraAttack = T.NONE;
         public int[] Stats = new int[6];
         public Script Script;
+        public NpcRec Clone() { var c = (NpcRec)MemberwiseClone(); c.Stats = (int[])Stats.Clone(); return c; }
     }
 
     public sealed class DollRec
@@ -331,6 +335,9 @@ namespace DtEngine
             }
             return copy;
         }
+
+        /// <summary>A copy that shares every table; a trial replaces the tables it changes in the copy.</summary>
+        public GameData ShallowCopy() => (GameData)MemberwiseClone();
 
         public Skill GetSkill(string category, int id) => Skills.TryGetValue((category, id), out var s) ? s : null;
         public Skill ById(int id) => SkillById.TryGetValue(id, out var s) ? s : null;

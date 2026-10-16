@@ -99,14 +99,14 @@ namespace DtEngine
         }
 
         // --- what a member can do ----------------------------------------------------------------------------
-        static bool UsableInBattle(Skill skill)
+        public static bool UsableInBattle(Skill skill)
         {
             if (skill.IsTechnique) return (skill.Group & 0x10) != 0;
             if (skill.IsMagic) return (skill.Group & 0x08) != 0;
             return false;
         }
 
-        static bool WeaponAllows(Unit unit, Skill skill)
+        public static bool WeaponAllows(Unit unit, Skill skill)
         {
             if (skill.Weapons.Length == 0) return true;
             var weapon = unit.Weapon;
@@ -158,7 +158,7 @@ namespace DtEngine
             return false;
         }
 
-        static bool Puts(Skill skill, int effect)
+        public static bool Puts(Skill skill, int effect)
         {
             foreach (var e in skill.Effects) if (e.Id == effect && e.Kind != 2) return true;
             return false;
