@@ -25,7 +25,7 @@ Share of wins, the game > the variant, and the difference in points. **Bold**: t
 | Party | Counted | Mean wins, game | Mean wins, variant | Bosses 15 points easier | Bosses below 50% in the game | of them, 50% or more on the variant | Fights shorter (both won) |
 |---|---|---|---|---|---|---|---|
 | Meta | yes | 89% | 93% | 1 | 1 | 0 | +21% |
-| Dual-Support | yes | 90% | 91% | 0 | 1 | 0 | -2% |
+| Dual-Support | yes | 90% | 91% | 0 | 1 | 0 | -3% |
 | Mage-Heavy | yes | 92% | 95% | 1 | 1 | 1 | +1% |
 | Juggernaut | no | 57% | 72% | 6 | 8 | 4 | +7% |
 | Juggernaut-Plus | no | 80% | 87% | 4 | 3 | 2 | +5% |

@@ -405,10 +405,12 @@ namespace DtEngine
                 double total = dmg < target.Hp ? dmg : target.Hp;
                 if (code == T.PIERCE)
                 {
-                    Unit behind = null;
-                    foreach (var t in foes) if (t.Front != target.Front) { behind = t; break; }
-                    if (behind != null && target.Front)
+                    // the units the blow goes on to, as Battle.Targets takes them: those the target keeps behind it
+                    // (Battle.Behind, the program's list at 0x64 - 0x68) that can be targeted (2026-10-16; sim/policy.py
+                    // took the first foe of the other row, and only from the front row)
+                    foreach (var behind in battle.Behind(target))
                     {
+                        if (Array.IndexOf(foes, behind) < 0) continue;
                         double d2 = battle.ExpectedDamage(action, behind);
                         total += d2 < behind.Hp ? d2 : behind.Hp;
                     }

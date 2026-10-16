@@ -235,9 +235,11 @@ def damage_value(battle, action):
         target = best_single_target(battle, action.actor, action)
         total = min(target.hp, battle.expected_damage(action, target))
         if code == PIERCE:
-            behind = [t for t in foes if t.front != target.front]
-            if behind and target.front:
-                total += min(behind[0].hp, battle.expected_damage(action, behind[0]))
+            # the units the blow goes on to, as Battle.targets takes them: those the target keeps behind it that can be
+            # targeted (2026-10-16; it took the first foe of the other row, and only from the front row)
+            for behind in battle.behind(target):
+                if behind in foes:
+                    total += min(behind.hp, battle.expected_damage(action, behind))
         return total, target
     if code == ROW:
         rows = {}

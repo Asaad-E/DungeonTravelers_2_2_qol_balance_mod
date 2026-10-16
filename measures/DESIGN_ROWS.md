@@ -46,10 +46,10 @@ Boss fights that stand on a cell that forbids magic: C29a, P07, P13, P25, P47. S
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
-| Dual-Support | 100% | 9% | 14% | 50% | 0% |
+| Dual-Support | 100% | 31% | 14% | 47% | 0% |
 | Mage-Heavy | 90% | 0% | 0% | 0% | 0% |
-| Juggernaut | 100% | 50% | 14% | 56% | 0% |
-| Juggernaut-Plus | 96% | 25% | 4% | 10% | 0% |
+| Juggernaut | 100% | 36% | 14% | 55% | 0% |
+| Juggernaut-Plus | 96% | 27% | 4% | 18% | 0% |
 | Anti-Meta | 1% | 0% | 0% | 0% | 0% |
 | Anti-Meta-Plus | 8% | 0% | 0% | 0% | 0% |
 
@@ -59,8 +59,8 @@ The same party with and without her:
 |---|---|---|---|---|---|
 | Meta | 100% | 96% | 53% | 97% | 0% |
 | Meta, an attacker in her place | 100% | 91% | 18% | 81% | 0% |
-| Dual-Support | 100% | 9% | 14% | 50% | 0% |
-| Dual-Support, she in the place of the shooter | 99% | 4% | 53% | 74% | 0% |
+| Dual-Support | 100% | 31% | 14% | 47% | 0% |
+| Dual-Support, she in the place of the shooter | 99% | 20% | 53% | 71% | 0% |
 
 ## S14 Harmful map zones
 
