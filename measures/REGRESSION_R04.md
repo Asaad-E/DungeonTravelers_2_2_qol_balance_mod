@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 21 of 26 such pairs on the variant, 25 of 31 in vanilla.**
+**A party without the class reaches the floor at 20 of 24 such pairs on the variant, 25 of 31 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -49,7 +49,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C36 | vanilla | Dark Lord | 50% | Meta with attacker for dark lord | 87% |
 | C36 | vanilla | Diva | 50% | Meta with mistress for diva | 65% |
 | C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 83% |
-| C36 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 93% |
+| C36 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 90% |
 | C36 | variant | Diva | 50% | Meta with mistress for diva | 72% |
 | C36 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 88% |
 | C38 | vanilla | Bishop | 80% | Dual-Support with sage for healer | 88% |
@@ -58,8 +58,6 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C38 | variant | Diva | 80% | Meta with mistress for diva | 85% |
 | C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 72% |
 | C40 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 62% |
-| C40 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 58% |
+| C40 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 72% |
 | C40 | variant | Diva | 50% | Meta with mistress for diva | 58% |
-| C40 | variant | Papillon | 50% | Meta with joker for papillon | 90% |
-| C40 | variant | Treasure Hunter | 50% | Meta with shooter for treasure hunter | 55% |
-| C40 | variant | Valkyrie | 50% | Meta with kunoichi for valkyrie | 17% **below** |
+| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 75% |
