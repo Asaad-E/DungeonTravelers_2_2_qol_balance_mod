@@ -6,7 +6,9 @@ it is put together, and what a change has to respect.
 ## Where the project stands
 
 - **QoL** is finished. It only changes when a text is shown to be wrong.
-- **Balance** is built and playable. It is being play-tested; fixes and adjustments are welcome.
+- **Balance** is built, installed and play-tested: the changes checked in the game work (the wandering blacksmith, the
+  length of meals, Bathroom Slippers, the circles and Accelerator, Ecstasy, both program files patched, the installer in
+  folders with non-Latin names; the sheet `Levers` says which). Fixes and adjustments are welcome.
 
 Known limits, left as they are for now:
 
