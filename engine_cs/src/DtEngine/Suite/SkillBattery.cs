@@ -123,7 +123,7 @@ namespace DtEngine.Suite
         /// <summary>"Power Charge:e191*1.2;Accelerator:turns+1;Shadow Clone:tp*0.8;Prism Dawn:speed*1.2": a copy of the variant with the values
         /// of skills changed (e&lt;id&gt; scales the values of an effect, an int stays an int; tp scales the TP cost; turns adds to the turns; speed
         /// scales the speed factors), to try a value before building it.</summary>
-        static GameData WithTrial(GameData data, string text)
+        public static GameData WithTrial(GameData data, string text)
         {
             var changes = new Dictionary<string, Skill>();
             foreach (var part in text.Split(';').Select(x => x.Trim()).Where(x => x.Length > 0))

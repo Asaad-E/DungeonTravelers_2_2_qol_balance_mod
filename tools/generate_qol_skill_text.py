@@ -190,6 +190,8 @@ STYLES = {   # style -> (transform, unit, show the sign)
     'abs_num_pct': (lambda v: abs(v), '%', False),
     'neg_num_pct': (lambda v: -v, '%', False),
     'mult': (lambda v: v, 'x', False),
+    # A value added to the other bonus of the damage (Power Charge, 191; docs/FORMULAS.md 2.4: final = C * (1 + other bonuses)): the multiple.
+    'one_plus_mult': (lambda v: 1 + v, 'x', False),
     # A heal restores RES * about 0.5 * the stored figure (docs/FORMULAS.md 6b): shown as the multiple of RES.
     'half_mult': (lambda v: 0.5 * v, 'x', False),
 }

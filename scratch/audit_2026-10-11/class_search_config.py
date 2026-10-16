@@ -29,6 +29,7 @@ SECTION = {
     'vanilla_win': 0.80,
     'vanilla_length': 1.5,
     'drop': 0.10,
+    'fast_share': 0.05,   # the fastest share of the parties of a target, for the class table
 }
 
 with open(PATH, encoding='utf-8') as f:

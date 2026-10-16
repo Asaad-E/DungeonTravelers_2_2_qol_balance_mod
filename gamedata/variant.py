@@ -66,6 +66,8 @@ def apply(data, changes):
                 _check(row, skill.speed[level - 1]); skill.speed[level - 1] = new
             elif field == 'chant speed factor':
                 _check(row, skill.cast[level - 1]); skill.cast[level - 1] = new
+            elif field == 'turns':
+                _check(row, skill.turns[level - 1]); skill.turns[level - 1] = new
             elif field == 'weapon codes':
                 _check(row, ', '.join(str(w) for w in skill.weapons))
                 skill.weapons = [int(w) for w in str(new).split(',')]

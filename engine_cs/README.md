@@ -88,10 +88,12 @@ Three mass tests run on demand and are not part of the suite (their configuratio
 ```bash
 dtcli skill-battery [names|*] [scan runs] [confirm runs]     # every skill with and without, in the battery parties; docs/generated/SKILL_BATTERY.md
 dtcli support-battery [runs] [stage]                         # each support and tank against an attacker in its place, boss / walk / walk then boss; docs/generated/SUPPORT_BATTERY.md
-dtcli class-search [stage] [scan runs] [confirm runs] [cids|*] [boss|random|all] [1036.hp=8800,...]
-                                                             # every party of the classes of a stage, vanilla and variant (the last argument: enemy stats set on
-                                                             # the variant, to try a value before building it; kit=N, N of each item of the sheet Kit on both sides);
-                                                             # measures/CLASS_SEARCH_<STAGE>.md (0 scan runs: the plan only)
+dtcli class-search STAGE [scan=N] [confirm=N] [cids=C34,C38] [context=boss|random|all] [with=Soul Summoner*2+Witch]
+                  [compare=vanilla|variant] [enemy=1036.hp=8800,...] [trial="Power Charge:e191*1.1;..."] [kit=N] [out=NAME]
+                                                             # every party of the classes of a stage on two sides, A and B: vanilla and the
+                                                             # variant, or (compare=variant) the variant and the variant with the trial values;
+                                                             # with= keeps the parties that hold those classes; a table by class, A > B;
+                                                             # measures/CLASS_SEARCH_<STAGE>[_<OUT>].md (scan=0: the plan only)
 ```
 
 `rows-trial` and `curve-ablation` need the game built from other rows of balance_changes.xlsx than the variant of the snapshot: `python

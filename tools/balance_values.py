@@ -89,7 +89,7 @@ SP_LEVEL, SP_POINTS = _L['LvExpSkptData']['level'], _L['LvExpSkptData']['points'
 # QuestData: the kind of the reward (0x55e210 - 0x55e2a0 test it against 0, 1, 2, 3) and its amount (0x55e300);
 # kind 3 hands the amount to the party at once (0x5959ac - 0x5959ce): gold. Kind 2 is experience (window 0x448c60)
 QUEST_KIND, QUEST_AMOUNT, QUEST_GOLD = _L['QuestData']['kind'], _L['QuestData']['amount'], _L['QuestData']['gold_kind']
-SKILL_ARRAYS = {'TP cost': 'tp', 'SP cost': 'sp', 'speed factor': 'speed', 'chant speed factor': 'cast'}
+SKILL_ARRAYS = {'TP cost': 'tp', 'SP cost': 'sp', 'speed factor': 'speed', 'chant speed factor': 'cast', 'turns': 'turns'}
 
 
 class Refused(Exception):
