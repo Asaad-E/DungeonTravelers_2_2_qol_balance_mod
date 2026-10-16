@@ -21,7 +21,16 @@ Known limits, left as they are for now:
   fires Devil's Whisper (an enemy passive of eleven enemies, levels 46 - 99: instant death on a target with an ailment;
   left out, a guard against instant death answers it).
 - The Sage of the model keeps Circle Protect and Circle Brave and then casts her spells: the changes to Sun Veil,
-  Amplify and Accelerator are not measured by it.
+  Amplify and Accelerator are not measured by the suite. `dtcli skill-battery` measures every skill with and without,
+  under several rules of use (`variants`), and gives a speed buff to the ally who hits hardest.
+- Skills left situational, with no niche the model finds (`docs/generated/SKILL_BATTERY.md`): Petrify, Terrorize,
+  Self-Sacrifice (the Maid has better TP tools), Mini Circle Nurse and Preparation; Soul Seal, Shadow Sew, Roulette
+  Circus and Limit Field are not played by the model.
+- The bag of the model is `kit_count` (8) of each item of the sheet Kit. At C34 a party without a Maid-line member still
+  loses a little with it; with three times the bag it does not (`class-search ... kit=24`).
+
+Mass tests on demand, outside the suite (`engine_cs/README.md`): `dtcli skill-battery`, `support-battery` and
+`class-search` (every party of a stage, with filters, and a comparison of the variant against trial values).
 
 ## Setup
 

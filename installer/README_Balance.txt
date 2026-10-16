@@ -24,7 +24,7 @@ What changes
 * Quests pay more gold. Seven rare drops fall a little more often, and four strong common enemies
   can be robbed.
 * The bosses the stronger party made too easy hold more HP, the last boss of the story among them;
-  Demon God Fried hits harder instead.
+  the Queen of Darkness also defends better, and Demon God Fried hits harder instead.
 * The unique skills of the girls that did little do more (Third Eye Wide, Arcane Shield, Alter
   Fate, Tranquil Song). Lizerietta has a new one, No Miracles Needed: she may hold on with 1 HP
   when a hit would fell her.
@@ -39,7 +39,10 @@ What changes
 * Three grand sealbooks of the postgame (Melek Taus, Genbu, Murasaki Shikibu) carry a second
   enchantment. One postgame superboss no longer opens with a spell that can fell the party.
 * The party buffs of the Enchantress and the Sage (Circle Brave, Circle Protect, Sun Veil) are
-  larger and, with Accelerator, chanted much faster. Ecstasy gives twice as much.
+  larger and, with Accelerator, chanted much faster. Accelerator also gives more speed and lasts a
+  turn longer, and Prism Dawn hits harder. Ecstasy gives twice as much.
+* Power Charge makes the next blow stronger than before (its box shows the real multiple), the
+  Shadow Clone of the Kunoichi lasts a turn longer, and the Oracles doll hits much harder.
 * The Bathroom Slippers, the reward of quest rank 3, give Double EXP in the place of their
   physical defense.
 * The wandering blacksmith shows up more often in every dungeon.
