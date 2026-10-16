@@ -26,6 +26,10 @@ Known limits, left as they are for now:
 - Skills left situational, with no niche the model finds (`docs/generated/SKILL_BATTERY.md`): Petrify, Terrorize,
   Self-Sacrifice (the Maid has better TP tools), Mini Circle Nurse and Preparation; Soul Seal, Shadow Sew, Roulette
   Circus and Limit Field are not played by the model.
+- A healer without a Maid-line member (Maid, Bard, Diva, Mistress, Dancer, Etoile) runs out of TP in a long boss fight:
+  the eight Fairy Apples of the bag go and her heals stop (Meta party with a Bishop: C30 4%, C34 12%; with three times
+  the bag 95% and 100%). The Maid line is the TP source of the party, kept as the game has it; heals 25% cheaper would
+  add 1 - 3 points to those parties and were left out (2026-10-16).
 - The bag of the model is `kit_count` (8) of each item of the sheet Kit. At C34 a party without a Maid-line member still
   loses a little with it; with three times the bag it does not (`class-search ... kit=24`).
 
