@@ -53,7 +53,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Light Scroll | kunoichi | P24: wins +7%, length -10%, HP left +6 points | serves |
 | Lightning Enchant | sage | C38: wins +7%, length -5%, HP left +9 points | serves |
 | Limit Field | dolls | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Magic Barrier | magical princess | C38: wins +0%, length +3%, HP left +2 points | serves |
+| Magic Barrier | magical princess | C38: wins +0%, length +4%, HP left +4 points | serves |
 | Material Guard | tank | P24: wins +0%, length -2%, HP left -1 points | nothing shown |
 | Mini Circle Nurse | sage | C38: wins +0%, length -2%, HP left +5 points | serves |
 | Moon Curtain | tank | P24: wins -3%, length +5%, HP left -2 points | serves |

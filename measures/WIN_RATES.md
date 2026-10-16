@@ -20,7 +20,7 @@ Share of wins, the game > the variant, and the difference in points. **Bold**: t
 | C34 | 100% > 100% (+0) | 100% > 100% (+0) | 100% > 100% (+0) | 87% > 95% (+8) | 100% > 99% (-1) | **1% > 97% (+96)** | 98% > 100% (+2) |
 | C36 | 88% > 90% (+2) | 75% > 74% (-1) | **45% > 70% (+25)** | 5% > 14% (+9) | 58% > 68% (+10) | **0% > 41% (+41)** | **0% > 38% (+38)** |
 | C38 | **58% > 91% (+33)** | 89% > 92% (+3) | 98% > 100% (+3) | **4% > 44% (+40)** | **44% > 68% (+24)** | **9% > 85% (+76)** | **18% > 97% (+79)** |
-| C40 | 92% > 98% (+6) | 98% > 98% (+0) | 76% > 78% (+1) | 0% > 0% (+0) | 42% > 55% (+13) | 0% > 1% (+1) | **2% > 51% (+49)** |
+| C40 | 92% > 98% (+6) | 98% > 98% (+0) | 76% > 78% (+1) | 0% > 0% (+0) | 42% > 55% (+13) | 0% > 1% (+1) | **2% > 56% (+54)** |
 
 | Party | Counted | Mean wins, game | Mean wins, variant | Bosses 15 points easier | Bosses below 50% in the game | of them, 50% or more on the variant | Fights shorter (both won) |
 |---|---|---|---|---|---|---|---|
@@ -30,6 +30,6 @@ Share of wins, the game > the variant, and the difference in points. **Bold**: t
 | Juggernaut | no | 57% | 72% | 6 | 8 | 4 | +7% |
 | Juggernaut-Plus | no | 80% | 87% | 4 | 3 | 2 | +5% |
 | Anti-Meta | no | 47% | 79% | 9 | 9 | 6 | +40% |
-| Anti-Meta-Plus | no | 55% | 85% | 9 | 7 | 5 | +49% |
+| Anti-Meta-Plus | no | 55% | 85% | 9 | 7 | 5 | +50% |
 
 Two standard errors of a difference of shares near 50%: 10 points at 200 battles, 14 at 100; less as a share nears 0% or 100%.

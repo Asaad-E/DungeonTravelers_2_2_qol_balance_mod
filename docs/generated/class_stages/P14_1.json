@@ -154,14 +154,14 @@
    "class": "Soul Summoner"
   },
   "magical princess": {
-   "won": 0.9,
-   "time": 8.960255242079805,
-   "time_won": 9.092263336921297,
-   "share": 0.11117272278046635,
+   "won": 0.925,
+   "time": 9.197772192171602,
+   "time_won": 9.461896863626126,
+   "share": 0.1101314185332749,
    "character": "Melvy",
    "level": 79,
-   "lowest_hp": 0.415676332551123,
-   "hp_left": 0.898298692591351,
+   "lowest_hp": 0.4218655715722427,
+   "hp_left": 0.9130531344284277,
    "class": "Magical Princess"
   },
   "sage": {
