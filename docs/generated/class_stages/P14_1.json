@@ -176,14 +176,14 @@
    "class": "Sage"
   },
   "kunoichi": {
-   "won": 0.95,
-   "time": 8.462869429698268,
-   "time_won": 8.627720529254384,
-   "share": 0.1603564769724887,
+   "won": 0.925,
+   "time": 8.267194356695022,
+   "time_won": 8.433880149527027,
+   "share": 0.15701093037084535,
    "character": "Tsurara",
    "level": 79,
-   "lowest_hp": 0.41648398698407263,
-   "hp_left": 0.95,
+   "lowest_hp": 0.40874721698921046,
+   "hp_left": 0.925,
    "class": "Kunoichi"
   },
   "mistress": {
