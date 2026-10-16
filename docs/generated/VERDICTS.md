@@ -286,16 +286,7 @@ Rows: 181. open: 0, closed: 83, not a problem: 86, out of the balance: 12. Open 
 
 ## Rows closed on an argument, with no figure
 
-9 of 181 rows hold no number in what was measured, found or decided: their verdict is a reading of the design, not a measure.
+0 of 181 rows hold no number in what was measured, found or decided: their verdict is a reading of the design, not a measure.
 
 | Row | Subject | State | Verdict | Why |
 |---|---|---|---|---|
-| J13 | Mercenaries | not a problem | partly true | Minor informational point; guest allies are optional |
-| F07 | Valkyrie | not a problem | partly true | As J04: top stability, but alternative strategies exist |
-| F20 | Skills to leave at level 1 | not a problem | true by design: some skills gain little from levels |  |
-| F21 | Items beat skills | not a problem | false: skills are free and unlimited; items cost money and slots |  |
-| F28 | Attract | not a problem | partly true: as F27 |  |
-| F38 | Avenger | not a problem | passive: out of the measure; it can trigger an enemy Dark Aura by design |  |
-| F63 | Barrage | not a problem | passive: double attack of the Kunoichi; W raised Double and Triple Attack |  |
-| F82 | Cleanse | not a problem | false: a free cure against items |  |
-| F87 | Sniper | closed | true | Addressed by W036-W039 making bow combat skills fully compatible with guns. |
