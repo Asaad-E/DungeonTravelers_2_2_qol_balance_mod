@@ -158,6 +158,8 @@ namespace DtEngine.Suite
         {
             string key = role + "|" + cond + "|" + act + "|" + (chain > 0);
             if (setups.TryGetValue(key, out var name)) return name;
+            // a role whose own rows already use the action keeps them (an added row before her statuses would undo her order)
+            if (c.Setup.Policies.Any(r => r.Str("Role") == role && r.Str("Action") == act)) { setups[key] = null; return null; }
             var rows = SkillValue.RowsWithRule(c, role, cond, act, chain, true).Select(o =>
             {
                 using (var doc = System.Text.Json.JsonDocument.Parse(PyJson.Dump(o))) return Snapshot.ToRow(doc.RootElement.Clone());
