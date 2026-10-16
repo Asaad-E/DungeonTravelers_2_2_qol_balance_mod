@@ -24,6 +24,8 @@ SECTION = {
     'length': 0.03,
     'hp': 0.03,
     'good_share': 0.25,
+    # dtcli skill-battery NAMES ... variants: the conditions each active is tried under (conditions of the policy, sim_setup Policies)
+    'rule_variants': ['always', 'boss', 'turn_at_most:3', 'party_hp_below:0.6', 'enemies_at_least:3'],
     # docs/FORMULAS.md: 267 / 268 preemptive attacks (before the battle), 269 escape and traps, 270 drops, 271 gold, 282 prices; docs/generated/SIM_AUDIT.md: 306 Present for Me outside battle
     'out_of_fight_effects': [267, 268, 269, 270, 271, 282, 306],
     # the first weapon of each type in EquipmentData (type -> name), for a skill whose role carries no weapon it allows

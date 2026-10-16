@@ -151,10 +151,13 @@ namespace DtEngine.Suite
             var cfg = c.In("skill_battery");
             var data = c.Data("variant");
             var sc = c.Sc("variant");
-            // arguments: skill names (comma separated, or * for every skill), runs of the scan, runs of the confirmation
+            // arguments: skill names (comma separated, or * for every skill), runs of the scan, runs of the confirmation, and "variants": every
+            // active is played under each condition of rule_variants (a damage skill forced by skill:Name), and the best cell of all reads
             var only = args.Length > 0 && args[0] != "*" ? new HashSet<string>(args[0].Split(',').Select(x => x.Trim())) : null;
             int scanRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get("scan_runs"));
             int confirmRuns = args.Length > 2 ? int.Parse(args[2]) : (int)Py.Num(cfg.Get("confirm_runs"));
+            bool variants = args.Length > 3 && args[3] == "variants";
+            var conditions = variants ? cfg.A("rule_variants").Select(x => (string)x).ToList() : null;
             var categories = new HashSet<string>(cfg.A("categories").Select(x => (string)x));
             var outEffects = new HashSet<int>(cfg.A("out_of_fight_effects").Select(x => (int)Py.Num(x)));
             var nonDamage = new HashSet<int>(SkillValue.Candidates(c, data).Select(s => s.Id));
@@ -190,11 +193,14 @@ namespace DtEngine.Suite
                     foreach (var role in roles)
                     {
                         any = true;
-                        entries.Add(new Entry
+                        (string cond, string act)? rule = !skill.IsPassive && nonDamage.Contains(skill.Id) ? SkillValue.RuleFor(c, skill) : ((string, string)?)null;
+                        if (variants && !skill.IsPassive)
                         {
-                            Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role),
-                            Rule = !skill.IsPassive && nonDamage.Contains(skill.Id) ? SkillValue.RuleFor(c, skill) : ((string, string)?)null,
-                        });
+                            string act = rule.HasValue ? rule.Value.act : "skill:" + skill.Name;
+                            foreach (var cond in conditions)
+                                entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = (cond, act) });
+                        }
+                        else entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = rule });
                     }
                 }
                 if (!any) noRole.Add(skill);
@@ -245,8 +251,10 @@ namespace DtEngine.Suite
                 else if ((double)hurts / n >= good) verdict = "hurts";
                 else verdict = "dead";
                 counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
-                string stagesPlayed = string.Join(", ", all.Select(x => x.Entry.Stage + " (" + x.Entry.Role + (x.Entry.Weapon != null ? ", " + x.Entry.Weapon : "") + ")").Distinct());
-                string where = top == null ? "-" : top.Cid + " " + top.Context + ", " + top.Party + " (" + top.Entry.Stage + ")";
+                string stagesPlayed = string.Join(", ", all.Select(x => x.Entry.Stage + " (" + x.Entry.Role + (x.Entry.Weapon != null ? ", " + x.Entry.Weapon : "") + ")").Distinct())
+                                      + (variants ? "; rules: " + string.Join(", ", all.Where(x => x.Entry.Rule.HasValue).Select(x => x.Entry.Rule.Value.cond).Distinct()) : "");
+                string where = top == null ? "-" : top.Cid + " " + top.Context + ", " + top.Party + " (" + top.Entry.Stage
+                               + (top.Entry.Rule.HasValue ? "; " + top.Entry.Rule.Value.cond + " / " + top.Entry.Rule.Value.act : "") + ")";
                 string figs = top == null ? "-" : Py.Pct(top.Wins, 0, true) + " / " + Py.Pct(top.Length, 0, true) + " / " + Py.Pct(top.Hp, 0, true);
                 lines.Add("| " + skill.Name + " | " + skill.Category + " | " + stagesPlayed + " | " + n + " | " + Py.Pct((double)serves / n, 0) + " | "
                           + Py.Pct((double)hurts / n, 0) + " | " + Py.Pct((double)same / n, 0) + " | " + where + " | " + figs + " | " + verdict + " |");
@@ -263,7 +271,8 @@ namespace DtEngine.Suite
                 });
             }
 
-            string dir = c.Path("docs", "generated", "skill_battery");
+            string tag = variants ? "skill_battery_variants" : "skill_battery";
+            string dir = c.Path("docs", "generated", tag);
             Directory.CreateDirectory(dir);
             M.ClearFolder(dir);
             c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
@@ -292,7 +301,10 @@ namespace DtEngine.Suite
             if (outOfFight.Count > 0) text.AddRange(new[] { "", "Out of the fight (actives not usable in battle; passives whose every effect is in out_of_fight_effects): "
                                                             + string.Join(", ", outOfFight.Select(s => s.Name)) + "." });
             if (noRole.Count > 0) text.AddRange(new[] { "", "No role plays a class that learns: " + string.Join(", ", noRole.Select(s => s.Name)) + "." });
-            c.WriteText(c.Path("docs", "generated", "SKILL_BATTERY.md"), M.Lines(text), false);
+            if (variants) text.Insert(2, "**Variants:** every active under each condition of rule_variants (" + string.Join(", ", conditions)
+                                         + "), a damage skill forced by skill:Name; the verdict reads the best cell of all of them.");
+            if (variants) text.Insert(3, "");
+            c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);
             c.Say("skill-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
         }
     }
