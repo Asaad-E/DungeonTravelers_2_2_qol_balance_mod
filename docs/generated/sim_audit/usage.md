@@ -207,13 +207,13 @@
 | etoile (Ist) | 29 | C18 | Gravitating Polka | no rule of the role uses it |
 | etoile (Ist) | 29 | C18 | Clean | no rule of the role uses it |
 | etoile (Ist) | 62 | C38 | Gloomy Tango | no rule of the role uses it |
-| etoile (Ist) | 62 | C38 | Debilitating Salsa | no rule of the role uses it |
+| etoile (Ist) | 62 | C38 | Dumbing Mazurka | no rule of the role uses it |
 | etoile (Ist) | 62 | C38 | Emaciating Hopak | no rule of the role uses it |
 | etoile (Ist) | 62 | C38 | Alluring Samba | no rule of the role uses it |
 | etoile (Ist) | 62 | C38 | Gravitating Polka | no rule of the role uses it |
 | etoile (Ist) | 62 | C38 | Clean | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Gloomy Tango | no rule of the role uses it |
-| etoile (Ist) | 90 | P24 | Debilitating Salsa | no rule of the role uses it |
+| etoile (Ist) | 90 | P24 | Dumbing Mazurka | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Emaciating Hopak | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Alluring Samba | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Gravitating Polka | no rule of the role uses it |

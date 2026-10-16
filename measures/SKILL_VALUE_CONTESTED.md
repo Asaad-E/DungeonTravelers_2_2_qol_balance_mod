@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**51 serves; 20 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 84).**
+**52 serves; 18 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 83).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -27,16 +27,15 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Cook | maid | C30: wins +3%, length +35%, HP left +4 points | serves |
 | Cover | tank | P24: wins -3%, length +5%, HP left -2 points | serves |
 | Death | sage | - | see SKILL_AILMENTS.md |
-| Debilitating Salsa | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Defender | tank | C30: wins +0%, length +2%, HP left -1 points | nothing shown |
 | Dispel | sage | C38: wins +7%, length -17%, HP left +9 points | serves |
 | Divine Shield | healer | C38: wins +0%, length +1%, HP left +2 points | nothing shown |
-| Dumbing Mazurka | etoile | C38: wins +3%, length +4%, HP left +5 points | serves |
+| Dumbing Mazurka | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Earth Enchant | sage | C38: wins +7%, length -7%, HP left +7 points | serves |
 | Emaciating Hopak | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Evade | shooter | P24: wins +7%, length -2%, HP left +7 points | serves |
 | Experience Paean | maid | - | out of the fight: EXP, not the fight |
-| Fascinating Waltz | etoile | C38: wins +10%, length -1%, HP left +16 points | serves |
+| Fascinating Waltz | etoile | C40: wins +20%, length +6%, HP left +20 points | serves |
 | Fire Enchant | sage | C38: wins +7%, length -8%, HP left +6 points | serves |
 | First Aid | maid | P24: wins +3%, length -0%, HP left +4 points | serves |
 | Fleet Foot | dolls | C38: wins +3%, length +6%, HP left +3 points | serves |
@@ -65,7 +64,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Perdurabo | soul summoner | C38: wins +0%, length -51%, HP left +5 points | serves |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Power Charge | dark lord | P24: wins +0%, length +2%, HP left -0 points | nothing shown |
-| Primevil | etoile | C40: wins +0%, length -1%, HP left +1 points | nothing shown |
+| Primevil | etoile | C40: wins +0%, length -2%, HP left +4 points | serves |
 | Protect | tank | C38: wins +7%, length +9%, HP left +7 points | serves |
 | Provoke | tank | C38: wins +0%, length +7%, HP left +1 points | serves |
 | Reading Requiem | maid | C38: wins +7%, length +5%, HP left +8 points | serves |
@@ -87,6 +86,6 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Sun Veil | sage | C38: wins +3%, length +2%, HP left +5 points | serves |
 | Terrorize | sage | - | see SKILL_AILMENTS.md |
 | Trump Card | joker | P24: wins -3%, length +10%, HP left -2 points | serves |
-| Warm-Up | etoile | C40: wins +0%, length +1%, HP left +1 points | nothing shown |
+| Warm-Up | etoile | P24: wins -3%, length +7%, HP left -2 points | serves |
 | Water Enchant | sage | C38: wins +7%, length -0%, HP left +11 points | serves |
 | Wind Enchant | sage | C38: wins +7%, length -6%, HP left +8 points | serves |

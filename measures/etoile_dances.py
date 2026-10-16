@@ -33,7 +33,7 @@ def main():
     runs = int(sys.argv[2]) if len(sys.argv) > 2 else 60
     data, setup = balance_data(game_data()), setup_mod.load()
     usual = setup.policies
-    first, second = [r for r in usual if r['Role'] == 'etoile' and str(r['Action']) in ('status:195', 'status:201')]
+    first, second = [r for r in usual if r['Role'] == 'etoile' and str(r['Action']) in ('status:195', 'status:199', 'status:201')]
     for a, b in PAIRS:
         setup.policies = [dict(r, Action=f'status:{DANCES[a]}') if r is first else
                           dict(r, Action=f'status:{DANCES[b]}') if r is second else r for r in usual]

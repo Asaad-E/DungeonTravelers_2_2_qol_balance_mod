@@ -39,7 +39,7 @@ Balance variant. 8 random battles of the floor of each checkpoint in a row, HP a
 | diva | Diva | support | 100% / 100% / 24% | 100% / 100% / 39% | 100% / 99% / 58% | 92% / 100% / 59% | +2 | +21 |
 | valkyrie | Valkyrie | tank | 100% / 99% / 24% | 100% / 99% / 33% | 100% / 98% / 36% | 92% / 99% / 35% | +1 | +8 |
 | sage | Sage | support | 100% / 98% / 14% | 100% / 99% / 22% | 100% / 98% / 24% | 82% / 100% / 29% | +1 | -2 |
-| etoile | Etoile | support | 100% / 99% / 25% | 100% / 100% / 35% | 100% / 99% / 43% | 80% / 100% / 38% | +2 | +11 |
+| etoile | Etoile | support | 100% / 100% / 25% | 100% / 99% / 34% | 100% / 98% / 44% | 82% / 97% / 47% | +1 | +13 |
 
 ## late (P08, P14, P18, P24)
 
@@ -52,5 +52,5 @@ Balance variant. 8 random battles of the floor of each checkpoint in a row, HP a
 | diva | Diva | support | 92% / 100% / 71% | 100% / 100% / 88% | 100% / 100% / 93% | 98% / 95% / 84% | +1 | +10 |
 | valkyrie | Valkyrie | tank | 98% / 98% / 48% | 100% / 99% / 83% | 100% / 99% / 91% | 95% / 89% / 68% | -1 | -1 |
 | sage | Sage | support | 95% / 98% / 45% | 100% / 97% / 79% | 100% / 100% / 91% | 95% / 92% / 68% | -1 | -3 |
-| etoile | Etoile | support | 100% / 98% / 46% | 100% / 100% / 81% | 100% / 100% / 91% | 85% / 90% / 73% | -0 | -1 |
+| etoile | Etoile | support | 95% / 95% / 48% | 100% / 99% / 81% | 100% / 100% / 92% | 90% / 91% / 75% | -1 | -0 |
 
