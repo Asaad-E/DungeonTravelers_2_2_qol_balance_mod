@@ -68,6 +68,8 @@ namespace DtEngine.Suite
             return found;
         }
 
+        static int? kitOverride;      // kit=N in the last argument: N of each item of the sheet Kit, on both sides
+
         static JobSpec Job(Ctx c, Target t, List<string> roles, string side, int runs, long seed, int chain, long chainSeed, string name, Obj changes)
         {
             Obj enemies = null, options = null;
@@ -77,17 +79,20 @@ namespace DtEngine.Suite
                 enemies = Jb.Chain(sc.WalkedZones(t.Floor, sc.ReferenceLevels()[t.Cid].level).Select(z => z.Name), chainSeed, chain);
                 options = new Obj { { "random_battle", true } };
             }
-            return Jb.Make(c, side, t.Cid, roles: roles, runs: runs, seed: seed, enemies: enemies, options: options, name: name,
+            return Jb.Make(c, side, t.Cid, roles: roles, runs: runs, seed: seed, enemies: enemies, options: options, name: name, kit: kitOverride,
                            enemyChanges: side == "variant" ? changes : null);
         }
 
-        /// <summary>"1036.hp=8800,1037.atk=200": the stats of enemy records set on the variant for this search, as the job field enemy_changes.</summary>
+        /// <summary>"1036.hp=8800,1037.atk=200": the stats of enemy records set on the variant for this search, as the job field enemy_changes;
+        /// "kit=24": the bag of both sides (sets kitOverride).</summary>
         static Obj Changes(string text)
         {
             var o = new Obj();
+            kitOverride = null;
             if (string.IsNullOrWhiteSpace(text)) return o;
             foreach (var part in text.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0))
             {
+                if (part.StartsWith("kit=")) { kitOverride = int.Parse(part.Substring(4)); continue; }
                 int dot = part.IndexOf('.'), eq = part.IndexOf('=');
                 if (dot <= 0 || eq <= dot) throw new InvalidOperationException("enemy change '" + part + "': write it as id.field=value");
                 string id = part.Substring(0, dot).Trim(), field = part.Substring(dot + 1, eq - dot - 1).Trim();
@@ -237,7 +242,7 @@ namespace DtEngine.Suite
                     + "of RoleOrder that has it), vanilla and variant with the same seeds, at every story boss of the stage at its reference level (boss) and on "
                     + "a row of " + chain + " random battles of each floor of the stage (random). Scan: " + scanRuns + " runs a cell; the candidates again at "
                     + confirmRuns + " runs (at most " + Py.Num(cfg.Get("confirm_max")) + " of each kind). Section class_search of data_tables/measure_config.json."
-                    + (string.IsNullOrWhiteSpace(changesText) ? "" : " **Trial: the variant played with the enemy changes " + changesText + ".**"), "",
+                    + (string.IsNullOrWhiteSpace(changesText) ? "" : " **Trial: " + changesText + " (enemy stats on the variant; kit=N, the bag of both sides).**"), "",
                 "Dominant: variant wins " + Py.Pct(win, 0) + " or more in under " + Py.Pct(cfg.D("time"), 0) + " of the median length of the target's parties, "
                     + "where vanilla won under " + Py.Pct(cfg.D("vanilla_win"), 0) + " or took " + Py.F(cfg.D("vanilla_length"), 1) + " times as long. Drop: variant "
                     + "wins " + Py.Pct(drop, 0) + " points fewer than vanilla. Beyond vanilla: shorter than the shortest vanilla party of the target that wins "

@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**51 serves; 18 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 82).**
+**52 serves; 18 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 83).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -23,6 +23,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Clean | maid | C38: wins +13%, length -2%, HP left +12 points | serves |
 | Cleanse | shooter | C40: wins +3%, length -0%, HP left +11 points | serves |
 | Coffee Break | dolls | C38: wins +13%, length +5%, HP left +16 points | serves |
+| Concentration Prelude | maid | C38: wins +13%, length +7%, HP left +17 points | serves |
 | Cook | maid | C30: wins +3%, length +35%, HP left +4 points | serves |
 | Cover | tank | P24: wins -3%, length +5%, HP left -2 points | serves |
 | Death | sage | - | see SKILL_AILMENTS.md |

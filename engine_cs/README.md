@@ -90,7 +90,8 @@ dtcli skill-battery [names|*] [scan runs] [confirm runs]     # every skill with 
 dtcli support-battery [runs] [stage]                         # each support and tank against an attacker in its place, boss / walk / walk then boss; docs/generated/SUPPORT_BATTERY.md
 dtcli class-search [stage] [scan runs] [confirm runs] [cids|*] [boss|random|all] [1036.hp=8800,...]
                                                              # every party of the classes of a stage, vanilla and variant (the last argument: enemy stats set on
-                                                             # the variant, to try a value before building it); measures/CLASS_SEARCH_<STAGE>.md (0 scan runs: the plan only)
+                                                             # the variant, to try a value before building it; kit=N, N of each item of the sheet Kit on both sides);
+                                                             # measures/CLASS_SEARCH_<STAGE>.md (0 scan runs: the plan only)
 ```
 
 `rows-trial` and `curve-ablation` need the game built from other rows of balance_changes.xlsx than the variant of the snapshot: `python
