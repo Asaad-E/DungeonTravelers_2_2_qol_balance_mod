@@ -33,10 +33,10 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C28 | vanilla | Diva | 50% | Meta with etoile for diva | 90% |
 | C28 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 68% |
 | C28 | variant | Diva | 50% | Meta with etoile for diva | 95% |
-| C29 | vanilla | Bishop | 50% | Mage-Heavy with diva for healer | 98% |
+| C29 | vanilla | Bishop | 50% | Mage-Heavy with diva for healer | 100% |
 | C29 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 100% |
 | C29 | vanilla | Sage | 50% | none could be built | - **below** |
-| C29 | vanilla | Valkyrie | 50% | Mage-Heavy with attacker for tank | 90% |
+| C29 | vanilla | Valkyrie | 50% | Mage-Heavy with attacker for tank | 93% |
 | C29 | vanilla | Witch | 50% | none could be built | - **below** |
 | C29 | variant | Diva | 50% | Mage-Heavy with etoile for maid | 100% |
 | C30 | vanilla | Diva | 50% | Meta with etoile for diva | 100% |
