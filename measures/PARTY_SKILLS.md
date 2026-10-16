@@ -7,12 +7,12 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 | Vigor Trio | 3 | atk +32 | +3 | +13% | +3 |
 | Board Members | 3 | dex +20, agi +20 | +1 | +13% | +2 |
 | Vagabonds | 3 | agi +20 | +1 | +13% | +2 |
+| Eccentrics | 3 | agi +20 | +1 | +13% | +2 |
 | Mission Ongoing | 4 | fire +10, atk +20 | +3 | +9% | +3 |
 | Sales Experience | 4 | wind +20, agi +10 | -0 | +6% | +1 |
 | The New Magi | 3 | tp +50, fire +20 | +1 | +5% | +0 |
 | Kindred Spirits | 4 | tp +50, fire +20 | -0 | +6% | -1 |
 | NegaPosi | 4 | hp +50, tp +50 | -1 | +6% | -1 |
-| Eccentrics | 3 | dex +32 | +1 | +3% | +1 |
 | Graceful Agers | 4 | lightning +20, hp +50 | +1 | +2% | +1 |
 | Attentive | 3 | int +20 | +0 | +1% | +1 |
 | Flawless Poise | 3 | water +20, earth +20 | +1 | +0% | +1 |

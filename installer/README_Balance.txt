@@ -32,7 +32,7 @@ What changes
 * A fruit gives a fifth more TP, so a party without a Maid can go on with a full bag.
 * The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
   mercenary, heals more.
-* Every level gives one more skill point up to level 40.
+* Every level from 31 to 70 gives one more skill point.
 * Provoke draws more attacks as it is raised; Magic Barrier cuts more magic damage; First Grid
   comes up more often; the Kunoichi may use her Stings and Phoenix with a dagger or a projectile,
   and her Barrage strikes twice more often (30% at its first level, 50% at its last).

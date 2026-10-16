@@ -231,8 +231,13 @@ def measure_inputs(setup, vanilla, variant):
     for key in ('win_rates', 'sim_audit', 'skill_value', 'support_chains', 'class_stages_report', 'mercenaries', 'party_skills',
                 'postgame_compare', 'skill_value_contested', 'random_battles', 'regression_r04'):
         out[key] = config[key]
+    # the name a unique skill has in the variant (column Balance_Name of balance_skill_text.xlsx), else the game's
+    renamed = {int(r['Filename'].split('_')[-1].split('.')[0]): r['Balance_Name']
+               for r in sheet_rows(os.path.join(PROJECT, 'data_tables', 'balance_skill_text.xlsx'), 'Skills', filled=True)
+               if r.get('Category') == 'Unique' and r.get('Balance_Name')}
     out['unique_skills'] = dict(config['unique_skills'],
-                                skills={str(k): {'name': v['name'], 'values': list(v['values'])} for k, v in variant.unique.items()})
+                                skills={str(k): {'name': renamed.get(k, v['name']), 'values': list(v['values'])}
+                                        for k, v in variant.unique.items()})
     out['boss_rows_check'] = boss_rows_inputs(vanilla, variant, config['boss_rows_check'])
     out['design_rows'] = design_rows_inputs(vanilla, config['design_rows'])
     out['trials'] = dict(config['trials'], sealbook_names={str(k): v['name'] for k, v in vanilla.sealbooks.items()})

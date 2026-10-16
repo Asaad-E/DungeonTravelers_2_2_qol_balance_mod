@@ -70,6 +70,7 @@ config = {
                               'wins': skill_value_contested.WINS, 'length': skill_value_contested.LENGTH, 'hp': skill_value_contested.HP},
     'random_battles': {'chain': random_battles.CHAIN, 'ahead': random_battles.AHEAD},
     'regression_r04': {'substitutes': {k: list(v) for k, v in regression_r04.SUBSTITUTES.items()}},
+    # Eccentrics: AGI +20 since row P091 (effect 366), edited in the JSON on 2026-10-16
     'boss_rows_check': {'fields': list(boss_rows_check.FIELDS), 'keys': list(boss_rows_check.KEYS)},
     'design_rows': {'swaps': dict(design_rows.SWAPS), 'no_magic': design_rows.NO_MAGIC, 'down': list(design_rows.DOWN),
                     'steps_a_turn': design_rows.STEPS_A_TURN},

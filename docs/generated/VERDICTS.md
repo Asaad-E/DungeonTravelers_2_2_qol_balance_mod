@@ -79,7 +79,7 @@ Rows: 181. open: 0, closed: 83, not a problem: 86, out of the balance: 12. Open 
 | J21 | Dark Lord | not a problem | false | False: premier physical carry in advanced and postgame |
 | J22 | Samurai | not a problem | false | False: premise confuses Samurai with Kunoichi; Samurai performs at 90 - 100% wins |
 | J23 | Witch and Sage | closed | true for the Sage: the weakest support in the same place of the party (wins in the contested fights 41% below the median) |  |
-| J24 | Bishop | closed | partly true | Addressed by Full Heal (H036) and Circle Full Heal (H037) additions to restore Bishop healing identity. |
+| J24 | Bishop | closed | partly true | Solved by class identity: the Bishop learns Full Heal (100% of max HP, no cap). H036 and H037 do not touch the cap: they let Heal and Circle Heal cure poison too (and paralysis at the upper levels of Heal) |
 | J25 | Magical Princess | closed | partly true: she needs her transformation and TP more than gear; not mediocre in wins, slow in time |  |
 | J26 | Treasure Hunter | closed | true for boss damage: the Treasure Hunter fought 31% longer than the median attacker (C22 - C40), out of TP after five strikes |  |
 | J27 | Kunoichi | closed | true: the ninjutsu deal a share of max HP capped at 250 - 500, so late they are debuffs; she rarely casts them against a boss |  |

@@ -19,6 +19,6 @@ The reference party with the girl in its last place, without her unique skill > 
 | Tsurara | Undaunted Spirit | treasure hunter | 92% > 90% (+3%) | 93% > 92% (-6%) | 90% > 95% (-1%) | 100% > 100% (+0%) | 90% > 93% (+4%) | +1 | -0% | +3 |
 | Grishna | Furious Strike | attacker | 90% > 85% (+5%) | 97% > 95% (+2%) | 87% > 85% (+7%) | 95% > 92% (-2%) | 75% > 72% (+6%) | -3 | +4% | -3 |
 | Ist | Maximum Maid | etoile | 83% > 85% (-0%) | 100% > 98% (+4%) | 100% > 100% (+1%) | 100% > 100% (-1%) | 87% > 87% (+0%) | -0 | +1% | +0 |
-| Lizerietta | Usurper of Souls | papillon | 82% > 85% (-1%) | 82% > 82% (-0%) | 98% > 98% (-2%) | 100% > 100% (-1%) | 87% > 90% (+1%) | +1 | -1% | +0 |
+| Lizerietta | No Miracles Needed | papillon | 82% > 85% (-1%) | 82% > 82% (-0%) | 98% > 98% (-2%) | 100% > 100% (-1%) | 87% > 90% (+1%) | +1 | -1% | +0 |
 | Fiora | Alter Fate | healer | 90% > 88% (+2%) | 97% > 97% (+3%) | 98% > 97% (-1%) | 100% > 100% (-0%) | 88% > 90% (-2%) | -0 | +0% | -0 |
 | Lilian | Third Eye Wide | soul summoner | 72% > 88% (-4%) | 97% > 90% (-1%) | 85% > 85% (-5%) | 93% > 97% (-2%) | 70% > 60% (+6%) | +1 | -1% | +1 |
