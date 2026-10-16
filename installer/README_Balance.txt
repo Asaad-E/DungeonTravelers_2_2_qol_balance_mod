@@ -45,6 +45,8 @@ What changes
   Shadow Clone of the Kunoichi lasts a turn longer, and the Oracles doll hits much harder.
 * The Magical Princess stays transformed longer and Magical Change gives more; Magical Spark costs
   less TP. The Soul Eater of the Soul Summoner costs less and hits harder.
+* The Witch grows a little less INT, and the five first spells of the Magic User hit a little less
+  at their higher levels: her strong spells are now her best tools.
 * The Bathroom Slippers, the reward of quest rank 3, give Double EXP in the place of their
   physical defense.
 * The wandering blacksmith shows up more often in every dungeon.

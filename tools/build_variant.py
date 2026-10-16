@@ -122,7 +122,7 @@ VARIANTS = {
                 'tutorial_text': 'balance_tutorial_text.xlsx',
                 'enchant_overrides': 'balance_enchant_text.xlsx'},
 }
-VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'),
+VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'), ('ClassLevelData.pck', 'Parameter'),
                    ('SealScrollData.pck', 'Parameter'), ('QuestData.pck', 'Parameter'),
                    (os.path.join('Enemy', 'Enemy.pck'), 'Enemy'), (os.path.join('NPC', 'NPC.pck'), 'NPC'))
 BALANCE_REPORT = os.path.join(BASE_DIR, 'docs', 'generated', 'BALANCE_BUILD.md')

@@ -473,7 +473,23 @@ def zone_row(packs, row):
     packs.ledger.append(where + (4, poke['new'], row['ID']))        # kept in the ledger; no pack of the folder holds it
 
 
-WRITERS = {'skills': skill_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
+def class_growth_row(packs, row):
+    """ClassLevelData: Record '<row> <class>', Field a stat (tools/class_data.py STATS), Level 1 - 99. A row is its number and
+    99 levels of eight ints (tools/class_data.py)."""
+    import class_data
+    number, field, level = int(str(row['Record']).split()[0]), str(row['Field']), int(row['Level'])
+    if field not in class_data.STATS:
+        raise Refused(f'no stat {field!r} in a growth row ({", ".join(class_data.STATS)})')
+    if not 1 <= level <= class_data.LEVELS:
+        raise Refused(f'no level {level} in a growth row')
+    pack = 'ClassLevelData.pck'
+    name = next((fn for fn, b in packs.archive(pack).files if struct.unpack_from('<i', b, 0)[0] == number), None)
+    if name is None:
+        raise Refused(f'no growth row {number}')
+    packs.write(row, (pack, name, None, 4 + 32 * (level - 1) + 4 * class_data.STATS.index(field)), 'i', row['New'])
+
+
+WRITERS = {'skills': skill_row, 'class_growth': class_growth_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
            'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row,
            'items': item_row, 'unique': unique_row,
            'party_skills': party_skill_row, 'npcs': npc_row, 'zones': zone_row}

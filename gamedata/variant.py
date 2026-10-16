@@ -86,6 +86,10 @@ def apply(data, changes):
                 _check(row, values[level - 1]); values[level - 1] = new
             else:
                 raise ValueError(f'{row["ID"]}: unknown skill field {field}')
+        elif table == 'class_growth':
+            # ClassLevelData row '<row> <class>', a stat at a level (tools/balance_values.py class_growth_row)
+            stats = out.growth[int(record.split()[0])][level - 1]
+            _check(row, stats[field]); stats[field] = new
         elif table == 'equipment':
             piece = out.equipment[int(record.split()[0])]
             if field == 'ATK (base)':

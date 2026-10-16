@@ -122,12 +122,24 @@ namespace DtEngine.Suite
 
         /// <summary>"Power Charge:e191*1.2;Accelerator:turns+1;Shadow Clone:tp*0.8;Prism Dawn:speed*1.2": a copy of the variant with the values
         /// of skills changed (e&lt;id&gt; scales the values of an effect, an int stays an int; tp scales the TP cost; turns adds to the turns; speed
-        /// scales the speed factors), to try a value before building it.</summary>
+        /// scales the speed factors; cast the chant speed factors), to try a value before building it.</summary>
         public static GameData WithTrial(GameData data, string text)
         {
             var changes = new Dictionary<string, Skill>();
+            var growth = new List<(string cls, int stat, double factor)>();
+            string[] statNames = { "atk", "def", "int", "res", "dex", "agi", "hp", "tp" };
             foreach (var part in text.Split(';').Select(x => x.Trim()).Where(x => x.Length > 0))
             {
+                // class:Witch:int*0.9 scales a stat of the growth of a class at every level (every row of the class)
+                if (part.StartsWith("class:"))
+                {
+                    var bits = part.Substring(6).Split(':');
+                    var scale = bits[1].Split('*');
+                    int stat = Array.IndexOf(statNames, scale[0].Trim());
+                    if (bits.Length != 2 || scale.Length != 2 || stat < 0) throw new InvalidOperationException("trial change '" + part + "': write it as class:Witch:int*0.9");
+                    growth.Add((bits[0].Trim(), stat, double.Parse(scale[1].Trim(), System.Globalization.CultureInfo.InvariantCulture)));
+                    continue;
+                }
                 int colon = part.LastIndexOf(':');
                 if (colon <= 0) throw new InvalidOperationException("trial change '" + part + "': write it as Skill name:e26*1.2");
                 string name = part.Substring(0, colon).Trim(), op = part.Substring(colon + 1).Trim();
@@ -140,16 +152,42 @@ namespace DtEngine.Suite
                 var copy = skill.Copy();
                 if (what.StartsWith("e"))
                 {
-                    int effect = int.Parse(what.Substring(1));
-                    copy = Kit.WithEffect(skill, effect, Kit.Values(skill, effect).Select(v => v.Int ? Num.Whole((long)Math.Round(F(v.V))) : Num.Float(Math.Round(F(v.V), 4))).ToList());
+                    // e26@6-10: only those levels (1-based) of the effect
+                    int lo = 1, hi = int.MaxValue;
+                    string id = what.Substring(1);
+                    if (id.Contains('@'))
+                    {
+                        var range = id.Substring(id.IndexOf('@') + 1).Split('-');
+                        lo = int.Parse(range[0]); hi = range.Length > 1 ? int.Parse(range[1]) : lo;
+                        id = id.Substring(0, id.IndexOf('@'));
+                    }
+                    int effect = int.Parse(id);
+                    copy = Kit.WithEffect(skill, effect, Kit.Values(skill, effect).Select((v, i) => i + 1 < lo || i + 1 > hi ? v
+                        : v.Int ? Num.Whole((long)Math.Round(F(v.V))) : Num.Float(Math.Round(F(v.V), 4))).ToList());
                 }
                 else if (what == "tp") copy.Tp = skill.Tp.Select(v => (int)Math.Round(F(v))).ToArray();
                 else if (what == "turns") copy.Turns = skill.Turns.Select(v => F(v)).ToArray();
                 else if (what == "speed") copy.Speed = skill.Speed.Select(v => Math.Round(F(v), 4)).ToArray();
-                else throw new InvalidOperationException("trial change '" + part + "': e<id>, tp, turns or speed");
+                else if (what == "cast") copy = Kit.WithCast(skill, skill.Cast.Select(v => Math.Round(F(v), 4)).ToArray());
+                else throw new InvalidOperationException("trial change '" + part + "': e<id>, tp, turns, speed or cast");
                 changes[name] = copy;
             }
-            return Kit.WithSkills(data, changes.Select(kv => (Kit.SkillNamed(data, kv.Key), kv.Value)));
+            var result = Kit.WithSkills(data, changes.Select(kv => (Kit.SkillNamed(data, kv.Key), kv.Value)));
+            if (growth.Count > 0)
+            {
+                if (ReferenceEquals(result, data)) result = data.ShallowCopy();
+                result.Growth = new Dictionary<int, int[][]>(data.Growth);
+                foreach (var (cls, stat, factor) in growth)
+                {
+                    int id = data.ClassNames.First(kv => kv.Value == cls).Key;
+                    var g = data.GrowthRow[id];
+                    var rows = new List<int> { g.row, g.dflt };
+                    if (g.byPrevious != null) rows.AddRange(g.byPrevious.Select(x => x.row));
+                    foreach (int row in rows.Where(r => r >= 0 && result.Growth.ContainsKey(r)).Distinct())
+                        result.Growth[row] = result.Growth[row].Select(lv => lv.Select((v, k) => k == stat ? (int)Math.Round(v * factor) : v).ToArray()).ToArray();
+                }
+            }
+            return result;
         }
 
         /// <summary>The sheet Policies with the rule of a skill, as a setup of its own that every job with the same rule shares (one scenario for
