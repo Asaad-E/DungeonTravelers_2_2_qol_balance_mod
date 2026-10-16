@@ -105,7 +105,8 @@ Every changed value, rule and line of text lives in a spreadsheet under `data_ta
 files, and refuses to finish if any number shown in a text does not match the data behind it.
 
 The battle formulas were read from the game's executable and are documented in [docs/FORMULAS.md](docs/FORMULAS.md).
-Balance changes were tested with a battle simulator (`sim/`) built on those formulas.
+Balance changes were tested with a battle engine built on those formulas (`engine_cs/`, in C#; the Python simulator
+it was proven against, `sim/`, is kept as its historical reference).
 
 More in [docs/](docs/README.md). To change the mod, read [CONTRIBUTING.md](CONTRIBUTING.md).
 

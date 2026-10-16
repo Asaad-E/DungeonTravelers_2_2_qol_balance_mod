@@ -116,6 +116,9 @@ cases (`parity/py_format_golden.py` writes the file; `dotnet test` does both).
 
 ## Bridge for the Python tools
 
+Historical: the Python measures played their battles here before every measure moved into `src/DtEngine/Suite`. It is
+kept with the Python scripts as the reference they were proven against; measures are run with `dtcli`.
+
 `tools/engine_client.py` exports the snapshot when it is stale, builds `dtcli` when a source is newer, runs it and gives back the
 dictionaries of `sim.scenario.play` (with `record` when the job says `record: true`), `sim.measures.summary` and
 `sim.measures.play_checkpoint`. A side (a `GameData`) or a setup (a `Setup`) that the snapshot does not hold, because a tool changed it

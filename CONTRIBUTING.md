@@ -10,16 +10,20 @@ it is put together, and what a change has to respect.
 
 Known limits, left as they are for now:
 
-- Assassin and Treasure Hunter still come out slower than the other classes in the class measure.
-- A handful of postgame fights are not won by any party in the simulator, with or without the mod.
-- The simulator does not build the dolls that enemies summon.
-- What the enemy passive Murder License does when it kills has not been found in the program.
-- A few rows of the register are closed on an argument, with no figure behind them (meals, forging costs, the early
-  economy, harmful map zones). They are listed in `docs/generated/VERDICTS.md`.
+- Assassin and Treasure Hunter come out slower than the other attackers in the class measure (they win 98 - 100%).
+- A handful of postgame fights are not won by any party in the model, with or without the mod; the postgame is outside
+  the balance work.
+- The model does not build the dolls that enemies summon, and does not play Calliope's heal wall (C29) or Heretic
+  Samsara (C40).
+- What the enemy passive Murder License does when it kills has not been found in the program, and the model never
+  fires Devil's Whisper (an enemy passive of eleven enemies, levels 46 - 99: instant death on a target with an ailment;
+  left out, a guard against instant death answers it).
+- The Sage of the model keeps Circle Protect and Circle Brave and then casts her spells: the changes to Sun Veil,
+  Amplify and Accelerator are not measured by it.
 
 ## Setup
 
-You need Windows, Python 3.10+, and your own unmodified copy of the game.
+You need Windows, Python 3.10+, the .NET SDK 10 (for the battle engine), and your own unmodified copy of the game.
 
 ```bash
 pip install -r requirements.txt
@@ -41,7 +45,8 @@ Nothing works without it, including the tests.
 |---|---|
 | `data_tables/` | Every value, rule and line of text of the mod, as spreadsheets. Also what is particular to this game: `game_profile.json` (folder and file names) and `record_layouts.json` (where each field sits in each record) |
 | `tools/` | Builders, readers of the game files and of the executable, measures |
-| `sim/` | The battle simulator |
+| `engine_cs/` | The battle engine and every measure that plays battles, in C# (`engine_cs/README.md`) |
+| `sim/` | The Python battle simulator, kept as the historical reference of the engine; not used by any measure |
 | `tests/` | The test suite |
 | `installer/` | What goes into the player zips: the installer script and the player READMEs |
 | `measures/` | Measures and readings that a spreadsheet row or a document cites |
@@ -109,18 +114,19 @@ A change that affects difficulty should be measured before it is proposed:
 
 | Command | What it measures |
 |---|---|
-| `python tools/full_suite.py` | The snapshot, every measure that plays battles (`dtcli suite`, in C#, all at once), then the checklists and the tests (about 1.5 minutes) |
-| `dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll suite --only difficulty-curve,party-battery` | Some of the measures alone (`dtcli <name>` for one) |
-| `python tools/difficulty_curve.py engine` then `report` | Every boss, mod against original |
-| `python tools/party_battery.py engine` then `report` | Several party types against 17 bosses |
-| `python tools/class_stages.py engine` then `report` | Each class at each stage of the game |
+| `python tools/full_suite.py` | The snapshot, every measure that plays battles (`dtcli suite`, in C#, all at once), then the checklists and the tests (about a minute) |
+| `dtcli suite --only difficulty-curve,party-battery` | Some of the measures (`dtcli difficulty-curve` for one): every boss mod against original, several party types against 17 bosses |
+| `dtcli class-stages` | Each class at each stage of the game |
 
-The measures run on the C# engine of `engine_cs/` (`dtcli suite`, `engine_cs/README.md`). The `engine` commands of the Python tools play the battles on it too (it needs the .NET SDK 10), which gives the same
-figures as the Python simulator of `sim/`, value by value (`engine_cs/parity/`), many times faster. The Python paths (`all`)
-are kept as the reference.
+`dtcli` is `dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll`, with `--snapshot build/engine_snapshot.json
+--root .` (`python tools/full_suite.py` exports the snapshot and builds the program first). Every measure that plays
+battles runs in C#; what a measure is configured with (parties, places, thresholds) is in
+`data_tables/measure_config.json` and the workbooks. The Python simulator of `sim/` and the Python measure scripts are
+kept only as the historical reference the engine was proven against (`engine_cs/parity/`, value by value): do not use
+them to measure.
 
 The curve runs 40 battles per boss. Bosses that sit on the edge of a window can move in or out by chance; before
-blaming a change, run those bosses again with more battles (`measures/curve_ablation.py`).
+blaming a change, run those bosses again with more battles (`dtcli curve-recheck "C15;C36" 400`).
 
 ## Commits and pull requests
 

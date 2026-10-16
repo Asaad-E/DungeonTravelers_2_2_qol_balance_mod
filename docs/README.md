@@ -32,7 +32,9 @@ config.example.json      copy to config.json to say where the game is (tools/mod
 docs/                    the documents above
 data_tables/             every value, rule and wording of the mod (below)
 tools/                   the tools (below)
-sim/                     the battle simulator: the formulas of docs/FORMULAS.md played turn by turn
+engine_cs/               the battle engine and every measure that plays battles, in C# (engine_cs/README.md)
+sim/                     the Python battle simulator the engine was ported from and proven against; kept as the
+                         historical reference, not used to measure
 tests/                   the unittest suite
 installer/               the README of each variant for players, and the template of the program patch
 measures/                the measures and readings a row of a workbook or a document cites: each script says
@@ -69,7 +71,7 @@ Nothing that is a value, a rule or a wording is written in code.
 | Text | `generate_qol_*_text.py`, `text_checks.py` (every figure in a text against the built file), `rules.py`, `magnitude_words.py`, `weapon_rank_labels.py`, `enchant_values.py`, `shortened_text.py` |
 | Readers of the game | `pck_handler.py`, `extract_vanilla.py`, `enemy_data.py`, `enemy_ai.py`, `npc_data.py`, `summon_data.py`, `doll_data.py`, `class_data.py`, `character_data.py`, `skill_tree_data.py`, `item_effect_data.py`, `floor_data.py`, `map_data.py` |
 | Readers of the program | `exe_reader.py`, `exe_dis.py` (disassembles a range), `exe_find_const.py`, `exe_who_calls.py`, `exe_around.py`, `exe_formulas.py`, `exe_effects.py`, `exe_effect_context.py`, `exe_enchants.py`, `exe_digest.py`, `class_modifier_data.py`, `random_move_data.py` |
-| Measures | `balance_baseline.py`, `difficulty_curve.py`, `party_battery.py`, `class_stages.py`, `skill_value.py`, `skill_worth.py`, `boss_fit.py`, `guide_curve.py`, `checkpoint_levels.py`, `catch_up_options.py` |
+| Measures | `full_suite.py` (every measure, in C# through `dtcli suite`, then the checklists and the tests), `engine_export.py` (the snapshot the engine reads), `balance_baseline.py`, `checkpoint_levels.py`, `catch_up_options.py`. The Python measures that play battles (`difficulty_curve.py`, `party_battery.py`, `class_stages.py`, `skill_value.py`, `skill_worth.py`, `boss_fit.py`, `guide_curve.py`) are the historical reference of their C# ports in `engine_cs/src/DtEngine/Suite` |
 | Checklists | `sim_coverage.py`, `sim_audit.py`, `sim_anchors.py`, `verdicts.py` |
 
 Each tool says what it does and how to run it at the top of its file.
