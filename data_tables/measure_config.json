@@ -810,6 +810,9 @@
   "length": 0.03,
   "hp": 0.03,
   "good_share": 0.25,
+  "tp": 0.05,
+  "alive": 0.3,
+  "walk": 10,
   "rule_variants": [
    "always",
    "boss",

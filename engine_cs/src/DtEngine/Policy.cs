@@ -746,7 +746,9 @@ namespace DtEngine
                         Unit best = null; int bk = 0;
                         foreach (var m in lacking)
                         {
-                            int k = effect == 161 ? m.Stat(Unit.ATK) : effect == 162 ? -m.Stat(Unit.DEF) : (effect == 27 || effect == 173) ? m.Stat(Unit.INT) : 0;
+                            // 168 (a speed buff such as Accelerator): the ally who hits hardest, by her higher of ATK and INT
+                            int k = effect == 161 ? m.Stat(Unit.ATK) : effect == 162 ? -m.Stat(Unit.DEF) : (effect == 27 || effect == 173) ? m.Stat(Unit.INT)
+                                  : effect == 168 ? Math.Max(m.Stat(Unit.ATK), m.Stat(Unit.INT)) : 0;
                             if (best == null || k > bk) { best = m; bk = k; }
                         }
                         action.Target = best;

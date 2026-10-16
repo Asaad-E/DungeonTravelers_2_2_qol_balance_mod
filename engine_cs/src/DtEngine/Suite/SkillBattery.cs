@@ -26,16 +26,17 @@ namespace DtEngine.Suite
             public string Cid, Party, Context;
             public int Chain;
             public JobResult Without, With;
-            public double Wins, Length, Hp;      // with - without: share of wins, share by which the won fights are shorter, HP left
+            public double Wins, Length, Hp, Tp, Alive;      // with - without: share of wins, share by which the won fights are shorter, HP left, TP left, members alive
             public bool Same, Serves, Hurts;
             public double Score;
         }
 
-        static (double wins, double? time, double hp) Figures(JobResult r)
+        static (double wins, double? time, double hp, double tp, double alive) Figures(JobResult r)
         {
             var won = r.Runs.Where(x => x.Won).ToList();
-            return ((double)won.Count / r.Runs.Length, won.Count > 0 ? Py.Sum(won.Select(x => x.Time)) / won.Count : (double?)null,
-                    Py.Sum(r.Runs.Select(x => x.HpLeft)) / r.Runs.Length);
+            int n = r.Runs.Length;
+            return ((double)won.Count / n, won.Count > 0 ? Py.Sum(won.Select(x => x.Time)) / won.Count : (double?)null,
+                    Py.Sum(r.Runs.Select(x => x.HpLeft)) / n, Py.Sum(r.Runs.Select(x => x.TpLeft)) / n, (double)r.Runs.Sum(x => x.Alive) / n);
         }
 
         static bool SameRuns(JobResult a, JobResult b)
@@ -56,10 +57,14 @@ namespace DtEngine.Suite
             cell.Wins = b.wins - a.wins;
             cell.Length = a.time.HasValue && b.time.HasValue ? 1 - b.time.Value / a.time.Value : 0.0;
             cell.Hp = b.hp - a.hp;
+            cell.Tp = b.tp - a.tp;
+            cell.Alive = b.alive - a.alive;
+            double tpGain = cfg.D("tp"), aliveGain = cfg.D("alive");
             cell.Same = SameRuns(cell.Without, cell.With);
-            cell.Serves = !cell.Same && (cell.Wins >= w || (cell.Wins > -w && (cell.Length >= l || cell.Hp >= h)));
+            cell.Serves = !cell.Same && (cell.Wins >= w || (cell.Wins > -w && (cell.Length >= l || cell.Hp >= h || cell.Tp >= tpGain || cell.Alive >= aliveGain)));
             cell.Hurts = !cell.Same && (cell.Wins <= -w || (cell.Wins < w && cell.Length <= -l && cell.Hp <= 0));
-            cell.Score = cell.Wins <= -w ? double.NegativeInfinity : Math.Max(cell.Wins / w, Math.Max(cell.Length / l, cell.Hp / h));
+            cell.Score = cell.Wins <= -w ? double.NegativeInfinity
+                       : new[] { cell.Wins / w, cell.Length / l, cell.Hp / h, cell.Tp / tpGain, cell.Alive / aliveGain }.Max();
         }
 
         /// <summary>The stages of the configuration ({name, low, high, columns}) that a level falls in.</summary>
@@ -92,10 +97,12 @@ namespace DtEngine.Suite
             int levels = e.Skill.Levels != 0 ? e.Skill.Levels : 1;
             var roles = c.Setup.Battery.First(b => b.name == cell.Party).roles;
             Obj enemies = null;
+            Obj options = null;
             if (cell.Chain > 0)
             {
                 int level = sc.ReferenceLevels()[cell.Cid].level;
                 enemies = Jb.Chain(sc.WalkedZones(cp.Str("Floor"), level).Select(z => z.Name), (long)Py.Num(c.In("skill_battery").Get("chain_seed")), cell.Chain);
+                if (cell.Context == "walk_boss") { enemies.Set("then_checkpoint", true); options = new Obj { { "random_battle", true } }; }
             }
             var recipe = new Obj
             {
@@ -105,7 +112,7 @@ namespace DtEngine.Suite
                                            { "pieces", e.Weapon == null ? new Obj() : new Obj { { "Weapon", e.Weapon } } } }) },
             };
             string setupName = use && e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
-            return Jb.Make(c, "variant", cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName,
+            return Jb.Make(c, "variant", cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName, options: options,
                            name: e.Skill.Name + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
         }
 
@@ -214,8 +221,12 @@ namespace DtEngine.Suite
                     {
                         cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "boss", Chain = 0 });
                         int level = levels[cid].level;
-                        if (chain > 0 && sc.WalkedZones(c.Checkpoint(cid).Str("Floor"), level).Count > 0)
+                        bool zones = sc.WalkedZones(c.Checkpoint(cid).Str("Floor"), level).Count > 0;
+                        if (chain > 0 && zones)
                             cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "random", Chain = chain });
+                        // variants: also a walk of random battles of the floor and then the boss, nothing healed between them
+                        if (variants && zones)
+                            cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "walk_boss", Chain = (int)Py.Num(cfg.Get("walk")) });
                     }
             int batch = (int)Py.Num(cfg.Get("batch"));
             Play(c, cells, scanRuns, batch, cfg);
@@ -289,7 +300,7 @@ namespace DtEngine.Suite
                     + "for a type it allows (shown beside the role). A status skill goes before the statuses the role keeps up. Scan: " + scanRuns + " runs a cell; the " + keep + " best cells of each "
                     + "skill again at " + confirmRuns + " runs, and the verdict reads the best of those.", "",
                 "A cell serves: wins +" + Py.Pct(cfg.D("wins"), 0) + ", or wins not down that much and won fights " + Py.Pct(cfg.D("length"), 0) + " shorter or HP left +"
-                    + Py.Pct(cfg.D("hp"), 0) + ". Good: the best cell serves and " + Py.Pct(good, 0) + " or more of the cells serve; niche: the best cell serves, fewer do; dead: "
+                    + Py.Pct(cfg.D("hp"), 0) + " or TP left +" + Py.Pct(cfg.D("tp"), 0) + " or " + Py.F(cfg.D("alive"), 1) + " more members alive at the end. Good: the best cell serves and " + Py.Pct(good, 0) + " or more of the cells serve; niche: the best cell serves, fewer do; dead: "
                     + "the best cell does not serve; hurts: no cell serves and " + Py.Pct(good, 0) + " or more make it worse; no effect: every battle the same with and "
                     + "without (the skill does nothing the model plays, or the model never uses it): to read.", "",
                 "**" + bySkill.Count + " skills played: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)) + ". "
@@ -302,7 +313,8 @@ namespace DtEngine.Suite
                                                             + string.Join(", ", outOfFight.Select(s => s.Name)) + "." });
             if (noRole.Count > 0) text.AddRange(new[] { "", "No role plays a class that learns: " + string.Join(", ", noRole.Select(s => s.Name)) + "." });
             if (variants) text.Insert(2, "**Variants:** every active under each condition of rule_variants (" + string.Join(", ", conditions)
-                                         + "), a damage skill forced by skill:Name; the verdict reads the best cell of all of them.");
+                                         + "), a damage skill forced by skill:Name, and a third context, walk_boss: " + Py.Num(cfg.Get("walk"))
+                                         + " random battles of the floor and then the boss, nothing healed between them; the verdict reads the best cell of all of them.");
             if (variants) text.Insert(3, "");
             c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);
             c.Say("skill-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
