@@ -143,25 +143,25 @@
    "class": "Treasure Hunter"
   },
   "soul summoner": {
-   "won": 1.0,
-   "time": 24.478269671833335,
-   "time_won": 24.478269671833335,
-   "share": 0.27626001354276897,
+   "won": 0.975,
+   "time": 24.279748685675884,
+   "time_won": 24.501598851923074,
+   "share": 0.27259418854070894,
    "character": "Lilian",
    "level": 44,
-   "lowest_hp": 0.5601975887474883,
-   "hp_left": 0.996341259209645,
+   "lowest_hp": 0.5636721366376423,
+   "hp_left": 0.9660080375083725,
    "class": "Soul Summoner"
   },
   "magical princess": {
    "won": 1.0,
-   "time": 29.401232667749998,
-   "time_won": 29.401232667749998,
-   "share": 0.195923921722884,
+   "time": 27.713796685249996,
+   "time_won": 27.713796685249996,
+   "share": 0.21074818624921768,
    "character": "Melvy",
    "level": 44,
-   "lowest_hp": 0.5539724228496389,
-   "hp_left": 0.9899047931713723,
+   "lowest_hp": 0.5681631648063034,
+   "hp_left": 0.9682124097176625,
    "class": "Magical Princess"
   },
   "sage": {

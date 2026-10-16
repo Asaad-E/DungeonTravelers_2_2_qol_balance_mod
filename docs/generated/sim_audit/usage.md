@@ -1,6 +1,6 @@
 ## usage
 
-224 skills of a plan never used: 92 dominated, 95 no rule of the role uses it, 6 not usable with the weapon of the role, 31 situational.
+225 skills of a plan never used: 93 dominated, 95 no rule of the role uses it, 6 not usable with the weapon of the role, 31 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -127,15 +127,16 @@
 | treasure hunter (Souffle) | 90 | P24 | Chain Spike | not usable with the weapon of the role |
 | soul summoner (Lizerietta) | 14 | C11 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
+| soul summoner (Lizerietta) | 62 | C38 | Spartan | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Perdurabo | no rule of the role uses it |
-| soul summoner (Lizerietta) | 62 | C38 | Oracles | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 90 | P24 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Perdurabo | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Musiy | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Oracles | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Coffee Break | situational: a heal (another heal or the songs come first) |
+| soul summoner (Lizerietta) | 90 | P24 | Danger Shoot | dominated: 4% of the best (Soul Eater) at the start of the fight |
 | magical princess (Melvy) | 14 | C11 | Ice Edge | dominated: 15% of the best (Fireball) at the start of the fight |
 | magical princess (Melvy) | 29 | C18 | Fire Blast | dominated: 13% of the best (Fireball) at the start of the fight |
 | magical princess (Melvy) | 62 | C38 | Magical Slash | dominated: 50% of the best (Magical Spark) at the start of the fight |

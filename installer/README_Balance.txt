@@ -43,6 +43,8 @@ What changes
   turn longer, and Prism Dawn hits harder. Ecstasy gives twice as much.
 * Power Charge makes the next blow stronger than before (its box shows the real multiple), the
   Shadow Clone of the Kunoichi lasts a turn longer, and the Oracles doll hits much harder.
+* The Magical Princess stays transformed longer and Magical Change gives more; Magical Spark costs
+  less TP. The Soul Eater of the Soul Summoner costs less and hits harder.
 * The Bathroom Slippers, the reward of quest rank 3, give Double EXP in the place of their
   physical defense.
 * The wandering blacksmith shows up more often in every dungeon.
