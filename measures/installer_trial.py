@@ -3,7 +3,8 @@ uninstall, and what it does when a file of the game changed after the mod was in
 an old backup beside it). Works in a temporary folder of build/; the game is not touched. The packs of the dungeons
 are copied from the game, which must hold its own values (tools/floor_patch.py status).
 
-    python measures/installer_trial.py
+    python measures/installer_trial.py              in build/installer_trial_*
+    python measures/installer_trial.py --odd-path   in a folder whose name holds Japanese letters and brackets
 """
 import glob
 import os
@@ -29,7 +30,9 @@ def run(root, *args):
 def main():
     archives = {v: sorted(glob.glob(os.path.join(PROJECT, 'dist', f'DT22_{v}_*.zip')))[-1] for v in ('balance', 'qol')}
     os.makedirs(os.path.join(PROJECT, 'build'), exist_ok=True)
-    root = tempfile.mkdtemp(prefix='installer_trial_', dir=os.path.join(PROJECT, 'build'))
+    # --odd-path: a folder name with non-Latin letters and brackets (wildcards to PowerShell's -Path)
+    prefix = 'installer_trial_ゲーム [テスト] ' if '--odd-path' in sys.argv else 'installer_trial_'
+    root = tempfile.mkdtemp(prefix=prefix, dir=os.path.join(PROJECT, 'build'))
     try:
         rels, pokes = set(), []
         for path in archives.values():

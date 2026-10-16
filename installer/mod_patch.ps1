@@ -42,21 +42,21 @@ function Holds([byte[]]$data, [int]$offset, [byte[]]$bytes) {
 
 function Write-File([string]$path, [byte[]]$bytes) {
     $folder = Split-Path -Parent $path
-    if (-not (Test-Path $folder)) { New-Item -ItemType Directory -Path $folder -Force | Out-Null }
+    if (-not (Test-Path -LiteralPath $folder)) { New-Item -ItemType Directory -Path $folder -Force | Out-Null }
     [System.IO.File]::WriteAllBytes($path, $bytes)
 }
 
 function Backup-Files {
     # relative paths of everything kept in the backup folder
-    if (-not (Test-Path $backup)) { return @() }
+    if (-not (Test-Path -LiteralPath $backup)) { return @() }
     $prefix = $backup.TrimEnd('\') + '\'
-    return @(Get-ChildItem -Path $backup -Recurse -File | ForEach-Object { $_.FullName.Substring($prefix.Length) })
+    return @(Get-ChildItem -LiteralPath $backup -Recurse -File | ForEach-Object { $_.FullName.Substring($prefix.Length) })
 }
 
 function Read-State {
     # what this script wrote last time: relative path (lower case) -> SHA-256. Empty when there is no list.
     $state = @{}
-    if (Test-Path $stateFile) {
+    if (Test-Path -LiteralPath $stateFile) {
         foreach ($line in [System.IO.File]::ReadAllLines($stateFile)) {
             $p = $line.Split('|')
             if ($p.Length -eq 2) { $state[$p[0].ToLower()] = $p[1] }
@@ -69,7 +69,7 @@ function Changed-Since([hashtable]$state, [string]$rel, [string[]]$known) {
     # true when the file of the game is neither what this script wrote nor one of the known states of it
     if (-not $state.ContainsKey($rel.ToLower())) { return $false }
     $game = Join-Path $root $rel
-    if (-not (Test-Path $game)) { return $true }
+    if (-not (Test-Path -LiteralPath $game)) { return $true }
     $now = Get-Sha ([System.IO.File]::ReadAllBytes($game))
     return ($now -ne $state[$rel.ToLower()]) -and ($known -notcontains $now)
 }
@@ -98,7 +98,7 @@ function Put-At([string]$path, [int]$offset, [byte[]]$bytes) {
 function Read-Pokes([string]$path) {
     # the lines "poke|file|offset|old|new" of a list
     $list = @()
-    if (Test-Path $path) {
+    if (Test-Path -LiteralPath $path) {
         foreach ($line in [System.IO.File]::ReadAllLines($path)) {
             $p = $line.Split('|')
             if ($p[0] -eq 'poke') {
@@ -113,7 +113,7 @@ function Known-Pokes {
     # every value this mod may have written in place: the record of the last install, and the lists of the variants
     # unpacked beside this script (an older record may be lost, or made by another version of the same variant)
     $list = @()
-    foreach ($file in @(Get-ChildItem -Path $modDir -Filter *.txt -File)) { $list += (Read-Pokes $file.FullName) }
+    foreach ($file in @(Get-ChildItem -LiteralPath $modDir -Filter *.txt -File)) { $list += (Read-Pokes $file.FullName) }
     return ,$list
 }
 
@@ -122,7 +122,7 @@ function Undo-Pokes([object[]]$list) {
     $count = 0
     foreach ($k in $list) {
         $path = Join-Path $root $k.Rel
-        if ((Test-Path $path) -and (Holds-At $path $k.Offset $k.New)) { Put-At $path $k.Offset $k.Old; $count++ }
+        if ((Test-Path -LiteralPath $path) -and (Holds-At $path $k.Offset $k.New)) { Put-At $path $k.Offset $k.Old; $count++ }
     }
     return $count
 }
@@ -134,7 +134,7 @@ function Stop-With([string[]]$lines) {
     exit 1
 }
 
-if (-not (Test-Path (Join-Path $root 'Data\ENG\Parameter'))) {
+if (-not (Test-Path -LiteralPath (Join-Path $root 'Data\ENG\Parameter'))) {
     Stop-With @("This is not the folder of the game: $root",
                 'Unpack the archive into the folder that holds the .exe of the game and its folder Data.')
 }
@@ -151,21 +151,21 @@ if ($Mode -eq 'uninstall') {
     }
     if ($moved.Count -gt 0) { Stop-With ($moved + $updated) }
     try {
-        foreach ($rel in $kept) { Copy-Item -Path (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force }
+        foreach ($rel in $kept) { Copy-Item -LiteralPath (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force }
         [void](Undo-Pokes $written)
-        if (Test-Path $pokeFile) { Remove-Item -Path $pokeFile -Force }
+        if (Test-Path -LiteralPath $pokeFile) { Remove-Item -LiteralPath $pokeFile -Force }
     } catch {
         Stop-With @("A file could not be written: $($_.Exception.Message)", 'Close the game and run this again.')
     }
-    if (Test-Path $backup) { Remove-Item -Path $backup -Recurse -Force }
-    if (Test-Path $stateFile) { Remove-Item -Path $stateFile -Force }
+    if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Recurse -Force }
+    if (Test-Path -LiteralPath $stateFile) { Remove-Item -LiteralPath $stateFile -Force }
     Write-Host "The game is as it was: $($kept.Count) file(s) put back."
     exit 0
 }
 
 # ---- install ---------------------------------------------------------------------------------------------------
 $manifest = Join-Path $modDir "$Variant.txt"
-if (-not (Test-Path $manifest)) { Stop-With @("No variant '$Variant' in this archive.") }
+if (-not (Test-Path -LiteralPath $manifest)) { Stop-With @("No variant '$Variant' in this archive.") }
 $ops = [System.IO.File]::ReadAllBytes((Join-Path $modDir "$Variant.ops"))
 $blob = [System.IO.File]::ReadAllBytes((Join-Path $modDir "$Variant.dat"))
 $files = @()
@@ -191,8 +191,8 @@ foreach ($f in $files) {
     $named[$f.Rel.ToLower()] = $true
     $game = Join-Path $root $f.Rel
     $copy = Join-Path $backup $f.Rel
-    if (-not (Test-Path $game)) { $problems += "$($f.Rel): not found in the game"; continue }
-    $hasCopy = Test-Path $copy
+    if (-not (Test-Path -LiteralPath $game)) { $problems += "$($f.Rel): not found in the game"; continue }
+    $hasCopy = Test-Path -LiteralPath $copy
     $path = $game
     if ($hasCopy) { $path = $copy }
     if ($hasCopy -and (Changed-Since $state $f.Rel @($f.Old, $f.New))) {
@@ -224,11 +224,11 @@ foreach ($f in $files) {
 
 # 2. the program: every .exe of the folder that is the program, whatever its name
 $programs = 0
-foreach ($exe in @(Get-ChildItem -Path $root -Filter *.exe -File)) {
+foreach ($exe in @(Get-ChildItem -LiteralPath $root -Filter *.exe -File)) {
     if ($layouts.Count -eq 0) { break }            # a variant that leaves the program alone: step 3 puts it back
     $rel = $exe.Name
     $copy = Join-Path $backup $rel
-    $hasCopy = Test-Path $copy
+    $hasCopy = Test-Path -LiteralPath $copy
     $path = $exe.FullName
     if ($hasCopy) { $path = $copy }
     $source = [System.IO.File]::ReadAllBytes($path)
@@ -280,7 +280,7 @@ $odd = @{}
 foreach ($k in $pokes) {
     if ($odd.ContainsKey($k.Rel)) { continue }
     $path = Join-Path $root $k.Rel
-    if (-not (Test-Path $path)) { $odd[$k.Rel] = 'not found in the game'; continue }
+    if (-not (Test-Path -LiteralPath $path)) { $odd[$k.Rel] = 'not found in the game'; continue }
     $fine = (Holds-At $path $k.Offset $k.Old) -or (Holds-At $path $k.Offset $k.New)
     foreach ($value in @($before["$($k.Rel.ToLower())|$($k.Offset)"])) {
         if (-not $fine -and $null -ne $value -and (Holds-At $path $k.Offset $value)) { $fine = $true }
@@ -292,7 +292,7 @@ if ($stale) { $problems += $updated }
 # a file the game holds open cannot be replaced: found now, before anything is written
 $touched = @($writes | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel } | Sort-Object -Unique)
 foreach ($rel in $touched) {
-    if (-not (Test-Path (Join-Path $root $rel))) { continue }
+    if (-not (Test-Path -LiteralPath (Join-Path $root $rel))) { continue }
     try { [System.IO.File]::Open((Join-Path $root $rel), [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None).Dispose() }
     catch { $problems += "${rel}: in use. Close the game and run this again." }
 }
@@ -322,11 +322,11 @@ try {
     [void](Undo-Pokes $known)                             # what this mod wrote in place before goes back first
     foreach ($k in $pokes) { Put-At (Join-Path $root $k.Rel) $k.Offset $k.New }
     if ($pokes.Count -gt 0) { [System.IO.File]::WriteAllLines($pokeFile, [string[]]@($pokes | ForEach-Object { $_.Line })) }
-    elseif (Test-Path $pokeFile) { Remove-Item -Path $pokeFile -Force }
+    elseif (Test-Path -LiteralPath $pokeFile) { Remove-Item -LiteralPath $pokeFile -Force }
     $back = 0
     foreach ($rel in (Backup-Files)) {
         if (-not $named.ContainsKey($rel.ToLower())) {
-            Copy-Item -Path (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force
+            Copy-Item -LiteralPath (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force
             $back++
         }
     }
