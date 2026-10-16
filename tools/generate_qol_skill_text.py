@@ -383,6 +383,10 @@ def build_segments(skill):
             if name in arrays and varies(arrays[name]) and name not in used:
                 resolved[idx] = [array_segment(name)]
                 used.add(name)
+            elif name in arrays and not varies(arrays[name]):
+                # the phrase says the figure moves with the level, the data holds one figure at every level (a variant
+                # that made it constant): the phrase goes, and the cost line shows the one figure
+                resolved[idx] = []
         elif stem in ('Damage', 'Magic damage'):
             sl = slot_by_id(POWER_MAGIC) if magic else slot_by_id(POWER_PHYS, tail=2)
             if sl and varies(sl['values']):
