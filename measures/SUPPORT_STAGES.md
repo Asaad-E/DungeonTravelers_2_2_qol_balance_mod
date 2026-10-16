@@ -24,5 +24,5 @@ Balance variant, 60 battles a cell. Each role in the last place of the reference
 | valkyrie | Paladin | tank | 76% / 100% / 5.9 | 76% / 97% / 5.6 | 78% / 98% / 7.9 | 100% | +1 | 0.73 |
 | sage | Enchantress | support | 89% / 100% / 6.8 | 83% / 99% / 7.6 | 77% / 98% / 9.1 | 100% | +7 | 0.89 |
 | mistress | Bard | support | 75% / 100% / 8.3 | 75% / 100% / 8.7 | 73% / 98% / 10.5 | 100% | -2 | 1.04 |
-| etoile | Dancer | support | 81% / 100% / 7.8 | 79% / 99% / 8.5 | 88% / 100% / 10.0 | 100% | +7 | 1.00 |
+| etoile | Dancer | support | 81% / 100% / 7.9 | 78% / 99% / 8.5 | 87% / 99% / 10.0 | 100% | +6 | 1.00 |
 
