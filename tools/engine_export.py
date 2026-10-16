@@ -229,7 +229,7 @@ def measure_inputs(setup, vanilla, variant):
         'audit_readings': rows_json(setup.audit_readings),
     }
     for key in ('win_rates', 'sim_audit', 'skill_value', 'support_chains', 'class_stages_report', 'mercenaries', 'party_skills',
-                'postgame_compare', 'skill_value_contested', 'random_battles', 'regression_r04'):
+                'postgame_compare', 'skill_value_contested', 'random_battles', 'regression_r04', 'skill_battery', 'support_battery', 'class_search'):
         out[key] = config[key]
     # the name a unique skill has in the variant (column Balance_Name of balance_skill_text.xlsx), else the game's
     renamed = {int(r['Filename'].split('_')[-1].split('.')[0]): r['Balance_Name']

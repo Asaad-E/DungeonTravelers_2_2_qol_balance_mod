@@ -6,6 +6,8 @@ namespace DtEngine
     /// <summary>The settings a battle reads (the dict `options` of sim.scenario.play).</summary>
     public sealed class BattleOptions
     {
+        /// <summary>The same options with RandomBattle off (the boss at the end of a walk of random battles).</summary>
+        public BattleOptions NotRandom() { var o = (BattleOptions)MemberwiseClone(); o.RandomBattle = false; return o; }
         public bool RandomBattle;
         public bool HalveEnemies = true;
         public int DollCureTargets = 2;

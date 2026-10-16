@@ -11,6 +11,7 @@ namespace DtEngine
         public Zone Zone;
         public string Floor;
         public int Number = T.NONE;       // NONE for a random formation
+        public bool Boss;                 // the boss after a walk of random battles: never played as a random battle
     }
 
     /// <summary>Arguments of build_member that a job gives to every member it builds (unique_level, passives).</summary>
@@ -403,7 +404,7 @@ namespace DtEngine
             return merged;
         }
 
-        List<string> Available(string chapter)
+        public List<string> Available(string chapter)
         {
             var names = new List<string>();
             foreach (var (joinedIn, chars) in Setup.Joins)
@@ -899,7 +900,7 @@ namespace DtEngine
                 }
                 party = party.Where(u => u.Kind == Kind.Member || u.Kind == Kind.Summon).ToList();
                 Prepare(party, enemies);
-                var battle = new Battle(Data, party, enemies.Units, rng, Policy, options, enemies.Zone, maxTime);
+                var battle = new Battle(Data, party, enemies.Units, rng, Policy, enemies.Boss ? options.NotRandom() : options, enemies.Zone, maxTime);
                 battle.Fixed = enemies.Number != T.NONE;
                 onBattle?.Invoke(battle, index++);
                 var part = battle.Run();

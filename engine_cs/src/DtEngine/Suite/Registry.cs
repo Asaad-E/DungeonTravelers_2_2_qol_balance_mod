@@ -30,6 +30,9 @@ namespace DtEngine.Suite
             { "worth-with-weapon", TrialsB.WorthWithWeapon },
             { "rows-trial", TrialsC.RowsTrial },
             { "curve-ablation", TrialsC.CurveAblation },
+            { "skill-battery", SkillBattery.Run },
+            { "support-battery", SupportBattery.Run },
+            { "class-search", ClassSearch.Run },
         };
 
         public static bool Knows(string command) => Commands.ContainsKey(command);

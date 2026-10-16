@@ -88,10 +88,31 @@ namespace DtEngine.Suite
             if (use)
             {
                 var (cond, act) = rule ?? RuleFor(c, skill);
+                rows = RowsWithRule(c, role, cond, act, chain);
+            }
+            var recipe = new Obj
+            {
+                { "drop_last", true }, { "items", "first_kept" },
+                { "tested", Jb.L(new Obj { { "role", role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true },
+                                           { "extra_skills", Jb.Dict(extra.Select(kv => new KeyValuePair<string, object>(kv.Key.ToString(), (long)kv.Value))) } }) },
+            };
+            return Jb.Make(c, "variant", cid, runs: runs, crown: 0, recipe: recipe, enemies: enemies, policyRows: rows, setupName: setupName,
+                           name: name ?? (skill.Name + "|" + role + "|" + cid + "|" + (use ? 1 : 0) + "|" + chain));
+        }
+
+        /// <summary>The sheet Policies with one rule added for the role: before her first damage row (else after her last row), or with
+        /// beforeStatus a status before her first status row; on random rows an ailment goes first, after revives, heals and cures.</summary>
+        public static List<object> RowsWithRule(Ctx c, string role, string cond, string act, int chain, bool beforeStatus = false)
+        {
+            List<object> rows;
+            {
                 var saved = c.Setup.Policies;
                 var mine = saved.Where(r => r.Str("Role") == role).OrderBy(r => Py.Num(r.Get("Order"))).ToList();
                 object cut = null;
                 foreach (var r in mine) if (r.Str("Action").StartsWith("damage")) { cut = r.Get("Order"); break; }
+                // beforeStatus: a status skill goes before the statuses the role keeps up (a performer keeps one dance or song up)
+                if (beforeStatus && act.StartsWith("status:"))
+                    foreach (var r in mine) if (r.Str("Action").StartsWith("status:")) { cut = r.Get("Order"); break; }
                 if (cut == null)
                 {
                     object top = 0L;
@@ -112,14 +133,7 @@ namespace DtEngine.Suite
                 }
                 rows.Add(new Obj { { "Role", role }, { "Order", cut }, { "Condition", cond }, { "Action", act } });
             }
-            var recipe = new Obj
-            {
-                { "drop_last", true }, { "items", "first_kept" },
-                { "tested", Jb.L(new Obj { { "role", role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true },
-                                           { "extra_skills", Jb.Dict(extra.Select(kv => new KeyValuePair<string, object>(kv.Key.ToString(), (long)kv.Value))) } }) },
-            };
-            return Jb.Make(c, "variant", cid, runs: runs, crown: 0, recipe: recipe, enemies: enemies, policyRows: rows, setupName: setupName,
-                           name: name ?? (skill.Name + "|" + role + "|" + cid + "|" + (use ? 1 : 0) + "|" + chain));
+            return rows;
         }
 
         public static Obj Figures(JobResult done)

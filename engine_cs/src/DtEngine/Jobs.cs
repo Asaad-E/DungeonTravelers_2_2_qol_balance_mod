@@ -53,6 +53,7 @@ namespace DtEngine
         public List<string> ChainZones;            // kind chain: the zones a row of random battles draws from, by name
         public ulong ChainSeed;                    // kind chain: the generator shared by all the runs, in the order they play
         public int ChainCount;                     // kind chain: battles in a row
+        public bool ChainThenCheckpoint;           // kind chain: the fixed battles of the checkpoint after the row (a walk, then its boss)
         public List<List<(FloorZone zone, int index)>> ChainPicks;  // kind chain: the formations drawn for each run (made by JobRunner.Run)
         public MemberExtras More;                  // unique_level and passives given to every member built
 
@@ -140,6 +141,7 @@ namespace DtEngine
                 j.ChainZones = en.GetProperty("zones").EnumerateArray().Select(x => x.GetString()).ToList();
                 j.ChainSeed = en.GetProperty("seed").GetUInt64();
                 j.ChainCount = en.GetProperty("battles").GetInt32();
+                j.ChainThenCheckpoint = en.TryGetProperty("then_checkpoint", out var then) && then.ValueKind == JsonValueKind.True;
             }
             if (j.EnemyKind == "zone")
             {
@@ -238,7 +240,13 @@ namespace DtEngine
             else if (job.EnemyKind == "enemies")
                 enemyFactory = () => job.Groups.Select(g => sc.CustomGroup(g)).ToList();
             else if (job.EnemyKind == "chain")
-                enemyFactory = () => job.ChainPicks[k].Select(p => sc.RandomGroupAt(p.zone, p.index)).ToList();
+                enemyFactory = () =>
+                {
+                    var groups = job.ChainPicks[k].Select(p => sc.RandomGroupAt(p.zone, p.index)).ToList();
+                    if (job.ChainThenCheckpoint)
+                        foreach (int n in Scenario.BattleNumbers(cp)) { var g = sc.FixedBattle(cp.Str("Floor"), n); g.Boss = true; groups.Add(g); }
+                    return groups;
+                };
             else if (job.EnemyKind == "formation")
             {
                 options.RandomBattle = true;

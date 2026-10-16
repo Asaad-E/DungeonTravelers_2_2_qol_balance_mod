@@ -17,6 +17,7 @@ namespace DtEngine
         public bool NoUnique;                     // the character without her unique skill
         public List<(int effect, double amount)> PassivesAdd = new List<(int, double)>();
         public double? Pep;
+        public Dictionary<string, string> Pieces;   // pieces in the place of the role's own (column of the sheet Roles -> name), over the unique pieces
 
         public static TestedSpec FromJson(JsonElement e)
         {
@@ -32,6 +33,11 @@ namespace DtEngine
             if (e.TryGetProperty("passives_add", out var pa) && pa.ValueKind == JsonValueKind.Object)
                 foreach (var p in pa.EnumerateObject()) t.PassivesAdd.Add((int.Parse(p.Name), p.Value.GetDouble()));
             if (e.TryGetProperty("pep", out var pep) && pep.ValueKind == JsonValueKind.Number) t.Pep = pep.GetDouble();
+            if (e.TryGetProperty("pieces", out var pc) && pc.ValueKind == JsonValueKind.Object)
+            {
+                t.Pieces = new Dictionary<string, string>();
+                foreach (var p in pc.EnumerateObject()) t.Pieces[p.Name] = p.Value.GetString();
+            }
             return t;
         }
     }
@@ -148,6 +154,11 @@ namespace DtEngine
             if (t.NoUnique) who = new Character { Name = who.Name, BaseClass = who.BaseClass, Flag = who.Flag, StartExp = who.StartExp, UniqueSkill = T.NONE };
             name = who.Name;
             var pieces = t.UniquePieces ? UniquePieces(t.Role, chapter, floor) : null;
+            if (t.Pieces != null)
+            {
+                pieces = pieces != null ? new Dictionary<string, string>(pieces) : new Dictionary<string, string>();
+                foreach (var kv in t.Pieces) pieces[kv.Key] = kv.Value;
+            }
             int sealbook = t.UniquePieces ? PersonalSealbook(t.Role, chapter, floor) : T.NONE;
             var tested = BuildRoleMember(t.Role, who, t.Level ?? level, gear, t.Crown ?? crown, t.Forge, pieces, Array.Empty<int>(), sealbook,
                                          t.Extra.Count > 0 ? t.Extra : null);

@@ -82,6 +82,17 @@ The trial scripts of measures/ are commands too, with the arguments of their scr
 `magic-wall`, `measure-open-rows`, `samba-trial`, `etoile-trial`, `dance-trial`, `def-debuff-trial`, `sage-buffs-trial`, `provoke-trial`,
 `boss-trim-trial`, `grand-sealbook-trial`, `lize-ideas`, `mercenary-trial`, `one-skill-trial`, `tp-items-trial`, `worth-with-weapon`. The data a trial
 changes (a value of a skill, an item, a guest, a sealbook, a column of a role, rows of policies) is changed in C# on a copy (`Suite/Kit.cs`).
+Three mass tests run on demand and are not part of the suite (their configuration: sections `skill_battery`, `support_battery` and
+`class_search` of `data_tables/measure_config.json`):
+
+```bash
+dtcli skill-battery [names|*] [scan runs] [confirm runs]     # every skill with and without, in the battery parties; docs/generated/SKILL_BATTERY.md
+dtcli support-battery [runs] [stage]                         # each support and tank against an attacker in its place, boss / walk / walk then boss; docs/generated/SUPPORT_BATTERY.md
+dtcli class-search [stage] [scan runs] [confirm runs] [cids|*] [boss|random|all] [1036.hp=8800,...]
+                                                             # every party of the classes of a stage, vanilla and variant (the last argument: enemy stats set on
+                                                             # the variant, to try a value before building it); measures/CLASS_SEARCH_<STAGE>.md (0 scan runs: the plan only)
+```
+
 `rows-trial` and `curve-ablation` need the game built from other rows of balance_changes.xlsx than the variant of the snapshot: `python
 tools/engine_sides.py rows P031,P032` or `ablation` writes those sides to build/engine_extra_*.json and `--extra <file>` brings them in.
 
