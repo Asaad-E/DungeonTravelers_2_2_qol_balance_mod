@@ -17,12 +17,12 @@ Balance variant, 60 battles a cell. Each role in the last place of the reference
 
 | Role | Class | Kind | C10 | C13 | C18 | Wins | Lowest HP against the median | Length against the median |
 |---|---|---|---|---|---|---|---|---|
-| tank | Paladin | tank | 76% / 100% / 6.8 | 75% / 99% / 7.7 | 86% / 100% / 8.6 | 100% | +3 | 0.89 |
-| maid | Bard | support | 77% / 100% / 8.2 | 73% / 98% / 8.8 | 74% / 98% / 9.3 | 100% | -2 | 1.03 |
-| healer | Priestess | support | 78% / 100% / 8.1 | 76% / 100% / 8.6 | 75% / 97% / 9.3 | 100% | +0 | 1.01 |
-| diva | Bard | support | 75% / 100% / 8.1 | 76% / 100% / 8.4 | 73% / 99% / 9.3 | 100% | -2 | 1.01 |
-| valkyrie | Paladin | tank | 76% / 100% / 5.9 | 76% / 97% / 5.6 | 79% / 98% / 7.0 | 100% | +1 | 0.72 |
-| sage | Enchantress | support | 89% / 100% / 6.8 | 83% / 99% / 7.6 | 78% / 99% / 8.4 | 100% | +7 | 0.89 |
-| mistress | Bard | support | 75% / 100% / 8.3 | 75% / 100% / 8.7 | 75% / 98% / 9.4 | 100% | -1 | 1.03 |
-| etoile | Dancer | support | 81% / 100% / 7.8 | 79% / 99% / 8.5 | 86% / 100% / 9.5 | 100% | +6 | 1.00 |
+| tank | Paladin | tank | 76% / 100% / 6.8 | 75% / 99% / 7.7 | 84% / 100% / 9.4 | 100% | +3 | 0.90 |
+| maid | Bard | support | 77% / 100% / 8.2 | 73% / 98% / 8.8 | 71% / 95% / 10.2 | 100% | -2 | 1.03 |
+| healer | Priestess | support | 78% / 100% / 8.1 | 76% / 100% / 8.6 | 74% / 98% / 10.2 | 100% | +0 | 1.02 |
+| diva | Bard | support | 75% / 100% / 8.1 | 76% / 100% / 8.4 | 74% / 97% / 10.0 | 100% | -1 | 1.01 |
+| valkyrie | Paladin | tank | 76% / 100% / 5.9 | 76% / 97% / 5.6 | 78% / 98% / 7.9 | 100% | +1 | 0.73 |
+| sage | Enchantress | support | 89% / 100% / 6.8 | 83% / 99% / 7.6 | 77% / 98% / 9.1 | 100% | +7 | 0.89 |
+| mistress | Bard | support | 75% / 100% / 8.3 | 75% / 100% / 8.7 | 73% / 98% / 10.5 | 100% | -2 | 1.04 |
+| etoile | Dancer | support | 81% / 100% / 7.8 | 79% / 99% / 8.5 | 88% / 100% / 10.0 | 100% | +7 | 1.00 |
 

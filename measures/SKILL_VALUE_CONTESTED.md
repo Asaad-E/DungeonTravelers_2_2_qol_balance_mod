@@ -6,7 +6,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
-| Accelerator | magical princess | P24: wins +0%, length -22%, HP left -5 points | nothing shown |
+| Accelerator | magical princess | P24: wins +3%, length -21%, HP left -4 points | nothing shown |
 | Alluring Samba | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Amplify | sage | C38: wins -3%, length -3%, HP left +2 points | nothing shown |
 | Attract | dark lord | C38: wins +7%, length -1%, HP left +10 points | serves |
@@ -74,7 +74,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Replenishing Carol | maid | C40: wins +7%, length +2%, HP left +7 points | serves |
 | Resurrect | healer | P24: wins +0%, length +2%, HP left +3 points | nothing shown |
 | Sacred Hymn | maid | C38: wins -3%, length +3%, HP left -6 points | nothing shown |
-| Self-Sacrifice | maid | P24: wins +3%, length +2%, HP left +3 points | serves |
+| Self-Sacrifice | maid | P24: wins +3%, length +4%, HP left +3 points | serves |
 | Shadow Sew | kunoichi | - | see SKILL_AILMENTS.md |
 | Silence | sage | - | see SKILL_AILMENTS.md |
 | Slash Guard | sage | P24: wins +0%, length -9%, HP left -0 points | nothing shown |

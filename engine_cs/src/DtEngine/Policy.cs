@@ -931,6 +931,9 @@ namespace DtEngine
             if (target == null) return null;
             foreach (var (skill, level) in Options(battle, unit))
                 if (Gives(skill, 129) || Gives(skill, 426)) return new Action(unit, AKind.Skill, skill, level, target);
+            // 130 (Self-Sacrifice): the giver passes all her TP, so only from a fuller giver to an emptier ally
+            foreach (var (skill, level) in Options(battle, unit))
+                if (Gives(skill, 130) && target != unit && unit.Tp > 0 && unit.TpRatio > target.TpRatio) return new Action(unit, AKind.Skill, skill, level, target);
             return ActItem(battle, unit, "tp", target);
         }
 

@@ -112,12 +112,45 @@ namespace DtEngine.Suite
                                            { "pieces", e.Weapon == null ? new Obj() : new Obj { { "Weapon", e.Weapon } } } }) },
             };
             string setupName = use && e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
-            return Jb.Make(c, "variant", cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName, options: options,
+            return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName, options: options,
                            name: e.Skill.Name + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
         }
 
         /// <summary>The cells played in batches and judged at once; the runs are let go, only the figures stay.</summary>
         static readonly Dictionary<string, string> setups = new Dictionary<string, string>();
+        static string side = "variant";     // the side the jobs play: the variant, or a copy of it with trial changes to skills
+
+        /// <summary>"Power Charge:e191*1.2;Accelerator:turns+1;Shadow Clone:tp*0.8;Prism Dawn:speed*1.2": a copy of the variant with the values
+        /// of skills changed (e&lt;id&gt; scales the values of an effect, an int stays an int; tp scales the TP cost; turns adds to the turns; speed
+        /// scales the speed factors), to try a value before building it.</summary>
+        static GameData WithTrial(GameData data, string text)
+        {
+            var changes = new Dictionary<string, Skill>();
+            foreach (var part in text.Split(';').Select(x => x.Trim()).Where(x => x.Length > 0))
+            {
+                int colon = part.LastIndexOf(':');
+                if (colon <= 0) throw new InvalidOperationException("trial change '" + part + "': write it as Skill name:e26*1.2");
+                string name = part.Substring(0, colon).Trim(), op = part.Substring(colon + 1).Trim();
+                var skill = changes.TryGetValue(name, out var done) ? done : Kit.SkillNamed(data, name);
+                char sign = op.Contains('*') ? '*' : '+';
+                var halves = op.Split(sign);
+                string what = halves[0].Trim();
+                double by = double.Parse(halves[1].Trim(), System.Globalization.CultureInfo.InvariantCulture);
+                double F(double v) => sign == '*' ? v * by : v + by;
+                var copy = skill.Copy();
+                if (what.StartsWith("e"))
+                {
+                    int effect = int.Parse(what.Substring(1));
+                    copy = Kit.WithEffect(skill, effect, Kit.Values(skill, effect).Select(v => v.Int ? Num.Whole((long)Math.Round(F(v.V))) : Num.Float(Math.Round(F(v.V), 4))).ToList());
+                }
+                else if (what == "tp") copy.Tp = skill.Tp.Select(v => (int)Math.Round(F(v))).ToArray();
+                else if (what == "turns") copy.Turns = skill.Turns.Select(v => F(v)).ToArray();
+                else if (what == "speed") copy.Speed = skill.Speed.Select(v => Math.Round(F(v), 4)).ToArray();
+                else throw new InvalidOperationException("trial change '" + part + "': e<id>, tp, turns or speed");
+                changes[name] = copy;
+            }
+            return Kit.WithSkills(data, changes.Select(kv => (Kit.SkillNamed(data, kv.Key), kv.Value)));
+        }
 
         /// <summary>The sheet Policies with the rule of a skill, as a setup of its own that every job with the same rule shares (one scenario for
         /// all of them; a job that carries its rows builds a scenario of its own).</summary>
@@ -164,6 +197,9 @@ namespace DtEngine.Suite
             int scanRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get("scan_runs"));
             int confirmRuns = args.Length > 2 ? int.Parse(args[2]) : (int)Py.Num(cfg.Get("confirm_runs"));
             bool variants = args.Length > 3 && args[3] == "variants";
+            string trial = args.Length > 4 ? args[4] : "";
+            side = "variant";
+            if (trial.Length > 0) side = c.AddSide(WithTrial(c.Data("variant"), trial));
             var conditions = variants ? cfg.A("rule_variants").Select(x => (string)x).ToList() : null;
             var categories = new HashSet<string>(cfg.A("categories").Select(x => (string)x));
             var outEffects = new HashSet<int>(cfg.A("out_of_fight_effects").Select(x => (int)Py.Num(x)));
@@ -282,7 +318,7 @@ namespace DtEngine.Suite
                 });
             }
 
-            string tag = variants ? "skill_battery_variants" : "skill_battery";
+            string tag = (variants ? "skill_battery_variants" : "skill_battery") + (trial.Length > 0 ? "_trial" : "");
             string dir = c.Path("docs", "generated", tag);
             Directory.CreateDirectory(dir);
             M.ClearFolder(dir);
@@ -316,6 +352,7 @@ namespace DtEngine.Suite
                                          + "), a damage skill forced by skill:Name, and a third context, walk_boss: " + Py.Num(cfg.Get("walk"))
                                          + " random battles of the floor and then the boss, nothing healed between them; the verdict reads the best cell of all of them.");
             if (variants) text.Insert(3, "");
+            if (trial.Length > 0) { text.Insert(2, "**Trial:** the variant with " + trial + " (not built; to try a value)."); text.Insert(3, ""); }
             c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);
             c.Say("skill-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
         }

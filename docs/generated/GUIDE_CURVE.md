@@ -32,7 +32,7 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | C22 | Therian wave, Maerchen Little | normal | 33 | 100% | 50% | within |
 | C24 | Afanc | easy | 35 | 100% | 80% | within |
 | C25 | Martial Artist | easy | 36 | 100% | 80% | within |
-| C26 | Michelle, Beatrice | easy | 38 | 95% | 80% | within |
+| C26 | Michelle, Beatrice | easy | 38 | 100% | 80% | within |
 | C27 | Forest Guardian x2 (miniboss) | easy | 40 | 100% | 80% | within |
 | C28 | Spirit of Mag Mell | normal | 40 | 92% | 50% | within |
 | C29 | Calliope | normal | 44 | 10% | 50% | read: policy gap |

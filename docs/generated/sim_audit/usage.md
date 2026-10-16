@@ -1,6 +1,6 @@
 ## usage
 
-228 skills of a plan never used: 92 dominated, 97 no rule of the role uses it, 6 not usable with the weapon of the role, 33 situational.
+224 skills of a plan never used: 92 dominated, 95 no rule of the role uses it, 6 not usable with the weapon of the role, 31 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -22,7 +22,6 @@
 | tank (Alisia) | 90 | P24 | War Cry | no rule of the role uses it |
 | attacker (Yae) | 14 | C11 | War Cry | no rule of the role uses it |
 | attacker (Yae) | 29 | C18 | War Cry | no rule of the role uses it |
-| attacker (Yae) | 29 | C18 | Raging Smash | dominated: 87% of the best (Frost Slash) at the start of the fight |
 | attacker (Yae) | 62 | C38 | War Cry | no rule of the role uses it |
 | attacker (Yae) | 62 | C38 | Aura Eliminate | dominated: 29% of the best (Moonlight Purgatory) at the start of the fight |
 | attacker (Yae) | 62 | C38 | Onikagura | dominated: 27% of the best (Moonlight Purgatory) at the start of the fight |
@@ -37,7 +36,6 @@
 | maid (Conette) | 90 | P24 | Blissful Chorale | no rule of the role uses it |
 | maid (Conette) | 90 | P24 | Lightning March | no rule of the role uses it |
 | maid (Conette) | 90 | P24 | Concentration Prelude | no rule of the role uses it |
-| healer (Irena) | 29 | C18 | Nurse | situational: a cure |
 | healer (Irena) | 29 | C18 | Resurrect | situational: a revive |
 | healer (Irena) | 62 | C38 | Resurrect | situational: a revive |
 | healer (Irena) | 62 | C38 | Full Heal | situational: a revive |
@@ -72,6 +70,7 @@
 | mage (Melvy) | 90 | P24 | Inferno | dominated: 32% of the best (Crimson Flare) at the start of the fight |
 | mage (Melvy) | 90 | P24 | Diamond Dust | dominated: 25% of the best (Crimson Flare) at the start of the fight |
 | mage (Melvy) | 90 | P24 | Meteor | dominated: 29% of the best (Crimson Flare) at the start of the fight |
+| shooter (Monica) | 29 | C18 | Freeze Shot | dominated: 62% of the best (Poison Shot) at the start of the fight |
 | shooter (Monica) | 29 | C18 | Arrow Rain | dominated: 26% of the best (Poison Shot) at the start of the fight |
 | shooter (Monica) | 62 | C38 | Poison Shot | dominated: 64% of the best (Spiral Arrow) at the start of the fight |
 | shooter (Monica) | 62 | C38 | Freeze Shot | dominated: 64% of the best (Spiral Arrow) at the start of the fight |
@@ -83,7 +82,6 @@
 | shooter (Monica) | 90 | P24 | Aim | no rule of the role uses it |
 | dolls (Lizerietta) | 14 | C11 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | dolls (Lizerietta) | 29 | C18 | Oracles | no rule of the role uses it |
-| dolls (Lizerietta) | 29 | C18 | Catalina | no rule of the role uses it |
 | dolls (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | dolls (Lizerietta) | 62 | C38 | Oracles | no rule of the role uses it |
 | dolls (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
@@ -94,7 +92,6 @@
 | dolls (Lizerietta) | 90 | P24 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | dolls (Lizerietta) | 90 | P24 | Danger Shoot | dominated: 8% of the best (Rose Queen) at the start of the fight |
 | diva (Yuni) | 14 | C11 | Self-Sacrifice | situational: a heal (another heal or the songs come first) |
-| diva (Yuni) | 29 | C18 | Self-Sacrifice | situational: a heal (another heal or the songs come first) |
 | diva (Yuni) | 62 | C38 | Self-Sacrifice | situational: a heal (another heal or the songs come first) |
 | diva (Yuni) | 62 | C38 | Blissful Chorale | no rule of the role uses it |
 | diva (Yuni) | 90 | P24 | Self-Sacrifice | situational: a heal (another heal or the songs come first) |
@@ -129,7 +126,6 @@
 | treasure hunter (Souffle) | 62 | C38 | Chain Spike | not usable with the weapon of the role |
 | treasure hunter (Souffle) | 90 | P24 | Chain Spike | not usable with the weapon of the role |
 | soul summoner (Lizerietta) | 14 | C11 | Coffee Break | situational: a heal (another heal or the songs come first) |
-| soul summoner (Lizerietta) | 29 | C18 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Perdurabo | no rule of the role uses it |
