@@ -6,6 +6,7 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 |---|---|---|---|---|---|---|---|
 | C10 | atk x1.04; def x1.04; hp x1.15 | 100% / 8.3 / 78% | 100% / 8.1 / 77% | within | 100% / 6.8 / 77% | within | not needed: within without them |
 | C13 | atk x1.05; def x1.05; hp x1.20 | 100% / 8.9 / 76% | 100% / 8.6 / 76% | within | 100% / 7.3 / 76% | within | not needed: within without them |
+| C19 | def x1.20 | 96% / 8.7 / 59% | 98% / 7.3 / 62% | within | 99% / 6.4 / 66% | time | needed |
 | C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.4 / 95% | 100% / 1.4 / 95% | within | 100% / 1.4 / 96% | pressure | needed |
 | C21 | hp x1.30 | 100% / 26.8 / 66% | 100% / 29.1 / 66% | within | 100% / 12.6 / 67% | time | needed |
 | C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.3 / 65% | 100% / 5.2 / 67% | within | 100% / 4.4 / 68% | time | needed |

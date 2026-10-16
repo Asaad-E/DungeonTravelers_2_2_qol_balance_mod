@@ -173,7 +173,7 @@ class LevelUpLinesAfterDecoding(unittest.TestCase):
     def test_phrases_resolved_with_the_decoded_effects(self):
         expected = {
             'Last Stand': ['Critical rate: 5% (+2.5%/Lv) -> 15%', 'Enemy critical rate: 4% (+2%/Lv)'],
-            'Power Charge': ['Damage: 1.05x -> 1.1x -> 1.16x -> 1.22x -> 1.3x'],
+            'Power Charge': ['Damage: 2.05x -> 2.1x -> 2.16x -> 2.22x -> 2.3x'],
             'Warm-Up': ['Physical evasion: +15%', 'Magic evasion: +10%'],
             'Fire Scroll': ['Max HP damage: 4% -> 5% -> 6% -> 7% -> 8%', 'Damage cap: 250 -> 500'],
             'Debilitating Salsa': ['Max HP damage: 3%', 'Total damage cap: 250'],
