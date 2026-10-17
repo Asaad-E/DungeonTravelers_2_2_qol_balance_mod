@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**49 serves; 24 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 86).**
+**49 serves; 23 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 85).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -55,7 +55,6 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Light Scroll | kunoichi | P24: wins +7%, length -21%, HP left +5 points | serves |
 | Lightning Enchant | sage | C38: wins +7%, length -1%, HP left +9 points | serves |
 | Lightning March | maid | C38: wins +3%, length +4%, HP left +8 points | serves |
-| Limit Field | dolls | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Loose Spirit | mage | P24: wins +7%, length +14%, HP left +9 points | serves |
 | Materialize | dolls | C38: wins -10%, length +7%, HP left -10 points | serves |
 | Mini Circle Nurse | sage | C30: wins +0%, length +1%, HP left -0 points | nothing shown |

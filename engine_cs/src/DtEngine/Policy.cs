@@ -741,6 +741,9 @@ namespace DtEngine
                         }
                         action.Target = best;
                     }
+                    else if (effect == 162 && unit.St[170] != null && lacking.Contains(unit))
+                        // a defence buff of a unit that draws the blows (Provoke up) goes on herself: she is the one hit
+                        action.Target = unit;
                     else
                     {
                         Unit best = null; int bk = 0;
@@ -755,7 +758,8 @@ namespace DtEngine
                     }
                     return action;
                 }
-                if (code == T.ALLIES || code == T.ALLY_ROW)
+                // EVERYONE (Limit Field): a status on every unit of the field, kept up as a party buff is
+                if (code == T.ALLIES || code == T.ALLY_ROW || code == T.EVERYONE)
                 {
                     int members = 0, lackingN = 0;
                     foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member) { members++; if (m.St[effect] == null) lackingN++; }
