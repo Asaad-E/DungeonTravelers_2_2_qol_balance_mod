@@ -135,6 +135,15 @@ falls to. A shaded checkpoint is outside the window of vanilla (green easier, re
 back and forth of each fight, so most checkpoints should stay unshaded. The bottom panel is the level of the boss
 against the level of the party.
 
+### Random battles along the story
+
+![Random battles](docs/generated/charts/random_battles.png)
+
+The same party and levels at the floor of every checkpoint, walking a row of random battles in a row with one bag of
+items that is not refilled until the row ends; HP and TP carry from one battle to the next. Grey is vanilla, blue is
+Balance: the share of rows the party survives, the length of a battle, the lowest HP of the row and the TP left at its
+end (how much the walk drains the party). Shading as in the difficulty curve.
+
 ### The parties of the battery
 
 ![Party battery](docs/generated/charts/party_battery.png)

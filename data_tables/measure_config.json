@@ -453,8 +453,9 @@
   "hp": 0.03
  },
  "random_battles": {
-  "chain": 8,
-  "ahead": 12
+  "chain": 10,
+  "ahead": 12,
+  "runs": null
  },
  "regression_r04": {
   "substitutes": {
