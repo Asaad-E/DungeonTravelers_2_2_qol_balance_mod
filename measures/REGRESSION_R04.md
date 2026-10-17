@@ -19,7 +19,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C13 | vanilla | Bard | 50% | Meta with etoile for diva | 100% |
 | C13 | variant | Bard | 50% | Meta with etoile for diva | 100% |
 | C17 | vanilla | Bard | 50% | Meta with etoile for diva | 77% |
-| C17 | variant | Bard | 50% | Meta with etoile for diva | 95% |
+| C17 | variant | Bard | 50% | Meta with etoile for diva | 97% |
 | C18 | vanilla | Bard | 20% | Meta with etoile for diva | 100% |
 | C18 | variant | Bard | 20% | Meta with etoile for diva | 100% |
 | C19 | vanilla | Diva | 50% | Meta with etoile for diva | 98% |
