@@ -16,7 +16,7 @@ NPCData (little endian), as the code reads it (the stats at 0x4fed59 - 0x4fee27)
     0x38 number of attacks, 0x3C their ids (EnemyAttackData), eight bytes each, up to eleven
     0x94 the number of passives (0 - 2) and 0x98 five EnemyAttackData ids, -1 when empty (loaded at 0x4ff2bb - 0x4ff446)
     0xAC the gold of the hire, not HP: a guest ally has no HP and cannot be targeted (getter 0x55d390, the bar 0x58b651,
-         the hire 0x58b799; measures/MERCENARY_RESEARCH.md, read 2026-10-17)
+         the hire 0x58b799; docs/FORMULAS.md 16.5, read 2026-10-17)
     0xB0 the battles won the contract lasts (-1: for ever), 0xB4 the flag that unlocks the stage in the bar: the bar offers,
          of the stages whose flag is set, the one of the highest level (0x58adb0 - 0x58b060)
     0xC8 - 0xD4 four ints of where its picture sits

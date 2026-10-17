@@ -1,6 +1,6 @@
 """Sheet MercenaryUnlocks of data_tables/sim_setup.xlsx (2026-10-17): when each flag that unlocks a stage of a mercenary is set, as a
 checkpoint of the model. The bar offers, of the stages whose flag is set, the one of the highest level (0x58adb0 - 0x58b060, read
-2026-10-17; measures/MERCENARY_RESEARCH.md). The flag of each stage is the int at 0xB4 of its NPCData.
+2026-10-17; docs/FORMULAS.md 16.5). The flag of each stage is the int at 0xB4 of its NPCData.
 
 Story flags: by the chapter the research gives (the code and spoiler.jp, 傭兵バディ pages), set at the first checkpoint of that part of the
 chapter. Flags of the postgame, of side events and of the quest rank: where they are set is not mapped, so the stage is taken as open
@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import npc_data                                       # noqa: E402
 
 PATH = os.path.join(ROOT, 'data_tables', 'sim_setup.xlsx')
-SOURCE = 'measures/MERCENARY_RESEARCH.md 2.7 (the flag at 0xB4 of NPCData; the bar 0x58adb0); spoiler.jp dt2-2 傭兵バディ pages'
+SOURCE = 'docs/FORMULAS.md 16.5 (the flag at 0xB4 of NPCData; the bar 0x58adb0); spoiler.jp dt2-2 傭兵バディ pages'
 STORY = {   # flag: (from checkpoint, the moment the research gives)
     135: ('C25', 'chapter 7, the Tavern opens (temple of Wrappl)'),
     136: ('C26', 'chapter 7, after the event of the chapter'),

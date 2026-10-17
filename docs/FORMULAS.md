@@ -931,7 +931,7 @@ A sleeping unit takes none.
   other side. The summon and the guest are two units built one after the other from two objects (`0x449771` and
   `0x449839`), so both stand in a battle. A guest ally has no HP: 0xAC of its NPCData is the gold of the hire; the
   tavern offers, of the stages of a guest whose flag (0xB4) is set, the one of the highest level (`0x58adb0` -
-  `0x58b060`). Read 2026-10-17 (`measures/MERCENARY_RESEARCH.md`).
+  `0x58b060`). Read 2026-10-17; the chapter that sets each flag: spoiler.jp, dt2-2, 傭兵バディ pages.
 * Piercing (`0x43fa64`; lists built at `0x43def0`): the target and the units its list names; for the party, the overlap
   of the front and back rows centred on each other.
 * Hit (`0x44aef3 - 0x44afbb`, `0x44da4a - 0x44daac`): Fixed accuracy and a direct accuracy value set the chance to

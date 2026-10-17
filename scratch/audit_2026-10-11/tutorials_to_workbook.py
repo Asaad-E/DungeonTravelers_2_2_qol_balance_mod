@@ -145,7 +145,7 @@ def main():
             ('Voiced', 'The clip that plays with the box. A voiced box whose text no longer says what the Japanese line '
                        'says is a choice to take before building it.'),
             ('Source', 'scratch/update_euthys_and_teaching.py as of 2026-10-11 14:03, reviewed in the audit of that day '
-                       '(scratch/audit_2026-10-11/AUDIT_REPORT.md, section 5).')):
+                       '(section 5 of its report).')):
         about.append(line)
     limits = wb.create_sheet('Settings')
     for line in (('Key', 'Value', 'Note'),
