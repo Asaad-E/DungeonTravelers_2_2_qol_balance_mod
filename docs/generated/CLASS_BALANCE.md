@@ -19,7 +19,7 @@ Over the 22 bosses of the search, on variant. Wins: the mean share of wins of th
 | Diva | 89.2% | +2.1 | x0.79 | -0.5 | x0.2 | too strong |
 | Etoile | 86.6% | +1.7 | x1.59 | +1.7 | x0.3 | yes |
 | Mistress | 86.0% | +1.6 | x0.84 | -0.4 | x0.6 | yes |
-| Valkyrie | 80.3% | +0.6 | x0.88 | -0.3 | x0.3 | yes |
+| Valkyrie | 80.4% | +0.6 | x0.88 | -0.3 | x0.3 | yes |
 | Bishop | 78.6% | +0.2 | x0.57 | -1.2 | x0.0 | yes |
 | Treasure Hunter | 77.8% | +0.1 | x1.18 | +0.6 | x0.3 | yes |
 | Samurai | 76.0% | -0.2 | x1.04 | +0.2 | x1.4 | yes |
@@ -49,22 +49,22 @@ Over the scan of every target, the parties that hold the class: mean share of wi
 
 | Class | Cells | Wins | Length | Lowest HP | Among the fastest | Wins change | Worst target | Change there |
 |---|---|---|---|---|---|---|---|---|
-| Bishop | 2599 | 65.1% > 78.6% | 9.3 > 9.0 | 35% > 44% | 20% > 14% | +13.5 | C20 | +0.0 |
+| Bishop | 2599 | 65.1% > 78.6% | 9.3 > 9.0 | 35% > 44% | 19% > 14% | +13.5 | C20 | +0.0 |
 | Dark Lord | 2344 | 65.0% > 75.9% | 7.5 > 7.1 | 35% > 42% | 24% > 21% | +10.9 | C20 | +0.0 |
 | Diva | 1980 | 81.8% > 89.2% | 10.1 > 9.0 | 47% > 53% | 25% > 15% | +7.4 | C33 | -5.9 |
 | Etoile | 1996 | 75.8% > 86.6% | 8.2 > 8.2 | 41% > 52% | 37% > 31% | +10.9 | C20 | +0.0 |
 | Joker | 2289 | 58.5% > 72.9% | 7.5 > 7.3 | 30% > 39% | 14% > 21% | +14.4 | C20 | +0.0 |
-| Kunoichi | 2021 | 51.2% > 72.1% | 7.3 > 7.0 | 28% > 40% | 7% > 13% | +20.9 | C20 | +0.0 |
-| Magical Princess | 2206 | 53.3% > 72.5% | 7.5 > 7.2 | 29% > 42% | 13% > 16% | +19.1 | C20 | +0.0 |
+| Kunoichi | 2021 | 51.2% > 72.1% | 7.3 > 7.0 | 28% > 41% | 8% > 13% | +20.9 | C20 | +0.0 |
+| Magical Princess | 2206 | 53.4% > 72.5% | 7.5 > 7.2 | 29% > 42% | 13% > 16% | +19.1 | C20 | +0.0 |
 | Mistress | 2027 | 69.1% > 86.0% | 8.4 > 8.0 | 40% > 51% | 13% > 18% | +16.9 | C20 | +0.0 |
 | Papillon | 2149 | 59.8% > 74.8% | 7.4 > 7.5 | 32% > 41% | 24% > 22% | +15.0 | C20 | +0.0 |
 | Sage | 2390 | 57.6% > 74.9% | 8.0 > 7.8 | 30% > 43% | 10% > 19% | +17.2 | C20 | +0.0 |
-| Samurai | 2482 | 66.0% > 76.0% | 6.8 > 6.6 | 35% > 42% | 35% > 32% | +10.0 | C20 | +0.0 |
+| Samurai | 2482 | 66.0% > 76.0% | 6.8 > 6.6 | 35% > 42% | 34% > 32% | +10.0 | C20 | +0.0 |
 | Sniper | 2221 | 63.0% > 73.7% | 6.4 > 6.6 | 34% > 41% | 34% > 34% | +10.7 | C20 | +0.0 |
 | Soul Summoner | 2198 | 47.1% > 71.1% | 7.5 > 6.4 | 25% > 39% | 3% > 27% | +24.0 | C20 | +0.0 |
 | Treasure Hunter | 2300 | 63.7% > 77.8% | 8.3 > 7.5 | 34% > 43% | 21% > 25% | +14.0 | C20 | +0.0 |
-| Valkyrie | 2257 | 69.2% > 80.3% | 9.0 > 8.3 | 37% > 46% | 20% > 19% | +11.1 | C20 | +0.0 |
-| Witch | 2277 | 68.2% > 73.4% | 4.8 > 5.4 | 38% > 41% | 88% > 74% | +5.2 | C33 | -3.9 |
+| Valkyrie | 2257 | 69.3% > 80.4% | 9.0 > 8.3 | 37% > 46% | 21% > 19% | +11.1 | C20 | +0.0 |
+| Witch | 2277 | 68.2% > 73.4% | 4.8 > 5.4 | 38% > 41% | 88% > 74% | +5.1 | C33 | -3.9 |
 
 ## Targets
 
@@ -76,7 +76,7 @@ Over the scan of every target, the parties that hold the class: mean share of wi
 | C22 | 400 | 8.5 | Papillon, Sniper, Treasure Hunter, Witch, Witch: 100% / 4.0 | 4.3 | 0 | 6 |
 | C24 | 400 | 5.5 | Joker, Joker, Sniper, Treasure Hunter, Witch: 100% / 3.0 | 2.4 | 0 | 7 |
 | C25 | 400 | 5.0 | Joker, Sniper, Witch, Witch, Witch: 100% / 2.1 | 1.9 | 0 | 0 |
-| C26 | 400 | 8.6 | Etoile, Etoile, Soul Summoner, Valkyrie, Witch: 100% / 5.6 | 5.2 | 0 | 22 |
+| C26 | 400 | 8.7 | Etoile, Etoile, Soul Summoner, Valkyrie, Witch: 100% / 5.6 | 5.2 | 0 | 22 |
 | C27 | 400 | 3.1 | Soul Summoner, Soul Summoner, Witch, Witch, Witch: 100% / 1.7 | 1.5 | 0 | 0 |
 | C28 | 400 | 7.7 | Diva, Kunoichi, Witch, Witch, Witch: 100% / 3.9 | 4.9 | 3 | 17 |
 | C29 | 400 | 11.4 | Kunoichi, Magical Princess, Mistress, Witch, Witch: 100% / 4.6 | 3.7 | 3 | 15 |

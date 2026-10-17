@@ -1,6 +1,6 @@
 ## usage
 
-222 skills of a plan never used: 90 dominated, 95 no rule of the role uses it, 6 not usable with the weapon of the role, 31 situational.
+218 skills of a plan never used: 90 dominated, 91 no rule of the role uses it, 6 not usable with the weapon of the role, 31 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -29,12 +29,8 @@
 | attacker (Yae) | 90 | P24 | Raging Smash | dominated: 55% of the best (Moonlight Purgatory) at the start of the fight |
 | attacker (Yae) | 90 | P24 | Frost Slash | dominated: 55% of the best (Moonlight Purgatory) at the start of the fight |
 | attacker (Yae) | 90 | P24 | Armor Penetration | dominated: 38% of the best (Moonlight Purgatory) at the start of the fight |
-| maid (Conette) | 29 | C18 | Blissful Chorale | no rule of the role uses it |
 | maid (Conette) | 62 | C38 | Blissful Chorale | no rule of the role uses it |
-| maid (Conette) | 62 | C38 | Lightning March | no rule of the role uses it |
-| maid (Conette) | 62 | C38 | Concentration Prelude | no rule of the role uses it |
 | maid (Conette) | 90 | P24 | Blissful Chorale | no rule of the role uses it |
-| maid (Conette) | 90 | P24 | Lightning March | no rule of the role uses it |
 | maid (Conette) | 90 | P24 | Concentration Prelude | no rule of the role uses it |
 | healer (Irena) | 29 | C18 | Resurrect | situational: a revive |
 | healer (Irena) | 62 | C38 | Resurrect | situational: a revive |

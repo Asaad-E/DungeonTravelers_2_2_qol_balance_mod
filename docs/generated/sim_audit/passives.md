@@ -1,6 +1,6 @@
 ## passives
 
-53 act, 12 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
+52 act, 13 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
 
 | Passive | Effects | Tested as | Result |
 |---|---|---|---|
@@ -62,7 +62,7 @@
 | 296 Double Puppet | 316, 313 | soul summoner (Lizerietta, 62, C38) | acts |
 | 297 Soul Seal | 314 | soul summoner (Lizerietta, 62, C38) | no effect seen |
 | 298 Maid Mastery | 278 | maid (Conette, 14, C11) | acts |
-| 299 Song Mastery | 279 | maid (Conette, 29, C18) | acts |
+| 299 Song Mastery | 279 | maid (Conette, 29, C18) | no effect seen |
 | 300 Dance Mastery | 280 | etoile (Ist, 29, C18) | acts |
 | 301 Doll Mastery | 286 | dolls (Lizerietta, 29, C18) | acts |
 | 302 Barrage | 251 | kunoichi (Tsurara, 62, C38) | acts |
