@@ -1,12 +1,18 @@
-"""Charts of the balance of the classes, drawn from the generated reports (run by tools/full_suite.py after dtcli suite).
+"""Charts of the generated reports (run by tools/full_suite.py after dtcli suite); docs/generated/charts, local (PNG is ignored by git).
 
-docs/generated/charts/class_balance.png   docs/generated/CLASS_BALANCE.md (class-balance): the final classes in six figures, vanilla and the
-                                          variant, the band of section class_search (mean +- z standard deviations)
-docs/generated/charts/class_stages.png    docs/generated/CLASS_STAGES.md (class-stages): by stage, the attackers by length against the median
-                                          attacker, the supports and tanks by wins against the median (by length where no fight is contested);
-                                          thresholds class_slow_ratio and class_weak_wins of the sheet Settings
+class_balance.png      CLASS_BALANCE.md (class-balance): the final classes in six figures, vanilla and the variant, the band of section
+                       class_search (mean +- z standard deviations)
+class_stages.png       CLASS_STAGES.md (class-stages): by stage, the attackers by length against the median attacker, the supports and
+                       tanks by wins against the median (by length where no fight is contested); thresholds class_slow_ratio and
+                       class_weak_wins of the sheet Settings
+difficulty_curve.png   DIFFICULTY_CURVE.md and CHECKPOINT_LEVELS.md: wins, length and lowest HP of the reference party at every checkpoint,
+                       vanilla and the variant, the checkpoints out of the windows of vanilla; the reference level and the level of the boss
+party_battery.png      PARTY_BATTERY.md: the wins of each archetype at each boss on the variant (a cell under its floor framed) and the change
+                       from vanilla
+skills.png             SKILL_BATTERY.md and UNIQUE_BATTERY.md: each skill by the share of the cells where it serves and where it hurts,
+                       coloured by verdict; each unique skill the same, by girl
 
-The figures come from the reports; the thresholds from the workbooks. Nothing here plays a battle.
+The figures come from the reports; the thresholds from the workbooks. Nothing here plays a battle. A report that is missing is skipped.
 """
 import json
 import os
@@ -212,12 +218,174 @@ def class_stages(slow, weak):
     return path
 
 
+def save(fig, name):
+    path = os.path.join(OUT, name)
+    fig.savefig(path, dpi=100, metadata={'Software': None})
+    plt.close(fig)
+    return path
+
+
+def lines_of(name):
+    return open(os.path.join(GENERATED, name), encoding='utf-8').read().splitlines()
+
+
+def difficulty_curve():
+    curve = [r for r in table(lines_of('DIFFICULTY_CURVE.md'), '| Checkpoint | Level')]
+    levels = {r[0]: r for r in table(lines_of('CHECKPOINT_LEVELS.md'), '| Checkpoint | Boss')}
+    cids = [r[0] for r in curve]
+    pair = lambda s: [num(x) for x in s.split('>')]
+    x = list(range(len(cids)))
+    fig, axes = plt.subplots(4, 1, figsize=(17, 15), sharex=True)
+    panels = [('Wins of the reference party', 2, '% of fights won', True), ('Length of the fights', 3, 'turns', False),
+              ('Lowest HP of the party', 4, '% of HP', True)]
+    for ax, (title, col, label, pct) in zip(axes, panels):
+        van = [pair(r[col])[0] for r in curve]
+        var = [pair(r[col])[1] for r in curve]
+        ax.plot(x, van, color='0.55', lw=1.4, marker='o', ms=4, label='vanilla')
+        ax.plot(x, var, color='tab:blue', lw=1.8, marker='o', ms=5, label='Balance')
+        for k, r in enumerate(curve):
+            verdict = r[-1]
+            if verdict == 'within':
+                continue
+            colour = 'tab:green' if 'easier' in verdict and 'harder' not in verdict else 'tab:red' if 'harder' in verdict else 'tab:orange'
+            ax.axvspan(k - 0.45, k + 0.45, color=colour, alpha=0.12, zorder=0)
+        ax.set_title(title, fontsize=11)
+        ax.set_ylabel(label)
+        ax.grid(alpha=0.3)
+    axes[0].legend(loc='lower left', fontsize=9)
+    ax = axes[3]
+    ref = [num(levels[c][5]) if c in levels and levels[c][5] not in ('', '-') else float('nan') for c in cids]
+    boss = [num(levels[c][2]) if c in levels and levels[c][2] not in ('', '-') else float('nan') for c in cids]
+    ax.plot(x, boss, color='tab:red', lw=1.2, marker='s', ms=4, label='level of the boss')
+    ax.plot(x, ref, color='tab:blue', lw=1.8, marker='o', ms=5, label='reference level of the party')
+    ax.set_title('Levels', fontsize=11)
+    ax.set_ylabel('level')
+    ax.grid(alpha=0.3)
+    ax.legend(loc='upper left', fontsize=9)
+    ax.set_xticks(x)
+    ax.set_xticklabels(cids, rotation=90, fontsize=8)
+    head = next(line for line in lines_of('DIFFICULTY_CURVE.md') if line.startswith('**'))
+    fig.suptitle('Difficulty curve: ' + head.strip('*') + ' Shaded: out of the window (green easier, red harder)', fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
+    return save(fig, 'difficulty_curve.png')
+
+
+def party_battery():
+    lines = lines_of('PARTY_BATTERY.md')
+    rows = table(lines, '| Checkpoint | Boss | Floor')
+    i = next(k for k, line in enumerate(lines) if line.startswith('| Checkpoint | Boss | Floor'))
+    parties = [c.strip() for c in lines[i].strip().strip('|').split('|')][3:]
+    van, var, below, labels = [], [], [], []
+    for r in rows:
+        floor = num(r[2]) / 100
+        labels.append(r[0] + ' ' + r[1][:22])
+        a, b, under = [], [], []
+        for cell in r[3:]:
+            bold = '**' in cell
+            v, w = [num(x) / 100 for x in cell.replace('*', '').split('>')]
+            a.append(v)
+            b.append(w)
+            under.append(bold or w < floor)
+        van.append(a)
+        var.append(b)
+        below.append(under)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 0.42 * len(rows) + 3))
+    im = axes[0].imshow(var, cmap='RdYlGn', vmin=0, vmax=1, aspect='auto')
+    for k, under in enumerate(below):
+        for j, u in enumerate(under):
+            axes[0].text(j, k, '%d' % round(100 * var[k][j]), ha='center', va='center', fontsize=8, fontweight='bold' if u else None)
+            if u:
+                axes[0].add_patch(plt.Rectangle((j - 0.5, k - 0.5), 1, 1, fill=False, edgecolor='k', lw=2))
+    fig.colorbar(im, ax=axes[0], fraction=0.04, format=PercentFormatter(1.0))
+    axes[0].set_title('Wins on the variant (framed: under the floor of the boss)', fontsize=11)
+    change = [[var[k][j] - van[k][j] for j in range(len(parties))] for k in range(len(rows))]
+    im = axes[1].imshow(change, cmap='coolwarm_r', vmin=-0.5, vmax=0.5, aspect='auto')
+    for k in range(len(rows)):
+        for j in range(len(parties)):
+            if abs(change[k][j]) >= 0.005:
+                axes[1].text(j, k, '%+d' % round(100 * change[k][j]), ha='center', va='center', fontsize=8)
+    fig.colorbar(im, ax=axes[1], fraction=0.04, format=PercentFormatter(1.0))
+    axes[1].set_title('Change from vanilla (points of wins)', fontsize=11)
+    for ax in axes:
+        ax.set_xticks(range(len(parties)))
+        ax.set_xticklabels(parties, rotation=30, ha='right', fontsize=9)
+        ax.set_yticks(range(len(rows)))
+        ax.set_yticklabels(labels, fontsize=8)
+    head = next(line for line in lines if line.startswith('**'))
+    fig.suptitle('Party battery: ' + head.strip('*'), fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
+    return save(fig, 'party_battery.png')
+
+
+VERDICT_COLOURS = {'good': 'tab:green', 'niche': 'tab:orange', 'dead': '0.4', 'hurts': 'tab:red', 'no effect': 'tab:purple'}
+
+
+def skills():
+    have_skills = os.path.exists(os.path.join(GENERATED, 'SKILL_BATTERY.md'))
+    have_unique = os.path.exists(os.path.join(GENERATED, 'UNIQUE_BATTERY.md'))
+    if not (have_skills or have_unique):
+        return None
+    fig, axes = plt.subplots(1, 2, figsize=(17, 9), gridspec_kw={'width_ratios': [3, 2]})
+    if have_skills:
+        lines = lines_of('SKILL_BATTERY.md')
+        rows = table(lines, '| Skill | Kind')
+        ax = axes[0]
+        for verdict, colour in VERDICT_COLOURS.items():
+            pts = [(num(r[4]) / 100, num(r[5]) / 100, r[0]) for r in rows if r[-1] == verdict]
+            if pts:
+                ax.scatter([p[0] for p in pts], [p[1] for p in pts], s=36, color=colour, alpha=0.75, edgecolors='k', lw=0.3,
+                           label='%s (%d)' % (verdict, len(pts)))
+            # the names of the skills that hurt or are dead, so they can be found
+            if verdict in ('hurts', 'dead'):
+                for sx, sy, name in pts:
+                    ax.annotate(name, (sx, sy), textcoords='offset points', xytext=(4, 2), fontsize=6.5, color=colour)
+        ax.set_xlabel('share of the cells where the skill serves')
+        ax.set_ylabel('share of the cells where it makes the fight worse')
+        ax.xaxis.set_major_formatter(PercentFormatter(1.0))
+        ax.yaxis.set_major_formatter(PercentFormatter(1.0))
+        ax.grid(alpha=0.3)
+        ax.legend(fontsize=9, loc='upper right')
+        head = next(line for line in lines if line.startswith('**'))
+        ax.set_title('Skill battery: ' + head.strip('*').split('.')[0].replace(' skills played', ' skills'), fontsize=11)
+    else:
+        axes[0].axis('off')
+    if have_unique:
+        lines = lines_of('UNIQUE_BATTERY.md')
+        rows = sorted(table(lines, '| Girl | Unique skill'), key=lambda r: num(r[4]))
+        ax = axes[1]
+        y = range(len(rows))
+        serve = [num(r[4]) / 100 for r in rows]
+        hurt = [num(r[5]) / 100 for r in rows]
+        ax.barh(y, serve, color=[VERDICT_COLOURS.get(r[-1], '0.5') for r in rows], edgecolor='k', lw=0.4)
+        ax.barh(y, [-h for h in hurt], color='tab:red', alpha=0.45, edgecolor='k', lw=0.4)
+        for verdict in sorted({r[-1] for r in rows}):
+            ax.barh([0], [0], color=VERDICT_COLOURS.get(verdict, '0.5'), label=verdict)
+        ax.barh([0], [0], color='tab:red', alpha=0.45, label='makes it worse')
+        ax.axvline(0, color='k', lw=0.8)
+        ax.set_yticks(list(y))
+        ax.set_yticklabels([r[0] + ' - ' + r[1] for r in rows], fontsize=8)
+        ax.xaxis.set_major_formatter(PercentFormatter(1.0))
+        ax.set_xlabel('share of the cells (left: worse, right: serves; colour: verdict)')
+        ax.grid(axis='x', alpha=0.3)
+        ax.legend(fontsize=8, loc='lower right')
+        head = next(line for line in lines if line.startswith('**'))
+        ax.set_title('Unique battery: ' + head.strip('*').split('.')[0].split(': ')[-1], fontsize=11)
+    else:
+        axes[1].axis('off')
+    fig.tight_layout()
+    return save(fig, 'skills.png')
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     s = settings()
     z = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['class_search']['band']['z']
-    for path in (class_balance(z), class_stages(float(s['class_slow_ratio']), float(s['class_weak_wins']))):
-        print('written', os.path.relpath(path, PROJECT))
+    charts = [lambda: class_balance(z), lambda: class_stages(float(s['class_slow_ratio']), float(s['class_weak_wins'])),
+              difficulty_curve, party_battery, skills]
+    for chart in charts:
+        path = chart()
+        if path:
+            print('written', os.path.relpath(path, PROJECT))
     return 0
 
 
