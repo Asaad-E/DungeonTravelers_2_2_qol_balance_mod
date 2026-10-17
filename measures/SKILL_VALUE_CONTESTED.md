@@ -6,7 +6,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
-| Accelerator | magical princess | C30: wins +0%, length -137%, HP left +0 points | nothing shown |
+| Accelerator | magical princess | C40: wins +3%, length -95%, HP left +2 points | nothing shown |
 | Aim | shooter | C30: wins +0%, length +16%, HP left +8 points | serves |
 | Alluring Samba | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Amplify | sage | P24: wins +0%, length -4%, HP left -1 points | nothing shown |
@@ -14,7 +14,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Bash Guard | sage | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Berserk | attacker | P24: wins -7%, length +7%, HP left -3 points | serves |
 | Blissful Chorale | maid | C40: wins +7%, length -5%, HP left +5 points | serves |
-| Blood Rage | attacker | C40: wins +10%, length -14%, HP left +9 points | serves |
+| Blood Rage | attacker | C40: wins +17%, length -7%, HP left +18 points | serves |
 | Brave | dark lord | C38: wins +0%, length -8%, HP left +6 points | serves |
 | Carrot and Stick | mistress | C30: wins +0%, length +4%, HP left -1 points | serves |
 | Catalina | dolls | P24: wins +7%, length -5%, HP left +9 points | serves |
@@ -48,7 +48,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as tools/skill_value.py
 | Heal | healer | C30: wins +0%, length +8%, HP left -1 points | serves |
 | High Risk, High Return | papillon | C40: wins -7%, length +4%, HP left -4 points | serves |
 | Holy Prayer | sage | C38: wins +3%, length -10%, HP left +2 points | nothing shown |
-| Illusion | dolls | C30: wins +0%, length +6%, HP left -2 points | serves |
+| Illusion | dolls | P24: wins +3%, length +4%, HP left +6 points | serves |
 | Insurance | healer | C38: wins +3%, length +4%, HP left +1 points | serves |
 | Item Steal | treasure hunter | - | out of the fight: drops, not the fight |
 | Last Stand | attacker | C38: wins +3%, length -2%, HP left +4 points | serves |
