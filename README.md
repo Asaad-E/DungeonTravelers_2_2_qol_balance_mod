@@ -118,3 +118,55 @@ MIT, see [LICENSE](LICENSE). It covers this repository, not the game.
 
 Game by Aquaplus and Sting. Figures were cross-checked against the Japanese community wiki and the GameFAQs guides.
 See [docs/CREDITS.md](docs/CREDITS.md).
+
+## The state of the mod in charts
+
+The full test suite (`python tools/full_suite.py`) draws these charts from its reports in `docs/generated/` every time
+it runs, so they always show the current Balance variant. "Vanilla" is the original game; a "cell" is one party at one
+boss or row of random battles, played many times with the same random seeds on both sides.
+
+### Difficulty along the story
+
+![Difficulty curve](docs/generated/charts/difficulty_curve.png)
+
+The reference party at every story checkpoint, at the level a player is expected to have there: grey is vanilla,
+blue is Balance. The top three panels are the share of fights won, how many turns they last and the lowest HP the party
+falls to. A shaded checkpoint is outside the window of vanilla (green easier, red harder); the goal is to keep the
+back and forth of each fight, so most checkpoints should stay unshaded. The bottom panel is the level of the boss
+against the level of the party.
+
+### The parties of the battery
+
+![Party battery](docs/generated/charts/party_battery.png)
+
+Five party archetypes, from optimised to unusual, against the main bosses. Left: the share of fights each one wins on
+Balance; a framed cell is below the least the boss should allow. Right: the change from vanilla in points (blue better,
+red worse). A wide range of parties should clear every boss.
+
+### The final classes
+
+![Class balance](docs/generated/charts/class_balance.png)
+
+Every party of the final classes against every story boss of that stage. Each point is a class: hollow is vanilla,
+filled is Balance, the arrow the change. The grey band is the mean of the classes plus or minus two standard
+deviations: classes may differ, but none should fall outside it. A red name is outside the band. The last two panels
+show how often a party with one, or several, of the class is among the fastest 5% of all parties.
+
+### Every class at its stage
+
+![Class stages](docs/generated/charts/class_stages.png)
+
+Each role of the model at the bosses of its stage (base, intermediate, advanced, postgame), in several parties.
+Left, the attackers: how long their fights last against the median attacker (1.0); above the red line is slow.
+Right, the supports and tanks: their share of wins against the median where some fights are lost (below the red line
+is weak), or the length of the fights where every fight is won. Large points are the mean, small points each boss; a
+red X and a red name are out of the band.
+
+### Skills
+
+![Skills](docs/generated/charts/skills.png)
+
+Left: every class skill, used against not used, in every party and stage where it can be played. Across: the share of
+cells where it helps; up: the share where it makes the fight worse. Green is good, orange a niche (useful in some
+fights), grey dead, red harmful. A skill meant for a situation is judged by its best rule of use. Right: the unique
+skill of each girl, the same way (right of the line it helps, left it hurts).
