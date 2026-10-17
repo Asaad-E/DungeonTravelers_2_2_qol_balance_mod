@@ -565,15 +565,35 @@ namespace DtEngine
         public static Unit BuildGuest(GameData data, NpcRec record)
         {
             double weight = data.WeaponRanks.TryGetValue(record.Rank, out var w) ? w : 2.0;
-            var unit = new Unit(record.Name, Unit.PARTY, record.Level, record.Hp, 0, record.Stats, null, weight, 0.0, T.NONE, Kind.Summon);
+            // a guest ally has no HP and is never a target (0x43e6d0); the figure only keeps the unit standing
+            var unit = new Unit(record.Name, Unit.PARTY, record.Level, 9999, 0, record.Stats, null, weight, 0.0, T.NONE, Kind.Summon);
             unit.Attacks = record.Attacks;
             unit.Script = record.Script;
-            if (record.ExtraAttack != T.NONE && data.Attacks.TryGetValue(record.ExtraAttack, out var extra) && extra.Passive)
-                for (int k = 0; k < extra.EffId.Length; k++) unit.SetPassive(extra.EffId[k], extra.EffValue[k], extra.EffIsInt[k]);
+            foreach (int id in record.Passives)
+                if (data.Attacks.TryGetValue(id, out var extra) && extra.Passive)
+                    for (int k = 0; k < extra.EffId.Length; k++) unit.SetPassive(extra.EffId[k], extra.EffValue[k], extra.EffIsInt[k]);
             return unit;
         }
 
-        /// <summary>measures/mercenaries.py stage: the record of the guest whose level is the highest not above the level, else her first.</summary>
+        /// <summary>The stage the bar offers at a checkpoint: of the stages of the guest whose flag is open there (sheet MercenaryUnlocks),
+        /// the one of the highest level (0x58adb0 - 0x58b060); null when none is open.</summary>
+        public static NpcRec GuestStageAt(GameData data, Setup setup, string name, string cid)
+        {
+            int at = setup.Checkpoints.FindIndex(r => r.Str("ID") == cid);
+            int Index(string id) => string.IsNullOrEmpty(id) ? -1 : setup.Checkpoints.FindIndex(r => r.Str("ID") == id);
+            var open = new HashSet<int>();
+            foreach (var r in setup.MercenaryUnlocks)
+            {
+                int from = Index(r.Str("From checkpoint")), until = Index(r.Str("Until checkpoint"));
+                if (from >= 0 && at >= from && (until < 0 || at <= until)) open.Add(r.Int("Flag"));
+            }
+            NpcRec best = null;
+            foreach (var r in data.Npcs)
+                if (r.Name == name && open.Contains(r.UnlockFlag) && (best == null || r.Level > best.Level)) best = r;
+            return best;
+        }
+
+        /// <summary>The record of the guest whose level is the highest not above the level, else her first (the model before 2026-10-17).</summary>
         public static NpcRec GuestStage(GameData data, string name, int level)
         {
             NpcRec under = null, first = null;

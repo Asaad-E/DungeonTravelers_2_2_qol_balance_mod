@@ -132,7 +132,7 @@ def compare(built, variant):
     table('items', built.items, variant.items, ('effects',), item)
     table('unique skills', built.unique, variant.unique, ('effect', 'values'), item)
     table('guest allies', {n['id']: n for n in built.npcs}, {n['id']: n for n in variant.npcs},
-          ('level', 'hp', 'attacks') + npc_data.STATS, item)
+          ('level', 'cost', 'attacks') + npc_data.STATS, item)
     counts['enchantments that stack'] = len(variant.enchant_stacks)
     if built.enchant_stacks != variant.enchant_stacks:
         out.append(f'enchantments that stack: {sorted(built.enchant_stacks ^ variant.enchant_stacks)} differ')

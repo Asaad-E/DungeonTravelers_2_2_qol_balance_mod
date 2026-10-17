@@ -14,9 +14,12 @@ NPCData (little endian), as the code reads it (the stats at 0x4fed59 - 0x4fee27)
                             not followed in code)
     0x20 six ints: ATK DEF INT RES DEX AGI. The stat of the unit is this figure plus bonuses of the unit object
     0x38 number of attacks, 0x3C their ids (EnemyAttackData), eight bytes each, up to eleven
-    0x94 a kind (0, 1, 2) and 0x98 one more EnemyAttackData id or -1 (read at 0x4a33f0 and 0x4ff2bb; not followed)
-    0xAC max HP (400 to 9,999; its readers are the status screens)
-    0xB0, 0xB4 two ints not identified; 0xC8 - 0xD4 four ints of where its picture sits
+    0x94 the number of passives (0 - 2) and 0x98 five EnemyAttackData ids, -1 when empty (loaded at 0x4ff2bb - 0x4ff446)
+    0xAC the gold of the hire, not HP: a guest ally has no HP and cannot be targeted (getter 0x55d390, the bar 0x58b651,
+         the hire 0x58b799; measures/MERCENARY_RESEARCH.md, read 2026-10-17)
+    0xB0 the battles won the contract lasts (-1: for ever), 0xB4 the flag that unlocks the stage in the bar: the bar offers,
+         of the stages whose flag is set, the one of the highest level (0x58adb0 - 0x58b060)
+    0xC8 - 0xD4 four ints of where its picture sits
 
     python tools/npc_data.py        prints every guest ally
 """
@@ -33,6 +36,7 @@ STATS = ('atk', 'def', 'int', 'res', 'dex', 'agi')
 from game_profile import layout                           # noqa: E402
 RECORD = layout('NPCData')                                # data_tables/record_layouts.json
 ATTACK_COUNT, ATTACK_IDS, ATTACK_SLOTS = RECORD['attack_count'], RECORD['attack_ids'], RECORD['attack_slots']
+PASSIVE_IDS = RECORD['passive_ids']
 
 
 def read_npc(blob):
@@ -43,8 +47,9 @@ def read_npc(blob):
     npc = {'id': i(RECORD['id']), 'character': i(RECORD['character']), 'level': i(RECORD['level']), 'raw_1c': i(RECORD['rank']),
            'name': b[name_at:b.index(b'\x00', name_at)].decode('utf-8', 'replace'),
            'attacks': [i(ATTACK_IDS + 8 * k) for k in range(count)],
-           'kind': i(RECORD['kind']), 'hp': i(RECORD['hp']),
-           'extra_attack': i(RECORD['extra_attack']) if i(RECORD['extra_attack']) != -1 else None}
+           'cost': i(RECORD['cost']), 'contract': i(RECORD['contract']), 'unlock_flag': i(RECORD['unlock_flag'])}
+    passive_count = max(0, min(i(RECORD['passive_count']), RECORD['passive_slots']))
+    npc['passives'] = [i(PASSIVE_IDS + 4 * k) for k in range(passive_count) if i(PASSIVE_IDS + 4 * k) != -1]
     npc.update(zip(STATS, struct.unpack_from('<6i', b, RECORD['stats'])))
     return npc
 
@@ -63,7 +68,7 @@ def npcs(path=NPC_PCK):
 def main():
     sys.stdout.reconfigure(encoding='utf-8')
     for n in npcs():
-        print(f"{n['id']:3d} {n['name']:16s} L{n['level']:2d} HP {n['hp']:5d} " + ' '.join(f"{k.upper()} {n[k]}" for k in STATS)
+        print(f"{n['id']:3d} {n['name']:16s} L{n['level']:2d} cost {n['cost']:5d} flag {n['unlock_flag']:4d} " + ' '.join(f"{k.upper()} {n[k]}" for k in STATS)
               + f"  attacks {len(n['attacks'])}  sets {len(n['script']['sets'])}")
 
 

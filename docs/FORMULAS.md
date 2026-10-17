@@ -926,8 +926,12 @@ A sleeping unit takes none.
 
 * Start of a battle (`0x449130`): a member or an enemy starts at a gauge of (a number below 500, plus 1) / 1000, a guest
   ally or a summon at the value of a plain action; one battle in five every gauge is (a number below 93) / 100.
-* Who can be picked (`0x43e6d0`): units numbered below 2000. Dolls (2000 + n, `0x43a205`), guest allies and summons
-  (3000, `0x4497ce`) are never picked: they cannot be hurt by the other side.
+* Who can be picked (`0x43e6d0`): units numbered below 2000. Dolls (2000 + n, `0x43a205`), the summon of the grand
+  sealbook (3000, `0x4497ce`) and a hired guest ally (3001, `0x449892`) are never picked: they cannot be hurt by the
+  other side. The summon and the guest are two units built one after the other from two objects (`0x449771` and
+  `0x449839`), so both stand in a battle. A guest ally has no HP: 0xAC of its NPCData is the gold of the hire; the
+  tavern offers, of the stages of a guest whose flag (0xB4) is set, the one of the highest level (`0x58adb0` -
+  `0x58b060`). Read 2026-10-17 (`measures/MERCENARY_RESEARCH.md`).
 * Piercing (`0x43fa64`; lists built at `0x43def0`): the target and the units its list names; for the party, the overlap
   of the front and back rows centred on each other.
 * Hit (`0x44aef3 - 0x44afbb`, `0x44da4a - 0x44daac`): Fixed accuracy and a direct accuracy value set the chance to

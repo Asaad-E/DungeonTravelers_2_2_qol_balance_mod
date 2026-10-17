@@ -105,7 +105,7 @@ namespace DtEngine.Suite
                 foreach (var (stat, factor) in factors)
                 {
                     int at = Array.IndexOf(stats, stat);
-                    if (stat == "hp") c.Hp = (int)(c.Hp * factor);
+                    if (stat == "hp") throw new InvalidOperationException("a guest ally has no HP (0xAC of NPCData is the gold of the hire)");
                     else if (at >= 0) c.Stats[at] = (int)(c.Stats[at] * factor);
                     else throw new InvalidOperationException("no stat " + stat);
                 }

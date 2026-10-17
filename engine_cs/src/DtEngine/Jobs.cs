@@ -43,7 +43,7 @@ namespace DtEngine
         public List<(int id, Dictionary<string, double> fields)> EnemyChanges;    // stats of enemy records for this job (GameData.with_changes)
         public List<Row> PolicyRows;               // the rows of the sheet Policies for this job, in place of the ones of the setup
         public List<Row> Policies;                 // rows added to the sheet Policies for this job (they sort by role and order with the others)
-        public string Guest;                       // null: the party as built; "none": its members only; else the name of a guest ally who replaces the summon
+        public string Guest;                       // null: the party as built; "none": its members only; else the name of a guest ally hired beside the summon
         public Exception OwnError;                 // why the scenario of the job could not be made
         public Scenario Own;                       // the scenario of a job with rows of its own (made by JobRunner.Run)
         public string SetupName;                   // a setup of the snapshot's extra file, by name; null: the setup of the snapshot
@@ -224,11 +224,14 @@ namespace DtEngine
                 int crown = job.Crown ?? (cp.Truthy("Crown bonus") ? cp.Int("Crown bonus") : 0);
                 var built = job.RecipeTemplate != null ? Scenario.CloneOf(job.RecipeTemplate.Value)
                           : sc.ReferenceParty(roles, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor"), job.Kit, job.ExtraSkills, job.Bag, job.ExtraEnchants, job.More);
-                if (job.Guest != null)
-                {
-                    // measures/mercenaries.py play: the members alone, with a guest ally at the stage of the party's level in place of the summon
+                if (job.Guest == "none")
                     built = built.Where(u => u.Kind == Kind.Member).ToList();
-                    if (job.Guest != "none") built.Add(UnitFactory.BuildGuest(sc.Data, UnitFactory.GuestStage(sc.Data, job.Guest, level)));
+                else if (job.Guest != null)
+                {
+                    // a hired guest ally stands beside the summon of the grand sealbook (units 3000 and 3001, 0x449771 and 0x449839), at the
+                    // stage the bar offers at this point of the story
+                    var stage = UnitFactory.GuestStageAt(sc.Data, sc.Setup, job.Guest, job.Cid);
+                    if (stage != null) built.Add(UnitFactory.BuildGuest(sc.Data, stage));
                 }
                 return built;
             };

@@ -158,8 +158,8 @@ def side_json(data, flags):
                      'attacks': list(s['attacks']), 'passive': s['passive'], 'script': script_json(s['script'])}
                     for s in data.summons],
         'npcs': [{'id': n['id'], 'character': n['character'], 'level': whole(n['level'], 'level of a guest'), 'raw_1c': n['raw_1c'],
-                  'name': n['name'], 'attacks': list(n['attacks']), 'kind': n['kind'], 'hp': whole(n['hp'], f"hp of guest {n['id']}"),
-                  'extra_attack': n['extra_attack'],
+                  'name': n['name'], 'attacks': list(n['attacks']), 'cost': whole(n['cost'], f"cost of guest {n['id']}"),
+                  'contract': n['contract'], 'unlock_flag': n['unlock_flag'], 'passives': list(n['passives']),
                   **{s: whole(n[s], f"{s} of guest {n['id']}") for s in ('atk', 'def', 'int', 'res', 'dex', 'agi')},
                   'script': script_json(n['script'])} for n in data.npcs],
         'dolls': [{'skill': d['skill'], 'effect': d['effect'], 'name': d['name'], 'range': d['range'],
@@ -189,6 +189,7 @@ def setup_json(setup):
         'grand_sealbooks': rows_json(setup.grand_sealbooks),
         'unique_gear': rows_json(setup.unique_gear),
         'personal_sealbooks': rows_json(setup.personal_sealbooks),
+        'mercenary_unlocks': rows_json(setup.mercenary_unlocks),
         'kit': rows_json(setup.kit),
         'preparation': rows_json(setup.preparation),
         'zone_changes': rows_json(setup.zone_changes),

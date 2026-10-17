@@ -11,7 +11,7 @@ random_battles.png     measures/RANDOM_BATTLES.md: rows of random battles at the
                        the variant: rows survived, length of a battle, lowest HP, TP left; out of the window shaded
 party_battery.png      PARTY_BATTERY.md: the wins of each archetype at each boss on the variant (a cell under its floor framed) and the change
                        from vanilla
-mercenaries.png        MERCENARY_BATTERY.md: each mercenary in the place of the summon, by the share of cells where she serves and
+mercenaries.png        MERCENARY_BATTERY.md: each mercenary hired beside the summon, by the share of cells where she serves and
                        where she makes it worse, and the mean change of wins
 skills.png             SKILL_BATTERY.md (with SKILL_BATTERY_VARIANTS.md for the skills played again under every rule of use) and
                        UNIQUE_BATTERY.md: each skill by the share of the cells where it serves and where it hurts, coloured by verdict;
@@ -320,7 +320,7 @@ def party_battery():
     van, var, below, labels = [], [], [], []
     for r in rows:
         floor = num(r[2]) / 100
-        labels.append(r[0] + ' ' + r[1][:22])
+        labels.append(r[0])
         a, b, under = [], [], []
         for cell in r[3:]:
             bold = '**' in cell
@@ -431,7 +431,7 @@ def mercenaries():
     rows = sorted(table(lines, '| Mercenary |'), key=lambda r: num(r[4]))
     fig, axes = plt.subplots(1, 2, figsize=(17, 0.38 * len(rows) + 3), gridspec_kw={'width_ratios': [3, 2]})
     y = list(range(len(rows)))
-    labels = ['%s (level %s, from %s)' % (r[0], r[1], r[2]) for r in rows]
+    labels = ['%s (from %s)' % (r[0], r[2]) for r in rows]
     ax = axes[0]
     ax.barh(y, [num(r[4]) / 100 for r in rows], color=[VERDICT_COLOURS.get(r[-1], '0.5') for r in rows], edgecolor='k', lw=0.4)
     ax.barh(y, [-num(r[5]) / 100 for r in rows], color='tab:red', alpha=0.45, edgecolor='k', lw=0.4)
@@ -442,11 +442,11 @@ def mercenaries():
     ax.set_yticks(y)
     ax.set_yticklabels(labels, fontsize=8)
     ax.xaxis.set_major_formatter(PercentFormatter(1.0))
-    ax.set_xlabel('share of the cells (left: worse than the summon, right: serves; colour: verdict)')
+    ax.set_xlabel('share of the cells (left: worse than without her, right: serves; colour: verdict)')
     ax.legend(fontsize=8, loc='lower right')
     ax.grid(axis='x', alpha=0.3)
     head = next(line for line in lines if line.startswith('**'))
-    ax.set_title('Mercenaries against the summon: ' + head.strip('*').split('.')[0].split(': ')[-1], fontsize=11)
+    ax.set_title('Mercenaries hired beside the summon: ' + head.strip('*').split('.')[0].split(': ')[-1], fontsize=11)
     ax = axes[1]
     means = [num(r[7]) / 100 for r in rows]
     ax.barh(y, means, color=['tab:green' if m > 0 else 'tab:red' for m in means], alpha=0.7, edgecolor='k', lw=0.4)
@@ -455,7 +455,7 @@ def mercenaries():
     ax.set_yticklabels([r[0] for r in rows], fontsize=8)
     ax.xaxis.set_major_formatter(PercentFormatter(1.0))
     ax.set_xlabel('mean change of wins over every cell')
-    ax.set_title('On the mean: the mercenary in the place of the summon', fontsize=11)
+    ax.set_title('On the mean: the party with her against without her', fontsize=11)
     ax.grid(axis='x', alpha=0.3)
     fig.tight_layout()
     return save(fig, 'mercenaries.png')

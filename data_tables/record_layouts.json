@@ -30,7 +30,7 @@
   "attack_count": "0xAC", "attack_ids": "0xB0", "attack_slots": 16, "passive_count": "0xF0", "passives": "0xF4"
  },
  "EnemyAttackData": {"pck": "EnemyAttackData.pck", "header": "0xA0", "pointers": [8, 16, 24, 32], "power": "0x3C", "slot_count": "0x48", "slots": "0x4C", "slot_size": 12},
- "NPCData": {"id": "0x00", "name_pointer": "0x08", "character": "0x10", "level": "0x18", "rank": "0x1C", "stats": "0x20", "attack_count": "0x38", "attack_ids": "0x3C", "attack_slots": 11, "kind": "0x94", "extra_attack": "0x98", "hp": "0xAC"},
+ "NPCData": {"id": "0x00", "name_pointer": "0x08", "character": "0x10", "level": "0x18", "rank": "0x1C", "stats": "0x20", "attack_count": "0x38", "attack_ids": "0x3C", "attack_slots": 11, "passive_count": "0x94", "passive_ids": "0x98", "passive_slots": 5, "cost": "0xAC", "contract": "0xB0", "unlock_flag": "0xB4"},
  "SummonData": {"id": "0x00", "character": "0x10", "enemy": "0x14", "level": "0x18", "rank": "0x20", "factors": "0x24", "attack_count": "0x3C", "attack_ids": "0x40", "attack_slots": 12, "passive": "0x9C"},
  "EquipmentData": {"atk": "0x24", "upgrade_rate": "0x3C", "class_mask": "0x40", "enchant_count": "0x5C", "enchants": "0x60", "enchant_slots": 4},
  "SealScrollData": {"count": "0x1C", "enchants": "0x20", "slots": 4},

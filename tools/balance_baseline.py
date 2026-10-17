@@ -384,10 +384,12 @@ def npc_sections():
     attacks = {r['Skill_ID']: r['Name'] for r in rows_of(os.path.join(TABLES_DIR, 'vanilla_source_of_truth.xlsx'), 'EnemyAttacks')}
     lines = ['## Guest allies', '',
              f"{len(allies)} records of {len({a['character'] for a in allies})} guest allies, one per stage of their growth "
-             '(`tools/npc_data.py`). Their stats are fixed figures of the record; they act by a script of the enemy kind.', '']
-    lines += table(['Ally', 'Level', 'HP'] + [k.upper() for k in npc_data.STATS] + ['Attacks', 'Passive', 'Sets of its script'],
-                   [[a['name'], a['level'], a['hp']] + [a[k] for k in npc_data.STATS]
-                    + [len(a['attacks']), attacks.get(a['extra_attack'], '') if a['extra_attack'] else '', len(a['script']['sets'])] for a in allies])
+             '(`tools/npc_data.py`). Their stats are fixed figures of the record; they act by a script of the enemy kind; they have no HP and '
+             'cannot be targeted. The bar offers, of the stages whose flag is set, the one of the highest level.', '']
+    lines += table(['Ally', 'Level', 'Gold of the hire', 'Battles of the contract', 'Unlocked by flag'] + [k.upper() for k in npc_data.STATS]
+                   + ['Attacks', 'Passives', 'Sets of its script'],
+                   [[a['name'], a['level'], a['cost'], a['contract'], a['unlock_flag']] + [a[k] for k in npc_data.STATS]
+                    + [len(a['attacks']), ', '.join(attacks.get(p, str(p)) for p in a['passives']), len(a['script']['sets'])] for a in allies])
     return lines
 
 

@@ -184,7 +184,6 @@ skill of each girl, the same way (right of the line it helps, left it hurts).
 
 ![Mercenaries](docs/generated/charts/mercenaries.png)
 
-Each mercenary hired in the place of the summon of the party's grand sealbook (the slot is the same), in every party,
-from the level she can be hired. Left: the share of cells where she does better than the summon (right of the line,
-coloured by verdict) and where she does worse (left). Right: the mean change of wins over every cell. Most mercenaries
-are a little below the summon on the mean and good in some fights.
+Each mercenary hired beside the summon of the party's grand sealbook (the game fields both), in every party, at the
+stage the tavern offers at that point of the story. Left: the share of cells where the party does better with her
+(right of the line, coloured by verdict) and worse (left). Right: the mean change of wins over every cell.

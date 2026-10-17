@@ -241,10 +241,12 @@ namespace DtEngine
     /// <summary>A guest ally at one stage of her growth (tools/npc_data.py).</summary>
     public sealed class NpcRec
     {
-        public int Id, Character, Level, Rank, Kind, Hp;
+        // Cost: the gold of the hire (0xAC; a guest ally has no HP); Contract: the battles won it lasts (0xB0); UnlockFlag: the flag that
+        // opens the stage in the bar (0xB4); Passives: its passive EnemyAttackData ids (0x94 count, 0x98 ids)
+        public int Id, Character, Level, Rank, Cost, Contract, UnlockFlag;
         public string Name;
         public int[] Attacks;
-        public int ExtraAttack = T.NONE;
+        public int[] Passives = new int[0];
         public int[] Stats = new int[6];
         public Script Script;
         public NpcRec Clone() { var c = (NpcRec)MemberwiseClone(); c.Stats = (int[])Stats.Clone(); return c; }

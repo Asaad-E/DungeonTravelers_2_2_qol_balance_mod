@@ -37,6 +37,7 @@ namespace DtEngine
         public List<Row> Checkpoints = new List<Row>();
         public List<(string chapter, List<string> names)> Joins = new List<(string, List<string>)>();
         public Dictionary<string, double?> GuideLevels = new Dictionary<string, double?>();
+        public List<Row> MercenaryUnlocks = new List<Row>();
         public List<Row> GrandSealbooks = new List<Row>(), UniqueGear = new List<Row>(), PersonalSealbooks = new List<Row>(),
                          Kit = new List<Row>(), Preparation = new List<Row>(), ZoneChanges = new List<Row>(),
                          EnchantPlan = new List<Row>(), EnchantSlots = new List<Row>();
@@ -461,8 +462,9 @@ namespace DtEngine
                 var npc = new NpcRec
                 {
                     Id = I(n.GetProperty("id")), Character = I(n.GetProperty("character")), Level = I(n.GetProperty("level")),
-                    Rank = I(n.GetProperty("raw_1c")), Kind = I(n.GetProperty("kind")), Hp = I(n.GetProperty("hp")),
-                    Name = S(n.GetProperty("name")), Attacks = Ints(n.GetProperty("attacks")), ExtraAttack = I(n.GetProperty("extra_attack")),
+                    Rank = I(n.GetProperty("raw_1c")), Cost = I(n.GetProperty("cost")), Contract = I(n.GetProperty("contract")),
+                    UnlockFlag = I(n.GetProperty("unlock_flag")), Passives = Ints(n.GetProperty("passives")),
+                    Name = S(n.GetProperty("name")), Attacks = Ints(n.GetProperty("attacks")),
                     Script = LoadScript(n.GetProperty("script")),
                 };
                 string[] st = { "atk", "def", "int", "res", "dex", "agi" };
@@ -512,6 +514,7 @@ namespace DtEngine
             s.GrandSealbooks = Rows(e.GetProperty("grand_sealbooks"));
             s.UniqueGear = Rows(e.GetProperty("unique_gear"));
             s.PersonalSealbooks = Rows(e.GetProperty("personal_sealbooks"));
+            if (e.TryGetProperty("mercenary_unlocks", out var mu)) s.MercenaryUnlocks = Rows(mu);
             s.Kit = Rows(e.GetProperty("kit"));
             s.Preparation = Rows(e.GetProperty("preparation"));
             s.ZoneChanges = Rows(e.GetProperty("zone_changes"));

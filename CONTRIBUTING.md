@@ -37,7 +37,7 @@ Known limits, left as they are for now:
 - The bag of the model is `kit_count` (8) of each item of the sheet Kit. At C34 a party without a Maid-line member still
   loses a little with it; with three times the bag it does not (`class-search ... kit=24`).
 
-The suite runs the skill battery, the unique battery and the mercenary battery (each mercenary in the place of the summon). Mass tests on demand, outside the suite (`engine_cs/README.md`):
+The suite runs the skill battery, the unique battery and the mercenary battery (each mercenary hired beside the summon). Mass tests on demand, outside the suite (`engine_cs/README.md`):
 `dtcli support-battery`, `class-search` (every party of a stage, with filters, and a comparison of the variant against
 trial values) and `walk-parties` (rows of random battles for every party, drawn by `tools/walk_parties_chart.py`).
 
