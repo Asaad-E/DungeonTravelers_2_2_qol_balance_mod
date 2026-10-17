@@ -27,7 +27,6 @@ namespace DtEngine.Suite
                 new MeasureDef { Name = "mercenaries", Run = c => { Mercenaries.Run(c); Mercenaries.Report(c); } },
                 new MeasureDef { Name = "party-skills", Run = c => { PartySkills.Run(c); PartySkills.Report(c); } },
                 new MeasureDef { Name = "postgame-compare", Run = c => { PostgameCompare.Run(c); PostgameCompare.Report(c); } },
-                new MeasureDef { Name = "unique-skills", Run = c => { UniqueSkills.Run(c); UniqueSkills.Report(c); } },
                 new MeasureDef { Name = "unique-battery", Run = c => SkillBattery.RunUnique(c, new string[0]) },
                 new MeasureDef { Name = "skill-battery", After = new[] { "unique-battery" }, Run = SkillBattery.RunWithVariants },
                 new MeasureDef { Name = "skill-value-contested", After = new[] { "skill-value" }, Run = c => { SkillValueContested.Run(c); SkillValueContested.Report(c); } },

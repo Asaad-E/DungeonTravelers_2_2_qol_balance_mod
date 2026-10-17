@@ -386,7 +386,7 @@ namespace DtEngine.Suite
                     + "(sheet Roles) whose class path holds a class that learns it, at each stage of section skill_battery of data_tables/measure_config.json; that member stands in "
                     + "each party of the sheet BatteryParties (in the place of the same role, else of the last member), at every story boss of the stage and on rows of "
                     + chain + " random battles of its floor. Without: the same member with the skill at level 0; the same seeds. A non-damage active is used by the rule of "
-                    + "tools/skill_value.py; damage skills and passives by the policy of the model. Played as: one role for each class that learns the skill, the "
+                    + "dtcli skill-value; damage skills and passives by the policy of the model. Played as: one role for each class that learns the skill, the "
                     + "first whose class of the stage it is, else the first whose path holds it; when her weapon cannot use the skill she takes the piece weapon_of_type names "
                     + "for a type it allows (shown beside the role). A status skill goes before the statuses the role keeps up. Scan: " + scanRuns + " runs a cell; the " + keep + " best cells of each "
                     + "skill again at " + confirmRuns + " runs, and the verdict reads the best of those.", "",
