@@ -462,8 +462,10 @@ namespace DtEngine
                 var npc = new NpcRec
                 {
                     Id = I(n.GetProperty("id")), Character = I(n.GetProperty("character")), Level = I(n.GetProperty("level")),
-                    Rank = I(n.GetProperty("raw_1c")), Cost = I(n.GetProperty("cost")), Contract = I(n.GetProperty("contract")),
-                    UnlockFlag = I(n.GetProperty("unlock_flag")), Passives = Ints(n.GetProperty("passives")),
+                    Rank = I(n.GetProperty("raw_1c")), Cost = n.TryGetProperty("cost", out var c) ? I(c) : 0,
+                    Contract = n.TryGetProperty("contract", out var ct) ? I(ct) : 0,
+                    UnlockFlag = n.TryGetProperty("unlock_flag", out var uf) ? I(uf) : 0,
+                    Passives = n.TryGetProperty("passives", out var ps) ? Ints(ps) : new int[0],
                     Name = S(n.GetProperty("name")), Attacks = Ints(n.GetProperty("attacks")),
                     Script = LoadScript(n.GetProperty("script")),
                 };

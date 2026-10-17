@@ -469,8 +469,8 @@ namespace DtEngine.Suite
             var cfg = c.In("skill_battery");
             var data = c.Data("variant");
             var sc = c.Sc("variant");
-            int scanRuns = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get("scan_runs"));
-            int confirmRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get("confirm_runs"));
+            int scanRuns = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get(cfg.Has("mercenary_scan_runs") ? "mercenary_scan_runs" : "scan_runs"));
+            int confirmRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get(cfg.Has("mercenary_confirm_runs") ? "mercenary_confirm_runs" : "confirm_runs"));
             // [names|*] [trial]: only these mercenaries, on a copy of the variant with the trial values (the report is then _TRIAL)
             var onlyGuests = args.Length > 2 && args[2] != "*" ? new HashSet<string>(args[2].Split(',').Select(x => x.Trim())) : null;
             string trial = args.Length > 3 ? args[3] : "";

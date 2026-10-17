@@ -830,6 +830,8 @@
   "chain_seed": 1601,
   "scan_runs": 20,
   "confirm_runs": 200,
+  "mercenary_scan_runs": 60,
+  "mercenary_confirm_runs": 600,
   "confirm_cells": 3,
   "batch": 2000,
   "wins": 0.08,
