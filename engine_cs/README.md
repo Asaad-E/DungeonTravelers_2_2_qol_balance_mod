@@ -88,6 +88,7 @@ Three mass tests run on demand and are not part of the suite (their configuratio
 ```bash
 dtcli skill-battery [names|*] [scan runs] [confirm runs]     # every skill with and without, in the battery parties; docs/generated/SKILL_BATTERY.md
 dtcli unique-battery [scan runs] [confirm runs]                # each girl's unique skill with and without, in every role that names her, in the battery parties; docs/generated/UNIQUE_BATTERY.md
+dtcli mercenary-battery [scan runs] [confirm runs]             # each mercenary in the place of the summon, in every battery party, from her first level; docs/generated/MERCENARY_BATTERY.md
 dtcli walk-parties [battles=N] [rows=N] [cids=C26,C28] [parties=Meta+...] [enemy=atk*1.1,...] [trial=...] [out=NAME]
                                                              # rows of random battles for the reference party and each battery party, vanilla and
                                                              # the variant, one bag for the row; build/walk_parties.json (tools/walk_parties_chart.py)

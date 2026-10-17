@@ -62,5 +62,6 @@ docs/generated/SKILL_BATTERY_VARIANTS_TRIAL.md
 docs/generated/skill_battery_variants_trial/
 docs/generated/support_battery/
 docs/generated/unique_battery/
+docs/generated/mercenary_battery/
 # the charts of the suite (tools/suite_charts.py) are kept: they show the state of the mod
 !docs/generated/charts/*.png

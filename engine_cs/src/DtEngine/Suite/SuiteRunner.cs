@@ -24,7 +24,7 @@ namespace DtEngine.Suite
                 new MeasureDef { Name = "boss-fit", After = new[] { "difficulty-curve" }, Run = c => { BossFit.Run(c); BossFit.Report(c); } },
                 new MeasureDef { Name = "skill-worth", Run = c => { SkillWorth.Run(c); SkillWorth.Report(c); } },
                 new MeasureDef { Name = "sim-audit", Run = c => { SimAudit.Passives(c); SimAudit.Usage(c); SimAudit.Actives(c); SimAudit.Report(c); } },
-                new MeasureDef { Name = "mercenaries", Run = c => { Mercenaries.Run(c); Mercenaries.Report(c); } },
+                new MeasureDef { Name = "mercenary-battery", Run = c => SkillBattery.RunMercenaries(c, new string[0]) },
                 new MeasureDef { Name = "party-skills", Run = c => { PartySkills.Run(c); PartySkills.Report(c); } },
                 new MeasureDef { Name = "postgame-compare", Run = c => { PostgameCompare.Run(c); PostgameCompare.Report(c); } },
                 new MeasureDef { Name = "unique-battery", Run = c => SkillBattery.RunUnique(c, new string[0]) },

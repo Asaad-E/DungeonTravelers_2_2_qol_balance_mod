@@ -179,3 +179,12 @@ Left: every class skill, used against not used, in every party and stage where i
 cells where it helps; up: the share where it makes the fight worse. Green is good, orange a niche (useful in some
 fights), grey dead, red harmful. A skill meant for a situation is judged by its best rule of use. Right: the unique
 skill of each girl, the same way (right of the line it helps, left it hurts).
+
+### Mercenaries
+
+![Mercenaries](docs/generated/charts/mercenaries.png)
+
+Each mercenary hired in the place of the summon of the party's grand sealbook (the slot is the same), in every party,
+from the level she can be hired. Left: the share of cells where she does better than the summon (right of the line,
+coloured by verdict) and where she does worse (left). Right: the mean change of wins over every cell. Most mercenaries
+are a little below the summon on the mean and good in some fights.

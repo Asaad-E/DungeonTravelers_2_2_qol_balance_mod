@@ -19,6 +19,7 @@ namespace DtEngine.Suite
             public (string cond, string act)? Rule;
             public string Weapon;                // a weapon in the place of the role's own when hers cannot use the skill, else null
             public string Girl, Label;           // unique-battery: the girl whose unique skill is tested, and the name of that skill
+            public string Guest;                 // mercenary-battery: the mercenary hired in the place of the summon
         }
 
         sealed class Cell
@@ -96,7 +97,8 @@ namespace DtEngine.Suite
             var sc = c.Sc("variant");
             var cp = c.Checkpoint(cell.Cid);
             int levels = e.Skill != null && e.Skill.Levels != 0 ? e.Skill.Levels : 1;
-            var roles = c.Setup.Battery.First(b => b.name == cell.Party).roles;
+            // the party "Reference" is the reference party of the checkpoint; the others are parties of BatteryParties
+            var roles = cell.Party == "Reference" ? null : c.Setup.Battery.First(b => b.name == cell.Party).roles;
             Obj enemies = null;
             Obj options = null;
             if (cell.Chain > 0)
@@ -105,6 +107,11 @@ namespace DtEngine.Suite
                 enemies = Jb.Chain(sc.WalkedZones(cp.Str("Floor"), level).Select(z => z.Name), (long)Py.Num(c.In("skill_battery").Get("chain_seed")), cell.Chain);
                 if (cell.Context == "walk_boss") { enemies.Set("then_checkpoint", true); options = new Obj { { "random_battle", true } }; }
             }
+            if (e.Guest != null)
+                // mercenary-battery: the party as built (with the summon of its grand sealbook) against the same party with the mercenary
+                // in the place of the summon
+                return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, enemies: enemies, options: options, guest: use ? e.Guest : null,
+                               name: e.Guest + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
             Obj recipe;
             if (e.Girl != null)
                 // unique-battery: the girl in the place of the role, without and with her unique skill; another member who is the same girl is
@@ -424,6 +431,100 @@ namespace DtEngine.Suite
             var cfg = c.In("skill_battery");
             if (rest.Count > 0)
                 Run(c, new[] { string.Join(",", rest), Py.Str(cfg.Get("scan_runs")), Py.Str(cfg.Get("confirm_runs")), "variants" });
+        }
+
+        /// <summary>dtcli mercenary-battery [scan runs] [confirm runs]: each mercenary hired in the place of the summon, against the party as
+        /// built, in the reference party and each party of BatteryParties, at every checkpoint of the difficulty curve whose reference level
+        /// reaches her first stage, and on rows of random battles of its floor; the same seeds, thresholds and verdicts as skill-battery;
+        /// docs/generated/MERCENARY_BATTERY.md.</summary>
+        public static void RunMercenaries(Ctx c, string[] args)
+        {
+            var cfg = c.In("skill_battery");
+            var data = c.Data("variant");
+            var sc = c.Sc("variant");
+            int scanRuns = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get("scan_runs"));
+            int confirmRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get("confirm_runs"));
+            side = "variant";
+            var levels = sc.ReferenceLevels();
+            var cids = DifficultyCurve.Checkpoints(c).Where(levels.ContainsKey).ToList();
+            var parties = new List<string> { "Reference" };
+            parties.AddRange(c.Setup.Battery.Select(b => b.name));
+            var guests = data.Npcs.GroupBy(r => r.Name).Select(g => (name: g.Key, first: g.Min(r => r.Level))).OrderBy(g => g.name, StringComparer.Ordinal).ToList();
+            int chain = (int)Py.Num(cfg.Get("chain"));
+            var cells = new List<Cell>();
+            foreach (var (name, first) in guests)
+            {
+                var e = new Entry { Guest = name, Label = name, Stage = "", Role = "guest" };
+                foreach (var cid in cids.Where(x => levels[x].level >= first))
+                    foreach (var party in parties)
+                    {
+                        cells.Add(new Cell { Entry = e, Cid = cid, Party = party, Context = "boss", Chain = 0 });
+                        if (chain > 0 && sc.WalkedZones(c.Checkpoint(cid).Str("Floor"), levels[cid].level).Count > 0)
+                            cells.Add(new Cell { Entry = e, Cid = cid, Party = party, Context = "random", Chain = chain });
+                    }
+            }
+            int batch = (int)Py.Num(cfg.Get("batch"));
+            Play(c, cells, scanRuns, batch, cfg);
+            var byGuest = cells.GroupBy(x => x.Entry.Guest).ToDictionary(g => g.Key, g => g.ToList());
+            int keep = (int)Py.Num(cfg.Get("confirm_cells"));
+            var again = new Dictionary<string, List<Cell>>();
+            foreach (var kv in byGuest)
+            {
+                var tops = kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).Take(keep).ToList();
+                if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
+            }
+            Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
+            var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
+
+            double good = cfg.D("good_share");
+            var rows = new List<object>();
+            var lines = new List<string>();
+            var counts = new Dictionary<string, int>();
+            foreach (var (name, first) in guests)
+            {
+                if (!byGuest.TryGetValue(name, out var all)) continue;
+                int n = all.Count, serves = all.Count(x => x.Serves), hurts = all.Count(x => x.Hurts), same = all.Count(x => x.Same);
+                best.TryGetValue(name, out var top);
+                string verdict = top == null ? "no effect" : top.Serves ? ((double)serves / n >= good ? "good" : "niche")
+                               : (double)hurts / n >= good ? "hurts" : "dead";
+                counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
+                string from = all.Select(x => x.Cid).First();
+                string where = top == null ? "-" : top.Cid + " " + top.Context + ", " + top.Party;
+                string figs = top == null ? "-" : Py.Pct(top.Wins, 0, true) + " / " + Py.Pct(top.Length, 0, true) + " / " + Py.Pct(top.Hp, 0, true);
+                double meanWins = all.Average(x => x.Wins);
+                lines.Add("| " + name + " | " + first + " | " + from + " | " + n + " | " + Py.Pct((double)serves / n, 0) + " | " + Py.Pct((double)hurts / n, 0) + " | "
+                          + Py.Pct((double)same / n, 0) + " | " + Py.Pct(meanWins, 1, true) + " | " + where + " | " + figs + " | " + verdict + " |");
+                rows.Add(new Obj
+                {
+                    { "guest", name }, { "first_level", (long)first }, { "verdict", verdict }, { "cells", (long)n }, { "serves", (long)serves },
+                    { "hurts", (long)hurts }, { "same", (long)same }, { "mean_wins", meanWins },
+                    { "best", top == null ? null : new Obj { { "checkpoint", top.Cid }, { "context", top.Context }, { "party", top.Party },
+                                                             { "wins", top.Wins }, { "length", top.Length }, { "hp_left", top.Hp } } },
+                    { "scan", Jb.L(all.Select(x => (object)new Obj { { "checkpoint", x.Cid }, { "context", x.Context }, { "party", x.Party },
+                                                                     { "wins", x.Wins }, { "length", x.Length }, { "hp_left", x.Hp }, { "same", x.Same } })) },
+                });
+            }
+            string dir = c.Path("docs", "generated", "mercenary_battery");
+            Directory.CreateDirectory(dir);
+            M.ClearFolder(dir);
+            c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
+            var order = new[] { "good", "niche", "dead", "hurts", "no effect" };
+            var text = new List<string>
+            {
+                "# Every mercenary against the summon (generated)", "",
+                "Generated by `dtcli mercenary-battery`. Do not edit. Balance variant. Each mercenary hired in the place of the summon of the party's "
+                    + "grand sealbook, at the stage of the party's level, against the party as built: the reference party of the checkpoint and each "
+                    + "party of the sheet BatteryParties, at every checkpoint of the difficulty curve whose reference level reaches her first stage, "
+                    + "and on rows of " + chain + " random battles of its floor; the same seeds. Scan: " + scanRuns + " runs a cell; the " + keep
+                    + " best cells of each mercenary again at " + confirmRuns + " runs, and the verdict reads the best of those. Thresholds and verdicts "
+                    + "as SKILL_BATTERY.md. Mean wins: the change of the share of wins over every cell.", "",
+                "**" + rows.Count + " mercenaries played: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)) + ". " + cells.Count + " cells.**", "",
+                "| Mercenary | First level | From | Cells | Serve | Hurt | Same | Mean wins | Best cell | Best: wins / length / HP left | Verdict |",
+                "|---|---|---|---|---|---|---|---|---|---|---|",
+            };
+            text.AddRange(lines);
+            c.WriteText(c.Path("docs", "generated", "MERCENARY_BATTERY.md"), M.Lines(text), false);
+            c.Say("mercenary-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
         }
 
         /// <summary>dtcli unique-battery [scan runs] [confirm runs]: the unique skill of each girl, with and without, as skill-battery plays a
