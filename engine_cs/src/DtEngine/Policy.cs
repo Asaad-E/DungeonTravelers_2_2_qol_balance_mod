@@ -11,7 +11,7 @@ namespace DtEngine
         static readonly int[] DOLL_EFFECTS = { 228, 229, 230, 231, 232, 233 };
         const string EVERY_ROLE = "*";
 
-        enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree }
+        enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree, FoesAttack }
         enum Act { Damage, Heal, Revive, Status, Dispel, Doll, Tp, Cure, Ailment, Item, Skill, Defend }
 
         sealed class Rule
@@ -74,6 +74,7 @@ namespace DtEngine
                 case "boss": return Cond.Boss;
                 case "no_doll": return Cond.NoDoll;
                 case "doll_slot_free": return Cond.DollSlotFree;
+                case "foes_attack": return Cond.FoesAttack;
             }
             throw new InvalidOperationException("unknown condition " + name + " in role " + r.Str("Role"));
         }
@@ -200,6 +201,20 @@ namespace DtEngine
             }
         }
 
+        /// <summary>foes_attack:ATTR[:SHARE]: the attacks the living foes can use are of attribute ATTR (1 slash, 2 stab, 3 bash, 4 - 8 the
+        /// elements) in SHARE or more of them (default 0.3): a guard against one kind of blow is cast where the foes strike with it.</summary>
+        static bool FoesAttack(Battle b, Unit u, string a)
+        {
+            var parts = (a ?? "").Split(':');
+            int attr = int.Parse(parts[0].Trim());
+            double share = parts.Length > 1 ? Fraction(parts[1], 0.3) : 0.3;
+            int all = 0, mine = 0;
+            foreach (var t in EnemiesOf(b, u))
+                foreach (int id in t.Attacks)
+                    if (b.Data.Attacks.TryGetValue(id, out var k) && !k.Passive) { all++; if (k.Attr == attr) mine++; }
+            return all > 0 && mine >= share * all;
+        }
+
         static double Fraction(string arg, double dflt) => !string.IsNullOrEmpty(arg) ? double.Parse(arg.Trim(), System.Globalization.CultureInfo.InvariantCulture) : dflt;
 
         bool Check(Cond cond, Battle b, Unit u, string a)
@@ -237,6 +252,7 @@ namespace DtEngine
                 case Cond.TurnAtMost: return u.TurnsTaken <= PyMath.Int(Fraction(a, 1));
                 case Cond.EnemiesAtLeast: return EnemiesOf(b, u).Length >= PyMath.Int(Fraction(a, 2));
                 case Cond.Boss: return b.Fixed || b.Options.Boss;
+                case Cond.FoesAttack: return FoesAttack(b, u, a);
                 case Cond.NoDoll:
                     foreach (var x in b.Units) if (x.Owner == u && x.Alive && x.Kind == Kind.Doll) return false;
                     return true;

@@ -141,6 +141,27 @@
   "rules": [
    {
     "effects": [
+     184
+    ],
+    "condition": "foes_attack:2",
+    "action": "status:184"
+   },
+   {
+    "effects": [
+     185
+    ],
+    "condition": "foes_attack:1",
+    "action": "status:185"
+   },
+   {
+    "effects": [
+     186
+    ],
+    "condition": "foes_attack:3",
+    "action": "status:186"
+   },
+   {
+    "effects": [
      105
     ],
     "condition": "ally_down",

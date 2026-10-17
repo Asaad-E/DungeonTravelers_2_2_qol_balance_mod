@@ -412,6 +412,20 @@ namespace DtEngine.Suite
             c.Say("skill-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
         }
 
+        /// <summary>The suite's pass (measure skill-battery): every skill with and without, then the skills it finds dead, hurting or of no effect
+        /// again under the rules of rule_variants and the walk then the boss (docs/generated/SKILL_BATTERY.md and SKILL_BATTERY_VARIANTS.md);
+        /// a skill of situational use is read by its best rule.</summary>
+        public static void RunWithVariants(Ctx c)
+        {
+            Run(c, new[] { "*" });
+            var rows = (List<object>)c.ReadJson(c.Path("docs", "generated", "skill_battery", "part_1.json"));
+            var rest = rows.Cast<Obj>().Where(r => r.S("verdict") == "dead" || r.S("verdict") == "hurts" || r.S("verdict") == "no effect")
+                           .Select(r => r.S("skill")).ToList();
+            var cfg = c.In("skill_battery");
+            if (rest.Count > 0)
+                Run(c, new[] { string.Join(",", rest), Py.Str(cfg.Get("scan_runs")), Py.Str(cfg.Get("confirm_runs")), "variants" });
+        }
+
         /// <summary>dtcli unique-battery [scan runs] [confirm runs]: the unique skill of each girl, with and without, as skill-battery plays a
         /// skill: the girl in each role of the sheet Roles that names her (column Characters), in each party of BatteryParties (in the place of
         /// that role, else of the last member), at every story boss from the chapter she joins in, at each stage of section skill_battery, and

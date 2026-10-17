@@ -9,8 +9,9 @@ difficulty_curve.png   DIFFICULTY_CURVE.md and CHECKPOINT_LEVELS.md: wins, lengt
                        vanilla and the variant, the checkpoints out of the windows of vanilla; the reference level and the level of the boss
 party_battery.png      PARTY_BATTERY.md: the wins of each archetype at each boss on the variant (a cell under its floor framed) and the change
                        from vanilla
-skills.png             SKILL_BATTERY.md and UNIQUE_BATTERY.md: each skill by the share of the cells where it serves and where it hurts,
-                       coloured by verdict; each unique skill the same, by girl
+skills.png             SKILL_BATTERY.md (with SKILL_BATTERY_VARIANTS.md for the skills played again under every rule of use) and
+                       UNIQUE_BATTERY.md: each skill by the share of the cells where it serves and where it hurts, coloured by verdict;
+                       each unique skill the same, by girl
 
 The figures come from the reports; the thresholds from the workbooks. Nothing here plays a battle. A report that is missing is skipped.
 """
@@ -329,6 +330,11 @@ def skills():
     if have_skills:
         lines = lines_of('SKILL_BATTERY.md')
         rows = table(lines, '| Skill | Kind')
+        # a skill the suite played again under the rules of rule_variants is read by that pass (SKILL_BATTERY_VARIANTS.md)
+        again = {}
+        if os.path.exists(os.path.join(GENERATED, 'SKILL_BATTERY_VARIANTS.md')):
+            again = {r[0]: r for r in table(lines_of('SKILL_BATTERY_VARIANTS.md'), '| Skill | Kind')}
+        rows = [again.get(r[0], r) for r in rows]
         ax = axes[0]
         for verdict, colour in VERDICT_COLOURS.items():
             pts = [(num(r[4]) / 100, num(r[5]) / 100, r[0]) for r in rows if r[-1] == verdict]
@@ -345,8 +351,9 @@ def skills():
         ax.yaxis.set_major_formatter(PercentFormatter(1.0))
         ax.grid(alpha=0.3)
         ax.legend(fontsize=9, loc='upper right')
-        head = next(line for line in lines if line.startswith('**'))
-        ax.set_title('Skill battery: ' + head.strip('*').split('.')[0].replace(' skills played', ' skills'), fontsize=11)
+        counts = {v: sum(1 for r in rows if r[-1] == v) for v in VERDICT_COLOURS}
+        ax.set_title('Skill battery: %d skills, ' % len(rows) + ', '.join('%d %s' % (n, v) for v, n in counts.items())
+                     + ('\n(%d read under their best rule of use)' % len(again) if again else ''), fontsize=11)
     else:
         axes[0].axis('off')
     if have_unique:
