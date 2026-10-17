@@ -17,7 +17,7 @@ namespace DtEngine.Suite
         static string Four(string name) => name.Length <= 4 ? name : name.Substring(0, 4);
 
         /// <summary>The zones the rows draw from (null when the floor has none).</summary>
-        static List<FloorZone> ZonesOf(Ctx c, string side, string cid, int ahead)
+        public static List<FloorZone> ZonesOf(Ctx c, string side, string cid, int ahead)
         {
             var data = c.Data(side);
             var sc = c.Sc(side);

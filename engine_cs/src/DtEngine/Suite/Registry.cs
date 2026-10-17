@@ -34,6 +34,7 @@ namespace DtEngine.Suite
             { "unique-battery", SkillBattery.RunUnique },
             { "support-battery", SupportBattery.Run },
             { "class-search", ClassSearch.Run },
+            { "walk-parties", WalkParties.Run },
         };
 
         public static bool Knows(string command) => Commands.ContainsKey(command);
