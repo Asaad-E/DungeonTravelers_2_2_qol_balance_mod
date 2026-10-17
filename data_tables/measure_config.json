@@ -453,7 +453,7 @@
   "hp": 0.03
  },
  "random_battles": {
-  "chain": 10,
+  "chain": 30,
   "ahead": 12,
   "runs": null
  },
