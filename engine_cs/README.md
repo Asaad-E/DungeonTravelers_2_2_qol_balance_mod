@@ -87,6 +87,7 @@ Three mass tests run on demand and are not part of the suite (their configuratio
 
 ```bash
 dtcli skill-battery [names|*] [scan runs] [confirm runs]     # every skill with and without, in the battery parties; docs/generated/SKILL_BATTERY.md
+dtcli unique-battery [scan runs] [confirm runs]                # each girl's unique skill with and without, in every role that names her, in the battery parties; docs/generated/UNIQUE_BATTERY.md
 dtcli support-battery [runs] [stage]                         # each support and tank against an attacker in its place, boss / walk / walk then boss; docs/generated/SUPPORT_BATTERY.md
 dtcli class-search [STAGE] [preset=NAME] [scan=N] [confirm=N] [cids=C34,C38] [context=boss|random|all] [with=Soul Summoner*2+Witch]
                   [without=Diva+Mistress] [sample=N]

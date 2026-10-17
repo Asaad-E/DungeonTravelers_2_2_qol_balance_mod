@@ -31,6 +31,7 @@ namespace DtEngine.Suite
             { "rows-trial", TrialsC.RowsTrial },
             { "curve-ablation", TrialsC.CurveAblation },
             { "skill-battery", SkillBattery.Run },
+            { "unique-battery", SkillBattery.RunUnique },
             { "support-battery", SupportBattery.Run },
             { "class-search", ClassSearch.Run },
         };

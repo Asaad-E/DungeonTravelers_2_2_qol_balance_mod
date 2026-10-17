@@ -52,9 +52,10 @@ scratch/*.xlsx
 CLAUDE.md
 docs/BALANCE_PLAN.md
 
-# raw figures of the on-demand mass tests (dtcli skill-battery, support-battery); the reports .md are kept
+# raw figures of the on-demand mass tests (dtcli skill-battery, unique-battery, support-battery); the reports .md are kept
 docs/generated/skill_battery/
 docs/generated/skill_battery_variants/
 docs/generated/skill_battery_trial/
 docs/generated/skill_battery_variants_trial/
 docs/generated/support_battery/
+docs/generated/unique_battery/

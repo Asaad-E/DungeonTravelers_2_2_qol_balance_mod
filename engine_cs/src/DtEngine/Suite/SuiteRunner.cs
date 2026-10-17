@@ -57,7 +57,8 @@ namespace DtEngine.Suite
                 if (Opt(args, "--extra") != null) snapT.LoadExtra(Opt(args, "--extra"));
                 var ctxT = new Ctx(snapT, rootT, int.Parse(Opt(args, "--threads", Environment.ProcessorCount.ToString())), snapT.MeasureInputs);
                 try { TrialRegistry.Commands[command](ctxT, Positional(args)); }
-                catch (Exception ex) { Console.Error.WriteLine(command + " failed: " + ex.GetType().Name + ": " + ex.Message); return 1; }
+                // DTCLI_TRACE set: the stack of the failure too
+                catch (Exception ex) { Console.Error.WriteLine(command + " failed: " + ex.GetType().Name + ": " + ex.Message + (Environment.GetEnvironmentVariable("DTCLI_TRACE") != null ? Environment.NewLine + ex.StackTrace : "")); return 1; }
                 return 0;
             }
             string root = Path.GetFullPath(Opt(args, "--root", Directory.GetCurrentDirectory()));

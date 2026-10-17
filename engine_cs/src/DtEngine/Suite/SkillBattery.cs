@@ -18,6 +18,7 @@ namespace DtEngine.Suite
             public string Stage, Role;
             public (string cond, string act)? Rule;
             public string Weapon;                // a weapon in the place of the role's own when hers cannot use the skill, else null
+            public string Girl, Label;           // unique-battery: the girl whose unique skill is tested, and the name of that skill
         }
 
         sealed class Cell
@@ -94,7 +95,7 @@ namespace DtEngine.Suite
             var e = cell.Entry;
             var sc = c.Sc("variant");
             var cp = c.Checkpoint(cell.Cid);
-            int levels = e.Skill.Levels != 0 ? e.Skill.Levels : 1;
+            int levels = e.Skill != null && e.Skill.Levels != 0 ? e.Skill.Levels : 1;
             var roles = c.Setup.Battery.First(b => b.name == cell.Party).roles;
             Obj enemies = null;
             Obj options = null;
@@ -104,16 +105,30 @@ namespace DtEngine.Suite
                 enemies = Jb.Chain(sc.WalkedZones(cp.Str("Floor"), level).Select(z => z.Name), (long)Py.Num(c.In("skill_battery").Get("chain_seed")), cell.Chain);
                 if (cell.Context == "walk_boss") { enemies.Set("then_checkpoint", true); options = new Obj { { "random_battle", true } }; }
             }
-            var recipe = new Obj
-            {
-                { "place", "replace_role" }, { "items", "first_kept" },
-                { "tested", Jb.L(new Obj { { "role", e.Role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true },
-                                           { "extra_skills", new Obj { { e.Skill.Id.ToString(), (long)(use ? levels : 0) } } },
-                                           { "pieces", e.Weapon == null ? new Obj() : new Obj { { "Weapon", e.Weapon } } } }) },
-            };
+            Obj recipe;
+            if (e.Girl != null)
+                // unique-battery: the girl in the place of the role, without and with her unique skill; another member who is the same girl is
+                // left out of the party (the same party on both sides)
+                recipe = new Obj
+                {
+                    { "place", "replace_role" }, { "items", "first_kept" }, { "name_not", e.Girl },
+                    { "tested", Jb.L(new Obj { { "role", e.Role }, { "character", e.Girl }, { "no_unique", !use },
+                                               { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true } }) },
+                };
+            else
+                recipe = new Obj
+                {
+                    { "place", "replace_role" }, { "items", "first_kept" },
+                    { "tested", Jb.L(new Obj { { "role", e.Role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true },
+                                               { "extra_skills", new Obj { { e.Skill.Id.ToString(), (long)(use ? levels : 0) } } },
+                                               { "pieces", e.Weapon == null ? new Obj() : new Obj { { "Weapon", e.Weapon } } } }) },
+                };
+            // the pep a girl's unique skill reads (section unique_skills of measure_config.json), as measures/UNIQUE_SKILLS.md plays her
+            var pep = c.In("unique_skills").O("pep");
+            if (e.Girl != null && pep.Has(e.Girl)) ((Obj)recipe.A("tested")[0]).Set("pep", pep.Get(e.Girl));
             string setupName = use && e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
             return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName, options: options,
-                           name: e.Skill.Name + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
+                           name: (e.Label ?? e.Skill.Name) + "|" + e.Girl + "|" + e.Role + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
         }
 
         /// <summary>The cells played in batches and judged at once; the runs are let go, only the figures stay.</summary>
@@ -395,6 +410,115 @@ namespace DtEngine.Suite
             if (trial.Length > 0) { text.Insert(2, "**Trial:** the variant with " + trial + " (not built; to try a value)."); text.Insert(3, ""); }
             c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);
             c.Say("skill-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
+        }
+
+        /// <summary>dtcli unique-battery [scan runs] [confirm runs]: the unique skill of each girl, with and without, as skill-battery plays a
+        /// skill: the girl in each role of the sheet Roles that names her (column Characters), in each party of BatteryParties (in the place of
+        /// that role, else of the last member), at every story boss from the chapter she joins in, at each stage of section skill_battery, and
+        /// on rows of random battles of its floor; the same seeds, thresholds and verdicts; docs/generated/UNIQUE_BATTERY.md.</summary>
+        public static void RunUnique(Ctx c, string[] args)
+        {
+            var cfg = c.In("skill_battery");
+            var data = c.Data("variant");
+            var sc = c.Sc("variant");
+            int scanRuns = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get("scan_runs"));
+            int confirmRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get("confirm_runs"));
+            side = "variant";
+            var names = c.In("unique_skills").O("skills");
+            var levels = sc.ReferenceLevels();
+            var story = c.Setup.Checkpoints.Select(r => r.Str("ID")).Where(id => id.StartsWith((string)cfg.Get("story_prefix")) && levels.ContainsKey(id)).ToList();
+            var stages = cfg.A("stages").Cast<Obj>().ToList();
+            var cidsOf = stages.ToDictionary(s => s.S("name"), s => story.Where(id => StageOf(cfg, levels[id].level)?.S("name") == s.S("name")).ToList());
+            var entries = new List<Entry>();
+            var joinedAt = new Dictionary<(string girl, string cid), bool>();
+            foreach (var girl in data.Characters.Where(x => x.UniqueSkill != T.NONE).OrderBy(x => x.Name, StringComparer.Ordinal))
+            {
+                string label = Py.Str(names.O(girl.UniqueSkill.ToString()).Get("name"));
+                var roles = c.Setup.RoleOrder.Where(r => (c.Setup.Roles[r].Str("Characters (order of preference)") ?? "").Split(';').Select(n => n.Trim()).Contains(girl.Name)).ToList();
+                foreach (var st in stages)
+                    foreach (var role in roles)
+                        entries.Add(new Entry { Girl = girl.Name, Label = label, Stage = st.S("name"), Role = role });
+                foreach (var cid in story) joinedAt[(girl.Name, cid)] = sc.Available(c.Checkpoint(cid).Str("Chapter")).Contains(girl.Name);
+            }
+            int chain = (int)Py.Num(cfg.Get("chain"));
+            var cells = new List<Cell>();
+            foreach (var e in entries)
+                foreach (var cid in cidsOf[e.Stage].Where(x => joinedAt[(e.Girl, x)]))
+                    foreach (var b in c.Setup.Battery)
+                    {
+                        cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "boss", Chain = 0 });
+                        if (chain > 0 && sc.WalkedZones(c.Checkpoint(cid).Str("Floor"), levels[cid].level).Count > 0)
+                            cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "random", Chain = chain });
+                    }
+            int batch = (int)Py.Num(cfg.Get("batch"));
+            Play(c, cells, scanRuns, batch, cfg);
+            var byGirl = cells.GroupBy(x => x.Entry.Girl).ToDictionary(g => g.Key, g => g.ToList());
+            int keep = (int)Py.Num(cfg.Get("confirm_cells"));
+            var again = new Dictionary<string, List<Cell>>();
+            foreach (var kv in byGirl)
+            {
+                var tops = kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).Take(keep).ToList();
+                if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
+            }
+            Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
+            var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
+
+            double good = cfg.D("good_share");
+            var rows = new List<object>();
+            var lines = new List<string>();
+            var counts = new Dictionary<string, int>();
+            foreach (var kv in byGirl.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                var all = kv.Value;
+                int n = all.Count, serves = all.Count(x => x.Serves), hurts = all.Count(x => x.Hurts), same = all.Count(x => x.Same);
+                best.TryGetValue(kv.Key, out var top);
+                string verdict = top == null ? "no effect" : top.Serves ? ((double)serves / n >= good ? "good" : "niche")
+                               : (double)hurts / n >= good ? "hurts" : "dead";
+                counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
+                // by stage: the share of cells where it serves and where it hurts
+                string byStage = string.Join(", ", stages.Select(st => st.S("name")).Where(sn => all.Any(x => x.Entry.Stage == sn)).Select(sn =>
+                {
+                    var part = all.Where(x => x.Entry.Stage == sn).ToList();
+                    return sn + " " + Py.Pct((double)part.Count(x => x.Serves) / part.Count, 0) + " / " + Py.Pct((double)part.Count(x => x.Hurts) / part.Count, 0);
+                }));
+                string rolesPlayed = string.Join(", ", all.Select(x => x.Entry.Role).Distinct());
+                string where = top == null ? "-" : top.Cid + " " + top.Context + ", " + top.Party + " (" + top.Entry.Role + ")";
+                string figs = top == null ? "-" : Py.Pct(top.Wins, 0, true) + " / " + Py.Pct(top.Length, 0, true) + " / " + Py.Pct(top.Hp, 0, true);
+                lines.Add("| " + kv.Key + " | " + all[0].Entry.Label + " | " + rolesPlayed + " | " + n + " | " + Py.Pct((double)serves / n, 0) + " | "
+                          + Py.Pct((double)hurts / n, 0) + " | " + Py.Pct((double)same / n, 0) + " | " + byStage + " | " + where + " | " + figs + " | " + verdict + " |");
+                rows.Add(new Obj
+                {
+                    { "girl", kv.Key }, { "skill", all[0].Entry.Label }, { "verdict", verdict }, { "cells", (long)n }, { "serves", (long)serves },
+                    { "hurts", (long)hurts }, { "same", (long)same },
+                    { "best", top == null ? null : new Obj { { "checkpoint", top.Cid }, { "context", top.Context }, { "party", top.Party }, { "role", top.Entry.Role },
+                                                             { "wins", top.Wins }, { "length", top.Length }, { "hp_left", top.Hp } } },
+                    { "scan", Jb.L(all.Select(x => (object)new Obj { { "checkpoint", x.Cid }, { "context", x.Context }, { "party", x.Party }, { "role", x.Entry.Role },
+                                                                     { "stage", x.Entry.Stage }, { "wins", x.Wins }, { "length", x.Length },
+                                                                     { "hp_left", x.Hp }, { "same", x.Same } })) },
+                });
+            }
+            string dir = c.Path("docs", "generated", "unique_battery");
+            Directory.CreateDirectory(dir);
+            M.ClearFolder(dir);
+            c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
+            var order = new[] { "good", "niche", "dead", "hurts", "no effect" };
+            var text = new List<string>
+            {
+                "# Every unique skill with and without (generated)", "",
+                "Generated by `dtcli unique-battery`. Do not edit. Balance variant. The unique skill of each girl, as `dtcli skill-battery` plays a skill: the girl "
+                    + "in each role of the sheet Roles that names her (column Characters), in each party of the sheet BatteryParties (in the place of that role, else "
+                    + "of the last member; another member who is the same girl is left out), at every story boss of each stage of section skill_battery of "
+                    + "data_tables/measure_config.json from the chapter she joins in, and on rows of " + chain + " random battles of its floor. Without: the same girl "
+                    + "without her unique skill; the same seeds. Scan: " + scanRuns + " runs a cell; the " + keep + " best cells of each girl again at " + confirmRuns
+                    + " runs, and the verdict reads the best of those. Thresholds and verdicts as SKILL_BATTERY.md. By stage: the share of the cells where it serves "
+                    + "/ where it hurts.", "",
+                "**" + byGirl.Count + " unique skills played: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)) + ". " + cells.Count + " cells.**", "",
+                "| Girl | Unique skill | Roles | Cells | Serve | Hurt | Same | By stage | Best cell | Best: wins / length / HP left | Verdict |",
+                "|---|---|---|---|---|---|---|---|---|---|---|",
+            };
+            text.AddRange(lines);
+            c.WriteText(c.Path("docs", "generated", "UNIQUE_BATTERY.md"), M.Lines(text), false);
+            c.Say("unique-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
         }
     }
 }
