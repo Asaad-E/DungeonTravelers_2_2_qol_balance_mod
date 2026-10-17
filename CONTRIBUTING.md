@@ -130,7 +130,7 @@ A change that affects difficulty should be measured before it is proposed:
 
 | Command | What it measures |
 |---|---|
-| `python tools/full_suite.py` | The snapshot, every measure that plays battles (`dtcli suite`, in C#, all at once), then the checklists and the tests (about a minute) |
+| `python tools/full_suite.py` | The snapshot, every measure that plays battles (`dtcli suite`, in C#, all at once), then the checklists, the charts (docs/generated/charts) and the tests (about twelve minutes; the skill battery is nine of them) |
 | `dtcli suite --only difficulty-curve,party-battery` | Some of the measures (`dtcli difficulty-curve` for one): every boss mod against original, several party types against 17 bosses |
 | `dtcli class-stages` | Each class at each stage of the game |
 
