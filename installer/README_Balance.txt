@@ -31,7 +31,7 @@ What changes
 * Concentrate works: the game left it without effect.
 * A fruit gives a fifth more TP, so a party without a Maid can go on with a full bag.
 * The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
-  mercenary, heals more.
+  mercenary, heals more, and she, Rebecca and Riesco are a little stronger.
 * Every level from 31 to 70 gives one more skill point.
 * Provoke draws more attacks as it is raised; Magic Barrier cuts more magic damage; First Grid
   comes up more often; the Kunoichi may use her Stings and Phoenix with a dagger or a projectile,

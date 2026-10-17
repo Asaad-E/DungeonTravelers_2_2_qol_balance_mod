@@ -149,6 +149,7 @@ namespace DtEngine.Suite
         {
             var changes = new Dictionary<string, Skill>();
             var growth = new List<(string cls, int stat, double factor)>();
+            var npcs = new List<(string name, string stat, double factor)>();
             string[] statNames = { "atk", "def", "int", "res", "dex", "agi", "hp", "tp" };
             foreach (var part in text.Split(';').Select(x => x.Trim()).Where(x => x.Length > 0))
             {
@@ -160,6 +161,16 @@ namespace DtEngine.Suite
                     int stat = Array.IndexOf(statNames, scale[0].Trim());
                     if (bits.Length != 2 || scale.Length != 2 || stat < 0) throw new InvalidOperationException("trial change '" + part + "': write it as class:Witch:int*0.9");
                     growth.Add((bits[0].Trim(), stat, double.Parse(scale[1].Trim(), System.Globalization.CultureInfo.InvariantCulture)));
+                    continue;
+                }
+                // npc:Natalia:res*1.2 scales a stat (or hp) of every stage of a mercenary
+                if (part.StartsWith("npc:"))
+                {
+                    var bits = part.Substring(4).Split(':');
+                    var scale = bits.Length == 2 ? bits[1].Split('*') : new string[0];
+                    if (bits.Length != 2 || scale.Length != 2 || Array.IndexOf(statNames, scale[0].Trim()) < 0 || scale[0].Trim() == "tp")
+                        throw new InvalidOperationException("trial change '" + part + "': write it as npc:Natalia:res*1.2");
+                    npcs.Add((bits[0].Trim(), scale[0].Trim(), double.Parse(scale[1].Trim(), System.Globalization.CultureInfo.InvariantCulture)));
                     continue;
                 }
                 int colon = part.LastIndexOf(':');
@@ -195,6 +206,22 @@ namespace DtEngine.Suite
                 changes[name] = copy;
             }
             var result = Kit.WithSkills(data, changes.Select(kv => (Kit.SkillNamed(data, kv.Key), kv.Value)));
+            if (npcs.Count > 0)
+            {
+                if (ReferenceEquals(result, data)) result = data.ShallowCopy();
+                result.Npcs = data.Npcs.Select(r =>
+                {
+                    var mine = npcs.Where(x => x.name == r.Name).ToList();
+                    if (mine.Count == 0) return r;
+                    var copy = r.Clone();
+                    foreach (var (_, stat, factor) in mine)
+                    {
+                        if (stat == "hp") copy.Hp = (int)Math.Round(copy.Hp * factor);
+                        else { int k = Array.IndexOf(statNames, stat); copy.Stats[k] = (int)Math.Round(copy.Stats[k] * factor); }
+                    }
+                    return copy;
+                }).ToList();
+            }
             if (growth.Count > 0)
             {
                 if (ReferenceEquals(result, data)) result = data.ShallowCopy();
@@ -444,12 +471,17 @@ namespace DtEngine.Suite
             var sc = c.Sc("variant");
             int scanRuns = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get("scan_runs"));
             int confirmRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get("confirm_runs"));
+            // [names|*] [trial]: only these mercenaries, on a copy of the variant with the trial values (the report is then _TRIAL)
+            var onlyGuests = args.Length > 2 && args[2] != "*" ? new HashSet<string>(args[2].Split(',').Select(x => x.Trim())) : null;
+            string trial = args.Length > 3 ? args[3] : "";
             side = "variant";
+            if (trial.Length > 0) side = c.AddSide(WithTrial(c.Data("variant"), trial));
             var levels = sc.ReferenceLevels();
             var cids = DifficultyCurve.Checkpoints(c).Where(levels.ContainsKey).ToList();
             var parties = new List<string> { "Reference" };
             parties.AddRange(c.Setup.Battery.Select(b => b.name));
-            var guests = data.Npcs.GroupBy(r => r.Name).Select(g => (name: g.Key, first: g.Min(r => r.Level))).OrderBy(g => g.name, StringComparer.Ordinal).ToList();
+            var guests = data.Npcs.GroupBy(r => r.Name).Select(g => (name: g.Key, first: g.Min(r => r.Level)))
+                             .Where(g => onlyGuests == null || onlyGuests.Contains(g.name)).OrderBy(g => g.name, StringComparer.Ordinal).ToList();
             int chain = (int)Py.Num(cfg.Get("chain"));
             var cells = new List<Cell>();
             foreach (var (name, first) in guests)
@@ -504,7 +536,8 @@ namespace DtEngine.Suite
                                                                      { "wins", x.Wins }, { "length", x.Length }, { "hp_left", x.Hp }, { "same", x.Same } })) },
                 });
             }
-            string dir = c.Path("docs", "generated", "mercenary_battery");
+            string tag = trial.Length > 0 || onlyGuests != null ? "mercenary_battery_trial" : "mercenary_battery";
+            string dir = c.Path("docs", "generated", tag);
             Directory.CreateDirectory(dir);
             M.ClearFolder(dir);
             c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
@@ -523,7 +556,8 @@ namespace DtEngine.Suite
                 "|---|---|---|---|---|---|---|---|---|---|---|",
             };
             text.AddRange(lines);
-            c.WriteText(c.Path("docs", "generated", "MERCENARY_BATTERY.md"), M.Lines(text), false);
+            if (trial.Length > 0) { text.Insert(2, "**Trial:** the variant with " + trial + " (not built; to try a value)."); text.Insert(3, ""); }
+            c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);
             c.Say("mercenary-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
         }
 

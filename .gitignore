@@ -65,3 +65,5 @@ docs/generated/unique_battery/
 docs/generated/mercenary_battery/
 # the charts of the suite (tools/suite_charts.py) are kept: they show the state of the mod
 !docs/generated/charts/*.png
+docs/generated/MERCENARY_BATTERY_TRIAL.md
+docs/generated/mercenary_battery_trial/
