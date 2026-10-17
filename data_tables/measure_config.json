@@ -195,6 +195,10 @@
   "chain_seed": 7
  },
  "class_stages_report": {
+  "about": "dtcli class-stages: each role at every checkpoint of its stage, in the reference party of the checkpoint (in its last place) and in every party of the sheet BatteryParties (in the place of the same role, else of the last member); the same seeds for every role; wins, length against the median attacker of the same party and share of damage, averaged over the parties.",
+  "reference_party": true,
+  "battery_parties": true,
+  "runs": 40,
   "hard_below": 0.5
  },
  "mercenaries": {

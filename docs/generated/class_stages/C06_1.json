@@ -1,223 +1,830 @@
 {
- "base": {
-  "won": 1.0,
-  "time": 6.130519359375,
-  "time_won": 6.130519359375,
-  "share": 0.0,
-  "character": null,
-  "level": 9,
-  "lowest_hp": 0.8914312617702448,
-  "hp_left": 0.931120527306968
- },
+ "parties": [
+  "reference",
+  "Meta",
+  "Dual-Support",
+  "Mage-Heavy",
+  "Juggernaut-Plus",
+  "Anti-Meta-Plus"
+ ],
+ "runs": 40,
  "roles": {
   "tank": {
    "won": 1.0,
-   "time": 4.626636341666666,
-   "time_won": 4.626636341666666,
-   "share": 0.24884157161132445,
+   "time_won": 5.723027735763889,
+   "ratio": 1.2931995236853735,
+   "share": 0.3184811724777878,
+   "lowest_hp": 0.9020365417311372,
+   "hp_left": 0.9284632784512862,
+   "class": "Fighter",
    "character": "Alisia",
    "level": 9,
-   "lowest_hp": 0.9088765008576329,
-   "hp_left": 0.9180960548885077,
-   "class": "Fighter"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.0531892042933535
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.663883691912731
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.1770204954778885
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9766039052921374
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.794332576074726
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.094167269061406
+    }
+   ]
   },
   "attacker": {
    "won": 1.0,
-   "time": 3.4127206666666665,
-   "time_won": 3.4127206666666665,
-   "share": 0.45600536597556857,
+   "time_won": 3.6129283388888886,
+   "ratio": 0.847438078712596,
+   "share": 0.46148938582822313,
+   "lowest_hp": 0.8937239068289933,
+   "hp_left": 0.9091975456105045,
+   "class": "Fighter",
    "character": "Yae",
    "level": 9,
-   "lowest_hp": 0.9025728987993139,
-   "hp_left": 0.9025728987993139,
-   "class": "Fighter"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 0.7768582395450139
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.0180393232435263
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 0.6758151954181261
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.8433975112753828
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 0.8282818626815122
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 0.9422363401120156
+    }
+   ]
   },
   "maid": {
    "won": 1.0,
-   "time": 6.131130520833333,
-   "time_won": 6.131130520833333,
-   "share": 0.013444016024054206,
+   "time_won": 5.593546586631944,
+   "ratio": 1.2746998164236856,
+   "share": 0.013203609671871716,
+   "lowest_hp": 0.876026775418543,
+   "hp_left": 0.9091987413769506,
+   "class": "Maid",
    "character": "Conette",
    "level": 9,
-   "lowest_hp": 0.8422365988909426,
-   "hp_left": 0.8595656192236598,
-   "class": "Maid"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.3956663108579315
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.2197805057554636
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.1997983404057344
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9682592856894955
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.817941990578245
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.046752465255243
+    }
+   ]
   },
   "healer": {
    "won": 1.0,
-   "time": 6.130519359375,
-   "time_won": 6.130519359375,
-   "share": 0.01930458588555773,
+   "time_won": 4.977237459722222,
+   "ratio": 1.148602922961973,
+   "share": 0.014421587144166886,
+   "lowest_hp": 0.9097430063887101,
+   "hp_left": 0.9479108932870867,
+   "class": "Magic User",
    "character": "Irena",
    "level": 9,
-   "lowest_hp": 0.8914312617702448,
-   "hp_left": 0.931120527306968,
-   "class": "Magic User"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.3955271884799307
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.1859592375011554
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.1770204954778885
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9593121056500046
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.1336997997389975
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.0400987109238602
+    }
+   ]
   },
   "mage": {
    "won": 1.0,
-   "time": 3.2086882708333335,
-   "time_won": 3.2086882708333335,
-   "share": 0.49920517879596293,
+   "time_won": 3.2354947086805557,
+   "ratio": 0.7901427756209761,
+   "share": 0.4674328143229531,
+   "lowest_hp": 0.9272363465160076,
+   "hp_left": 0.9287350910232267,
+   "class": "Magic User",
    "character": "Melvy",
    "level": 9,
-   "lowest_hp": 0.9217984934086629,
-   "hp_left": 0.9249058380414313,
-   "class": "Magic User"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 0.7304131116488443
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 0.6260025563877386
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 0.674987227533255
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9766039052921374
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 0.662104078051401
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.07074577481248
+    }
+   ]
   },
   "shooter": {
    "won": 1.0,
-   "time": 3.900260708333333,
-   "time_won": 3.900260708333333,
-   "share": 0.4474493899777602,
+   "time_won": 4.533383499826388,
+   "ratio": 1.0760710440644072,
+   "share": 0.4986548199240855,
+   "lowest_hp": 0.8976888563805937,
+   "hp_left": 0.9204505761815085,
+   "class": "Scout",
    "character": "Monica",
    "level": 9,
-   "lowest_hp": 0.9108035714285714,
-   "hp_left": 0.9144642857142857,
-   "class": "Scout"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 0.8878399270227669
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 0.8441083415584968
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.1770204954778885
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 1.2903933126654619
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.163381949644678
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.093682238017151
+    }
+   ]
   },
   "dolls": {
    "won": 1.0,
-   "time": 5.533680385416666,
-   "time_won": 5.533680385416666,
-   "share": 0.12385152228087563,
+   "time_won": 4.524979468923611,
+   "ratio": 1.059907773885256,
+   "share": 0.11044869158459282,
+   "lowest_hp": 0.9150666977953562,
+   "hp_left": 0.9338391516516517,
+   "class": "Spieler",
    "character": "Lizerietta",
    "level": 9,
-   "lowest_hp": 0.8527477477477478,
-   "hp_left": 0.87490990990991,
-   "class": "Spieler"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.259665124195016
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.0
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.0255763672979816
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 1.132555501925716
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.0
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 0.9416496498928217
+    }
+   ]
   },
   "diva": {
    "won": 1.0,
-   "time": 6.119868364583334,
-   "time_won": 6.119868364583334,
-   "share": 0.016604557036641536,
+   "time_won": 5.516740288888889,
+   "ratio": 1.262194096639799,
+   "share": 0.016727793342481465,
+   "lowest_hp": 0.8849969285916909,
+   "hp_left": 0.9161575835749658,
+   "class": "Maid",
    "character": "Ist",
    "level": 9,
-   "lowest_hp": 0.8603974121996304,
-   "hp_left": 0.8713493530499076,
-   "class": "Maid"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.393102638136835
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.1778532158157382
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.148661880854172
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9878841564305595
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.7915224383346906
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.0741402502667978
+    }
+   ]
   },
   "dark lord": {
    "won": 1.0,
-   "time": 3.611901104166667,
-   "time_won": 3.611901104166667,
-   "share": 0.416611999534341,
+   "time_won": 3.922067248784723,
+   "ratio": 0.9136821160850075,
+   "share": 0.42216554583969,
+   "lowest_hp": 0.9052860904091381,
+   "hp_left": 0.9232902956993222,
+   "class": "Fighter",
    "character": "Yae",
    "level": 9,
-   "lowest_hp": 0.919982847341338,
-   "hp_left": 0.925728987993139,
-   "class": "Fighter"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 0.8221988868295721
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.1613914219625174
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 0.7182995566203977
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.8513638641204895
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 0.9288389669770677
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.0
+    }
+   ]
   },
   "papillon": {
    "won": 1.0,
-   "time": 5.255434604166667,
-   "time_won": 5.255434604166667,
-   "share": 0.15760974326526359,
+   "time_won": 4.392640276736111,
+   "ratio": 1.0305649368199277,
+   "share": 0.1362616629825625,
+   "lowest_hp": 0.9072632846260894,
+   "hp_left": 0.9293758468834689,
+   "class": "Spieler",
    "character": "Lizerietta",
    "level": 9,
-   "lowest_hp": 0.8461711711711711,
-   "hp_left": 0.8816666666666666,
-   "class": "Spieler"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.196326354663131
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 0.9639354038789244
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.0
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 1.115396247915675
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 0.9760230235784255
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 0.9317085908834104
+    }
+   ]
   },
   "valkyrie": {
    "won": 1.0,
-   "time": 3.8363029166666665,
-   "time_won": 3.8363029166666665,
-   "share": 0.2684859639365883,
+   "time_won": 3.647389725694444,
+   "ratio": 0.8518325038394864,
+   "share": 0.23444677175308629,
+   "lowest_hp": 0.9468815513626835,
+   "hp_left": 0.9571459275810069,
+   "class": "Fighter",
    "character": "Alisia",
    "level": 9,
-   "lowest_hp": 0.939622641509434,
-   "hp_left": 0.939622641509434,
-   "class": "Fighter"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 0.8732808282003357
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 0.7256193875778917
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 0.8067695434344919
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.8202941569947007
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.0524953450758352
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 0.8325357617536637
+    }
+   ]
   },
   "treasure hunter": {
    "won": 1.0,
-   "time": 5.1068003229166665,
-   "time_won": 5.1068003229166665,
-   "share": 0.18536653715540535,
+   "time_won": 6.268840803645833,
+   "ratio": 1.4604889709031348,
+   "share": 0.22797860096428743,
+   "lowest_hp": 0.8780399599811676,
+   "hp_left": 0.9177691322527126,
+   "class": "Scout",
    "character": "Souffle",
    "level": 9,
-   "lowest_hp": 0.8884375,
-   "hp_left": 0.9012946428571429,
-   "class": "Scout"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.162491834540892
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.1613914219625174
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.8103368426880957
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 1.5440112788614733
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.7805454383207817
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.3041570090450476
+    }
+   ]
   },
   "soul summoner": {
    "won": 1.0,
-   "time": 5.533680385416666,
-   "time_won": 5.533680385416666,
-   "share": 0.12385152228087563,
+   "time_won": 4.524979468923611,
+   "ratio": 1.059907773885256,
+   "share": 0.11044869158459282,
+   "lowest_hp": 0.9150666977953562,
+   "hp_left": 0.9338391516516517,
+   "class": "Spieler",
    "character": "Lizerietta",
    "level": 9,
-   "lowest_hp": 0.8527477477477478,
-   "hp_left": 0.87490990990991,
-   "class": "Spieler"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.259665124195016
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.0
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.0255763672979816
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 1.132555501925716
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.0
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 0.9416496498928217
+    }
+   ]
   },
   "magical princess": {
    "won": 1.0,
-   "time": 3.5232319583333327,
-   "time_won": 3.5232319583333327,
-   "share": 0.46782312152794675,
+   "time_won": 3.3725645284722217,
+   "ratio": 0.8210460452053567,
+   "share": 0.44528236734440635,
+   "lowest_hp": 0.9060420590081608,
+   "hp_left": 0.9352008788449467,
+   "class": "Magic User",
    "character": "Melvy",
    "level": 9,
-   "lowest_hp": 0.8709039548022599,
-   "hp_left": 0.9398775894538607,
-   "class": "Magic User"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 0.8020145930469447
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 0.696192656224195
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 0.675711853696804
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9953750255712989
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 0.662814873631492
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.094167269061406
+    }
+   ]
   },
   "sage": {
    "won": 1.0,
-   "time": 4.039422895833333,
-   "time_won": 4.039422895833333,
-   "share": 0.3540989045504047,
+   "time_won": 3.5576639083333332,
+   "ratio": 0.8321714733920672,
+   "share": 0.28508021258102206,
+   "lowest_hp": 0.9128008861951417,
+   "hp_left": 0.9244528574380002,
+   "class": "Magic User",
    "character": "Fiora",
    "level": 9,
-   "lowest_hp": 0.8961393596986816,
-   "hp_left": 0.9129472693032016,
-   "class": "Magic User"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 0.9195182571739648
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 0.789558436287632
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 0.8601920580985792
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.8098947904991374
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 0.7977716653597723
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 0.8160936329333174
+    }
+   ]
   },
   "kunoichi": {
    "won": 1.0,
-   "time": 5.233542354166667,
-   "time_won": 5.233542354166667,
-   "share": 0.16442358731979925,
+   "time_won": 6.397403234548612,
+   "ratio": 1.4899329688387886,
+   "share": 0.20785835246885354,
+   "lowest_hp": 0.8519697784952022,
+   "hp_left": 0.8899338484216663,
+   "class": "Scout",
    "character": "Monica",
    "level": 9,
-   "lowest_hp": 0.8292857142857143,
-   "hp_left": 0.8645089285714287,
-   "class": "Scout"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.191342889429426
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.2017342876359611
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.8529376951557004
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 1.5651138591189067
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.794332576074726
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.3341365056180128
+    }
+   ]
   },
   "mistress": {
    "won": 1.0,
-   "time": 6.128464614583333,
-   "time_won": 6.128464614583333,
-   "share": 0.021650787037070206,
+   "time_won": 5.524280685069445,
+   "ratio": 1.2607043307804258,
+   "share": 0.018354010773536794,
+   "lowest_hp": 0.8690263852324852,
+   "hp_left": 0.9006466389091159,
+   "class": "Maid",
    "character": "Conette",
    "level": 9,
-   "lowest_hp": 0.8340573012939002,
-   "hp_left": 0.857162661737523,
-   "class": "Maid"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.3950594544994852
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.20612982359003
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.135957659245768
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9710863687079688
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.8093207954934047
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.0466718831458972
+    }
+   ]
   },
   "etoile": {
    "won": 1.0,
-   "time": 5.740151604166667,
-   "time_won": 5.740151604166667,
-   "share": 0.06253499012848227,
+   "time_won": 5.225293385243055,
+   "ratio": 1.198338709615104,
+   "share": 0.06642999730222691,
+   "lowest_hp": 0.8799133269427335,
+   "hp_left": 0.910861127382799,
+   "class": "Maid",
    "character": "Ist",
    "level": 9,
-   "lowest_hp": 0.8510628465804067,
-   "hp_left": 0.8706099815157117,
-   "class": "Maid"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.306665416097461
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 1.1135119960655249
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 1.127526421302741
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 0.9790529056624312
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 1.640181088745421
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 1.0230944298170437
+    }
+   ]
   },
   "joker": {
    "won": 1.0,
-   "time": 4.392977370833333,
-   "time_won": 4.392977370833333,
-   "share": 0.41999347494031075,
+   "time_won": 3.7445650822916665,
+   "ratio": 0.8876988431976267,
+   "share": 0.37876022645401347,
+   "lowest_hp": 0.9083621960375008,
+   "hp_left": 0.9294062545777484,
+   "class": "Spieler",
    "character": "Lizerietta",
    "level": 9,
-   "lowest_hp": 0.8496396396396395,
-   "hp_left": 0.8731981981981981,
-   "class": "Spieler"
+   "by_party": [
+    {
+     "party": "reference",
+     "won": 1.0,
+     "ratio": 1.0
+    },
+    {
+     "party": "Meta",
+     "won": 1.0,
+     "ratio": 0.7904387016749163
+    },
+    {
+     "party": "Dual-Support",
+     "won": 1.0,
+     "ratio": 0.8429062589566662
+    },
+    {
+     "party": "Mage-Heavy",
+     "won": 1.0,
+     "ratio": 1.0
+    },
+    {
+     "party": "Juggernaut-Plus",
+     "won": 1.0,
+     "ratio": 0.7968190611836709
+    },
+    {
+     "party": "Anti-Meta-Plus",
+     "won": 1.0,
+     "ratio": 0.8960290373705068
+    }
+   ]
   }
  }
 }
