@@ -1,4 +1,4 @@
-"""Charts of the generated reports (run by tools/full_suite.py after dtcli suite); docs/generated/charts, local (PNG is ignored by git).
+"""Charts of the generated reports (run by tools/full_suite.py after dtcli suite); docs/generated/charts, kept in git.
 
 class_balance.png      CLASS_BALANCE.md (class-balance): the final classes in six figures, vanilla and the variant, the band of section
                        class_search (mean +- z standard deviations)

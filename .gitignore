@@ -59,3 +59,5 @@ docs/generated/skill_battery_trial/
 docs/generated/skill_battery_variants_trial/
 docs/generated/support_battery/
 docs/generated/unique_battery/
+# the charts of the suite (tools/suite_charts.py) are kept: they show the state of the mod
+!docs/generated/charts/*.png
