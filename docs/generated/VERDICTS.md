@@ -94,7 +94,7 @@ Rows: 181. open: 0, closed: 84, not a problem: 85, out of the balance: 12. Open 
 | F07 | Valkyrie | not a problem | partly true | As J04: top stability, but alternative strategies exist |
 | F17 | Joker | closed | partly true: the Trickster, her intermediate class, fought 16 - 20% longer than the median attacker (C10, C13, C18); the Joker herself is within the band at the advanced and late stages |  |
 | F85 | Joint skill opening | out of the balance |  | Joint skills parked on 2026-10-04; DLC ignored |
-| F87 | Sniper | closed | true | Addressed by W036-W039 making bow combat skills fully compatible with guns. |
+| F87 | Sniper | closed | true | Addressed by W036 - W037 opening Spiral Arrow and Divine Cannon to guns (W038 and W039, Warning Shot and Support Shot, dropped on 2026-10-11: a passive record holds one weapon code). |
 | F88 | Gear of weak classes | closed | partly true: the Kunoichi (K001 - K025, T001 - T030) and the Mistress (T051 - T065) were behind |  |
 | F94 | Mercenaries | not a problem | true | Cosmetic/flavor quirk with minimal progression impact |
 | S07 | Witch | closed | partly true | She is far ahead where the boss shuts physical damage out, which is what a mage is for; elsewhere she is the fastest attacker by a third, and level with the others in the postgame 2026-10-16, opened again: class-search over every final-class party puts the Witch in 87% of the fastest 5% of the parties (vanilla 87%); the model leveled Fireball and left her strong spells at level 1, so her margin is measured again with the spells a player raises. |

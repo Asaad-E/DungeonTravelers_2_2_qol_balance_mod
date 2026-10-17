@@ -12,7 +12,11 @@ it is put together, and what a change has to respect.
 
 Known limits, left as they are for now:
 
-- Assassin and Treasure Hunter come out slower than the other attackers in the class measure (they win 98 - 100%).
+- In the class measure (`docs/generated/CLASS_STAGES.md`, each role in six parties) 67 of 76 rows are within the band.
+  Slow: the Scout of the start in her three roles (slower still in vanilla), the Assassin and the Treasure Hunter of
+  the treasure hunter path (built for exploration, row J26), the Trickster and the Papillon of the dolls role (their
+  fights last as in vanilla while other roles got faster); the Etoile of the advanced stage sits at the edge of weak.
+  In the band of the final classes (`CLASS_BALANCE.md`) the Diva (wins) and the Witch (speed) are outliers by design.
 - A handful of postgame fights are not won by any party in the model, with or without the mod; the postgame is outside
   the balance work.
 - The model does not build the dolls that enemies summon, and does not play Calliope's heal wall (C29) or Heretic
@@ -20,12 +24,12 @@ Known limits, left as they are for now:
 - What the enemy passive Murder License does when it kills has not been found in the program, and the model never
   fires Devil's Whisper (an enemy passive of eleven enemies, levels 46 - 99: instant death on a target with an ailment;
   left out, a guard against instant death answers it).
-- The Sage of the model keeps Circle Protect and Circle Brave and then casts her spells: the changes to Sun Veil,
-  Amplify and Accelerator are not measured by the suite. `dtcli skill-battery` measures every skill with and without,
-  under several rules of use (`variants`), and gives a speed buff to the ally who hits hardest.
-- Skills left situational, with no niche the model finds (`docs/generated/SKILL_BATTERY.md`): Petrify, Terrorize,
-  Self-Sacrifice (the Maid has better TP tools), Mini Circle Nurse and Preparation; Soul Seal, Shadow Sew, Roulette
-  Circus and Limit Field are not played by the model.
+- The Sage of the model keeps Circle Protect and Circle Brave and then casts her spells, so her other buffs show only in
+  the skill battery, which the suite runs: every skill with and without, then the dead or harmful ones under every rule
+  of use (a guard against one kind of blow is cast where the foes strike with it).
+- Skills still dead under every rule of use (`docs/generated/SKILL_BATTERY_VARIANTS.md`): First Aid, Terrorize and Mini
+  Circle Nurse, left as they are; Shadow Sew lands only on a target of a lower level than the user, by the rule of the
+  program; Soul Seal acts only with a sealbook, which the model gives from the postgame (good there).
 - A healer without a Maid-line member (Maid, Bard, Diva, Mistress, Dancer, Etoile) runs out of TP in a long boss fight:
   the eight Fairy Apples of the bag go and her heals stop (Meta party with a Bishop: C30 4%, C34 12%; with three times
   the bag 95% and 100%). The Maid line is the TP source of the party, kept as the game has it; heals 25% cheaper would
@@ -33,8 +37,9 @@ Known limits, left as they are for now:
 - The bag of the model is `kit_count` (8) of each item of the sheet Kit. At C34 a party without a Maid-line member still
   loses a little with it; with three times the bag it does not (`class-search ... kit=24`).
 
-Mass tests on demand, outside the suite (`engine_cs/README.md`): `dtcli skill-battery`, `support-battery` and
-`class-search` (every party of a stage, with filters, and a comparison of the variant against trial values).
+The suite runs the skill battery and the unique battery. Mass tests on demand, outside the suite (`engine_cs/README.md`):
+`dtcli support-battery`, `class-search` (every party of a stage, with filters, and a comparison of the variant against
+trial values) and `walk-parties` (rows of random battles for every party, drawn by `tools/walk_parties_chart.py`).
 
 ## Setup
 

@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**48 serves; 22 nothing shown; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 83).**
+**48 serves; 22 nothing shown; 9 see SKILL_AILMENTS.md; 3 out of the fight (of 82).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -51,7 +51,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Illusion | dolls | P24: wins +3%, length +4%, HP left +6 points | serves |
 | Insurance | healer | C38: wins +3%, length +4%, HP left +1 points | serves |
 | Item Steal | treasure hunter | - | out of the fight: drops, not the fight |
-| Light Scroll | kunoichi | P24: wins +7%, length -21%, HP left +5 points | serves |
+| Light Scroll | kunoichi | C30: wins +3%, length -9%, HP left +5 points | serves |
 | Lightning Enchant | sage | C38: wins +7%, length -1%, HP left +9 points | serves |
 | Lightning March | maid | C38: wins +3%, length +4%, HP left +8 points | serves |
 | Loose Spirit | mage | P24: wins +7%, length +14%, HP left +9 points | serves |
@@ -71,8 +71,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Resurrect | healer | C40: wins +3%, length +2%, HP left +4 points | serves |
 | Sacred Hymn | maid | C38: wins +0%, length +4%, HP left +1 points | serves |
 | Self-Sacrifice | maid | C40: wins +10%, length +3%, HP left +11 points | serves |
-| Shadow Clone | kunoichi | C30: wins -3%, length +1%, HP left -4 points | nothing shown |
-| Shadow Sew | kunoichi | - | see SKILL_AILMENTS.md |
+| Shadow Clone | kunoichi | P24: wins -3%, length +2%, HP left +1 points | nothing shown |
 | Silence | sage | - | see SKILL_AILMENTS.md |
 | Slash Guard | sage | C30: wins +0%, length -18%, HP left +0 points | nothing shown |
 | Sleep | sage | - | see SKILL_AILMENTS.md |

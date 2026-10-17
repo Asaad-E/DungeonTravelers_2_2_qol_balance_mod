@@ -39,14 +39,23 @@ What changes
 * Three grand sealbooks of the postgame (Melek Taus, Genbu, Murasaki Shikibu) carry a second
   enchantment. One postgame superboss no longer opens with a spell that can fell the party.
 * The party buffs of the Enchantress and the Sage (Circle Brave, Circle Protect, Sun Veil) are
-  larger and, with Accelerator, chanted much faster. Accelerator also gives more speed and lasts a
-  turn longer, and Prism Dawn hits harder. Ecstasy gives twice as much.
+  larger and, with Accelerator, chanted much faster; Sun Veil also costs less TP. Accelerator gives
+  up to 25% more speed for five turns, and Prism Dawn hits harder. Ecstasy gives twice as much.
+* The Stab, Slash and Bash Guard of the Sage guard much more against their kind of blow and cost
+  less TP.
 * Power Charge makes the next blow stronger than before (its box shows the real multiple), the
   Shadow Clone of the Kunoichi lasts a turn longer, and the Oracles doll hits much harder.
 * The Magical Princess stays transformed longer and Magical Change gives more; Magical Spark costs
-  less TP. The Soul Eater of the Soul Summoner costs less and hits harder.
-* The Witch grows a little less INT, and the five first spells of the Magic User hit a little less
-  at their higher levels: her strong spells are now her best tools.
+  less TP and hits harder; Illusion (also of the Papillon) costs half the TP and is chanted
+  faster. The Soul Summoner grows more AGI, TP and HP, and her Soul Eater costs less and hits
+  harder.
+* The Witch grows less INT, and the five first spells of the Magic User hit a little less at their
+  higher levels: her strong spells are now her best tools.
+* The Etoile: Debilitating Salsa takes less of a strong boss's HP and Fascinating Waltz lowers a
+  little less, while Dumbing Mazurka and Emaciating Hopak lower more.
+* The Mistress's Absolute Obedience hits harder and its ailments land more often; the Diva's
+  Panic Voice costs less TP; the Berserker's Blood Rage costs half the TP and lasts longer; the
+  Samurai's Mind's Eye counters more often; the Papillon's Tinker Squash costs less TP.
 * The Bathroom Slippers, the reward of quest rank 3, give Double EXP in the place of their
   physical defense.
 * The wandering blacksmith shows up more often in every dungeon.

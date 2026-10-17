@@ -1,6 +1,6 @@
 ## usage
 
-216 skills of a plan never used: 88 dominated, 91 no rule of the role uses it, 6 not usable with the weapon of the role, 31 situational.
+215 skills of a plan never used: 88 dominated, 90 no rule of the role uses it, 6 not usable with the weapon of the role, 31 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -195,7 +195,6 @@
 | kunoichi (Tsurara) | 90 | P24 | Water Scroll | dominated: 32% of the best (Ninja Piledriver) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Wind Scroll | dominated: 24% of the best (Ninja Piledriver) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Light Scroll | no rule of the role uses it |
-| kunoichi (Tsurara) | 90 | P24 | Shadow Sew | no rule of the role uses it |
 | kunoichi (Tsurara) | 90 | P24 | Evade | no rule of the role uses it |
 | mistress (Conette) | 62 | C38 | Hard Whipping | dominated: 60% of the best (Enticing Love) at the start of the fight |
 | mistress (Conette) | 62 | C38 | Carrot and Stick | situational: a heal (another heal or the songs come first) |

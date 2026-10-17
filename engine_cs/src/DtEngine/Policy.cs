@@ -26,8 +26,11 @@ namespace DtEngine
         readonly Dictionary<string, List<Rule>> rules = new Dictionary<string, List<Rule>>();
         readonly double tpWeight, tpReserve, punishedBlowFloor, healReserveCasts, partyBuffRecastShare, ailmentMinChance;
 
+        readonly Setup policySetup;              // for the settings read per effect (ailment_min_chance_<effect>)
+
         public Policy(List<Row> policyRows, Setup setup)
         {
+            policySetup = setup;
             double Get(string key, double dflt)
             {
                 object v = setup.Setting(key);
@@ -874,7 +877,10 @@ namespace DtEngine
                         }
                         int maxHp = target.MaxHp;
                         bool greater = !haveKey || maxHp > bestMax || (maxHp == bestMax && chance > bestChance);
-                        if (chance >= floor && greater)
+                        // a floor of its own for an ailment whose roll is a fixed chance (Settings ailment_min_chance_<effect>)
+                        object own = policySetup.Setting("ailment_min_chance_" + effect);
+                        double floorOf = own == null ? floor : Setup.ToDouble(own) * 100;
+                        if (chance >= floorOf && greater)
                         {
                             best = new Action(unit, AKind.Skill, skill, level);
                             haveKey = true; bestMax = maxHp; bestChance = chance;
