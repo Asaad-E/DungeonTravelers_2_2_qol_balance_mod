@@ -943,7 +943,8 @@ namespace DtEngine
             var unit = action.Actor;
             int code = action.TargetCode;
             var foes = TargetableArray(1 - unit.Side);
-            var friends = AlliesArray(unit);
+            // the candidates on the unit's own side: units numbered below 2000 (0x43e6d0), so never a doll, the summon or a guest ally
+            var friends = TargetableArray(unit.Side);
             var chosen = action.Target;
             if (code == T.SINGLE || code == T.PIERCE || code == T.ROW)
             {

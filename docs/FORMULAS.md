@@ -384,6 +384,9 @@ the others on the opposing side. A target set by command 1 is used when that uni
   is the even roll above (`0x43f7ba`).
 - Scope 1 and 6 (several random targets) roll evenly, once per hit, with no weights (`0x43f8a2`).
 - Scope 2 and 7 take the row of the picked unit, 4 and 8 the whole side, 9 and 10 the unit itself, 14 everyone.
+- The candidates of every scope are built by `0x43e6d0`: the units of that side numbered below 2000, with no
+  condition. A doll (2000 + n), the summon of the grand sealbook (3000) and a guest ally (3001) are never among them,
+  so an action on the party's whole side (scope 8, such as War Cry) or on one ally reaches the members only.
 
 Weight of a living member, recomputed at every pick:
 
