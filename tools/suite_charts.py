@@ -11,9 +11,11 @@ random_battles.png     measures/RANDOM_BATTLES.md: rows of random battles at the
                        the variant: rows survived, length of a battle, lowest HP, TP left; out of the window shaded
 party_battery.png      PARTY_BATTERY.md: the wins of each archetype at each boss on the variant (a cell under its floor framed) and the change
                        from vanilla
-mercenaries.png        MERCENARY_BATTERY.md: each mercenary hired beside the summon, by the share of cells where she serves and
-                       where she makes it worse; what she does (her share of the damage, her healing, the members' damage per
-                       time, fights shorter); and a map of the bosses where the bar offers her, fights shorter, the best ringed
+mercenaries.png        MERCENARY_BATTERY.md, the plain reading: each mercenary's points (wins + won fights shorter) against the
+                       band of section skill_battery, coloured by what she mostly does, and when the bar offers her
+mercenaries_detail.png the same in full: the share of cells where she serves and where she makes it worse; what she does (her
+                       share of the damage, her healing, the members' damage per time, wins, won fights shorter); a map of the
+                       bosses where the bar offers her, the best ringed
 skills.png             SKILL_BATTERY.md (with SKILL_BATTERY_VARIANTS.md for the skills played again under every rule of use) and
                        UNIQUE_BATTERY.md: each skill by the share of the cells where it serves and where it hurts, coloured by verdict;
                        each unique skill the same, by girl
@@ -431,7 +433,91 @@ def checkpoint_order():
     return [r[0] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]]
 
 
+ROLE_COLOURS = {'damage': 'tab:red', 'healing': 'tab:green', 'boost to the party': 'tab:blue'}
+
+
+def mercenary_profiles():
+    part = os.path.join(GENERATED, 'mercenary_battery', 'part_1.json')
+    if not os.path.exists(part):
+        return {}
+    return {r['guest']: r.get('profile') or [] for r in json.load(open(part, encoding='utf-8')) if r.get('profile')}
+
+
 def mercenaries():
+    """The plain reading: each mercenary's points (wins + won fights shorter) against the band, coloured by what she mostly
+    does, and when the bar offers her with the number of bosses where she is the best there."""
+    profiles = mercenary_profiles()
+    if not profiles:
+        return None
+    cfg = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['skill_battery']
+    low, high = cfg['mercenary_band']
+    exempt = set(cfg['mercenary_band_exempt'])
+
+    def mean(ps, key):
+        vals = [p[key] for p in ps if p.get(key) is not None]
+        return statistics.mean(vals) if vals else 0.0
+
+    figures = {}
+    for name, ps in profiles.items():
+        figures[name] = {'wins': mean(ps, 'wins'), 'length': mean(ps, 'length'), 'damage': mean(ps, 'damage_share'),
+                         'healing': mean(ps, 'heal_share'), 'boost to the party': mean(ps, 'members')}
+    # what she mostly does: the largest of her three contributions, each against the largest of any mercenary
+    tops = {k: max(f[k] for f in figures.values()) or 1 for k in ROLE_COLOURS}
+    for f in figures.values():
+        f['role'] = max(ROLE_COLOURS, key=lambda k: f[k] / tops[k])
+    # the best at each boss: the most points there among the mercenaries the bar offers
+    order = checkpoint_order()
+    cids = sorted({p['checkpoint'] for ps in profiles.values() for p in ps}, key=order.index)
+    best = {n: 0 for n in profiles}
+    for cid in cids:
+        here = [(p['wins'] + (p['length'] or 0), n) for n, ps in profiles.items() for p in ps if p['checkpoint'] == cid]
+        if here:
+            best[max(here)[1]] += 1
+    names = sorted(profiles, key=lambda n: figures[n]['wins'] + figures[n]['length'])
+    fig, (left, right) = plt.subplots(1, 2, figsize=(18, 0.42 * len(names) + 2.5), gridspec_kw={'width_ratios': [1, 1.4]})
+    y = list(range(len(names)))
+    left.axvspan(low, high, color='tab:green', alpha=0.12, label='the band (%d to %d points)' % (round(low * 100), round(high * 100)))
+    wins = [figures[n]['wins'] for n in names]
+    length = [figures[n]['length'] for n in names]
+    left.barh(y, wins, color='tab:purple', alpha=0.85, label='fights won')
+    left.barh(y, length, left=wins, color='0.6', label='won fights shorter')
+    for k, n in enumerate(names):
+        total = wins[k] + length[k]
+        out = n not in exempt and not low <= total <= high
+        left.text(max(total, wins[k]) + 0.002, k, '%.1f' % (total * 100), va='center', fontsize=9,
+                  color='tab:red' if out else 'k', fontweight='bold' if out else 'normal')
+    left.set_yticks(y)
+    left.set_yticklabels([n + (' (left out)' if n in exempt else '') for n in names], fontsize=9)
+    for lab, n in zip(left.get_yticklabels(), names):
+        lab.set_color(ROLE_COLOURS[figures[n]['role']] if n not in exempt else '0.5')
+    left.axvline(0, color='k', lw=0.8)
+    left.xaxis.set_major_formatter(PercentFormatter(1.0))
+    left.set_xlabel('points: with her against without her, mean over the bosses where the bar offers her')
+    left.set_title('How much each mercenary adds', fontsize=12)
+    left.legend(fontsize=8, loc='lower right')
+    left.grid(axis='x', alpha=0.3)
+    for k, n in enumerate(names):
+        ps = profiles[n]
+        at = sorted(cids.index(p['checkpoint']) for p in ps)
+        colour = ROLE_COLOURS[figures[n]['role']] if n not in exempt else '0.6'
+        right.barh(k, at[-1] - at[0] + 1, left=at[0] - 0.5, color=colour, alpha=0.55, edgecolor=colour)
+        right.text(at[-1] + 0.8, k, 'best at %d' % best[n] if best[n] else '', va='center', fontsize=8)
+    right.set_yticks(y)
+    right.set_yticklabels(names, fontsize=9)
+    step = max(1, len(cids) // 24)
+    right.set_xticks(range(0, len(cids), step))
+    right.set_xticklabels(cids[::step], rotation=60, ha='right', fontsize=8)
+    right.set_xlim(-1, len(cids) + 6)
+    right.set_title('When the bar offers her (colour: what she mostly does; best at: bosses where she adds the most)', fontsize=12)
+    for role, colour in ROLE_COLOURS.items():
+        right.barh([0], [0], color=colour, alpha=0.55, label=role)
+    right.legend(fontsize=8, loc='lower right', title='what she mostly does', title_fontsize=8)
+    right.grid(axis='x', alpha=0.3)
+    fig.tight_layout()
+    return save(fig, 'mercenaries.png')
+
+
+def mercenaries_detail():
     if not os.path.exists(os.path.join(GENERATED, 'MERCENARY_BATTERY.md')):
         return None
     lines = lines_of('MERCENARY_BATTERY.md')
@@ -527,7 +613,7 @@ def mercenaries():
     ax.set_title('At each boss where the bar offers her: won fights shorter with her (ringed: the best there; triangles: wins changed; '
                  'grey: too few won fights to read; blank: not offered)', fontsize=11)
     fig.tight_layout()
-    return save(fig, 'mercenaries.png')
+    return save(fig, 'mercenaries_detail.png')
 
 
 def main():
@@ -535,7 +621,7 @@ def main():
     s = settings()
     z = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['class_search']['band']['z']
     charts = [lambda: class_balance(z), lambda: class_stages(float(s['class_slow_ratio']), float(s['class_weak_wins'])),
-              difficulty_curve, random_battles, party_battery, skills, mercenaries]
+              difficulty_curve, random_battles, party_battery, skills, mercenaries, mercenaries_detail]
     for chart in charts:
         path = chart()
         if path:

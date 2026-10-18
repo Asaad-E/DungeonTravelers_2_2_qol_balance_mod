@@ -835,6 +835,8 @@
   "mercenary_profile_runs": 400,
   "mercenary_profile_batch": 36,
   "mercenary_profile_min_wins": 20,
+  "mercenary_band": [0.04, 0.08],
+  "mercenary_band_exempt": ["Three Fates"],
   "confirm_cells": 3,
   "batch": 2000,
   "wins": 0.08,
