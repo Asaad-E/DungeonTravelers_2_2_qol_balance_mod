@@ -1,6 +1,6 @@
 ## passives
 
-52 act, 13 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
+51 act, 14 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
 
 | Passive | Effects | Tested as | Result |
 |---|---|---|---|
@@ -70,7 +70,7 @@
 | 304 Negotiate | 282 | - | outside battle |
 | 305 Magnificent Steps | 283 | etoile (Ist, 62, C38) | acts |
 | 306 Elegant Dancing | 285 | dolls (Lizerietta, 62, C38) | acts |
-| 307 Triple Joker | 315 | joker (Lizerietta, 62, C38) | acts |
+| 307 Triple Joker | 315 | joker (Lizerietta, 62, C38) | no effect seen |
 | 308 Counter Whip | 303 | mistress (Conette, 62, C38) | acts |
 | 309 First Grid | 300 | dark lord (Yae, 62, C38) | acts |
 | 310 Critical Magic | 301 | mage (Melvy, 29, C18) | acts |
