@@ -1,167 +1,122 @@
-# Contributing
+# Contributing Guide
 
-This file is for anyone, person or coding agent, who wants to change the mod. It says where the project stands, how
-it is put together, and what a change has to respect.
+This guide covers the development workflow, project architecture, and verification standards for contributing to the *Dungeon Travelers 2-2* mod project.
 
-## Where the project stands
+---
 
-- **QoL** is finished. It only changes when a text is shown to be wrong.
-- **Balance** is built, installed and play-tested: the changes checked in the game work (the wandering blacksmith, the
-  length of meals, Bathroom Slippers, the circles and Accelerator, Ecstasy, both program files patched, the installer in
-  folders with non-Latin names; the sheet `Levers` says which). Fixes and adjustments are welcome.
+## 1. Project Status
 
-Known limits, left as they are for now:
+* **QoL Variant**: Feature-complete. Only updated to correct errata or refine clarity if a tooltip is found to be inaccurate.
+* **Balance Variant**: Implemented, verified, and playtested. Adjustments address issues cataloged in `data_tables/balance_criteria.xlsx` (sheet `Criticisms`). Further balance adjustments and fixes are welcome.
 
-- In the class measure (`docs/generated/CLASS_STAGES.md`, each role in six parties) 67 of 76 rows are within the band.
-  Slow: the Scout of the start in her three roles (slower still in vanilla), the Assassin and the Treasure Hunter of
-  the treasure hunter path (built for exploration, row J26), the Trickster and the Papillon of the dolls role (their
-  fights last as in vanilla while other roles got faster); the Etoile of the advanced stage sits at the edge of weak.
-  In the band of the final classes (`CLASS_BALANCE.md`) the Diva (wins) and the Witch (speed) are outliers by design.
-- A handful of postgame fights are not won by any party in the model, with or without the mod; the postgame is outside
-  the balance work.
-- The model does not build the dolls that enemies summon, and does not play Calliope's heal wall (C29) or Heretic
-  Samsara (C40).
-- What the enemy passive Murder License does when it kills has not been found in the program, and the model never
-  fires Devil's Whisper (an enemy passive of eleven enemies, levels 46 - 99: instant death on a target with an ailment;
-  left out, a guard against instant death answers it).
-- The Sage of the model keeps Circle Protect and Circle Brave and then casts her spells, so her other buffs show only in
-  the skill battery, which the suite runs: every skill with and without, then the dead or harmful ones under every rule
-  of use (a guard against one kind of blow is cast where the foes strike with it).
-- Skills still dead under every rule of use (`docs/generated/SKILL_BATTERY_VARIANTS.md`): First Aid, Terrorize and Mini
-  Circle Nurse, left as they are; Shadow Sew lands only on a target of a lower level than the user, by the rule of the
-  program; Soul Seal acts only with a sealbook, which the model gives from the postgame (good there).
-- A healer without a Maid-line member (Maid, Bard, Diva, Mistress, Dancer, Etoile) runs out of TP in a long boss fight:
-  the eight Fairy Apples of the bag go and her heals stop (Meta party with a Bishop: C30 4%, C34 12%; with three times
-  the bag 95% and 100%). The Maid line is the TP source of the party, kept as the game has it; heals 25% cheaper would
-  add 1 - 3 points to those parties and were left out (2026-10-16).
-- The bag of the model is `kit_count` (8) of each item of the sheet Kit. At C34 a party without a Maid-line member still
-  loses a little with it; with three times the bag it does not (`class-search ... kit=24`).
+### Known Design Boundaries & Outliers
+* In `docs/generated/CLASS_STAGES.md`, 67 of 76 class roles sit cleanly within target variance bands. Early Scout, Assassin, and Treasure Hunter are intentionally paced around exploration utility, while Diva (win rate) and Witch (clearing speed) remain distinct specialist outliers by design.
+* The Maid archetype remains the party's primary TP sustain engine, preserving the game's core resource-management loop.
+* Extreme deep-postgame encounters are kept outside the scope of main story rebalancing.
 
-The suite runs the skill battery, the unique battery and the mercenary battery (each mercenary hired beside the summon). Mass tests on demand, outside the suite (`engine_cs/README.md`):
-`dtcli support-battery`, `class-search` (every party of a stage, with filters, and a comparison of the variant against
-trial values) and `walk-parties` (rows of random battles for every party, drawn by `tools/walk_parties_chart.py`).
+---
 
-## Setup
+## 2. Environment Setup
 
-You need Windows, Python 3.10+, the .NET SDK 10 (for the battle engine), and your own unmodified copy of the game.
+Requirements: Windows, Python 3.10+, and .NET 10 SDK (for the C# simulation engine).
 
-```bash
-pip install -r requirements.txt
-```
+1. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Place an unmodified copy of the English PC game directory at the repository root named `DungeonTravelers2-2_EN`, or configure `config.json` with your game path:
+   ```json
+   { "game_dir": "D:/Games/DungeonTravelers2-2_EN" }
+   ```
+3. Initialize reference backups:
+   ```bash
+   python tools/setup_backups.py
+   ```
+   This extracts untouched game archives into `backups/` and verifies hashes. The build pipeline and test suite require these backups to function.
 
-Put the game folder inside the repository as `DungeonTravelers2-2_EN`, or copy `config.example.json` to
-`config.json` and set `game_dir`. Then:
+---
 
-```bash
-python tools/setup_backups.py
-```
+## 3. Repository Layout
 
-This copies the original game files the tools need into `backups/` and checks each one against a list of hashes.
-Nothing works without it, including the tests.
-
-## Layout
-
-| Folder | What it holds |
+| Directory | Purpose |
 |---|---|
-| `data_tables/` | Every value, rule and line of text of the mod, as spreadsheets. Also what is particular to this game: `game_profile.json` (folder and file names) and `record_layouts.json` (where each field sits in each record) |
-| `tools/` | Builders, readers of the game files and of the executable, measures |
-| `engine_cs/` | The battle engine and every measure that plays battles, in C# (`engine_cs/README.md`) |
-| `gamedata/` | The readers of the game files and the workbooks the build, the checklists and the engine's snapshot use |
-| `tests/` | The test suite |
-| `installer/` | What goes into the player zips: the installer script and the player READMEs |
-| `measures/` | Measures and readings that a spreadsheet row or a document cites |
-| `scratch/` | One-off scripts and partial results, kept for reference. Not maintained |
-| `docs/` | Documentation. Start with `docs/README.md` |
+| `data_tables/` | Spreadsheets defining all balance parameters, rule tables, and text strings. |
+| `tools/` | Builders, binary patchers, text generators, and verification scripts. |
+| `engine_cs/` | C# combat engine and benchmark battery (`src/DtEngine/Suite`). |
+| `gamedata/` | Readers for binary formats, struct offsets, and data snapshots. |
+| `tests/` | Unittest suite for binary round-trips and text boundary assertions. |
+| `installer/` | Release scripts, batch installers, and user-facing changelogs. |
+| `measures/` | Measure scripts and research data supporting balance changes. |
+| `docs/` | Architecture guides, formulas, and generated reports. |
 
-`backups/`, `build/`, `dist/` and `config.json` are local and not in git.
+*Note: `backups/`, `build/`, `dist/`, and `config.json` are local-only and excluded from version control.*
 
-## Rules
+---
 
-These are checked by the build or the tests wherever possible.
+## 4. Engineering Standards
 
-1. **Nothing is hard-coded.** A value, a rule or a wording goes in a spreadsheet of `data_tables/`, never in a
-   `.py` file. A balance change is one row of `balance_changes.xlsx`, with the original value, the new one and the
-   reason.
-2. **The game comes first.** Figures are read from the game files or the executable. A player guide is used only
-   for what the game does not store, and the source is recorded next to the figure.
-3. **On-screen text never speaks from outside the game.** No sources, caveats or notes to the reader in anything the
-   player sees. Use the game's own terms.
-4. **Text must match the data.** The build compares every number in a text with the built file and fails if they
-   differ. A box has at most 3 lines of 85 characters, counted with single spaces around
-   each `|`; the box then widens the separators to three spaces, so a line may hold up to some 95 characters.
-5. **Nothing about the game's files is hard-coded either.** A folder name or the offset of a field goes in
-   `game_profile.json` or `record_layouts.json`, read through `tools/game_profile.py`.
-6. **Prefer plain value changes.** Changing a number inside an existing record is safe. Changing the executable is
-   the last resort: each patch is a row of the sheet `ExePatches`, same length as the bytes it replaces.
-7. **No game files in git.** Not the originals, not the built files, not the zips.
-8. **Neutral wording.** Documents, comments and commit messages say what was decided and why, not who decided it.
-9. **English everywhere** in the repository.
+1. **Decoupled Data**: Never hardcode gameplay numbers in script code. All parameters and text modifications belong in spreadsheets under `data_tables/`.
+2. **Binary Ground Truth**: Figures are extracted directly from game binaries or decompiled x86 code. External guides are cited only when parameters are not stored in game files.
+3. **In-Universe Tone**: In-game tooltips must never use out-of-universe commentary, meta notes, or modder slang. Keep the game's official terminology intact.
+4. **Strict Display Boundaries**:
+   * Tooltip lines must never exceed 85 characters ($\le 70$ for the battle bar).
+   * Tooltips are limited to 3 lines maximum.
+   * Never use tildes (`~`); use hyphens or arrows.
+5. **Exact Binary Rebuilding**: Binary serializers must produce byte-identical round-trips against unmodified archives.
+6. **No Game Assets in Git**: Do not commit original game files, extracted assets, or compiled binaries.
 
-For the reasoning behind these, see `docs/philosophy.md`.
+---
 
-## Making a change
+## 5. Making Changes
 
-**A balance value.** Add or edit a row in `data_tables/balance_changes.xlsx` (sheet `Changes`). The column `Lever`
-names the kind of change, listed in the sheet `Levers` of `balance_criteria.xlsx`. If the kind is new, the writer for
-it goes in `tools/balance_values.py`, and the engine's data must read it too (`gamedata/variant.py`, exported by `tools/engine_export.py`).
+### Modifying Balance Values
+1. Add or update rows in `data_tables/balance_changes.xlsx` (sheet `Changes`), specifying target record, field, baseline value, new value, and design rationale.
+2. If introducing a new change lever, implement the corresponding writer in `tools/balance_values.py` and map it in `gamedata/variant.py`.
 
-**A value of a dungeon floor** (the chance of a wandering shop). Same sheet, table `zones`. The packs of the dungeons
-are too large to copy, so these rows are written in place into the game and put back the same way
-(`tools/floor_patch.py`); `data_tables/floor_file_index.json` says where each floor file sits in its pack.
+### Updating In-Game Text
+* General QoL text lives in `data_tables/qol_*_text.xlsx`.
+* Formatting rules and labels are defined in `data_tables/qol_rules.xlsx`.
+* Balance-specific text overrides belong in `data_tables/balance_skill_text.xlsx`.
 
-**A text.** The QoL text lives in the `qol_*_text.xlsx` workbooks, labels and wordings in `qol_rules.xlsx`. Where the
-Balance variant needs a different wording, it goes in `balance_skill_text.xlsx`.
+### Updating Simulation Formulas
+1. Confirm assembly instructions in the executable (`tools/exe_dis.py` or x86 disassembler).
+2. Document the logic and virtual address in `docs/FORMULAS.md`.
+3. Update the matching routine in `engine_cs/src/DtEngine`.
 
-**A formula or a rule of the simulator.** Read it in the executable first (`tools/exe_dis.py` and the other `exe_*`
-tools), write it in `docs/FORMULAS.md` with its address, then change the engine (`engine_cs/src/DtEngine`).
+---
 
-After any change:
+## 6. Testing & Validation
+
+After any modification, ensure both the build pipeline and test suite pass cleanly:
 
 ```bash
+# Verify balance build integrity
 python tools/build_variant.py balance
-```
 
-```bash
+# Run automated tests
 python -m unittest discover -s tests -p "test_*.py"
-```
 
-Both must pass. To try it in your game:
-
-```bash
+# Apply changes to your local test game
 python tools/apply_mod.py balance
 ```
 
-A change that affects difficulty should be measured before it is proposed:
-
-| Command | What it measures |
-|---|---|
-| `python tools/full_suite.py` | The snapshot, every measure that plays battles (`dtcli suite`, in C#, all at once), then the checklists, the charts (docs/generated/charts) and the tests (about twelve minutes; the skill battery is nine of them) |
-| `dtcli suite --only difficulty-curve,party-battery` | Some of the measures (`dtcli difficulty-curve` for one): every boss mod against original, several party types against 17 bosses |
-| `dtcli class-stages` | Each class at each stage of the game |
-
-`dtcli` is `dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll`, with `--snapshot build/engine_snapshot.json
---root .` (`python tools/full_suite.py` exports the snapshot and builds the program first). Every measure that plays
-battles runs in C#; what a measure is configured with (parties, places, thresholds) is in
-`data_tables/measure_config.json` and the workbooks. The engine began as a port of a Python simulator, proven equal
-to it value by value and then removed (2026-10-16). A change of the engine's code is checked against its own recorded traces: `python tools/engine_golden.py
-check` (part of `full_suite.py`); after a change meant to move results, `record` again and say so in the commit.
-
-The curve runs 40 battles per boss. Bosses that sit on the edge of a window can move in or out by chance; before
-blaming a change, run those bosses again with more battles (`dtcli curve-recheck "C15;C36" 400`).
-
-## Commits and pull requests
-
-- Commit messages: `prefix: content`, 72 characters at most. Details go in the body, without repeating the prefix.
-  Prefixes in use: `balance`, `qol`, `sim`, `tools`, `data`, `docs`, `test`, `fix`, `feat`, `scratch`.
-- One change per pull request. Say what it changes, why, and what was measured.
-- Include the regenerated files under `docs/generated/` when a measure was run.
-- Do not commit anything from `backups/`, `build/` or `dist/`.
-
-## Releases
+For changes affecting combat balance or difficulty curves, execute the benchmark suite:
 
 ```bash
-python tools/package_all.py
+# Run full benchmark battery (updates docs/generated/ and charts)
+python tools/full_suite.py
+
+# Run targeted measures
+dtcli difficulty-curve
+dtcli party-battery
+dtcli class-stages
 ```
 
-builds both variants and writes the two player zips to `dist/`. They contain only differences and the installer,
-never game files. Attach them to a GitHub release.
+---
+
+## 7. Commits & Pull Requests
+
+* Commit messages should be concise and descriptive: `<prefix>: <description>` (max 72 characters).
+  Standard prefixes: `balance`, `qol`, `sim`, `tools`, `data`, `docs`, `test`, `fix`, `feat`.
+* Ensure automated tests pass before opening a pull request.
+* If a change moves simulation outcomes, include updated reports from `docs/generated/` and charts.

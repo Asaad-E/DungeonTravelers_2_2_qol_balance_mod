@@ -1,93 +1,71 @@
-# Dungeon Travelers 2-2 mod: the project
+# Project Documentation Index
 
-Everything the mod is made of. To **install** the mod, follow the [README of the repository](../README.md); this page
-is for reading or changing it.
+This directory contains technical references, specifications, and architecture notes for the *Dungeon Travelers 2-2* mod project.
 
-The mod ships as two variants, built separately from the same tools and the same text template:
+To install the mod, refer to the main [README.md](../README.md).
 
-- **QoL**: shows what the game does (chances, powers, turns, costs) and changes no value. Closed.
-- **Balance**: changes values, each one a row of a workbook with its reason, and shows the figures of the changed
-  game. It also patches the program. In its final checks.
+---
 
-## Read first
+## Core Documentation
 
-| Document | What it holds |
+| Document | Description |
 |---|---|
-| [philosophy.md](philosophy.md) | Why the project works as it does: the two variants, the order of sources, nothing written in code. |
-| [FORMULAS.md](FORMULAS.md) | Every battle formula of the game, read from its program, with the address of each. |
-| [CLASS_IDENTITY.md](CLASS_IDENTITY.md) | What each class is for: the standard a change to a class is held to. |
-| [dungeontravelers2-2.md](dungeontravelers2-2.md) | The technical reference: file formats, the text system and its limits, the rules of the text. |
-| [SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | How a skill box is worded: the specification of the project. |
-| [QOL_ROADMAP.md](QOL_ROADMAP.md) | The QoL variant pack by pack: what is shown, what is not and why. |
-| [SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Why the simulator plays both sides with full knowledge. |
-| [CREDITS.md](CREDITS.md) | The sources: the guides of the players the figures were checked against. |
-| `generated/` | Reports written by the tools (the vanilla baseline, the build, the difficulty curve, the battery of parties, the classes by stage, the coverage of the simulator). Never edited by hand. |
+| [philosophy.md](philosophy.md) | Core design principles, variant separation, and engineering standards. |
+| [FORMULAS.md](FORMULAS.md) | Reverse-engineered combat formulas with decompiled executable offsets. |
+| [CLASS_IDENTITY.md](CLASS_IDENTITY.md) | Intended class roles, niches, and skill toolkits across all progression tiers. |
+| [SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | Tooltip layout guidelines, screen width limits, and formatting standards. |
+| [SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Rationale behind the simulation engine's optimal AI policy for A/B testing. |
+| [dungeontravelers2-2.md](dungeontravelers2-2.md) | Technical reference for binary container formats, memory layouts, and struct offsets. |
+| [QOL_ROADMAP.md](QOL_ROADMAP.md) | Verification checklist and package breakdown for the QoL variant. |
+| [BALANCE_PLAN.md](BALANCE_PLAN.md) | Balance methodology, complaint triage, and progression milestones. |
+| [CREDITS.md](CREDITS.md) | Data sources, community references, and external walkthrough citations. |
+| [generated/](generated/) | Automated benchmark reports, coverage audits, and balance test results. |
 
-## Layout
+---
+
+## Directory Overview
 
 ```text
-README.md                the install, step by step
-requirements.txt         the two Python packages
-config.example.json      copy to config.json to say where the game is (tools/mod_config.py)
-docs/                    the documents above
-data_tables/             every value, rule and wording of the mod (below)
-tools/                   the tools (below)
-engine_cs/               the battle engine and every measure that plays battles, in C# (engine_cs/README.md)
-gamedata/                the readers of the game files and the workbooks (build, checklists, the engine's snapshot)
-tests/                   the unittest suite
-installer/               the README of each variant for players, and the template of the program patch
-measures/                the measures and readings a row of a workbook or a document cites: each script says
-                         how to run it, each report which script wrote it
-scratch/                 the rest of the working files: one-off scripts and partial results, kept to be read
-backups/                 the original files of the game. Not in git: tools/setup_backups.py copies them from
-                         your game and checks each against data_tables/backups_manifest.json
-build/, dist/            what the tools write. Not in git
+data_tables/       Spreadsheets defining all gameplay parameters, rules, and text strings
+tools/             Python utilities for extraction, binary rebuilding, and text validation
+engine_cs/         High-performance C# combat simulator and benchmark test harness
+gamedata/          Data readers and binary layout definitions used by build scripts
+installer/         Release package assets, batch scripts, and user documentation
+measures/          Scripts and datasets supporting specific balance adjustments
+tests/             Automated test suite (binary round-trips, layout bounds, text verification)
+docs/              Technical specifications and design documentation
+backups/           Local unmodified game files used as build references (not tracked in git)
+build/, dist/      Generated binary outputs and packaged release archives (not tracked in git)
 ```
 
-## Workbooks (`data_tables/`)
+---
 
-Nothing that is a value, a rule or a wording is written in code.
+## Primary Spreadsheets (`data_tables/`)
 
-| Workbook | What it holds |
-|---|---|
-| `vanilla_source_of_truth.xlsx` | The original values, decoded from the game. Generated by `tools/extract_vanilla.py`, never edited. |
-| `balance_changes.xlsx` | The Balance variant: one row per changed value (record, field, original, new, the lever it uses, the complaint it answers, why). |
-| `balance_criteria.xlsx` | The register of complaints (`Criticisms`), the kinds of change by risk (`Levers`), the program patch (`ExePatches`), what each skill effect does (`EffectRules`), the regression checks. |
-| `sim_setup.xlsx` | The setup of the simulator: checkpoints, reference levels, parties, how each role plays, the readings of the guides. |
-| `qol_rules.xlsx` | Every label, scale, wording and guide figure the text tools use. |
-| `qol_*_text.xlsx` | The text of the QoL variant: skills, enchantments, items, enemy attacks, meals, party and joint skills, classes. |
-| `balance_*_text.xlsx` | The boxes the Balance variant words by hand where its values differ. |
-| `backups_manifest.json` | The original files the tools read, with the hash each must have. |
-| `game_profile.json` | What is particular to this game outside its records: the names of its folders, of its program file and of the archives for players. |
-| `record_layouts.json` | Where each field sits in each record of the game. Another game of the same engine is another pair of these two files. |
+All gameplay adjustments, text revisions, and rule definitions are maintained in spreadsheets:
 
-## Tools (`tools/`)
+* `vanilla_source_of_truth.xlsx`: Decoded baseline game parameters.
+* `balance_changes.xlsx`: Register of all balance modifications, specifying modified fields, baseline values, new values, and design rationale.
+* `balance_criteria.xlsx`: Community feedback logs, risk categories, executable patches, and effect mechanics.
+* `qol_rules.xlsx`: Text templates, magnitude descriptors, and layout boundaries.
+* `qol_*_text.xlsx`: Sourced text definitions for skills, items, enchants, attacks, and meals.
+* `balance_*_text.xlsx`: Specialized text overrides for rebalanced skills and items.
 
-| Group | Tools |
-|---|---|
-| Install | `apply_mod.py` (originals, build and install in one), `setup_backups.py`, `mod_config.py`, `install_variant.py`, `package_variant.py` (the archive for players), `package_all.py` (both variants built and packaged in one) |
-| Build | `build_variant.py` (builds and verifies a variant), `balance_values.py` (writes every row of `balance_changes.xlsx`), `balance_readback.py` (reads the built files back against the simulator), `exe_patch.py` (the program patch) |
-| Text | `generate_qol_*_text.py`, `text_checks.py` (every figure in a text against the built file), `rules.py`, `magnitude_words.py`, `weapon_rank_labels.py`, `enchant_values.py`, `shortened_text.py` |
-| Readers of the game | `pck_handler.py`, `extract_vanilla.py`, `enemy_data.py`, `enemy_ai.py`, `npc_data.py`, `summon_data.py`, `doll_data.py`, `class_data.py`, `character_data.py`, `skill_tree_data.py`, `item_effect_data.py`, `floor_data.py`, `map_data.py` |
-| Readers of the program | `exe_reader.py`, `exe_dis.py` (disassembles a range), `exe_find_const.py`, `exe_who_calls.py`, `exe_around.py`, `exe_formulas.py`, `exe_effects.py`, `exe_effect_context.py`, `exe_enchants.py`, `exe_digest.py`, `class_modifier_data.py`, `random_move_data.py` |
-| Measures | `full_suite.py` (every measure, in C# through `dtcli suite`, then the checklists and the tests), `engine_export.py` (the snapshot the engine reads), `balance_baseline.py`, `checkpoint_levels.py`, `catch_up_options.py`. The Python measures that play battles (`difficulty_curve.py`, `party_battery.py`, `class_stages.py`, `skill_value.py`, `skill_worth.py`, `boss_fit.py`, `guide_curve.py`) are the historical reference of their C# ports in `engine_cs/src/DtEngine/Suite` |
-| Checklists | `sim_coverage.py`, `sim_audit.py`, `sim_anchors.py`, `verdicts.py` |
+---
 
-Each tool says what it does and how to run it at the top of its file.
-
-## Commands
+## Common Development Commands
 
 ```bash
+# Build and apply a variant locally
 python tools/apply_mod.py balance
-```
+python tools/apply_mod.py qol
 
-```bash
+# Run the Python test suite
 python -m unittest discover -s tests -p "test_*.py"
-```
 
-```bash
-python tools/build_variant.py balance
-```
+# Run full balance benchmark battery and generate charts
+python tools/full_suite.py
 
-The build never passes with a text whose figure is not in the built file, a box that does not fit the screen, or a
-byte changed outside a row of the workbook.
+# Package release archives to dist/
+python tools/package_all.py
+```
