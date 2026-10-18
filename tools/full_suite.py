@@ -17,12 +17,14 @@ import sys
 import time
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC = os.path.join(PROJECT, 'engine_cs', 'src')
+PROGRAM = os.path.join(SRC, 'DtEngine.Cli', 'bin', 'Release', 'net10.0', 'dtcli.dll')
 
 SUITE = ['@dtcli', 'suite']             # one process: every measure that plays battles
 
 STEPS = [
     ['tools/engine_export.py'],
-    ['tools/engine_golden.py', 'check'],   # the engine against its own recorded traces (a change of its code shows here)
+    ['@dtcli', 'golden', 'check'],         # the engine against its own recorded traces (a change of its code shows here)
     SUITE,
     ['tools/balance_baseline.py'], ['tools/checkpoint_levels.py'], ['tools/sim_coverage.py'], ['tools/verdicts.py'],
     ['tools/suite_charts.py'],             # the charts of the reports (docs/generated/charts)
@@ -30,12 +32,26 @@ STEPS = [
 ]
 
 
+def dtcli():
+    """The engine's program, built first when a source of engine_cs/src is newer."""
+    newest = 0.0
+    for folder, dirs, files in os.walk(SRC):
+        dirs[:] = [d for d in dirs if d not in ('bin', 'obj')]
+        for name in files:
+            if name.endswith(('.cs', '.csproj', '.json')):
+                newest = max(newest, os.path.getmtime(os.path.join(folder, name)))
+    if not os.path.exists(PROGRAM) or os.path.getmtime(PROGRAM) < newest:
+        built = subprocess.run(['dotnet', 'build', os.path.join(SRC, 'DtEngine.Cli'), '-c', 'Release', '-nologo', '-v', 'q'],
+                               capture_output=True, text=True)
+        if built.returncode != 0:
+            raise SystemExit('dtcli did not build:\n' + built.stdout + built.stderr)
+    return PROGRAM
+
+
 def command_of(step):
     """The command line of a step: a Python script, or the engine's program."""
     if step[0] == '@dtcli':
-        sys.path.insert(0, os.path.join(PROJECT, 'tools'))
-        import engine_golden
-        return ['dotnet', engine_golden.dtcli(), *step[1:], '--snapshot', os.path.join(PROJECT, 'build', 'engine_snapshot.json'),
+        return ['dotnet', dtcli(), *step[1:], '--snapshot', os.path.join(PROJECT, 'build', 'engine_snapshot.json'),
                 '--root', PROJECT]
     return [sys.executable, *step]
 
