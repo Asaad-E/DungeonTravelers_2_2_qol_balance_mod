@@ -4,6 +4,7 @@ program and the engine, so that a quoted line that does not exist, a missing fie
 
     python tools/audit_check.py            every item; exit 1 when anything fails
     python tools/audit_check.py P5.2       one item
+    python tools/audit_check.py --agent A  only the file and the phases of agent A of a parallel run (rules: agents)
 
 For every item (a section '### <ID> <title>' of docs/result_engine_audit.md):
   * the fields its verdict needs are present, the verdict and the severity are words of the rules;
@@ -148,50 +149,70 @@ def main(args):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     plan_ids = [m.group(1) for ln in open(os.path.join(ROOT, RULES['plan']), encoding='utf-8')
                 for m in [PLAN_ID.match(ln)] if m]
-    path = os.path.join(ROOT, RULES['result'])
-    if not os.path.exists(path):
-        print(f'no result file {RULES["result"]}')
+    # --agent X: the agent X of a parallel run (rules: agents); its items are those of its file, its IDs those of its phases
+    agent = None
+    if '--agent' in args:
+        at = args.index('--agent')
+        agent = args[at + 1]
+        args = args[:at] + args[at + 2:]
+        if agent not in RULES['agents']:
+            print(f'no agent {agent!r}; the agents are {sorted(RULES["agents"])}')
+            return 1
+    sources = [RULES['result']] + [a['file'] for a in RULES['agents'].values()]
+    items = []                                   # (id, body, file)
+    for source in sources:
+        path = os.path.join(ROOT, source)
+        if not os.path.exists(path):
+            continue
+        current, buf = None, []
+        for ln in open(path, encoding='utf-8').read().splitlines():
+            m = ITEM.match(ln)
+            if m:
+                if current:
+                    items.append((current, '\n'.join(buf), source))
+                current, buf = m.group(1), [ln]
+            elif current:
+                if ln.startswith('## '):
+                    items.append((current, '\n'.join(buf), source))
+                    current, buf = None, []
+                else:
+                    buf.append(ln)
+        if current:
+            items.append((current, '\n'.join(buf), source))
+    if not any(os.path.exists(os.path.join(ROOT, s)) for s in sources):
+        print(f'no result file ({", ".join(sources)})')
         return 1
-    text = open(path, encoding='utf-8').read()
-    items, current, buf = [], None, []
-    for ln in text.splitlines():
-        m = ITEM.match(ln)
-        if m:
-            if current:
-                items.append((current, '\n'.join(buf)))
-            current, buf = m.group(1), [ln]
-        elif current:
-            if ln.startswith('## '):
-                items.append((current, '\n'.join(buf)))
-                current, buf = None, []
-            else:
-                buf.append(ln)
-    if current:
-        items.append((current, '\n'.join(buf)))
+    mine = (lambda i, f: f == RULES['agents'][agent]['file']) if agent else (lambda i, f: True)
+    phases = RULES['agents'][agent]['phases'] if agent else None
     only = set(args)
     files, failed, counts = {}, 0, {}
-    for item_id, body in items:
-        if only and item_id not in only:
+    for item_id, body, source in items:
+        if not mine(item_id, source) or (only and item_id not in only):
             continue
         verdict, errors, warnings = check_item(item_id, body, files)
         counts[verdict] = counts.get(verdict, 0) + 1
         if item_id not in plan_ids and RULES['added_item_marker'] not in body:
             errors.append(f'not in the plan and no line "{RULES["added_item_marker"]} ..."')
+        if phases and item_id.split('.')[0] not in phases:
+            errors.append(f'not a phase of agent {agent} ({", ".join(phases)}): leave it to the other agent')
         mark = 'FAIL' if errors else 'ok  '
         failed += bool(errors)
-        print(f'{mark} {item_id} {verdict}')
+        print(f'{mark} {item_id} {verdict}' + ('' if agent else f'   ({source})'))
         for e in errors:
             print('       error:', e)
         for w in warnings:
             print('       warning:', w)
     if not only:
-        written = [i for i, _ in items]
-        missing = [i for i in plan_ids if i not in written]
+        written = [i for i, _, _ in items]
+        scope = [i for i in plan_ids if not phases or i.split('.')[0] in phases]
+        missing = [i for i in scope if i not in written]
         twice = sorted({i for i in written if written.count(i) > 1})
-        print(f'\nitems written {len(written)}, failing {failed}; verdicts {counts}')
-        print(f'plan items {len(plan_ids)}, not written {len(missing)}' + (': ' + ' '.join(missing) if missing else ''))
+        print(f'\nitems written {len([1 for i, _, f in items if mine(i, f)])}, failing {failed}; verdicts {counts}')
+        print(f'plan items {len(scope)}' + (f' of agent {agent}' if agent else '') + f', not written {len(missing)}'
+              + (': ' + ' '.join(missing) if missing else ''))
         if twice:
-            print('written more than once:', ' '.join(twice))
+            where = {i: [f for j, _, f in items if j == i] for i in twice}
+            print('written more than once:', '; '.join(f'{i} in {", ".join(fs)}' for i, fs in where.items()))
             failed += 1
     return 1 if failed else 0
 

@@ -41,6 +41,35 @@ The audit is long. It is done over many sessions, a few items each. Every sessio
 The audit is complete when `tools/audit_check.py` prints `not written 0` and `failing 0`, and the summary of section
 8.1 is filled.
 
+### 0.1 Two agents in parallel
+
+The rest of the audit may be done by two agents at the same time, each with a fixed share. The shares are in
+`data_tables/audit_rules.json` (`agents`): **agent A** phases 5, 6, 7 and 8, file `docs/result_engine_audit_A.md`;
+**agent B** phases 9, 10, 11, 12, 13 and 14, file `docs/result_engine_audit_B.md`. The items already written stay in
+`docs/result_engine_audit.md`, which **neither agent edits** any more.
+
+When you are agent A or agent B, the protocol of section 0 holds with these changes:
+
+* Write only into your own file. Never open the other agent's file for writing, never edit
+  `docs/result_engine_audit.md`. If your file does not exist, create it with the header of section 8.1 (the summary
+  rows of your phases only).
+* Work only on the IDs of your phases. Every command of the check takes `--agent A` or `--agent B`:
+  `PYTHONIOENCODING=utf-8 python tools/audit_check.py --agent A` lists your items and your IDs not written;
+  `PYTHONIOENCODING=utf-8 python tools/audit_check.py --agent A P6.1` checks one item.
+* Take your IDs in order: within your share, phase by phase, item by item.
+* An item outside your phases is refused by the check ("not a phase of agent ..."). An item written in two files is
+  an error of the whole audit ("written more than once"). If you find that an item of the other share needs reading
+  to settle one of yours, read it, but write only your item; put what concerns the other share under **Open
+  questions.**
+* Do not build the engine, do not export the snapshot, do not run `dtcli golden`: the other agent may be running
+  `dtcli` at the same moment from the same folder. `dtcli trace` and `dtcli run` on your own job files are allowed;
+  name your scratch files with your letter (`scratch/audit_A_job.json`, `scratch/audit_A_trace.txt`) so the two never
+  write the same file.
+* End each session with `Session ended after <ID>.` in your file.
+
+The audit is complete when `PYTHONIOENCODING=utf-8 python tools/audit_check.py` (no `--agent`) prints `not written 0`,
+`failing 0` and no "written more than once". The three files are merged into one after both agents finish.
+
 Formatting rules the check relies on:
 
 * A quote of the program is a fenced code block whose lines are copied from `tools/exe_dis.py` output: address (8 hex

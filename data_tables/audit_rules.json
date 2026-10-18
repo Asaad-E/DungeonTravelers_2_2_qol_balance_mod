@@ -2,6 +2,10 @@
   "about": "Rules tools/audit_check.py applies to docs/result_engine_audit.md, the result file of the engine audit (docs/ENGINE_AUDIT.md). Every item is a section '### <ID> <title>'; the IDs to cover are the first cells of the item tables of the plan.",
   "plan": "docs/ENGINE_AUDIT.md",
   "result": "docs/result_engine_audit.md",
+  "agents": {
+    "A": {"file": "docs/result_engine_audit_A.md", "phases": ["P5", "P6", "P7", "P8"]},
+    "B": {"file": "docs/result_engine_audit_B.md", "phases": ["P9", "P10", "P11", "P12", "P13", "P14"]}
+  },
   "verdicts": ["MATCH", "MISMATCH", "PARTIAL", "MODEL-LIMIT", "UNREAD", "N/A"],
   "severities": ["S1", "S2", "S3"],
   "fields": {
