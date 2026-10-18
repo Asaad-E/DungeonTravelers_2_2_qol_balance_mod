@@ -367,7 +367,9 @@ and 14 opponent with an ailment, 15 dead ally. How many scripts use each is in `
 With no attack decided, a number below the sum of the 16 weights of the current set is rolled and the slot it falls
 in is taken; then the commands of that set run (the parser files every command under the set read last,
 `0x430cd7`). A set switch marks the set as done and rolls again in the new one. Silence, freeze and shadow bind
-replace the choice with attack slot 0.
+replace the choice with attack slot 0. A target set by command 1 is kept in one list per attack slot of the task; the
+sixteen lists are emptied at the start of every choice (`0x430f8c - 0x430fa6`), so it holds for that turn only
+(`0x433350` empties and fills the list of its slot).
 
 ### 9.1 Who gets hit (`0x43b0d0` -> `0x43f450`; weights by `0x44a630`, slot 10 of the battle class) **[code]**
 
@@ -377,6 +379,9 @@ the others on the opposing side. A target set by command 1 is used when that uni
 - An enemy picking **one target on the party's side** rolls a number below the sum of the members' weights and
   takes the member it falls on (`0x43f7e9`, `0x505ad0`). Every other single pick (the party's automatic targets,
   a pick on the unit's own side) is an even roll among the candidates (`0x490790`).
+- A pick of one unit on the unit's own side (scopes 5 and 7) with a target given that is no longer a candidate takes
+  the candidate with the lowest HP ratio, the last of them on a tie (`0x43f668 - 0x43f6e9`); with no target given it
+  is the even roll above (`0x43f7ba`).
 - Scope 1 and 6 (several random targets) roll evenly, once per hit, with no weights (`0x43f8a2`).
 - Scope 2 and 7 take the row of the picked unit, 4 and 8 the whole side, 9 and 10 the unit itself, 14 everyone.
 

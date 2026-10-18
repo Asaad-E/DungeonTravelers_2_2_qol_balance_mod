@@ -915,6 +915,22 @@ namespace DtEngine
 
         static readonly Unit[] NoUnits = new Unit[0];
 
+        /// <summary>One unit of the actor's own side for scopes 5 and 7 (0x43f450): the unit given when it is still a candidate; a unit
+        /// given that is not (dead) yields the candidate with the lowest HP ratio, the last of them on a tie (0x43f668 - 0x43f6e9);
+        /// none given, an even roll among the candidates (0x43f7ba).</summary>
+        Unit OwnSidePick(Unit chosen, Unit[] candidates)
+        {
+            if (candidates.Length == 0) return null;
+            if (chosen != null)
+            {
+                if (Array.IndexOf(candidates, chosen) >= 0) return chosen;
+                Unit lowest = null; double ratio = 1.0;
+                foreach (var u in candidates) if (u.HpRatio <= ratio) { ratio = u.HpRatio; lowest = u; }
+                return lowest ?? candidates[candidates.Length - 1];
+            }
+            return candidates[Rng.ChoiceIndex(candidates.Length)];
+        }
+
         /// <summary>The units an action is aimed at, in order. The array may be one of the shared lists of a side: it must not be changed.</summary>
         Unit[] Targets(Action action)
         {
@@ -981,12 +997,15 @@ namespace DtEngine
                     if (chosen != null && !chosen.Alive) return new[] { chosen };
                     return dead != null ? new[] { dead } : NoUnits;
                 }
-                return new[] { chosen != null && chosen.Alive && chosen.Side == unit.Side ? chosen : unit };
+                var one = OwnSidePick(chosen, friends);
+                return one != null ? new[] { one } : NoUnits;
             }
-            if (code == T.RANDOM_ALLY) return new[] { friends[Rng.ChoiceIndex(friends.Length)] };
+            if (code == T.RANDOM_ALLY) return friends.Length > 0 ? new[] { friends[Rng.ChoiceIndex(friends.Length)] } : NoUnits;
             if (code == T.ALLY_ROW)
             {
-                bool row = chosen != null ? chosen.Front : unit.Front;
+                var picked = OwnSidePick(chosen, friends);
+                if (picked == null) return NoUnits;
+                bool row = picked.Front;
                 var r = new List<Unit>();
                 foreach (var t in friends) if (t.Front == row) r.Add(t);
                 return r.ToArray();

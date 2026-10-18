@@ -21,6 +21,9 @@ namespace DtEngine
         public static Action Choose(Battle battle, Unit unit)
         {
             var attacks = unit.Attacks;
+            // the targets set by command 1 hold for the choice they were set in: the program empties the sixteen lists at the start of
+            // every choice (0x430f8c - 0x430fa6)
+            unit.AiTargets = null;
             if (attacks.Length == 0) return new Action(unit, AKind.Defend);
             if (unit.St[117] != null || unit.St[114] != null || unit.St[123] != null) return AttackAction(battle, unit, 0, T.NONE);
             var script = unit.Script;
