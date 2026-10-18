@@ -11,6 +11,46 @@ Read the whole document before starting. Then read, in this order: `CLAUDE.md` (
 
 ---
 
+## 0. The session protocol (obey it exactly)
+
+The audit is long. It is done over many sessions, a few items each. Every session follows these steps, in order:
+
+1. Run `PYTHONIOENCODING=utf-8 python tools/audit_check.py`. It lists the items already written, those that fail, and
+   the IDs **not written** yet. (If the result file does not exist, create it with the header of section 8.1 first.)
+2. If any item **fails**, fix it first (step 5 explains how), before any new item.
+3. Take the next IDs **not written**, in the order of section 9. **At most 6 items in one session.**
+4. For each item: follow section 6.0, write it into `docs/result_engine_audit.md` in the format of section 8.2, then
+   run `PYTHONIOENCODING=utf-8 python tools/audit_check.py <ID>`.
+5. If the check says **FAIL**, read every error and fix it:
+   * "quoted ..., the program holds ...": you retyped or misremembered a line. Run the tool again and **copy** the line
+     from its output. Never edit a line to make it pass.
+   * "quoted line not in the file": you paraphrased the engine. Open the file and copy the whole line.
+   * "missing field": add the field (section 8.2).
+   * "verified program lines; ... needs N": quote more decisive lines, or, if you could not read them, change the
+     verdict to UNREAD or PARTIAL and say why.
+   * "word of guessing": rewrite the sentence with what the quoted lines show, or move the doubt to **Open
+     questions.**
+   Run the check again. An item is finished only when the check prints `ok`. If after two attempts it still fails,
+   change the verdict to UNREAD, keep only what is verified, and go on.
+6. End the session with a line in the result file: `Session ended after <ID>.` and stop.
+
+The audit is complete when `tools/audit_check.py` prints `not written 0` and `failing 0`, and the summary of section
+8.1 is filled.
+
+Formatting rules the check relies on:
+
+* A quote of the program is a fenced code block whose lines are copied from `tools/exe_dis.py` output: address (8 hex
+  digits), two spaces or more, the instruction. The note after `;` may be kept or dropped.
+* A quote of the engine is a fenced code block **immediately after** a reference written as
+  `engine_cs/src/DtEngine/<File>.cs:<line>`. Copy whole lines of the file. A line `...` marks a gap.
+* Do not write any `engine_cs/...cs:<n>` reference in the text between a program block and the block before it: the
+  check would read the program block as engine code.
+* Items of phase 0 have only **Result.** and **Verdict.** Items of phases 13 and 14 (the player model and the
+  measures, where the program is not the reference) use **Reference.** (the sheet, the workbook row or the claim
+  checked) in place of **Program.**
+
+---
+
 ## 1. Why this audit exists
 
 The engine was ported from a Python simulator and proven equal to it, trace line by trace line. That proof says the
@@ -167,6 +207,7 @@ All run from the repository root. On this machine (Windows, Git Bash) set the en
 | `python tools/exe_find_const.py HEX` | Where a 32-bit constant (an address of a table, an effect id) appears in the code. |
 | `python tools/exe_digest.py START END` | A reading aid: effect lookups, rolls, stat reads, constants, messages in a range. Not the code. |
 | `python tools/exe_effects.py` / `exe_effect_context.py` | Regenerate the effect coverage documents (they write files: **do not run**; read the generated ones). |
+| `python tools/audit_check.py [ID ...]` | Checks the result file: every quoted program line disassembled again at its address, every quoted engine line found in its file, the fields and counts each verdict needs (`data_tables/audit_rules.json`), the IDs not written. Run after every item. |
 
 How to read what you see:
 
@@ -549,3 +590,56 @@ Create it at the start with the header, then append items as they are settled.
 * Do not take a sentence of FORMULAS as evidence of the game when the item is about a case that sentence does not name.
 * Do not run batteries or the suite to "see if it matters"; size an effect by counting the data that uses the case.
 * Do not edit anything but the result file. Do not commit.
+* Do not write an item and move on without `tools/audit_check.py <ID>` printing `ok`.
+* Do not do more than 6 items in one session.
+
+---
+
+## Appendix A. A finished item (copy its form)
+
+This item was settled on 2026-10-18 and passes `tools/audit_check.py`. Every program line was copied from the output
+of the command named; every engine line from the file. Note how each case is answered by a quoted line.
+
+    ### P5.2 Scopes 5 and 7 on the unit's own side: who is picked   [lead]
+
+    **Rule.** FORMULAS 9.1: "A pick of one unit on the unit's own side (scopes 5 and 7) with a target given that is no
+    longer a candidate takes the candidate with the lowest HP ratio, the last of them on a tie; with no target given it
+    is the even roll above."
+
+    **Cases.**
+    1. a target given that is a candidate
+    2. a target given that is not a candidate (dead)
+    3. no target given
+
+    **Program.** `0x43f450` (who gets hit), scope 5 and 7 branch from `0x43f668`, the no-target branch from `0x43f7aa`.
+    Command: `python tools/exe_dis.py 0x43f67a 0x43f707 0x43f7aa 0x43f7c9`
+    ```
+    0043f67a  movss    xmm1, dword ptr [0x6d938c]    ; float 1
+    0043f6c8  comiss   xmm0, xmm1
+    0043f6cb  jb       0x43f6e3
+    0043f6cd  mov      eax, dword ptr [esi + edi*4]
+    0043f6f9  call     0x490790
+    0043f7ba  mov      ecx, dword ptr [0x816ce8]
+    0043f7c0  push     ebx
+    0043f7c1  call     0x490790
+    0043f7c6  mov      ecx, dword ptr [esi + eax*4]
+    ```
+    Case 2: the lowest ratio starts at 1.0 (`0x43f67a`); a candidate is taken when the kept minimum is not below its
+    ratio (`comiss` then `jb` over the take), so a tie takes the later candidate. Case 3: an even roll below the number
+    of candidates (`push ebx; call 0x490790`) indexes the list (`0x43f7c6`). Case 1: the given target is kept when it
+    is in the candidate list (search at `0x43f511 - 0x43f525`, not quoted here).
+
+    **Engine.** `engine_cs/src/DtEngine/Battle.cs:921`
+    ```
+    if (Array.IndexOf(candidates, chosen) >= 0) return chosen;
+    foreach (var u in candidates) if (u.HpRatio <= ratio) { ratio = u.HpRatio; lowest = u; }
+    return candidates[Rng.ChoiceIndex(candidates.Length)];
+    ```
+    Case 1: kept when a candidate. Case 2: `<=` takes the later candidate on a tie, from 1.0. Case 3: an even roll.
+
+    **Verdict.** MATCH
+    **Reach.** Every enemy, summon and guest action of scope 5 or 7.
+
+(In the result file the code fences start at the beginning of the line; they are indented here only because this
+appendix is itself inside a block.) Before the fix of 2026-10-18 the same item was a MISMATCH: the engine returned the
+acting unit itself in case 3. A MISMATCH item adds **Severity**, **Reach.**, **Proposed fix** and **FORMULAS.**

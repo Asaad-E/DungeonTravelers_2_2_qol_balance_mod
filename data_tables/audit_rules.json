@@ -1,0 +1,24 @@
+{
+  "about": "Rules tools/audit_check.py applies to docs/result_engine_audit.md, the result file of the engine audit (docs/ENGINE_AUDIT.md). Every item is a section '### <ID> <title>'; the IDs to cover are the first cells of the item tables of the plan.",
+  "plan": "docs/ENGINE_AUDIT.md",
+  "result": "docs/result_engine_audit.md",
+  "verdicts": ["MATCH", "MISMATCH", "PARTIAL", "MODEL-LIMIT", "UNREAD", "N/A"],
+  "severities": ["S1", "S2", "S3"],
+  "fields": {
+    "every": ["**Rule.**", "**Cases.**", "**Program.**", "**Engine.**", "**Verdict.**"],
+    "MISMATCH": ["**Severity**", "**Reach.**", "**Proposed fix**", "**FORMULAS.**"],
+    "PARTIAL": ["**Severity**", "**Reach.**", "**Open questions.**"],
+    "MODEL-LIMIT": ["**Reach.**"],
+    "UNREAD": ["**Open questions.**"]
+  },
+  "least_program_lines": {"MATCH": 3, "MISMATCH": 3, "PARTIAL": 2, "MODEL-LIMIT": 0, "UNREAD": 0, "N/A": 0},
+  "least_engine_lines": {"MATCH": 1, "MISMATCH": 1, "PARTIAL": 1, "MODEL-LIMIT": 1, "UNREAD": 0, "N/A": 0},
+  "need_command": ["MATCH", "MISMATCH", "PARTIAL", "UNREAD"],
+  "guessing_words": ["presumably", "probably", "likely", "should be", "i assume", "assumed", "typically", "usually",
+                     "seems to", "appears to", "most games", "i believe", "it is reasonable", "standard practice"],
+  "added_item_marker": "Added because",
+  "baseline_phases": ["P0"],
+  "baseline_fields": ["**Result.**", "**Verdict.**"],
+  "no_program_phases": ["P13", "P14"],
+  "no_program_fields": ["**Rule.**", "**Cases.**", "**Reference.**", "**Engine.**", "**Verdict.**"]
+}
