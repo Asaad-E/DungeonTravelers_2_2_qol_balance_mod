@@ -580,13 +580,25 @@ namespace DtEngine.Suite
             Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
-            // how each one plays: the reference party at the bosses where the bar offers her, with the recorder
+            // how each one plays: the reference party at every boss of the story and the postgame where the bar offers her (not only the
+            // checkpoints of the curve, so a mercenary of the late postgame is read on all her fights), with the recorder
             int profileRuns = (int)Py.Num(cfg.Get("mercenary_profile_runs"));
             var profiled = new Dictionary<string, List<(string cid, Profile p)>>();
-            var toProfile = cells.Where(x => x.Party == "Reference" && x.Context == "boss").ToList();
-            for (int start = 0; start < toProfile.Count; start += batch)
+            var allCids = c.Setup.Checkpoints.Select(r => r.Str("ID")).Where(levels.ContainsKey).ToList();
+            var toProfile = new List<Cell>();
+            foreach (var (name, _) in guests)
             {
-                var part = toProfile.Skip(start).Take(batch).ToList();
+                var e = cells.FirstOrDefault(x => x.Entry.Guest == name)?.Entry;
+                if (e == null) continue;            // offered at no checkpoint of the curve: not in the battery
+                foreach (var cid in allCids.Where(x => UnitFactory.GuestStageAt(data, c.Setup, name, x) != null))
+                    toProfile.Add(new Cell { Entry = e, Cid = cid, Party = "Reference", Context = "boss", Chain = 0 });
+            }
+            // the recorder keeps every battle of a job until it is read: small batches, each read and let go before the next, keep the
+            // memory bounded (one batch of the size of the scan held about a million battle records)
+            int profileBatch = (int)Py.Num(cfg.Get("mercenary_profile_batch"));
+            for (int start = 0; start < toProfile.Count; start += profileBatch)
+            {
+                var part = toProfile.Skip(start).Take(profileBatch).ToList();
                 var jobs = new List<JobSpec>();
                 foreach (var cell in part) { jobs.Add(Job(c, cell, false, profileRuns, true)); jobs.Add(Job(c, cell, true, profileRuns, true)); }
                 var done = c.Run(jobs);
@@ -596,8 +608,8 @@ namespace DtEngine.Suite
                     if (!profiled.ContainsKey(g)) profiled[g] = new List<(string, Profile)>();
                     profiled[g].Add((part[k].Cid, ProfileOf(done[2 * k], done[2 * k + 1], g)));
                 }
-                done.Clear();
-                c.Say("mercenary-battery: profile, " + Math.Min(start + batch, toProfile.Count) + " of " + toProfile.Count + " cells at " + profileRuns + " runs");
+                done.Clear(); jobs.Clear();
+                c.Say("mercenary-battery: profile, " + Math.Min(start + profileBatch, toProfile.Count) + " of " + toProfile.Count + " cells at " + profileRuns + " runs");
             }
 
             double good = cfg.D("good_share");
@@ -654,7 +666,7 @@ namespace DtEngine.Suite
             text.Add("");
             text.Add("## How each one plays");
             text.Add("");
-            text.Add("The reference party at the bosses where the bar offers her, " + profileRuns + " runs a cell with the recorder, with her and without her; "
+            text.Add("The reference party at every boss of the story and the postgame where the bar offers her (not only those of the curve), " + profileRuns + " runs a cell with the recorder, with her and without her; "
                      + "the mean of her cells. Actions: hers per battle, and those of the summon beside her. Damage: her share of the damage of the "
                      + "party side. Healing: hers in a battle against the party's max HP. Members and summon: their damage per unit of time with her against without her. Her actions: the share of each.");
             text.Add("");

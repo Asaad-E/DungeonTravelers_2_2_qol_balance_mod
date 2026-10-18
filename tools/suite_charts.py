@@ -12,7 +12,8 @@ random_battles.png     measures/RANDOM_BATTLES.md: rows of random battles at the
 party_battery.png      PARTY_BATTERY.md: the wins of each archetype at each boss on the variant (a cell under its floor framed) and the change
                        from vanilla
 mercenaries.png        MERCENARY_BATTERY.md: each mercenary hired beside the summon, by the share of cells where she serves and
-                       where she makes it worse, and the mean change of wins
+                       where she makes it worse; what she does (her share of the damage, her healing, the members' damage per
+                       time, fights shorter); and a map of the bosses where the bar offers her, fights shorter, the best ringed
 skills.png             SKILL_BATTERY.md (with SKILL_BATTERY_VARIANTS.md for the skills played again under every rule of use) and
                        UNIQUE_BATTERY.md: each skill by the share of the cells where it serves and where it hurts, coloured by verdict;
                        each unique skill the same, by girl
@@ -424,12 +425,21 @@ def skills():
     return save(fig, 'skills.png')
 
 
+def checkpoint_order():
+    ws = openpyxl.load_workbook(os.path.join(PROJECT, 'data_tables', 'sim_setup.xlsx'), read_only=True)['Checkpoints']
+    return [r[0] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]]
+
+
 def mercenaries():
     if not os.path.exists(os.path.join(GENERATED, 'MERCENARY_BATTERY.md')):
         return None
     lines = lines_of('MERCENARY_BATTERY.md')
     rows = sorted(table(lines, '| Mercenary |'), key=lambda r: num(r[4]))
-    fig, axes = plt.subplots(1, 2, figsize=(17, 0.38 * len(rows) + 3), gridspec_kw={'width_ratios': [3, 2]})
+    part = os.path.join(GENERATED, 'mercenary_battery', 'part_1.json')
+    profiles = {r['guest']: r.get('profile') or [] for r in json.load(open(part, encoding='utf-8'))} if os.path.exists(part) else {}
+    fig = plt.figure(figsize=(22, 0.42 * len(rows) * 2 + 6))
+    grid = fig.add_gridspec(2, 2, width_ratios=[1, 1], height_ratios=[1, 1.05])
+    axes = [fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1]), fig.add_subplot(grid[1, :])]
     y = list(range(len(rows)))
     labels = ['%s (from %s)' % (r[0], r[2]) for r in rows]
     ax = axes[0]
@@ -447,16 +457,50 @@ def mercenaries():
     ax.grid(axis='x', alpha=0.3)
     head = next(line for line in lines if line.startswith('**'))
     ax.set_title('Mercenaries hired beside the summon: ' + head.strip('*').split('.')[0].split(': ')[-1], fontsize=11)
+    # what she does, the mean of her profile cells (MERCENARY_BATTERY.md, How each one plays)
     ax = axes[1]
-    means = [num(r[7]) / 100 for r in rows]
-    ax.barh(y, means, color=['tab:green' if m > 0 else 'tab:red' for m in means], alpha=0.7, edgecolor='k', lw=0.4)
+    series = [('damage_share', 'her share of the damage', 'tab:red'),
+              ('heal_share', 'her healing / party max HP', 'tab:green'),
+              ('members', "members' damage per time", 'tab:blue'),
+              ('length', 'fights shorter', 'tab:gray')]
+    height = 0.8 / len(series)
+    for k, (key, label, colour) in enumerate(series):
+        vals = [statistics.mean([p[key] for p in profiles[r[0]]]) if profiles.get(r[0]) else 0 for r in rows]
+        ax.barh([v + (k - (len(series) - 1) / 2) * height for v in y], vals, height=height, color=colour, alpha=0.8,
+                edgecolor='k', lw=0.3, label=label)
     ax.axvline(0, color='k', lw=0.8)
     ax.set_yticks(y)
-    ax.set_yticklabels([r[0] for r in rows], fontsize=8)
+    ax.set_yticklabels(['%s (%d bosses)' % (r[0], len(profiles.get(r[0], []))) for r in rows], fontsize=8)
     ax.xaxis.set_major_formatter(PercentFormatter(1.0))
-    ax.set_xlabel('mean change of wins over every cell')
-    ax.set_title('On the mean: the party with her against without her', fontsize=11)
+    ax.set_xlabel('mean over the bosses where the bar offers her (reference party, with her against without her)')
+    ax.set_title('What she does', fontsize=11)
+    ax.legend(fontsize=8, loc='lower right')
     ax.grid(axis='x', alpha=0.3)
+    # who leads at each boss: fights shorter with her, by checkpoint; the best of each column ringed
+    ax = axes[2]
+    order = checkpoint_order()
+    cids = sorted({p['checkpoint'] for ps in profiles.values() for p in ps}, key=order.index)
+    names = [r[0] for r in reversed(rows)]
+    grid_vals = [[float('nan')] * len(cids) for _ in names]
+    for i, name in enumerate(names):
+        for p in profiles.get(name, []):
+            grid_vals[i][cids.index(p['checkpoint'])] = p['length']
+    if cids:
+        finite = [v for row in grid_vals for v in row if v == v]
+        top = max(abs(v) for v in finite) if finite else 1
+        image = ax.imshow(grid_vals, aspect='auto', cmap='RdYlGn', vmin=-top, vmax=top)
+        for j in range(len(cids)):
+            column = [(grid_vals[i][j], i) for i in range(len(names)) if grid_vals[i][j] == grid_vals[i][j]]
+            if column:
+                best = max(column)[1]
+                ax.scatter([j], [best], s=40, facecolors='none', edgecolors='k', lw=1.2)
+        ax.set_xticks(range(len(cids)))
+        ax.set_xticklabels(cids, rotation=60, ha='right', fontsize=8)
+        ax.set_yticks(range(len(names)))
+        ax.set_yticklabels(names, fontsize=8)
+        bar = fig.colorbar(image, ax=ax, fraction=0.02, pad=0.01, format=PercentFormatter(1.0))
+        bar.set_label('fights shorter with her', fontsize=8)
+    ax.set_title('At each boss where the bar offers her: fights shorter with her (ringed: the best there; blank: not offered)', fontsize=11)
     fig.tight_layout()
     return save(fig, 'mercenaries.png')
 
