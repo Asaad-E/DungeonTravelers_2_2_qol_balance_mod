@@ -21,7 +21,7 @@ A row is one value of one record. Each kind of row has its address here, with th
                   its effect 0x50
     party_skills  PartySkillData: the id of its effect 0x4C (the size of a bonus is the program's, by effect)
     npcs          NPC.pck, NPCData of a guest ally at one stage of her growth (tools/npc_data.py): one of the six
-                  stats from 0x20
+                  stats from 0x20; NPCAIData: the weights of a set of her script
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
     zones         a floor file of Dungeon/stNN/Data.pck: one of the chances of a wandering shop of a zone. These packs
@@ -64,7 +64,7 @@ from game_profile import layout                          # noqa: E402  (data_tab
 _L = {name: layout(name) for name in ('NPCData', 'EnemyStatusData', 'EnemyAttackData', 'EquipmentData', 'SealScrollData',
                                       'PartySkillData', 'UniqueSkillData', 'ItemData', 'EnchantData', 'LvExpSkptData',
                                       'QuestData')}
-NPC_PCK, NPC_RECORD = os.path.join('NPC', 'NPC.pck'), 'NPCData.bin'
+NPC_PCK, NPC_RECORD, NPC_AI = os.path.join('NPC', 'NPC.pck'), 'NPCData.bin', 'NPCAIData.bin'
 NPC_ID, NPC_STATS = _L['NPCData']['id'], _L['NPCData']['stats']
 NESTED_PCKS = (ENEMY_PCK, NPC_PCK)      # packs of a subfolder whose entries are archives themselves
 FLOAT_TOLERANCE = 5e-5                    # the workbook holds floats rounded to four decimals
@@ -377,14 +377,30 @@ def party_skill_row(packs, row):
 
 
 def npc_row(packs, row):
-    """Record '<id> <name> (level <n>)': the record of a guest ally at one stage; field one of the six stats."""
+    """Record '<id> <name> (level <n>)': the record of a guest ally at one stage; field one of the six stats, or
+    'AI set <n> weights' (columns Vanilla and New: the weights of the slots, separated by spaces), the weights of a set
+    of her NPCAIData script, one byte a slot after the set marker (tools/enemy_ai.py)."""
     nid, field = int(str(row['Record']).split()[0]), str(row['Field'])
-    if field not in npc_data.STATS:
+    if field not in npc_data.STATS and not re.fullmatch(r'AI set \d+ weights', field):
         raise Refused(f'unknown field {field!r} of a guest ally')
     for name, _ in packs.archive(NPC_PCK).files:
         if struct.unpack_from('<i', packs.entry(NPC_PCK, name, NPC_RECORD), NPC_ID)[0] == nid:
-            packs.write(row, (NPC_PCK, name, NPC_RECORD, NPC_STATS + 4 * npc_data.STATS.index(field)), 'i',
-                        int(row['New']), vanilla=int(row['Vanilla']))
+            if field in npc_data.STATS:
+                packs.write(row, (NPC_PCK, name, NPC_RECORD, NPC_STATS + 4 * npc_data.STATS.index(field)), 'i',
+                            int(row['New']), vanilla=int(row['Vanilla']))
+                return
+            number_of_set = int(field.split()[2])
+            old, new = ([int(x) for x in str(row[c]).split()] for c in ('Vanilla', 'New'))
+            if len(old) != len(new) or len(new) > enemy_ai.WEIGHTS or not all(0 <= w <= 255 for w in new) or sum(new) == 0:
+                raise Refused('the weights must be as many as the vanilla ones, bytes, and not all 0')
+            old += [0] * (enemy_ai.WEIGHTS - len(old))
+            new += [0] * (enemy_ai.WEIGHTS - len(new))
+            buf = bytes(packs.entry(NPC_PCK, name, NPC_AI))
+            needle = bytes([enemy_ai.SET, number_of_set] + old)
+            at = buf.find(needle)
+            if at == -1 or buf.find(needle, at + 1) != -1:
+                raise Refused(f'set {number_of_set} with the vanilla weights is not found once in the script')
+            packs.write_bytes(row, (NPC_PCK, name, NPC_AI, at + 2), bytes(old), bytes(new))
             return
     raise Refused(f'no guest ally has the id {nid}')
 

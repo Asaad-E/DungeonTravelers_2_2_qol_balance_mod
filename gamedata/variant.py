@@ -171,6 +171,14 @@ def apply(data, changes):
         elif table == 'npcs':
             # '<id> <name> (level <n>)': one of the six stats of a guest ally at one stage (tools/npc_data.py)
             npc = next(n for n in out.npcs if n['id'] == int(record.split()[0]))
+            if field.startswith('AI set '):
+                # 'AI set <n> weights': the weights of a set of her script, the slots separated by spaces
+                the_set = npc['script']['sets'][int(field.split()[2])]
+                old, new_weights = [int(x) for x in str(row['Vanilla']).split()], [int(x) for x in str(new).split()]
+                if list(the_set['weights'][:len(old)]) != old or any(the_set['weights'][len(old):]):
+                    raise ValueError(f'{row["ID"]}: the weights of {record} {field} are {the_set["weights"]}, not {old}')
+                the_set['weights'] = new_weights + [0] * (len(the_set['weights']) - len(new_weights))
+                continue
             _check(row, npc[field])
             npc[field] = int(new)
         elif table == 'party_skills':
