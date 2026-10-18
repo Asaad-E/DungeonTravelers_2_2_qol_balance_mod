@@ -17,6 +17,8 @@
   "guessing_words": ["presumably", "probably", "likely", "should be", "i assume", "assumed", "typically", "usually",
                      "seems to", "appears to", "most games", "i believe", "it is reasonable", "standard practice"],
   "added_item_marker": "Added because",
+  "answer_every_case": ["MATCH", "MISMATCH", "PARTIAL"],
+  "case_sections": ["**Program.**", "**Engine.**"],
   "baseline_phases": ["P0"],
   "baseline_fields": ["**Result.**", "**Verdict.**"],
   "no_program_phases": ["P13", "P14"],

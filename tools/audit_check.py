@@ -123,6 +123,20 @@ def check_item(item_id, text, files):
         errors.append(f'{engine_ok} verified engine lines; {verdict} needs {RULES["least_engine_lines"][verdict]}')
     if not no_program and verdict in RULES['need_command'] and 'tools/exe_' not in text:
         errors.append('no command of a tools/exe_* reader is named')
+    # every case listed under Cases. is answered ("Case <n>") in the Program and the Engine sections
+    if verdict in RULES['answer_every_case'] and not no_program:
+        cases_at = text.find('**Cases.**')
+        after = text[cases_at:] if cases_at >= 0 else ''
+        listed = re.findall(r'^\s*(\d+)\.\s', after.split('**Program.**')[0], re.M)
+        marks = [text.find(name) for name in RULES['case_sections']] + [len(text)]
+        for k, name in enumerate(RULES['case_sections']):
+            start = marks[k]
+            ends = [m for m in marks[k + 1:] + [text.find('**Verdict.**')] if m > start]
+            part = text[start:min(ends)] if start >= 0 and ends else ''
+            unanswered = [n for n in listed if not re.search(r'\bCases?\s+(?:\d+\s*(?:,|and|-)\s*)*' + n + r'\b', part)]
+            if unanswered:
+                errors.append(f'{name} answers no "Case {unanswered[0]}"' + (f' (nor {", ".join(unanswered[1:])})'
+                                                                              if len(unanswered) > 1 else ''))
     low = text.lower()
     for word in RULES['guessing_words']:
         if word in low:

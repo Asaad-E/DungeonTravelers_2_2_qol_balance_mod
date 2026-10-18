@@ -30,6 +30,10 @@ The audit is long. It is done over many sessions, a few items each. Every sessio
      verdict to UNREAD or PARTIAL and say why.
    * "word of guessing": rewrite the sentence with what the quoted lines show, or move the doubt to **Open
      questions.**
+   * "**Program.** answers no "Case N"" or "**Engine.** answers no "Case N"": every case listed under **Cases.** must
+     be answered, as "Case N: ..." with the quoted line that settles it, in **both** sections. A case you could not
+     settle in the program makes the verdict PARTIAL (or UNREAD), never MATCH. A case the engine does not handle is
+     answered "Case N: the engine has no branch for it" with the lines around where it would be.
    Run the check again. An item is finished only when the check prints `ok`. If after two attempts it still fails,
    change the verdict to UNREAD, keep only what is verified, and go on.
 6. End the session with a line in the result file: `Session ended after <ID>.` and stop.
