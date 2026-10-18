@@ -837,6 +837,7 @@
   "mercenary_profile_min_wins": 20,
   "mercenary_band": [0.04, 0.08],
   "sealbook_runs": 60,
+  "sealbook_stretches": [["early story", "C01"], ["late story", "C25"], ["postgame", "P01"]],
   "sealbook_outside_battle": {
     "212": "encounter rate", "214": "encounter rate", "217": "TP on the map", "258": "treasure", "259": "shops",
     "260": "traps", "262": "escape (the model never flees)", "263": "a member with no weapon",

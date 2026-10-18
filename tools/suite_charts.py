@@ -517,6 +517,77 @@ def mercenaries():
     return save(fig, 'mercenaries.png')
 
 
+def sealbooks():
+    """Each grand sealbook against the books a party could carry at the same bosses: its points (wins + won fights shorter,
+    every party, mean per boss) minus the median of the books there, averaged over its bosses; by stretch of the game."""
+    part = os.path.join(GENERATED, 'sealbook_battery', 'part_1.json')
+    if not os.path.exists(part):
+        return None
+    rows = json.load(open(part, encoding='utf-8'))
+    cfg = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['skill_battery']
+    order = checkpoint_order()
+    starts = [(name, order.index(first)) for name, first in cfg['sealbook_stretches']]
+
+    def stretch(cid):
+        at = order.index(cid)
+        return [name for name, s in starts if s <= at][-1]
+
+    points = {}
+    for r in rows:
+        by = {}
+        for c in r['cells']:
+            by.setdefault(c['checkpoint'], []).append(c['wins'] + c['length'])
+        for cid, vals in by.items():
+            points[(r['name'], cid)] = statistics.mean(vals)
+    cids = sorted({cid for _, cid in points}, key=order.index)
+    median = {cid: statistics.median([v for (n, c), v in points.items() if c == cid]) for cid in cids}
+    best = {}
+    for cid in cids:
+        best_name = max((v, n) for (n, c), v in points.items() if c == cid)[1]
+        best[best_name] = best.get(best_name, 0) + 1
+    names = [s for s, _ in starts]
+    books = []
+    for r in rows:
+        mine = [(cid, v - median[cid]) for (n, cid), v in points.items() if n == r['name']]
+        parts = {s: [v for cid, v in mine if stretch(cid) == s] for s in names}
+        books.append({'name': r['name'], 'first': r['first_level'], 'battle': r['battle_enchant'], 'bosses': len(mine),
+                      'best': best.get(r['name'], 0), 'rel': statistics.mean(v for _, v in mine),
+                      'parts': {s: (statistics.mean(v) if v else None) for s, v in parts.items()}})
+    books.sort(key=lambda b: b['rel'])
+    fig, (left, right) = plt.subplots(1, 2, figsize=(18, 0.38 * len(books) + 2.5), gridspec_kw={'width_ratios': [1.3, 1]})
+    y = list(range(len(books)))
+    colours = ['tab:blue' if b['battle'] else 'tab:orange' for b in books]
+    left.barh(y, [b['rel'] for b in books], color=colours, alpha=0.8, edgecolor='k', lw=0.4)
+    left.axvline(0, color='k', lw=0.8)
+    for k, b in enumerate(books):
+        x = b['rel']
+        left.text(x + (0.002 if x >= 0 else -0.002), k, '%+.1f' % (x * 100), va='center', ha='left' if x >= 0 else 'right', fontsize=8)
+    left.set_yticks(y)
+    left.set_yticklabels(['%s (form L%d, %d bosses%s)' % (b['name'], b['first'], b['bosses'],
+                                                           ', best at %d' % b['best'] if b['best'] else '') for b in books], fontsize=8)
+    left.xaxis.set_major_formatter(PercentFormatter(1.0))
+    left.set_xlabel('points against the median book at the same bosses (wins + won fights shorter, every party)')
+    left.set_title('Each grand sealbook against the others the party could carry', fontsize=12)
+    left.barh([0], [0], color='tab:blue', alpha=0.8, label='its enchantment acts in battle')
+    left.barh([0], [0], color='tab:orange', alpha=0.8, label='its enchantment acts outside battle (read by its summon only)')
+    left.legend(fontsize=8, loc='lower right')
+    left.grid(axis='x', alpha=0.3)
+    grid = [[b['parts'][s] if b['parts'][s] is not None else float('nan') for s in names] for b in books]
+    finite = [abs(v) for row in grid for v in row if v == v]
+    top = max(finite) if finite else 1
+    right.imshow(grid, aspect='auto', cmap='RdYlGn', vmin=-top, vmax=top, origin='lower')
+    for i, row in enumerate(grid):
+        for j, v in enumerate(row):
+            right.text(j, i, '' if v != v else '%+.1f' % (v * 100), ha='center', va='center', fontsize=8)
+    right.set_xticks(range(len(names)))
+    right.set_xticklabels(names, fontsize=9)
+    right.set_yticks(y)
+    right.set_yticklabels([b['name'] for b in books], fontsize=8)
+    right.set_title('By stretch of the game (blank: not available yet)', fontsize=12)
+    fig.tight_layout()
+    return save(fig, 'sealbooks.png')
+
+
 def mercenaries_detail():
     if not os.path.exists(os.path.join(GENERATED, 'MERCENARY_BATTERY.md')):
         return None
@@ -621,7 +692,7 @@ def main():
     s = settings()
     z = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['class_search']['band']['z']
     charts = [lambda: class_balance(z), lambda: class_stages(float(s['class_slow_ratio']), float(s['class_weak_wins'])),
-              difficulty_curve, random_battles, party_battery, skills, mercenaries, mercenaries_detail]
+              difficulty_curve, random_battles, party_battery, skills, mercenaries, mercenaries_detail, sealbooks]
     for chart in charts:
         path = chart()
         if path:
