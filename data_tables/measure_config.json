@@ -834,6 +834,7 @@
   "mercenary_confirm_runs": 600,
   "mercenary_profile_runs": 400,
   "mercenary_profile_batch": 36,
+  "mercenary_profile_min_wins": 20,
   "confirm_cells": 3,
   "batch": 2000,
   "wins": 0.08,

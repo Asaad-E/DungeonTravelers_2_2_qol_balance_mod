@@ -29,6 +29,7 @@ import sys
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt                     # noqa: E402
+import matplotlib.patches                           # noqa: E402
 from matplotlib.ticker import PercentFormatter      # noqa: E402
 import openpyxl                                     # noqa: E402
 
@@ -462,10 +463,12 @@ def mercenaries():
     series = [('damage_share', 'her share of the damage', 'tab:red'),
               ('heal_share', 'her healing / party max HP', 'tab:green'),
               ('members', "members' damage per time", 'tab:blue'),
-              ('length', 'fights shorter', 'tab:gray')]
+              ('wins', 'fights won', 'tab:purple'),
+              ('length', 'won fights shorter', 'tab:gray')]
     height = 0.8 / len(series)
     for k, (key, label, colour) in enumerate(series):
-        vals = [statistics.mean([p[key] for p in profiles[r[0]]]) if profiles.get(r[0]) else 0 for r in rows]
+        # a length not read (too few won fights on a side) is left out of the mean
+        vals = [statistics.mean([p[key] for p in profiles.get(r[0], []) if p.get(key) is not None] or [0]) for r in rows]
         ax.barh([v + (k - (len(series) - 1) / 2) * height for v in y], vals, height=height, color=colour, alpha=0.8,
                 edgecolor='k', lw=0.3, label=label)
     ax.axvline(0, color='k', lw=0.8)
@@ -476,31 +479,53 @@ def mercenaries():
     ax.set_title('What she does', fontsize=11)
     ax.legend(fontsize=8, loc='lower right')
     ax.grid(axis='x', alpha=0.3)
-    # who leads at each boss: fights shorter with her, by checkpoint; the best of each column ringed
+    # who leads at each boss: won fights shorter with her, by checkpoint; the best of each column ringed; a triangle where she
+    # changes the share of wins by the threshold of the scan or more
+    wins_step = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['skill_battery']['wins']
     ax = axes[2]
     order = checkpoint_order()
     cids = sorted({p['checkpoint'] for ps in profiles.values() for p in ps}, key=order.index)
     names = [r[0] for r in reversed(rows)]
     grid_vals = [[float('nan')] * len(cids) for _ in names]
+    ups, downs, unread = [], [], []
     for i, name in enumerate(names):
         for p in profiles.get(name, []):
-            grid_vals[i][cids.index(p['checkpoint'])] = p['length']
+            j = cids.index(p['checkpoint'])
+            if p.get('length') is None:
+                unread.append((j, i))
+            else:
+                grid_vals[i][j] = p['length']
+            if p.get('wins', 0) >= wins_step:
+                ups.append((j, i))
+            elif p.get('wins', 0) <= -wins_step:
+                downs.append((j, i))
     if cids:
         finite = [v for row in grid_vals for v in row if v == v]
         top = max(abs(v) for v in finite) if finite else 1
         image = ax.imshow(grid_vals, aspect='auto', cmap='RdYlGn', vmin=-top, vmax=top)
+        for j, i in unread:
+            ax.add_patch(matplotlib.patches.Rectangle((j - 0.5, i - 0.5), 1, 1, facecolor='0.8', edgecolor='none'))
         for j in range(len(cids)):
             column = [(grid_vals[i][j], i) for i in range(len(names)) if grid_vals[i][j] == grid_vals[i][j]]
             if column:
                 best = max(column)[1]
                 ax.scatter([j], [best], s=40, facecolors='none', edgecolors='k', lw=1.2)
+        if ups:
+            ax.scatter([u[0] for u in ups], [u[1] for u in ups], marker='^', s=22, color='navy',
+                       label='wins +%d%% or more' % round(wins_step * 100))
+        if downs:
+            ax.scatter([d[0] for d in downs], [d[1] for d in downs], marker='v', s=22, color='darkred',
+                       label='wins -%d%% or more' % round(wins_step * 100))
+        if ups or downs:
+            ax.legend(fontsize=8, loc='upper right')
         ax.set_xticks(range(len(cids)))
         ax.set_xticklabels(cids, rotation=60, ha='right', fontsize=8)
         ax.set_yticks(range(len(names)))
         ax.set_yticklabels(names, fontsize=8)
         bar = fig.colorbar(image, ax=ax, fraction=0.02, pad=0.01, format=PercentFormatter(1.0))
-        bar.set_label('fights shorter with her', fontsize=8)
-    ax.set_title('At each boss where the bar offers her: fights shorter with her (ringed: the best there; blank: not offered)', fontsize=11)
+        bar.set_label('won fights shorter with her', fontsize=8)
+    ax.set_title('At each boss where the bar offers her: won fights shorter with her (ringed: the best there; triangles: wins changed; '
+                 'grey: too few won fights to read; blank: not offered)', fontsize=11)
     fig.tight_layout()
     return save(fig, 'mercenaries.png')
 

@@ -466,11 +466,12 @@ namespace DtEngine.Suite
         /// that undoes or replaces one of the party shows there).</summary>
         sealed class Profile
         {
-            public double Actions, SummonActions, DamageShare, HealShare, Members, Summon, Length;
+            public double Actions, SummonActions, DamageShare, HealShare, Members, Summon, Length, Wins;
+            public bool LengthRead;      // both sides won at least mercenary_profile_min_wins fights: the length of the won fights is read
             public List<(string name, double share)> Uses = new List<(string, double)>();
         }
 
-        static Profile ProfileOf(JobResult without, JobResult with, string guest)
+        static Profile ProfileOf(JobResult without, JobResult with, string guest, int minWins)
         {
             bool IsGuest(Unit u) => u.Kind == Kind.Summon && u.Name == guest;
             bool IsSummon(Unit u) => u.Kind == Kind.Summon && u.Name != guest;
@@ -514,6 +515,8 @@ namespace DtEngine.Suite
                 return (m, s, t, b, ga, sa, gd, pd, gh, ph, uses);
             }
             var a = Sum(without); var w = Sum(with);
+            // wins and the length of the won fights as the scan reads them: a lost fight that lasts longer with her is not a slower win
+            var fa = Figures(without); var fw = Figures(with);
             double Rate(double x, double t) => t > 0 ? x / t : 0;
             double Change(double x, double y) => x > 0 ? y / x - 1 : 0;
             var p = new Profile
@@ -524,7 +527,9 @@ namespace DtEngine.Suite
                 HealShare = w.partyMaxHp > 0 ? w.guestHeal / w.partyMaxHp : 0,
                 Members = Change(Rate(a.members, a.time), Rate(w.members, w.time)),
                 Summon = Change(Rate(a.summon, a.time), Rate(w.summon, w.time)),
-                Length = a.time > 0 && a.battles > 0 && w.battles > 0 ? 1 - (w.time / w.battles) / (a.time / a.battles) : 0,
+                LengthRead = without.Runs.Count(x => x.Won) >= minWins && with.Runs.Count(x => x.Won) >= minWins,
+                Length = fa.time.HasValue && fw.time.HasValue && fa.time.Value > 0 ? 1 - fw.time.Value / fa.time.Value : 0,
+                Wins = fw.wins - fa.wins,
             };
             double total = w.uses.Values.Sum();
             if (total > 0) p.Uses = w.uses.OrderByDescending(kv => kv.Value).Select(kv => (kv.Key, kv.Value / total)).ToList();
@@ -596,6 +601,8 @@ namespace DtEngine.Suite
             // the recorder keeps every battle of a job until it is read: small batches, each read and let go before the next, keep the
             // memory bounded (one batch of the size of the scan held about a million battle records)
             int profileBatch = (int)Py.Num(cfg.Get("mercenary_profile_batch"));
+            // a boss the party almost never wins gives the length of a handful of won fights: noise, so it is not read below this
+            int minWins = (int)Py.Num(cfg.Get("mercenary_profile_min_wins"));
             for (int start = 0; start < toProfile.Count; start += profileBatch)
             {
                 var part = toProfile.Skip(start).Take(profileBatch).ToList();
@@ -606,7 +613,7 @@ namespace DtEngine.Suite
                 {
                     string g = part[k].Entry.Guest;
                     if (!profiled.ContainsKey(g)) profiled[g] = new List<(string, Profile)>();
-                    profiled[g].Add((part[k].Cid, ProfileOf(done[2 * k], done[2 * k + 1], g)));
+                    profiled[g].Add((part[k].Cid, ProfileOf(done[2 * k], done[2 * k + 1], g, minWins)));
                 }
                 done.Clear(); jobs.Clear();
                 c.Say("mercenary-battery: profile, " + Math.Min(start + profileBatch, toProfile.Count) + " of " + toProfile.Count + " cells at " + profileRuns + " runs");
@@ -668,10 +675,10 @@ namespace DtEngine.Suite
             text.Add("");
             text.Add("The reference party at every boss of the story and the postgame where the bar offers her (not only those of the curve), " + profileRuns + " runs a cell with the recorder, with her and without her; "
                      + "the mean of her cells. Actions: hers per battle, and those of the summon beside her. Damage: her share of the damage of the "
-                     + "party side. Healing: hers in a battle against the party's max HP. Members and summon: their damage per unit of time with her against without her. Her actions: the share of each.");
+                     + "party side. Healing: hers in a battle against the party's max HP. Members and summon: their damage per unit of time with her against without her. Wins: the change of the share of fights won. Won fights shorter: the length of the won fights only, at the bosses where both sides won " + minWins + " fights or more. Her actions: the share of each.");
             text.Add("");
-            text.Add("| Mercenary | Cells | Actions | Summon's | Damage | Healing | Members | Summon | Fights shorter | Her actions |");
-            text.Add("|---|---|---|---|---|---|---|---|---|---|");
+            text.Add("| Mercenary | Cells | Actions | Summon's | Damage | Healing | Members | Summon | Wins | Won fights shorter | Her actions |");
+            text.Add("|---|---|---|---|---|---|---|---|---|---|---|");
             foreach (var (name, _) in guests)
             {
                 if (!profiled.TryGetValue(name, out var list) || list.Count == 0) continue;
@@ -681,12 +688,12 @@ namespace DtEngine.Suite
                 string acts = string.Join(", ", uses.OrderByDescending(kv => kv.Value).Take(5).Select(kv => kv.Key + " " + Py.Pct(kv.Value, 0)));
                 text.Add("| " + name + " | " + list.Count + " | " + Py.F(Mean(p => p.Actions), 1) + " | " + Py.F(Mean(p => p.SummonActions), 1) + " | "
                          + Py.Pct(Mean(p => p.DamageShare), 0) + " | " + Py.Pct(Mean(p => p.HealShare), 0) + " | " + Py.Pct(Mean(p => p.Members), 0, true) + " | "
-                         + Py.Pct(Mean(p => p.Summon), 0, true) + " | " + Py.Pct(Mean(p => p.Length), 0, true) + " | " + acts + " |");
+                         + Py.Pct(Mean(p => p.Summon), 0, true) + " | " + Py.Pct(Mean(p => p.Wins), 0, true) + " | " + (list.Any(x => x.p.LengthRead) ? Py.Pct(list.Where(x => x.p.LengthRead).Average(x => x.p.Length), 0, true) : "-") + " | " + acts + " |");
                 var row = (Obj)rows.First(r => ((Obj)r).S("guest") == name);
                 row.Set("profile", Jb.L(list.Select(x => (object)new Obj
                 {
                     { "checkpoint", x.cid }, { "actions", x.p.Actions }, { "summon_actions", x.p.SummonActions }, { "damage_share", x.p.DamageShare },
-                    { "heal_share", x.p.HealShare }, { "members", x.p.Members }, { "summon", x.p.Summon }, { "length", x.p.Length },
+                    { "heal_share", x.p.HealShare }, { "members", x.p.Members }, { "summon", x.p.Summon }, { "length", x.p.LengthRead ? (object)x.p.Length : null }, { "wins", x.p.Wins },
                     { "uses", Jb.L(x.p.Uses.Select(u => (object)Jb.L(new object[] { u.name, u.share }))) },
                 })));
             }
