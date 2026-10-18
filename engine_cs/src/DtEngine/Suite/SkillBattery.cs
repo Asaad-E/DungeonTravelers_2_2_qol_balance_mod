@@ -20,6 +20,7 @@ namespace DtEngine.Suite
             public string Weapon;                // a weapon in the place of the role's own when hers cannot use the skill, else null
             public string Girl, Label;           // unique-battery: the girl whose unique skill is tested, and the name of that skill
             public string Guest;                 // mercenary-battery: the mercenary hired in the place of the summon
+            public int Book = T.NONE;            // sealbook-battery: the grand sealbook carried (its summon and its enchantments)
         }
 
         sealed class Cell
@@ -107,6 +108,11 @@ namespace DtEngine.Suite
                 enemies = Jb.Chain(sc.WalkedZones(cp.Str("Floor"), level).Select(z => z.Name), (long)Py.Num(c.In("skill_battery").Get("chain_seed")), cell.Chain);
                 if (cell.Context == "walk_boss") { enemies.Set("then_checkpoint", true); options = new Obj { { "random_battle", true } }; }
             }
+            if (e.Book != T.NONE)
+                // sealbook-battery: the party with no grand sealbook against the same party carrying this one from the start (its
+                // summon by the party's mean level, its enchantments on every member)
+                return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, enemies: enemies, options: options, setupName: BookSetup(c, use ? e.Book : T.NONE),
+                               name: "book" + e.Book + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
             if (e.Guest != null)
                 // mercenary-battery: the party as built (with the summon of its grand sealbook) against the same party with the mercenary
                 // hired beside it (units 3000 and 3001 of the program)
@@ -136,6 +142,24 @@ namespace DtEngine.Suite
             string setupName = use && e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
             return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName, options: options,
                            name: (e.Label ?? e.Skill.Name) + "|" + e.Girl + "|" + e.Role + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
+        }
+
+        /// <summary>A setup whose sheet GrandSealbooks holds one book from the first checkpoint on, or none (T.NONE).</summary>
+        static string BookSetup(Ctx c, int book)
+        {
+            string key = "book|" + book;
+            if (setups.TryGetValue(key, out var name)) return name;
+            var rows = new List<Row>();
+            if (book != T.NONE)
+            {
+                var row = new Row();
+                row.Cells["From checkpoint"] = c.Setup.Checkpoints[0].Str("ID"); row.Cells["Sealbook"] = (long)book;
+                row.Cells["Name"] = ""; row.Cells["Source"] = "";
+                rows.Add(row);
+            }
+            name = c.AddSetup(Kit.WithGrandSealbooks(c.Setup, rows));
+            setups[key] = name;
+            return name;
         }
 
         /// <summary>The cells played in batches and judged at once; the runs are let go, only the figures stay.</summary>
@@ -718,6 +742,93 @@ namespace DtEngine.Suite
             if (trial.Length > 0) { text.Insert(2, "**Trial:** the variant with " + trial + " (not built; to try a value)."); text.Insert(3, ""); }
             c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);
             c.Say("mercenary-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
+        }
+
+        /// <summary>dtcli sealbook-battery [runs] [books|*]: each grand sealbook carried (its summon, at the form the party's mean level
+        /// reaches, and its enchantments on every member) against no grand sealbook, in the reference party and each party of
+        /// BatteryParties, at every boss of the curve whose reference level reaches the book's first form (a summon has no form below
+        /// it); the same seeds with and without. Points: mean change of wins plus mean share by which won fights are shorter, as the
+        /// mercenaries are read. Books whose every enchantment acts outside battles (section sealbook_outside_battle of skill_battery)
+        /// are read by their summon only and marked. docs/generated/SEALBOOK_BATTERY.md.</summary>
+        public static void RunSealbooks(Ctx c, string[] args)
+        {
+            var cfg = c.In("skill_battery");
+            var data = c.Data("variant");
+            var sc = c.Sc("variant");
+            int runs = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get("sealbook_runs"));
+            var only = args.Length > 1 && args[1] != "*" ? new HashSet<int>(args[1].Split(',').Select(x => int.Parse(x.Trim()))) : null;
+            side = "variant";
+            var levels = sc.ReferenceLevels();
+            var cids = DifficultyCurve.Checkpoints(c).Where(levels.ContainsKey).ToList();
+            var parties = new List<string> { "Reference" };
+            parties.AddRange(c.Setup.Battery.Select(b => b.name));
+            var outside = cfg.O("sealbook_outside_battle");
+            var books = data.Summons.GroupBy(f => f.Family)
+                            .Select(g => (book: g.Key, name: g.OrderBy(f => f.Level).First().Name, first: g.Min(f => f.Level)))
+                            .Where(b => data.SealbookEnchants.ContainsKey(b.book) && (only == null || only.Contains(b.book)))
+                            .OrderBy(b => b.first).ToList();
+            var cells = new List<Cell>();
+            foreach (var (book, name, first) in books)
+            {
+                var e = new Entry { Book = book, Label = name, Stage = "", Role = "book" };
+                foreach (var cid in cids.Where(x => levels[x].level >= first))
+                    foreach (var party in parties)
+                        cells.Add(new Cell { Entry = e, Cid = cid, Party = party, Context = "boss", Chain = 0 });
+            }
+            int batch = (int)Py.Num(cfg.Get("batch"));
+            Play(c, cells, runs, batch, cfg);
+            var rows = new List<object>();
+            var lines = new List<string>();
+            foreach (var (book, name, first) in books)
+            {
+                var mine = cells.Where(x => x.Entry.Book == book).ToList();
+                if (mine.Count == 0) continue;
+                double wins = mine.Average(x => x.Wins), length = mine.Average(x => x.Length);
+                var enchants = data.SealbookEnchants[book];
+                bool battle = enchants.Any(id => !outside.Has(id.ToString()));
+                string note = battle ? "" : string.Join("; ", enchants.Select(id => outside.S(id.ToString())).Distinct());
+                lines.Add("| " + name + " | " + book + " | " + first + " | " + string.Join(", ", enchants) + " | " + (battle ? "battle" : "outside: " + note) + " | "
+                          + mine.Count + " | " + Py.Pct((double)mine.Count(x => x.Serves) / mine.Count, 0) + " | " + Py.Pct(wins, 1, true) + " | "
+                          + Py.Pct(length, 1, true) + " | " + Py.F((wins + length) * 100, 1) + " |");
+                rows.Add(new Obj
+                {
+                    { "book", (long)book }, { "name", name }, { "first_level", (long)first }, { "enchants", Jb.L(enchants.Select(x => (object)(long)x)) },
+                    { "battle_enchant", battle }, { "wins", wins }, { "length", length },
+                    { "cells", Jb.L(mine.Select(x => (object)new Obj { { "checkpoint", x.Cid }, { "party", x.Party }, { "wins", x.Wins }, { "length", x.Length } })) },
+                });
+            }
+            string dir = c.Path("docs", "generated", only != null ? "sealbook_battery_trial" : "sealbook_battery");
+            Directory.CreateDirectory(dir);
+            M.ClearFolder(dir);
+            c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
+            var text = new List<string>
+            {
+                "# Every grand sealbook, carried or not (generated)", "",
+                "Generated by `dtcli sealbook-battery`. Do not edit. Balance variant. Each grand sealbook carried from the start (its summon at the "
+                    + "form the party's mean level reaches, its enchantments on every member) against no grand sealbook, in the reference party and "
+                    + "each party of BatteryParties, at every boss of the difficulty curve whose reference level reaches the book's first form; the "
+                    + "same seeds, " + runs + " runs a cell. Points: the mean change of the share of wins plus the mean share by which the won fights are "
+                    + "shorter, over every cell. A book whose every enchantment acts outside battles is read by its summon only.", "",
+                "| Book | Id | First form | Enchantments | Enchantment acts | Cells | Serve | Wins | Won fights shorter | Points |",
+                "|---|---|---|---|---|---|---|---|---|---|",
+            };
+            text.AddRange(lines);
+            // the books a party can carry at each boss, best first, reference party
+            text.Add("");
+            text.Add("## At each boss");
+            text.Add("");
+            text.Add("Points of each book the party's level allows there (reference party), best first.");
+            text.Add("");
+            text.Add("| Checkpoint | Books, best first |");
+            text.Add("|---|---|");
+            foreach (var cid in cids)
+            {
+                var here = cells.Where(x => x.Cid == cid && x.Party == "Reference").Select(x => (x.Entry.Label, points: x.Wins + x.Length))
+                                .OrderByDescending(x => x.points).ToList();
+                if (here.Count > 0) text.Add("| " + cid + " | " + string.Join(", ", here.Select(x => x.Label + " " + Py.F(x.points * 100, 1))) + " |");
+            }
+            c.WriteText(c.Path("docs", "generated", only != null ? "SEALBOOK_BATTERY_TRIAL.md" : "SEALBOOK_BATTERY.md"), M.Lines(text), false);
+            c.Say("sealbook-battery: " + books.Count + " books, " + cells.Count + " cells");
         }
 
         /// <summary>dtcli unique-battery [scan runs] [confirm runs]: the unique skill of each girl, with and without, as skill-battery plays a

@@ -33,6 +33,7 @@ namespace DtEngine.Suite
             { "skill-battery", SkillBattery.Run },
             { "unique-battery", SkillBattery.RunUnique },
             { "mercenary-battery", SkillBattery.RunMercenaries },
+            { "sealbook-battery", SkillBattery.RunSealbooks },
             { "support-battery", SupportBattery.Run },
             { "class-search", ClassSearch.Run },
             { "walk-parties", WalkParties.Run },

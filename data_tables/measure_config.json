@@ -836,6 +836,13 @@
   "mercenary_profile_batch": 36,
   "mercenary_profile_min_wins": 20,
   "mercenary_band": [0.04, 0.08],
+  "sealbook_runs": 60,
+  "sealbook_outside_battle": {
+    "212": "encounter rate", "214": "encounter rate", "217": "TP on the map", "258": "treasure", "259": "shops",
+    "260": "traps", "262": "escape (the model never flees)", "263": "a member with no weapon",
+    "266": "pep", "267": "a party smaller than five", "270": "EXP", "290": "joint skills (out of the model)",
+    "291": "chests", "294": "food", "297": "a hired mercenary (none in this battery)"
+  },
   "mercenary_band_exempt": ["Three Fates"],
   "confirm_cells": 3,
   "batch": 2000,
