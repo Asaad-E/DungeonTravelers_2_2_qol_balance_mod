@@ -91,7 +91,7 @@ namespace DtEngine.Suite
             return null;
         }
 
-        static JobSpec Job(Ctx c, Cell cell, bool use, int runs)
+        static JobSpec Job(Ctx c, Cell cell, bool use, int runs, bool record = false)
         {
             var e = cell.Entry;
             var sc = c.Sc("variant");
@@ -110,8 +110,8 @@ namespace DtEngine.Suite
             if (e.Guest != null)
                 // mercenary-battery: the party as built (with the summon of its grand sealbook) against the same party with the mercenary
                 // hired beside it (units 3000 and 3001 of the program)
-                return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, enemies: enemies, options: options, guest: use ? e.Guest : null,
-                               name: e.Guest + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
+                return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, enemies: enemies, options: options, guest: use ? e.Guest : null, record: record,
+                               name:e.Guest + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
             Obj recipe;
             if (e.Girl != null)
                 // unique-battery: the girl in the place of the role, without and with her unique skill; another member who is the same girl is
@@ -460,6 +460,77 @@ namespace DtEngine.Suite
                 Run(c, new[] { string.Join(",", rest), Py.Str(cfg.Get("scan_runs")), Py.Str(cfg.Get("confirm_runs")), "variants" });
         }
 
+        /// <summary>How a mercenary plays in one cell, read from the recorder of the runs with her and without her: her actions per battle
+        /// and those of the summon beside her, her share of the damage of the party side, her healing against the party's max HP, the share of each of her
+        /// actions, and the damage per unit of time of the members and of the summon, with her against without her (an action of hers
+        /// that undoes or replaces one of the party shows there).</summary>
+        sealed class Profile
+        {
+            public double Actions, SummonActions, DamageShare, HealShare, Members, Summon, Length;
+            public List<(string name, double share)> Uses = new List<(string, double)>();
+        }
+
+        static Profile ProfileOf(JobResult without, JobResult with, string guest)
+        {
+            bool IsGuest(Unit u) => u.Kind == Kind.Summon && u.Name == guest;
+            bool IsSummon(Unit u) => u.Kind == Kind.Summon && u.Name != guest;
+            bool IsMember(Unit u) => u.Side == Unit.PARTY && (u.Kind == Kind.Member || u.Kind == Kind.Doll);
+            // per side of the cell: damage per time of the members and of the summon; with her, also her figures
+            (double members, double summon, double time, double battles, double guestActs, double summonActs, double guestDmg, double partyDmg,
+             double guestHeal, double partyMaxHp, Dictionary<string, double> uses) Sum(JobResult r)
+            {
+                double m = 0, s = 0, t = 0, b = 0, ga = 0, sa = 0, gd = 0, pd = 0, gh = 0, ph = 0;
+                var uses = new Dictionary<string, double>();
+                foreach (var run in r.Runs)
+                    foreach (var part in run.Parts)
+                    {
+                        if (part.Record == null) continue;
+                        var rec = part.Record;
+                        t += part.Time; b += 1; ph += part.PartyMaxHp;
+                        for (int i = 0; i < rec.Damage.Count; i++)
+                        {
+                            var u = rec.Damage.Keys[i].Unit; double v = rec.Damage.Values[i];
+                            if (u.Side != Unit.PARTY) continue;
+                            pd += v;
+                            if (IsGuest(u)) gd += v; else if (IsSummon(u)) s += v; else if (IsMember(u)) m += v;
+                        }
+                        for (int i = 0; i < rec.Healing.Count; i++)
+                        {
+                            var u = rec.Healing.Keys[i].Unit; double v = rec.Healing.Values[i];
+                            if (u.Side != Unit.PARTY) continue;
+                            if (IsGuest(u)) gh += v;
+                        }
+                        for (int i = 0; i < rec.Actions.Count; i++)
+                        {
+                            var u = rec.Actions.Keys[i].Unit;
+                            if (IsGuest(u)) ga += rec.Actions.Values[i]; else if (IsSummon(u)) sa += rec.Actions.Values[i];
+                        }
+                        for (int i = 0; i < rec.SkillUses.Count; i++)
+                        {
+                            var k = rec.SkillUses.Keys[i];
+                            if (IsGuest(k.Unit)) uses[k.Name ?? "?"] = uses.GetValueOrDefault(k.Name ?? "?") + rec.SkillUses.Values[i];
+                        }
+                    }
+                return (m, s, t, b, ga, sa, gd, pd, gh, ph, uses);
+            }
+            var a = Sum(without); var w = Sum(with);
+            double Rate(double x, double t) => t > 0 ? x / t : 0;
+            double Change(double x, double y) => x > 0 ? y / x - 1 : 0;
+            var p = new Profile
+            {
+                Actions = w.battles > 0 ? w.guestActs / w.battles : 0,
+                SummonActions = w.battles > 0 ? w.summonActs / w.battles : 0,
+                DamageShare = w.partyDmg > 0 ? w.guestDmg / w.partyDmg : 0,
+                HealShare = w.partyMaxHp > 0 ? w.guestHeal / w.partyMaxHp : 0,
+                Members = Change(Rate(a.members, a.time), Rate(w.members, w.time)),
+                Summon = Change(Rate(a.summon, a.time), Rate(w.summon, w.time)),
+                Length = a.time > 0 && a.battles > 0 && w.battles > 0 ? 1 - (w.time / w.battles) / (a.time / a.battles) : 0,
+            };
+            double total = w.uses.Values.Sum();
+            if (total > 0) p.Uses = w.uses.OrderByDescending(kv => kv.Value).Select(kv => (kv.Key, kv.Value / total)).ToList();
+            return p;
+        }
+
         /// <summary>dtcli mercenary-battery [scan runs] [confirm runs] [names|*] [trial]: each mercenary hired beside the summon of the grand
         /// sealbook, at the stage the bar offers at that point of the story (sheet MercenaryUnlocks), against the party as built, in the
         /// reference party and each party of BatteryParties, at every checkpoint of the difficulty curve where the bar offers her, and on
@@ -508,6 +579,26 @@ namespace DtEngine.Suite
             }
             Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
+
+            // how each one plays: the reference party at the bosses where the bar offers her, with the recorder
+            int profileRuns = (int)Py.Num(cfg.Get("mercenary_profile_runs"));
+            var profiled = new Dictionary<string, List<(string cid, Profile p)>>();
+            var toProfile = cells.Where(x => x.Party == "Reference" && x.Context == "boss").ToList();
+            for (int start = 0; start < toProfile.Count; start += batch)
+            {
+                var part = toProfile.Skip(start).Take(batch).ToList();
+                var jobs = new List<JobSpec>();
+                foreach (var cell in part) { jobs.Add(Job(c, cell, false, profileRuns, true)); jobs.Add(Job(c, cell, true, profileRuns, true)); }
+                var done = c.Run(jobs);
+                for (int k = 0; k < part.Count; k++)
+                {
+                    string g = part[k].Entry.Guest;
+                    if (!profiled.ContainsKey(g)) profiled[g] = new List<(string, Profile)>();
+                    profiled[g].Add((part[k].Cid, ProfileOf(done[2 * k], done[2 * k + 1], g)));
+                }
+                done.Clear();
+                c.Say("mercenary-battery: profile, " + Math.Min(start + batch, toProfile.Count) + " of " + toProfile.Count + " cells at " + profileRuns + " runs");
+            }
 
             double good = cfg.D("good_share");
             var rows = new List<object>();
@@ -558,6 +649,53 @@ namespace DtEngine.Suite
                 "|---|---|---|---|---|---|---|---|---|---|---|",
             };
             text.AddRange(lines);
+
+            // how each one plays (the recorder), the mean of her cells
+            text.Add("");
+            text.Add("## How each one plays");
+            text.Add("");
+            text.Add("The reference party at the bosses where the bar offers her, " + profileRuns + " runs a cell with the recorder, with her and without her; "
+                     + "the mean of her cells. Actions: hers per battle, and those of the summon beside her. Damage: her share of the damage of the "
+                     + "party side. Healing: hers in a battle against the party's max HP. Members and summon: their damage per unit of time with her against without her. Her actions: the share of each.");
+            text.Add("");
+            text.Add("| Mercenary | Cells | Actions | Summon's | Damage | Healing | Members | Summon | Fights shorter | Her actions |");
+            text.Add("|---|---|---|---|---|---|---|---|---|---|");
+            foreach (var (name, _) in guests)
+            {
+                if (!profiled.TryGetValue(name, out var list) || list.Count == 0) continue;
+                double Mean(Func<Profile, double> f) => list.Average(x => f(x.p));
+                var uses = new Dictionary<string, double>();
+                foreach (var (_, p) in list) foreach (var (n, s) in p.Uses) uses[n] = uses.GetValueOrDefault(n) + s / list.Count;
+                string acts = string.Join(", ", uses.OrderByDescending(kv => kv.Value).Take(5).Select(kv => kv.Key + " " + Py.Pct(kv.Value, 0)));
+                text.Add("| " + name + " | " + list.Count + " | " + Py.F(Mean(p => p.Actions), 1) + " | " + Py.F(Mean(p => p.SummonActions), 1) + " | "
+                         + Py.Pct(Mean(p => p.DamageShare), 0) + " | " + Py.Pct(Mean(p => p.HealShare), 0) + " | " + Py.Pct(Mean(p => p.Members), 0, true) + " | "
+                         + Py.Pct(Mean(p => p.Summon), 0, true) + " | " + Py.Pct(Mean(p => p.Length), 0, true) + " | " + acts + " |");
+                var row = (Obj)rows.First(r => ((Obj)r).S("guest") == name);
+                row.Set("profile", Jb.L(list.Select(x => (object)new Obj
+                {
+                    { "checkpoint", x.cid }, { "actions", x.p.Actions }, { "summon_actions", x.p.SummonActions }, { "damage_share", x.p.DamageShare },
+                    { "heal_share", x.p.HealShare }, { "members", x.p.Members }, { "summon", x.p.Summon }, { "length", x.p.Length },
+                    { "uses", Jb.L(x.p.Uses.Select(u => (object)Jb.L(new object[] { u.name, u.share }))) },
+                })));
+            }
+
+            // who the bar offers at each checkpoint, and what each one adds there (every party, bosses and random battles of the scan)
+            text.Add("");
+            text.Add("## At each checkpoint");
+            text.Add("");
+            text.Add("The mercenaries the bar offers at each checkpoint of the curve, by the mean share by which the won fights are shorter over "
+                     + "the cells of the scan there (every party, the boss and the random battles); in brackets, the mean change of the share of wins.");
+            text.Add("");
+            text.Add("| Checkpoint | Mercenaries, best first |");
+            text.Add("|---|---|");
+            foreach (var cid in cids)
+            {
+                var here = cells.Where(x => x.Cid == cid).GroupBy(x => x.Entry.Guest)
+                                .Select(g => (name: g.Key, length: g.Average(x => x.Length), wins: g.Average(x => x.Wins))).OrderByDescending(x => x.length).ToList();
+                if (here.Count == 0) continue;
+                text.Add("| " + cid + " | " + string.Join(", ", here.Select(x => x.name + " " + Py.Pct(x.length, 0, true) + " (" + Py.Pct(x.wins, 0, true) + ")")) + " |");
+            }
+            c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
             if (trial.Length > 0) { text.Insert(2, "**Trial:** the variant with " + trial + " (not built; to try a value)."); text.Insert(3, ""); }
             c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);
             c.Say("mercenary-battery: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)));
