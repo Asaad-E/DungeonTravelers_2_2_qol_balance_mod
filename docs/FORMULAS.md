@@ -73,7 +73,7 @@ final    = damage C * (1 + other bonuses)
 * **Resistance** **[message]**: `(100 - resistance * 0.5) * 0.01`. Each point of resistance removes half a percent; 100 halves the damage; a negative resistance adds.
 * **Race bonus** (`0x44bfe3 - 0x44c2cb`): enchantments against a kind of enemy add 0.30, 0.15 or 0.60 per piece according to their tier; effects 87 and 88 are read here.
 * **Defending** halves the damage (`0x44c576`).
-* Changes of the final value, each with its message: Warning Shot, a guaranteed minimum, wide magic guard, Positive Trance (`(Pep - 100) / 100` of the damage when Pep is above 100, `0x44ccce`), sleep, a bonus against enemies with an ailment (0.15 per piece of an enchantment, `0x44cd83`), double damage against the Magic User line, fixed damage, damage only to the living.
+* Changes of the final value, each with its message: Warning Shot, a guaranteed minimum, wide magic guard, Demon Wall (only when the attacker is an enemy of race 5, 7 or 8, P6.9 of the engine audit), then Positive Trance (`int(damage * (Pep - 100) / value / 100)` added to the damage after the cut when Pep is above 100, `0x44ccce`; blows only, the spell function has no such step), sleep, a bonus against enemies with an ailment (0.15 per piece of an enchantment, `0x44cd83`), double damage against the Magic User line, fixed damage, damage only to the living.
 * **Range** (`0x44a7d0`, `_GetAttackRangeRevision`) **[code]**: the distance is 0 when attacker and target are both in the front row, 1 when one of them is in the back row, 2 when both are (`0x44a7a0`). A short-range attack does full damage at distance 0, 0.75 at 1 and 0.5 at 2; a mid-range attack does 0.75 at distance 2 and full damage otherwise; long range and no range always do full damage. The lesson of the game states exactly this.
 * **Zones** (`0x44fbb0`): see 2.5. A zone multiplies attack A, before defence is subtracted; this is why a zone that doubles attack more than doubles damage.
 * **[open]** the critical multiplier, the size of the guaranteed minimum.
@@ -94,7 +94,8 @@ rate   = rate A - enchantments                                           kept be
   makes it the product the message tells: row X14 of the sheet `ExePatches` (lever L45), in the Balance variant only
   (decided 2026-10-12, for every unit that has the passive). The QoL variant keeps the text of the game for the
   passive, with no figure.
-* Enchantments subtract 0.10, 0.06 or 0.03 per piece according to their kind; one adds.
+* Enchantments subtract per piece 0.10 (effect 57), 0.06 (58), 0.03 (59) and 0.20 (61); effect 60 adds 0.06 (engine audit
+  P6.10, 2026-10-18). A negative sum raises the rate.
 * The roll is a number below 100 against the rate cut to an integer percent (`0x44d1f3`). Only the physical function rolls it; a spell breaks a chant only through the second roll of a critical (16.7). **A critical hit rolls a second time**: a number below 100 under 33 also breaks the chant, whatever the damage (`0x44d228 - 0x44d246`). This is the "1 in 3" of the lessons.
 
 ---
@@ -134,6 +135,9 @@ final     = damage C * (1 + other bonuses) * critical
 
 * A spell adds its **power** to `INT * 2` before the multipliers; defence is `RES * 1.5`, also subtracted.
 * Read in the code (`0x44d370`): the hit chance is kept between 25 and 95 (`0x44da2b`, `0x44da37`); magic accuracy enchantments count 3 per piece, capped at 50 (`0x44d67b`, `0x44d699`), and their MiniUP versions (40, and 44 for magic evasion) 1 per piece: the count is added as it is (`0x44d6a3 - 0x44d6bd`, `0x44d722 - 0x44d742`); attack A is `INT * (2 + swing)` (`0x44dc97`); the power of the spell is effect 1; the enchantments that boost the magic of one element add 0.20 per piece (`0x44e070` and the five blocks after it, effects 325 to 329).
+* **The swing of a spell** is a float of the skill record (`+0x13c` in memory, `0x124` of the file; 39 of 98 spells
+  carry one), not the weapon's: read at `0x44db97` (engine audit P6.8, 2026-10-18). An enemy attack (skill id -1) has
+  swing 0. **The element boost is capped at 0.4** (engine audit P12.1).
 * **Critical Magic** (`0x44ed9e - 0x44edfa`): when the caster has effect 301 active, a number below 100 under 20 makes the
   spell critical, and the factor is 1.25. Neither figure comes from the skill. A critical spell breaks a chant with the
   same second roll of 33 in 100 as a critical blow (`0x44f13f`).
@@ -208,7 +212,7 @@ the ailment lands if a random number below 100 is below the chance      (0x48201
 * **Resistance works in steps of ten points**: 0 to 9 change nothing, 50 halves the chance, 100 removes it (the "Block" the game announces). A negative resistance raises the chance.
 * When nothing can land (chance at or below 0) the result is "block"; otherwise a failed roll is a "miss".
 * In one context (the command comes from a source of kind 4) enchantment 269 on the target takes a flat 15 points off, and enchantment 138 blocks. Those two are "Less likely to trigger traps" and "Nullify gas traps": the context is a trap, and neither acts on an ailment of a battle.
-* The chance is worked out in single precision and cut to an integer before the roll (`0x48201d`; `sim/formulas.py` ailment_threshold). Sleep is the same code with wind resistance (`0x4828a9 - 0x482928`, read on 2026-10-11).
+* The chance is worked out in single precision and cut to an integer before the roll (`0x48201d`; `engine_cs/src/DtEngine/Formulas.cs` AilmentThreshold). Sleep is the same code with wind resistance (`0x4828a9 - 0x482928`, read on 2026-10-11).
 * **[open]** turn delay (effect 54) and the skills that skip a turn (Warning Shot, Magnificent Steps): their rolls are separate code.
 
 ## 5c. Turn delay (effect 54, `0x423a41`) and the immunity flags of an enemy **[code]**
@@ -278,7 +282,7 @@ Factor by gap = level of the member - level of the enemy (`0x450734 - 0x45080d`)
   left out; a petrified one is counted and receives nothing). The comment on that page that gives 10% and 20% is close
   but not exact.
 * The factor looks at the enemy, not at the rest of the party: a member far below the enemies of a floor gets 1.25
-  whoever it travels with. `sim/progression.py` holds these rules.
+  whoever it travels with. `gamedata/progression.py` holds these rules.
 * **[open]** where the bonus fraction and effect 157 come from (a party skill, a meal).
 * **Size of the figures.** The largest EXP of one enemy is 600,000. With the largest factor of the Balance variant
   (10) and both doublings a member would receive 24,000,000 from it: above 16,777,216, where a single-precision
@@ -291,6 +295,7 @@ Factor by gap = level of the member - level of the enemy (`0x450734 - 0x45080d`)
 |---|---|---|
 | 105, revival | `int(max HP of the target * value)` | `0x4819b2` |
 | 128, HP recovery | `int(max HP of the target * value)` | `0x483ac5` |
+| 131, fixed HP recovery | `int(value)`: a number of HP, not a share (engine audit P9.2) | `0x483ac5` |
 | 129, TP recovery | `int(max TP of the target * value)` | `0x483bbc` |
 | 132, heal by percent | `int(max HP of the target * value)`, then the cap of 6b | `0x483e65` |
 
@@ -350,7 +355,8 @@ runner `0x430f10`. The layout below parses all 516 scripts to their terminator.
 
 **Result word.** `0x2000 + n`: switch to set n. `0x4000 + n`: use attack slot n. `0x8000 + id`: use that attack id.
 `0x1000 + c`: a further command c follows (no tail) and must pass too.
-**Tail.** First byte not 0: the command fires only once. Second byte not 0: stop reading commands after a set switch.
+**Tail.** First byte not 0: the command fires only once. Second byte not 0: stop reading commands after a set switch;
+with it 0 the commands go on after the switch (engine audit P4.6).
 
 **Sources** (jump table `0x432fa0`, twelve cases, each named by its debug message): 0 own HP ratio, 1 lowest HP
 ratio among allies, 2 among opponents, 3 lowest TP ratio among allies, 4 among opponents, 5 an ally with an
@@ -361,13 +367,18 @@ ailment, 6 an opponent with an ailment, 7 a chanting opponent, 8 an opponent in 
 the lowest HP ratio, 1 opponent with the lowest HP ratio, 2 and 3 the same for TP, 4 ally and 5 opponent with the
 heaviest ailment, 6 chanting opponent, 7 opponent in the back row, 8 ally without the effect of the skill, 9 ally
 with a more serious ailment, 10 opponent in the front row, 11 opponent with a buff, 12 ally with a debuff, 13 ally
-and 14 opponent with an ailment, 15 dead ally. How many scripts use each is in `generated/BALANCE_BASELINE.md`.
+and 14 opponent with an ailment, 15 dead ally (never a doll, the summon or a guest). Every kind looks only at units
+numbered below 2000, and when several tie the pick is an even roll among them (engine audit P4.4); the sources of
+conditions read the same lists (P4.3). How many scripts use each is in `generated/BALANCE_BASELINE.md`.
 
 **Choice of attack** (`0x430f10`): the set is 0 at the start of every turn, and the weights are copied back from the script (`0x430f56`, `0x430f91`): a set chosen on one turn does not carry to the next; the commands before the first set run in order until one decides.
 With no attack decided, a number below the sum of the 16 weights of the current set is rolled and the slot it falls
 in is taken; then the commands of that set run (the parser files every command under the set read last,
-`0x430cd7`). A set switch marks the set as done and rolls again in the new one. Silence, freeze and shadow bind
-replace the choice with attack slot 0. A target set by command 1 is kept in one list per attack slot of the task; the
+`0x430cd7`). A set switch marks the set as done and rolls again in the new one; there is no limit on the number of
+switches, and a switch to a set already done or to a set the script lacks ends the choice on attack slot 0 (engine
+audit P4.1). An attack slot outside the list, or an attack id the unit does not have, fails its command (P4.8).
+After the choice, silence replaces a chosen **spell** (bit 2 of the attack flags; slot `0xc0` of the unit class),
+freeze a chosen **technique** (bit 1; slot `0xb4`) and shadow sew any choice (slot `0xd0`) with attack slot 0 (P4.7). A target set by command 1 is kept in one list per attack slot of the task; the
 sixteen lists are emptied at the start of every choice (`0x430f8c - 0x430fa6`), so it holds for that turn only
 (`0x433350` empties and fills the list of its slot).
 
@@ -384,8 +395,10 @@ the others on the opposing side. A target set by command 1 is used when that uni
   is the even roll above (`0x43f7ba`).
 - Scope 1 and 6 (several random targets) roll evenly, once per hit, with no weights (`0x43f8a2`).
 - Scope 2 and 7 take the row of the picked unit, 4 and 8 the whole side, 9 and 10 the unit itself, 14 everyone.
-- The candidates of every scope are built by `0x43e6d0`: the units of that side numbered below 2000, with no
-  condition. A doll (2000 + n), the summon of the grand sealbook (3000) and a guest ally (3001) are never among them,
+- The candidates of every scope are built by `0x43e6d0`: the units of that side numbered below 2000, alive; for an
+  action that carries effect 105 or 106 (revival) the test of life is skipped, so the fallen are candidates
+  (`0x56d570`, byte `+0x3a` of the action; engine audit P9.3). Scope 6 keeps a target given while it is still a
+  candidate (P5.2). A doll (2000 + n), the summon of the grand sealbook (3000) and a guest ally (3001) are never among them,
   so an action on the party's whole side (scope 8, such as War Cry) or on one ally reaches the members only.
 
 Weight of a living member, recomputed at every pick:
@@ -432,7 +445,7 @@ more `EnemyAttackData` entry (`tools/enemy_data.py`, `tools/npc_data.py`).
 * The figure added to every stat (offset 0x120 of the character) is the bonus of the level resets (`0x4f94f0`):
   each reset adds 5 when it gives up 98 levels or more, 4 from 89, 3 from 79, 2 from 69, 1 from 59, nothing below,
   and the total stops at 50. It is added to HP and TP as to the other six. The three recipes of the player guide
-  (atwiki dt2-2 page 79) come out at exactly 50 with these steps. `sim/progression.py` holds the rule.
+  (atwiki dt2-2 page 79) come out at exactly 50 with these steps. `gamedata/progression.py` holds the rule.
 * The bonus per stat sits at offsets 0xdc onwards of the character. **[open]** what feeds it. The pieces equipped
   are added afterwards by `0x4f8270` (section 10.1).
 
@@ -512,6 +525,9 @@ stats      = the function of a character                                        
   picks (`0x4fdfdc - 0x4fe0fa`).
 * **[open]** which class and level the stat function is fed for a doll (it shares its owner's character number,
   `0x4fd87c`, so the owner's own figures are the likely answer), and when `DeletePuppetCommand` is called.
+
+* **Effect 350** (a unique skill) removes **one** doll of the other side, chosen by an even roll among the dolls
+  (units 2000 - 2999); it never touches the summon or a guest (engine audit P10.3, 2026-10-18).
 
 ## 12. What each effect of a skill does
 
@@ -599,8 +615,10 @@ the status, in the value getter at `[vtable + 0x2c]` (`measures/status_value_get
 ### 12.9 After a hit (`0x423560 - 0x4247e0`) **[read in part]**
 
 Once a hit has landed the same function runs the passives that answer it: Dark Aura punishes a short-range physical
-attacker with stat debuffs of -0.1 each unless it has Anti-Dark Aura; Slow Target rolls `value * 100` to slow the
-target (speed modifier -0.75); Survival, Reprisal and Devil's Whisper are rolled here too. Final physical damage has
+attacker with stat debuffs of -0.1 each unless it has Anti-Dark Aura; Slow Target, on its bearer, rolls `value * 100` to
+slow a short-range attacker (speed modifier -0.75); Survival, Reprisal and Devil's Whisper are rolled here too. **The
+whole block is skipped when the attacker is a doll, the summon or a guest** (`0x423d0e - 0x423d38`), and it runs only
+after a hostile hit that dealt damage (engine audit P7.5, 2026-10-18). Final physical damage has
 an "other" bonus (2.4) that Power Charge and Limit Field add to, and that Imperial Guard lowers for a party member in
 the back row (the lowest value among the allies who have it).
 
@@ -653,8 +671,13 @@ Before the damage of a hit is kept, the target can turn it away, in this order:
 
     Counter Whip (0x4203b1)   at the start of an action the first target that has it strikes first; no roll
     Counter (0x422553)        short or mid range; roll value * 100; the hit is void and the target counters
-    Reprisal (0x424689)       short or mid range, after the hit landed; roll value * 100; counter when the action ends
-    Support Shot (0x424c42)   after a plain attack of an ally; each bearer rolls value * 100; the first success fires
+                              (an enemy with its first attack); never against a unit numbered 2000 or above
+                              (0x43b5f0, 0x43b610) nor against itself
+    Reprisal (0x424689)       short or mid range, after the hit landed; roll value * 100; the flag of each target is
+                              set by its last hit, and one counter comes when the whole action ends
+    Support Shot (0x424c42)   after a plain attack of an ally; each bearer rolls value * 100; the first success fires;
+                              none after an action of a doll, the summon or a guest
+    Counter Whip              only against a physical action, never one of a doll, the summon or a guest
     Absolute Attack           an attacker that has it is never answered by the three counters above
 
 A counter is built by `_SetupCounter` (`0x425930`).
@@ -675,8 +698,8 @@ A counter is built by `_SetupCounter` (`0x425930`).
 * Dispel (effect 74, `0x4226c4`): one roll of `value * 100`; on a success every status of the list the target gives
   (`0x4fb1f0`, the statuses whose class answers yes at slot 0x64) is removed. Always: 27, 171, 325 - 329, 101, 102,
   181, 189, 191, 193, 194; while their value is not negative (`0x479df0`): 21, 26, 28, 31, 41 - 46, 161 - 169,
-  172 - 174, 184 - 186. Nothing else: not songs, dances, ailments or effect 32 (`sim/battle.py` DISPEL_ALWAYS).
-* Recovery after a battle (`0x43d6a7 - 0x43d8b4`; `sim/progression.py`): over the living members, the values of
+  172 - 174, 184 - 186. Nothing else: not songs, dances, ailments or effect 32 (`Battle.cs` DispelAlways).
+* Recovery after a battle (`0x43d6a7 - 0x43d8b4`; `Formulas.cs` AfterBattleRecovery): over the living members, the values of
   effect 272 (HP) and 273 (TP) of Generous Heart are summed, each sum is capped at 0.30 (`0x6d9330`), and what
   `0x48bf90` adds for effect 353 (Maximum Maid) of each of them is added outside the cap. Every member then recovers
   `int(max * fraction)`, at least 1; a member with a piece of enchantment 193 recovers all its HP (`0x6d938c`).
@@ -932,8 +955,12 @@ A sleeping unit takes none.
 
 ### 16.5 The rest read for the simulator (`data_tables/sim_setup.xlsx`, sheet Assumptions)
 
-* Start of a battle (`0x449130`): a member or an enemy starts at a gauge of (a number below 500, plus 1) / 1000, a guest
-  ally or a summon at the value of a plain action; one battle in five every gauge is (a number below 93) / 100.
+* Start of a battle (`0x449130`): **read again for the engine audit (2026-10-18, P2.6)**: a member, an enemy or a doll
+  starts at the value of a plain action (`_SetTime`, `0x44917d`); the summon and a guest ally (units 3000 - 3999) start
+  at (a number below 500, plus 1) / 1000, unless the byte `0x33` of the battle is set (by bit 1 of the flags of an enemy
+  of the battle), when they too take the plain action. One battle in five every gauge is (a number below 93) / 100.
+  Units due at the same time act in the order of the program's list (P3.6). The earlier reading of this line had the
+  two groups swapped.
 * Who can be picked (`0x43e6d0`): units numbered below 2000. Dolls (2000 + n, `0x43a205`), the summon of the grand
   sealbook (3000, `0x4497ce`) and a hired guest ally (3001, `0x449892`) are never picked: they cannot be hurt by the
   other side. The summon and the guest are two units built one after the other from two objects (`0x449771` and
@@ -1086,7 +1113,7 @@ from the formation is still to be followed (assumption A10).
 | 305 Knock Down | A long-range blow (by a member only when she holds a weapon) on its bearer rolls value * 100; on a success it does nothing and the bearer performs the skill linked to the status | `0x4221ee - 0x422540` |
 | 310 Pretend | A blow on its bearer rolls value * 100; on a success it does nothing and the bearer performs the skill linked to the status | `0x421db8 - 0x42206c` |
 | 314 Soul Seal | A doll of a bearer adds to each of its six stats int(stat of the enemy its sealbook seals * value) | `0x4fdfd0 - 0x4fe102` |
-| 356 Demon Wall | When any unit of the target's side has it, the damage of a blow or a spell becomes max(0, int(damage * (1 + value))); the values are negative. The code tests no race | `0x44cbf0 - 0x44cc4e`, `0x44ef59` |
+| 356 Demon Wall | When any unit of the target's side has it, the damage of a blow or a spell becomes max(0, int(damage * (1 + value))); the values are negative. Read again for the engine audit (2026-10-18): it acts only when the attacker is an enemy of race 5, 7 or 8 (`0x44cbf0` and the same test in the spell function at `0x44ee87 - 0x44ee91`) | `0x44cbf0 - 0x44cc4e`, `0x44ef59` |
 | 427 Genjimaru | Unless one is in the battle, a unit built like a doll that performs hidden skill 107 | `0x48b1f0` |
 | 432 Enemies Flee | Each enemy targeted is marked as gone when the battle allows running away | `0x48b3c0` |
 
