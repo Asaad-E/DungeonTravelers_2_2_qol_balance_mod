@@ -76,7 +76,7 @@ final    = damage C * (1 + other bonuses)
 * Changes of the final value, each with its message: Warning Shot, a guaranteed minimum, wide magic guard, Demon Wall (only when the attacker is an enemy of race 5, 7 or 8, P6.9 of the engine audit), then Positive Trance (`int(damage * (Pep - 100) / value / 100)` added to the damage after the cut when Pep is above 100, `0x44ccce`; blows only, the spell function has no such step), sleep, a bonus against enemies with an ailment (0.15 per piece of an enchantment, `0x44cd83`), double damage against the Magic User line, fixed damage, damage only to the living.
 * **Range** (`0x44a7d0`, `_GetAttackRangeRevision`) **[code]**: the distance is 0 when attacker and target are both in the front row, 1 when one of them is in the back row, 2 when both are (`0x44a7a0`). A short-range attack does full damage at distance 0, 0.75 at 1 and 0.5 at 2; a mid-range attack does 0.75 at distance 2 and full damage otherwise; long range and no range always do full damage. The lesson of the game states exactly this.
 * **Zones** (`0x44fbb0`): see 2.5. A zone multiplies attack A, before defence is subtracted; this is why a zone that doubles attack more than doubles damage.
-* **[open]** the critical multiplier, the size of the guaranteed minimum.
+* The critical multiplier (1.25, `0x44f599 - 0x44f5b2`) and the guaranteed minimum (3, or 1 - 2 on a critical, `0x44cb12 - 0x44cb4e`) are read in section 4.
 
 ### 2.5 Chant interruption **[message + code]** (`0x44d001 - 0x44d259`)
 
@@ -213,7 +213,7 @@ the ailment lands if a random number below 100 is below the chance      (0x48201
 * When nothing can land (chance at or below 0) the result is "block"; otherwise a failed roll is a "miss".
 * In one context (the command comes from a source of kind 4) enchantment 269 on the target takes a flat 15 points off, and enchantment 138 blocks. Those two are "Less likely to trigger traps" and "Nullify gas traps": the context is a trap, and neither acts on an ailment of a battle.
 * The chance is worked out in single precision and cut to an integer before the roll (`0x48201d`; `engine_cs/src/DtEngine/Formulas.cs` AilmentThreshold). Sleep is the same code with wind resistance (`0x4828a9 - 0x482928`, read on 2026-10-11).
-* **[open]** turn delay (effect 54) and the skills that skip a turn (Warning Shot, Magnificent Steps): their rolls are separate code.
+* Turn delay (effect 54) is read in 5c; the skills that skip a turn (Warning Shot, Magnificent Steps through effect 283 "Mesmerized", the Erotic Dance) roll at the start of a turn, in 5d.
 
 ## 5c. Turn delay (effect 54, `0x423a41`) and the immunity flags of an enemy **[code]**
 
