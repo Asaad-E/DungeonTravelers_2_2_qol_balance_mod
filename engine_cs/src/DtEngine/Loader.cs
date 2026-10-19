@@ -38,6 +38,14 @@ namespace DtEngine
         public List<(string chapter, List<string> names)> Joins = new List<(string, List<string>)>();
         public Dictionary<string, double?> GuideLevels = new Dictionary<string, double?>();
         public List<Row> MercenaryUnlocks = new List<Row>();
+        public List<Row> CheckpointGuests = new List<Row>();      // a mercenary a guide hires for one boss (sheet CheckpointGuests)
+
+        /// <summary>The mercenary the sheet CheckpointGuests hires for the boss of a checkpoint, else null.</summary>
+        public string CheckpointGuest(string cid)
+        {
+            foreach (var r in CheckpointGuests) if (r.Str("Checkpoint") == cid) return r.Str("Guest");
+            return null;
+        }
         public List<Row> GrandSealbooks = new List<Row>(), UniqueGear = new List<Row>(), PersonalSealbooks = new List<Row>(),
                          Kit = new List<Row>(), Preparation = new List<Row>(), ZoneChanges = new List<Row>(),
                          EnchantPlan = new List<Row>(), EnchantSlots = new List<Row>();
@@ -520,6 +528,7 @@ namespace DtEngine
             s.UniqueGear = Rows(e.GetProperty("unique_gear"));
             s.PersonalSealbooks = Rows(e.GetProperty("personal_sealbooks"));
             if (e.TryGetProperty("mercenary_unlocks", out var mu)) s.MercenaryUnlocks = Rows(mu);
+            if (e.TryGetProperty("checkpoint_guests", out var cg)) s.CheckpointGuests = Rows(cg);
             s.Kit = Rows(e.GetProperty("kit"));
             s.Preparation = Rows(e.GetProperty("preparation"));
             s.ZoneChanges = Rows(e.GetProperty("zone_changes"));

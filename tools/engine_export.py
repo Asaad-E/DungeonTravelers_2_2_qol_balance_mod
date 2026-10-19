@@ -193,6 +193,7 @@ def setup_json(setup):
         'unique_gear': rows_json(setup.unique_gear),
         'personal_sealbooks': rows_json(setup.personal_sealbooks),
         'mercenary_unlocks': rows_json(setup.mercenary_unlocks),
+        'checkpoint_guests': rows_json(setup.checkpoint_guests),
         'kit': rows_json(setup.kit),
         'preparation': rows_json(setup.preparation),
         'zone_changes': rows_json(setup.zone_changes),

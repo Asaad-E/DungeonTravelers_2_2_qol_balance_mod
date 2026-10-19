@@ -34,6 +34,7 @@ class Setup:
         self.unique_gear = _rows(wb, 'UniqueGear') if 'UniqueGear' in wb.sheetnames else []
         self.personal_sealbooks = _rows(wb, 'PersonalSealbooks') if 'PersonalSealbooks' in wb.sheetnames else []
         self.mercenary_unlocks = _rows(wb, 'MercenaryUnlocks') if 'MercenaryUnlocks' in wb.sheetnames else []
+        self.checkpoint_guests = _rows(wb, 'CheckpointGuests') if 'CheckpointGuests' in wb.sheetnames else []
         self.kit = _rows(wb, 'Kit') if 'Kit' in wb.sheetnames else []
         self.preparation = _rows(wb, 'Preparation') if 'Preparation' in wb.sheetnames else []
         self.enchant_plan = _rows(wb, 'EnchantPlan') if 'EnchantPlan' in wb.sheetnames else []

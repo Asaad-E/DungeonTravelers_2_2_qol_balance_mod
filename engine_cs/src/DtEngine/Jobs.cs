@@ -224,13 +224,15 @@ namespace DtEngine
                 int crown = job.Crown ?? (cp.Truthy("Crown bonus") ? cp.Int("Crown bonus") : 0);
                 var built = job.RecipeTemplate != null ? Scenario.CloneOf(job.RecipeTemplate.Value)
                           : sc.ReferenceParty(roles, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor"), job.Kit, job.ExtraSkills, job.Bag, job.ExtraEnchants, job.More);
-                if (job.Guest == "none")
+                // a boss a guide fights with a hired mercenary (sheet CheckpointGuests) gets her when the job names none
+                string guest = job.Guest ?? (job.EnemyKind == "checkpoint" ? setup.CheckpointGuest(job.Cid) : null);
+                if (guest == "none")
                     built = built.Where(u => u.Kind == Kind.Member).ToList();
-                else if (job.Guest != null)
+                else if (guest != null && guest != Scenario.NO_GUEST)
                 {
                     // a hired guest ally stands beside the summon of the grand sealbook (units 3000 and 3001, 0x449771 and 0x449839), at the
                     // stage the bar offers at this point of the story
-                    var stage = UnitFactory.GuestStageAt(sc.Data, sc.Setup, job.Guest, job.Cid);
+                    var stage = UnitFactory.GuestStageAt(sc.Data, sc.Setup, guest, job.Cid);
                     if (stage != null) built.Add(UnitFactory.BuildGuest(sc.Data, stage));
                 }
                 return built;

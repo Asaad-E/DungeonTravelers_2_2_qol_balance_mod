@@ -26,7 +26,7 @@ STEPS = [
     ['tools/engine_export.py'],
     ['@dtcli', 'golden', 'check'],         # the engine against its own recorded traces (a change of its code shows here)
     SUITE,
-    ['tools/balance_baseline.py'], ['tools/checkpoint_levels.py'], ['tools/sim_coverage.py'], ['tools/verdicts.py'],
+    ['tools/balance_baseline.py'], ['tools/checkpoint_levels.py'], ['tools/engine_conformity.py'], ['tools/verdicts.py'],
     ['tools/suite_charts.py'],             # the charts of the reports (docs/generated/charts)
     ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py'],
 ]

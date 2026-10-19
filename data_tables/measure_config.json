@@ -830,7 +830,8 @@
   "chain": 4,
   "chain_seed": 1601,
   "scan_runs": 40,
-  "confirm_runs": 200,
+  "confirm_runs": 400,
+  "settle_runs": 1600,
   "mercenary_scan_runs": 60,
   "mercenary_confirm_runs": 600,
   "mercenary_profile_runs": 400,
@@ -873,7 +874,8 @@
    "297": "a hired mercenary (none in this battery)"
   },
   "mercenary_band_exempt": [
-   "Three Fates"
+   "Three Fates",
+   "Peggy & Beard"
   ],
   "confirm_cells": 5,
   "batch": 2000,

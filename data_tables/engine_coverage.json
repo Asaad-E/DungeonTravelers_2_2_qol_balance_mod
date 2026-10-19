@@ -1,5 +1,5 @@
 {
- "about": "What the battle engine acts on: the effects it handles (and where), those it assumes, and the commands, sources and target kinds of the enemy AI it has a branch for. Taken on 2026-10-16 from the Python simulator, proven equal to the C# engine that day; read by tools/sim_coverage.py. A change of the engine that handles more updates it.",
+ "about": "What the battle engine acts on: the effects it handles (and where), those it assumes, and the commands, sources and target kinds of the enemy AI it has a branch for. Taken on 2026-10-16, when the engine was proven equal to the removed Python simulator; an input of the engine audit (docs/ENGINE_AUDIT.md), whose verdicts are in data_tables/engine_conformity.json. A change of the engine that handles more updates it.",
  "handled": {
   "0": "Battle.physical_damage (2.2 - 2.4)",
   "1": "Battle.magic_damage (3; 0x44dcc0 - 0x44e6c6)",

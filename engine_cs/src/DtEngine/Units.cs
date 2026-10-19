@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DtEngine
 {
@@ -460,6 +461,13 @@ namespace DtEngine
             Piece weapon = null;
             double yearning = PV(YEARNING, 0.0);
             var modifiers = ModifierList(data, classId, previous);
+            // enchantment 264 on any piece, the sealbook, the grand sealbook or the forge adds 0.02 to the class weapon modifier
+            // (once, not per piece: 0x4f7fb0 - 0x4f7fd9)
+            bool weaponModifierUp = equipment.Any(u => data.Equipment[u.EquipId].Enchants.Contains(F.WEAPON_MODIFIER_ENCHANT))
+                                    || (sealbook != T.NONE && data.SealbookEnchants.TryGetValue(sealbook, out var own) && own.Contains(F.WEAPON_MODIFIER_ENCHANT))
+                                    || (partyEnchants != null && partyEnchants.Contains(F.WEAPON_MODIFIER_ENCHANT))
+                                    || (forged != null && forged.TryGetValue(F.WEAPON_MODIFIER_ENCHANT, out int fw) && fw > 0);
+            double modifierUp = weaponModifierUp ? F.WEAPON_MODIFIER_UP : 0.0;
             var gains = new int[6];
             foreach (var use in equipment)
             {
@@ -489,7 +497,7 @@ namespace DtEngine
                     if (matches)
                         for (int s = 0; s < 6; s++)
                             if (stats[s] > 0)
-                                gains[s] += Math.Max(0, PyMath.Int((characterStats[s] + stats[s]) * (entry.Modifier + 0.01 * yearning)));
+                                gains[s] += Math.Max(0, PyMath.Int((characterStats[s] + stats[s]) * (entry.Modifier + 0.01 * yearning + modifierUp)));
                 }
             }
             for (int s = 0; s < 6; s++) totals[s] += gains[s];

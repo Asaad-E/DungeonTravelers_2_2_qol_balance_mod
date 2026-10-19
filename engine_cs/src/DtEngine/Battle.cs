@@ -810,7 +810,17 @@ namespace DtEngine
                 lastAction[unit] = null;
                 return;
             }
-            if (action.Kind == AKind.Defend) { unit.Defending = true; return; }
+            if (action.Kind == AKind.Defend)
+            {
+                unit.Defending = true;
+                // enchantments 257 and 292: a defending unit recovers max(10, int(max HP * 0.2)) HP and max(5, int(max TP * 0.1)) TP
+                // (0x4197ae - 0x41982c, 0x419843 - 0x4198a6)
+                if (unit.Pieces(F.DEFEND_HP_ENCHANT) != 0)
+                    Healed(unit, Restore(unit, Math.Max(F.DEFEND_HP_FLOOR, PyMath.Int(F.Single(F.Single(unit.MaxHp) * F.Single(F.DEFEND_HP_SHARE))))));
+                if (unit.Pieces(F.DEFEND_TP_ENCHANT) != 0)
+                    unit.Tp = Math.Min(unit.MaxTp, Math.Max(0, unit.Tp + Math.Max(F.DEFEND_TP_FLOOR, PyMath.Int(F.Single(F.Single(unit.MaxTp) * F.Single(F.DEFEND_TP_SHARE))))));
+                return;
+            }
             if (action.Kind == AKind.Wait) return;
             if (action.Kind == AKind.Item) { UseItem(action); return; }
             if (ZoneInfo != null && ZoneInfo.NoMagic && unit.Kind != Kind.Doll && action.Spell)
@@ -1537,7 +1547,7 @@ namespace DtEngine
             double raceBonus = (action.Has(88) && (target.Race == 5 || target.Race == 7 || target.Race == 8)) ? action.Val(88, 0) : 0.0;
             if (action.Has(87) && target.Race == 5) { immediateZero = 1; return 0; }
             double race = (RaceFactor(unit, target) + raceBonus) * ElementFactor(unit, target, action.Attr);
-            double other = target.Value(190) + unit.StatusValue(191) + FullHpBonus(unit);
+            double other = target.Value(190) + unit.StatusValue(191) + FullHpBonus(unit) + LevelBonus(unit, target);
             var guard = target.St[MATERIAL_GUARD];
             if (guard != null && (guard.Source == null || (guard.Source.Alive && guard.Source.Shield))) other += guard.Value;
             if (target.Side == Unit.PARTY && !target.Front)
@@ -1623,7 +1633,7 @@ namespace DtEngine
             int resistance = resistIndex >= 0 ? target.Resistance(resistIndex) : 0;
             double powerBoost = First(action, unit, 27) + First(action, unit, 173);
             double cut = Math.Max(-0.25, -(0.10 * target.Pieces(68) + 0.05 * target.Pieces(69) + 0.08 * target.Pieces(70) + 0.04 * target.Pieces(71))) + target.StatusValue(183);
-            double other = target.Value(190) + FullHpBonus(unit);
+            double other = target.Value(190) + FullHpBonus(unit) + LevelBonus(unit, target);
             cut += RaceGuard(unit, target) - 1.0;
             double targetMods;
             {
@@ -1884,6 +1894,10 @@ namespace DtEngine
             if (enchant < 0) return 1.0;
             return 1.0 + F.ELEMENT_ENCHANT_SHARE * (unit.Pieces(enchant) + target.Pieces(enchant));
         }
+
+        static double LevelBonus(Unit unit, Unit target) =>
+            target.Level > unit.Level ? F.LEVEL_BONUS_SHARE * unit.Pieces(F.HIGHER_LEVEL_ENCHANT)
+            : target.Level < unit.Level ? F.LEVEL_BONUS_SHARE * unit.Pieces(F.LOWER_LEVEL_ENCHANT) : 0.0;
 
         static double FullHpBonus(Unit unit)
         {

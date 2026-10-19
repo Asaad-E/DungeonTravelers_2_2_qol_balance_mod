@@ -23,6 +23,7 @@ namespace DtEngine.Suite
             { "provoke-trial", TrialsB.ProvokeTrial },
             { "boss-trim-trial", TrialsB.BossTrimTrial },
             { "grand-sealbook-trial", TrialsB.GrandSealbookTrial },
+            { "unique-gear-trial", TrialsB.UniqueGearTrial },
             { "lize-ideas", TrialsB.LizeIdeas },
             { "mercenary-trial", TrialsB.MercenaryTrial },
             { "one-skill-trial", TrialsB.OneSkillTrial },

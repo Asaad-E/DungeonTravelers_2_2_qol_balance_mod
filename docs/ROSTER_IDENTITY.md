@@ -335,7 +335,9 @@ in-game joke and stay one. The battery measures each against a band of points (`
 
 ### Peggy & Beard (35; from C28)
 - **Role:** jack of all trades: Bible Thump, War Cry, Fireball, Honey, Wait and See.
-- **Niche:** a short-lived early helper (offered for a short stretch).
+- **Niche:** the game's own answer to Calliope (C29): the one boss she can be taken to, where her Fireball from INT 500
+  passes the boss's heal wall (atwiki dt2-2 page 227). Offered at C28 - C29 only; she keeps the values of the game and
+  is exempt from the band of the mercenaries.
 - **Personality:** a penguin who can't communicate and a rare Libra Beard, "always up to no good".
 - **Kit:** Bible Thump, War Cry, Fireball, Honey, Wait and See; Take Break 20.
 - **Keep:** the mix and the idle share.

@@ -5,7 +5,7 @@
  "game_folder": "DungeonTravelers2-2_EN",
  "data_dir": ["Data", "ENG"],
  "text_subdirs": ["Parameter", "Script"],
- "value_subdirs": ["Enemy", "NPC"],
+ "value_subdirs": ["Enemy", "NPC", "Summon"],
  "dungeon_subdir": "Dungeon",
  "formula_exe": "DT22_en_unwrapped.exe",
  "save_dir": ["Documents", "AQUAPLUS", "DUNGEON TRAVELERS 2-2_EN"],

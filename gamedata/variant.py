@@ -9,6 +9,7 @@ written against a wrong reading cannot pass silently. Nothing here holds a value
     changed = balance_data(game_data())
 """
 import copy
+import struct
 import os
 
 import openpyxl
@@ -181,6 +182,18 @@ def apply(data, changes):
                 continue
             _check(row, npc[field])
             npc[field] = int(new)
+        elif table == 'summons':
+            # '<id> <name> (level <n>)': one factor of the stats of a form of a summon, or 'AI set <n> weights' of its script
+            form = next(s for s in out.summons if s['id'] == int(record.split()[0]))
+            if field.startswith('AI set '):
+                the_set = form['script']['sets'][int(field.split()[2])]
+                old, new_weights = [int(x) for x in str(row['Vanilla']).split()], [int(x) for x in str(new).split()]
+                if list(the_set['weights'][:len(old)]) != old or any(the_set['weights'][len(old):]):
+                    raise ValueError(f'{row["ID"]}: the weights of {record} {field} are {the_set["weights"]}, not {old}')
+                the_set['weights'] = new_weights + [0] * (len(the_set['weights']) - len(new_weights))
+                continue
+            _check(row, form['factors'][field])
+            form['factors'][field] = struct.unpack('<f', struct.pack('<f', float(new)))[0]      # a float of the record
         elif table == 'party_skills':
             continue                    # out of the model; tools/balance_values.py writes and checks the row
         elif table == 'quests':

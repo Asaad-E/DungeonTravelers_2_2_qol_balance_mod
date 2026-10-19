@@ -171,6 +171,16 @@ namespace DtEngine
         public static readonly List<int> DEMON_WALL_RACES = new List<int> { 5, 7, 8 };   // the attacker races Demon Wall stops (0x557e1c, 0x557e7c, 0x557eac)
         public const double ELEMENT_BOOST_CAP = 0.4;          // the element boost of a spell is at most 0.4 (0x44e409, 0x44e41e)
         public const int FULL_HP_BONUS_ENCHANT = 271;
+        // enchantments 219 and 220: +0.1 a piece to the other bonus of a blow or a spell when the target's level is above (219) or
+        // below (220) the attacker's (0x44ca01 - 0x44ca8b, 0x44ecc1 - 0x44ed4b)
+        public const int HIGHER_LEVEL_ENCHANT = 219, LOWER_LEVEL_ENCHANT = 220;
+        public const double LEVEL_BONUS_SHARE = 0.1;
+        // enchantment 264: +0.02 to the class weapon modifier of the stats when any piece carries it (0x4f7fb0 - 0x4f7fd9)
+        public const int WEAPON_MODIFIER_ENCHANT = 264;
+        // enchantments 257 and 292: what a defending unit recovers (0x4197ae - 0x41982c, 0x419843 - 0x4198a6)
+        public const int DEFEND_HP_ENCHANT = 257, DEFEND_TP_ENCHANT = 292, DEFEND_HP_FLOOR = 10, DEFEND_TP_FLOOR = 5;
+        public const double DEFEND_HP_SHARE = 0.2, DEFEND_TP_SHARE = 0.1;
+        public const double WEAPON_MODIFIER_UP = 0.02;
         public const double FULL_HP_BONUS_SHARE = 0.1;
         public const int MAGIC_USER_LOW = 12, MAGIC_USER_HIGH = 20; // range(12, 20)
         public const int AILING_ENCHANT = 280;

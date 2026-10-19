@@ -862,6 +862,19 @@ namespace DtEngine
         }
 
         /// <summary>sim.measures.play_checkpoint: the level of the party and the summary of its runs at the fixed battles of the checkpoint.</summary>
+        /// <summary>A job's guest that hires nobody but keeps the summon (the side "without" of the mercenary battery).</summary>
+        public const string NO_GUEST = "-";
+
+        /// <summary>The party with the mercenary the sheet CheckpointGuests hires for this boss, if any.</summary>
+        public List<Unit> WithCheckpointGuest(List<Unit> party, string cid)
+        {
+            string guest = Setup.CheckpointGuest(cid);
+            if (guest == null) return party;
+            var stage = UnitFactory.GuestStageAt(Data, Setup, guest, cid);
+            if (stage != null) party.Add(UnitFactory.BuildGuest(Data, stage));
+            return party;
+        }
+
         public (int level, Summary summary) PlayCheckpoint(string cid, int? runs, int threads = 1)
         {
             var cp = Setup.Checkpoint(cid);
@@ -870,7 +883,7 @@ namespace DtEngine
             int crown = cp.Truthy("Crown bonus") ? cp.Int("Crown bonus") : 0;
             int n = runs ?? Setup.SettingInt("runs");
             ulong seed = (ulong)Setup.SettingInt("seed");
-            var results = PlayRuns(() => ReferenceParty(Setup.Composition, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor")),
+            var results = PlayRuns(() => WithCheckpointGuest(ReferenceParty(Setup.Composition, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor")), cid),
                                    s => BattleNumbers(cp).Select(number => FixedBattle(cp.Str("Floor"), number)).ToList(),
                                    n, seed, OptionsFrom(Setup, null), threads);
             return (level, Summary.Of(results.ToList()));

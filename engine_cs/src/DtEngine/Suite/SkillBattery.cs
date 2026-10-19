@@ -31,6 +31,7 @@ namespace DtEngine.Suite
             public JobResult Without, With;
             public double Wins, Length, Hp, Tp, Alive;      // with - without: share of wins, share by which the won fights are shorter, HP left, TP left, members alive
             public bool Same, Serves, Hurts;
+            public bool Unclear;                            // neither shown to serve nor shown below every threshold: more runs can settle it
             public double Score;
         }
 
@@ -66,12 +67,11 @@ namespace DtEngine.Suite
             cell.Hp = b.hp - a.hp;
             cell.Tp = b.tp - a.tp;
             cell.Alive = b.alive - a.alive;
-            double winsT = Math.Max(w, z * Noise.Paired(Of(A, x => x.Won ? 1 : 0), Of(B, x => x.Won ? 1 : 0)));
-            double hpT = Math.Max(h, z * Noise.Paired(Of(A, x => x.HpLeft), Of(B, x => x.HpLeft)));
-            double tpT = Math.Max(tpGain, z * Noise.Paired(Of(A, x => x.TpLeft), Of(B, x => x.TpLeft)));
-            double aliveT = Math.Max(aliveGain, z * Noise.Paired(Of(A, x => x.Alive), Of(B, x => x.Alive)));
+            double seW = Noise.Paired(Of(A, x => x.Won ? 1 : 0), Of(B, x => x.Won ? 1 : 0)), seH = Noise.Paired(Of(A, x => x.HpLeft), Of(B, x => x.HpLeft));
+            double seT = Noise.Paired(Of(A, x => x.TpLeft), Of(B, x => x.TpLeft)), seA = Noise.Paired(Of(A, x => x.Alive), Of(B, x => x.Alive));
+            double winsT = Math.Max(w, z * seW), hpT = Math.Max(h, z * seH), tpT = Math.Max(tpGain, z * seT), aliveT = Math.Max(aliveGain, z * seA);
             var both = Enumerable.Range(0, n).Where(k => A[k].Won && B[k].Won).ToList();
-            double lengthT = double.PositiveInfinity;
+            double lengthT = double.PositiveInfinity, seL = double.NaN;
             cell.Length = 0.0;
             if (both.Count >= minWins)
             {
@@ -79,13 +79,17 @@ namespace DtEngine.Suite
                 if (ta > 0)
                 {
                     cell.Length = 1 - both.Average(k => B[k].Time) / ta;
-                    lengthT = Math.Max(l, z * Noise.Paired(both.Select(k => B[k].Time / ta).ToList(), both.Select(k => A[k].Time / ta).ToList()));
+                    seL = Noise.Paired(both.Select(k => B[k].Time / ta).ToList(), both.Select(k => A[k].Time / ta).ToList());
+                    lengthT = Math.Max(l, z * seL);
                 }
             }
             cell.Same = SameRuns(cell.Without, cell.With);
             bool winsUp = cell.Wins >= winsT, winsDown = cell.Wins <= -winsT;
             cell.Serves = !cell.Same && (winsUp || (!winsDown && (cell.Length >= lengthT || cell.Hp >= hpT || cell.Tp >= tpT || cell.Alive >= aliveT)));
             cell.Hurts = !cell.Same && (winsDown || (!winsUp && cell.Length <= -lengthT && cell.Hp <= 0));
+            // not shown to serve, but some figure could still reach its threshold within z standard errors: the cell is not settled
+            cell.Unclear = !cell.Same && !cell.Serves && (cell.Wins + z * seW >= w || (!double.IsNaN(seL) && cell.Length + z * seL >= l)
+                           || cell.Hp + z * seH >= h || cell.Tp + z * seT >= tpGain || cell.Alive + z * seA >= aliveGain);
             cell.Score = winsDown ? double.NegativeInfinity
                        : new[] { cell.Wins / winsT, double.IsInfinity(lengthT) ? 0.0 : cell.Length / lengthT, cell.Hp / hpT, cell.Tp / tpT, cell.Alive / aliveT }.Max();
         }
@@ -136,7 +140,7 @@ namespace DtEngine.Suite
             if (e.Guest != null)
                 // mercenary-battery: the party as built (with the summon of its grand sealbook) against the same party with the mercenary
                 // hired beside it (units 3000 and 3001 of the program)
-                return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, enemies: enemies, options: options, guest: use ? e.Guest : null, record: record,
+                return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, enemies: enemies, options: options, guest: use ? e.Guest : Scenario.NO_GUEST, record: record,
                                name:e.Guest + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
             Obj recipe;
             if (e.Girl != null)
@@ -300,6 +304,29 @@ namespace DtEngine.Suite
             return name;
         }
 
+        /// <summary>The confirmed cells of an entry none of which serves while some is not settled (Cell.Unclear), played again at the
+        /// runs of settle_runs: a small effect is then shown, or shown under every threshold, instead of being called dead on noise.</summary>
+        static void Settle<K>(Ctx c, Dictionary<K, List<Cell>> again, int batch, Obj cfg)
+        {
+            int runs = (int)Py.Num(cfg.Get("settle_runs"));
+            var redo = new List<Cell>();
+            var at = new List<(K key, int i)>();
+            foreach (var kv in again)
+            {
+                if (kv.Value.Any(x => x.Serves) || !kv.Value.Any(x => x.Unclear)) continue;
+                for (int i = 0; i < kv.Value.Count; i++)
+                    if (kv.Value[i].Unclear)
+                    {
+                        var t = kv.Value[i];
+                        redo.Add(new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain });
+                        at.Add((kv.Key, i));
+                    }
+            }
+            if (redo.Count == 0) return;
+            Play(c, redo, runs, batch, cfg);
+            for (int k = 0; k < redo.Count; k++) again[at[k].key][at[k].i] = redo[k];
+        }
+
         static void Play(Ctx c, List<Cell> cells, int runs, int batch, Obj cfg)
         {
             for (int start = 0; start < cells.Count; start += batch)
@@ -413,6 +440,7 @@ namespace DtEngine.Suite
                 confirm.AddRange(again[kv.Key]);
             }
             Play(c, confirm, confirmRuns, batch, cfg);
+            Settle(c, again, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             double good = cfg.D("good_share");
@@ -428,6 +456,7 @@ namespace DtEngine.Suite
                 string verdict;
                 if (top == null) verdict = "no effect";
                 else if (top.Serves) verdict = (double)serves / n >= good ? "good" : "niche";
+                else if (again.TryGetValue(kv.Key, out var settled) && settled.Any(x => x.Unclear)) verdict = "unclear";
                 else if ((double)hurts / n >= good) verdict = "hurts";
                 else verdict = "dead";
                 counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
@@ -456,7 +485,7 @@ namespace DtEngine.Suite
             Directory.CreateDirectory(dir);
             M.ClearFolder(dir);
             c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
-            var order = new[] { "good", "niche", "dead", "hurts", "no effect" };
+            var order = new[] { "good", "niche", "unclear", "dead", "hurts", "no effect" };
             var text = new List<string>
             {
                 "# Every skill with and without (generated)", "",
@@ -467,10 +496,11 @@ namespace DtEngine.Suite
                     + "dtcli skill-value; damage skills and passives by the policy of the model. Played as: one role for each class that learns the skill, the "
                     + "first whose class of the stage it is, else the first whose path holds it; when her weapon cannot use the skill she takes the piece weapon_of_type names "
                     + "for a type it allows (shown beside the role). A status skill goes before the statuses the role keeps up. Scan: " + scanRuns + " runs a cell; the " + keep + " best cells of each "
-                    + "skill again at " + confirmRuns + " runs, and the verdict reads the best of those.", "",
+                    + "skill again at " + confirmRuns + " runs, and the verdict reads the best of those; a skill whose confirmed cells are not settled plays them again at " + Py.Str(cfg.Get("settle_runs")) + " runs.", "",
                 "A cell serves: wins +" + Py.Pct(cfg.D("wins"), 0) + ", or wins not down that much and won fights " + Py.Pct(cfg.D("length"), 0) + " shorter or HP left +"
-                    + Py.Pct(cfg.D("hp"), 0) + " or TP left +" + Py.Pct(cfg.D("tp"), 0) + " or " + Py.F(cfg.D("alive"), 1) + " more members alive at the end. Good: the best cell serves and " + Py.Pct(good, 0) + " or more of the cells serve; niche: the best cell serves, fewer do; dead: "
-                    + "the best cell does not serve; hurts: no cell serves and " + Py.Pct(good, 0) + " or more make it worse; no effect: every battle the same with and "
+                    + Py.Pct(cfg.D("hp"), 0) + " or TP left +" + Py.Pct(cfg.D("tp"), 0) + " or " + Py.F(cfg.D("alive"), 1) + " more members alive at the end. Good: the best cell serves and " + Py.Pct(good, 0) + " or more of the cells serve; niche: the best cell serves, fewer do; unclear: no confirmed cell "
+                    + "serves, but one could still reach a threshold within the noise even after " + Py.Str(cfg.Get("settle_runs")) + " runs (statistics of the configuration); dead: "
+                    + "the best cell does not serve and every confirmed cell stays under every threshold beyond the noise; hurts: no cell serves and " + Py.Pct(good, 0) + " or more make it worse; no effect: every battle the same with and "
                     + "without (the skill does nothing the model plays, or the model never uses it): to read.", "",
                 "**" + bySkill.Count + " skills played: " + string.Join(", ", order.Select(v => counts.GetValueOrDefault(v) + " " + v)) + ". "
                     + outOfFight.Count + " out of the fight, " + noRole.Count + " with no role that plays their class. " + cells.Count + " cells.**", "",
@@ -497,7 +527,7 @@ namespace DtEngine.Suite
         {
             Run(c, new[] { "*" });
             var rows = (List<object>)c.ReadJson(c.Path("docs", "generated", "skill_battery", "part_1.json"));
-            var rest = rows.Cast<Obj>().Where(r => r.S("verdict") == "dead" || r.S("verdict") == "hurts" || r.S("verdict") == "no effect")
+            var rest = rows.Cast<Obj>().Where(r => r.S("verdict") == "dead" || r.S("verdict") == "unclear" || r.S("verdict") == "hurts" || r.S("verdict") == "no effect")
                            .Select(r => r.S("skill")).ToList();
             var cfg = c.In("skill_battery");
             if (rest.Count > 0)
@@ -627,6 +657,7 @@ namespace DtEngine.Suite
                 if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
             }
             Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
+            Settle(c, again, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             // how each one plays: the reference party at every boss of the story and the postgame where the bar offers her (not only the
@@ -673,6 +704,7 @@ namespace DtEngine.Suite
                 int n = all.Count, serves = all.Count(x => x.Serves), hurts = all.Count(x => x.Hurts), same = all.Count(x => x.Same);
                 best.TryGetValue(name, out var top);
                 string verdict = top == null ? "no effect" : top.Serves ? ((double)serves / n >= good ? "good" : "niche")
+                               : again.TryGetValue(name, out var settled) && settled.Any(x => x.Unclear) ? "unclear"
                                : (double)hurts / n >= good ? "hurts" : "dead";
                 counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
                 string from = all.Select(x => x.Cid).First();
@@ -696,7 +728,7 @@ namespace DtEngine.Suite
             Directory.CreateDirectory(dir);
             M.ClearFolder(dir);
             c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
-            var order = new[] { "good", "niche", "dead", "hurts", "no effect" };
+            var order = new[] { "good", "niche", "unclear", "dead", "hurts", "no effect" };
             var text = new List<string>
             {
                 "# Every mercenary, hired or not (generated)", "",
@@ -900,6 +932,7 @@ namespace DtEngine.Suite
                 if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
             }
             Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
+            Settle(c, again, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             double good = cfg.D("good_share");
@@ -912,6 +945,7 @@ namespace DtEngine.Suite
                 int n = all.Count, serves = all.Count(x => x.Serves), hurts = all.Count(x => x.Hurts), same = all.Count(x => x.Same);
                 best.TryGetValue(kv.Key, out var top);
                 string verdict = top == null ? "no effect" : top.Serves ? ((double)serves / n >= good ? "good" : "niche")
+                               : again.TryGetValue(kv.Key, out var settled) && settled.Any(x => x.Unclear) ? "unclear"
                                : (double)hurts / n >= good ? "hurts" : "dead";
                 counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
                 // by stage: the share of cells where it serves and where it hurts
@@ -940,7 +974,7 @@ namespace DtEngine.Suite
             Directory.CreateDirectory(dir);
             M.ClearFolder(dir);
             c.WriteText(Path.Combine(dir, "part_1.json"), PyJson.Dump(rows), false);
-            var order = new[] { "good", "niche", "dead", "hurts", "no effect" };
+            var order = new[] { "good", "niche", "unclear", "dead", "hurts", "no effect" };
             var text = new List<string>
             {
                 "# Every unique skill with and without (generated)", "",

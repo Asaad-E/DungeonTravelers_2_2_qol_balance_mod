@@ -140,5 +140,13 @@ namespace DtEngine.Suite
             copy.GrandSealbooks = rows;
             return copy;
         }
+
+        /// <summary>A copy of the setup with these rows of the sheet UniqueGear (none: every member wears the forged pieces of her plan).</summary>
+        public static Setup WithUniqueGear(Setup s, List<Row> rows)
+        {
+            var copy = s.WithPolicies(s.Policies);
+            copy.UniqueGear = rows;
+            return copy;
+        }
     }
 }

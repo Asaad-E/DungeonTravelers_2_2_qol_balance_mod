@@ -95,6 +95,32 @@ namespace DtEngine.Suite
             }
         }
 
+        /// <summary>dtcli unique-gear-trial [runs]: at every checkpoint from the first that gives a unique piece (sheet UniqueGear) to the
+        /// last, the reference party with its unique pieces against the same party in the forged pieces of its plan (chosen enchantments,
+        /// sheet EnchantPlan) in their place; the register row S16 (a forged piece beats the unique ones).</summary>
+        public static void UniqueGearTrial(Ctx c, string[] a)
+        {
+            int runs = a.Length > 0 ? int.Parse(a[0]) : 200;
+            string none = c.AddSetup(Kit.WithUniqueGear(c.Setup, new List<Row>()));
+            var order = c.Setup.Checkpoints.Select(r => r.Str("ID")).ToList();
+            int from = c.Setup.UniqueGear.Select(r => order.IndexOf(r.Str("From checkpoint"))).Where(i => i >= 0).Min();
+            foreach (var cid in order.Skip(from))
+            {
+                var jobs = new List<Obj>();
+                foreach (var setup in new[] { (string)null, none })
+                {
+                    var job = new Obj { { "id", "pc" }, { "measure", "play_checkpoint" }, { "side", "variant" }, { "cid", cid }, { "runs", (long)runs } };
+                    if (setup != null) job.Set("setup", setup);
+                    jobs.Add(job);
+                }
+                var done = c.Measure(jobs);
+                var u = M.Summary(done[0].O("summary")); var f = M.Summary(done[1].O("summary"));
+                var pieces = c.Setup.UniqueGear.Where(r => order.IndexOf(r.Str("From checkpoint")) <= order.IndexOf(cid)).Select(r => r.Str("Piece"));
+                Trials.Say(c, cid + " | unique pieces: won " + Py.Pct(u.D("won"), 0) + ", length " + Py.F(u.DN("time") ?? 0, 1) + " | forged instead: won "
+                           + Py.Pct(f.D("won"), 0) + ", length " + Py.F(f.DN("time") ?? 0, 1) + " | " + string.Join(", ", pieces));
+            }
+        }
+
         // --- lize_ideas.py ------------------------------------------------------------------------------------------
         public static void LizeIdeas(Ctx c, string[] a)
         {

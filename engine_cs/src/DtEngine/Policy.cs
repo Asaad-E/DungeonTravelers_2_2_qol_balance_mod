@@ -11,7 +11,7 @@ namespace DtEngine
         static readonly int[] DOLL_EFFECTS = { 228, 229, 230, 231, 232, 233 };
         const string EVERY_ROLE = "*";
 
-        enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree, FoesAttack }
+        enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree, FoesAttack, EnemyNamed }
         enum Act { Damage, Heal, Revive, Status, Dispel, Doll, Tp, Cure, Ailment, Item, Skill, Defend }
 
         sealed class Rule
@@ -78,6 +78,7 @@ namespace DtEngine
                 case "no_doll": return Cond.NoDoll;
                 case "doll_slot_free": return Cond.DollSlotFree;
                 case "foes_attack": return Cond.FoesAttack;
+                case "enemy_named": return Cond.EnemyNamed;
             }
             throw new InvalidOperationException("unknown condition " + name + " in role " + r.Str("Role"));
         }
@@ -256,6 +257,10 @@ namespace DtEngine
                 case Cond.EnemiesAtLeast: return EnemiesOf(b, u).Length >= PyMath.Int(Fraction(a, 2));
                 case Cond.Boss: return b.Fixed || b.Options.Boss;
                 case Cond.FoesAttack: return FoesAttack(b, u, a);
+                case Cond.EnemyNamed:
+                    // a strategy of a guide for one boss: the rule holds while an enemy of that name stands (names split by |)
+                    foreach (var t in EnemiesOf(b, u)) foreach (var name in (a ?? "").Split('|')) if (t.Name == name.Trim()) return true;
+                    return false;
                 case Cond.NoDoll:
                     foreach (var x in b.Units) if (x.Owner == u && x.Alive && x.Kind == Kind.Doll) return false;
                     return true;
@@ -863,6 +868,15 @@ namespace DtEngine
         Action ActAilment(Battle battle, Unit unit, string arg)
         {
             double floor = ailmentMinChance * 100;
+            // "117;115@0.25": a floor of the rule's own (a guide's strategy against one boss tries a lower chance)
+            bool ownFloor = false;
+            int at = (arg ?? "").IndexOf('@');
+            if (at >= 0)
+            {
+                floor = double.Parse(arg.Substring(at + 1), System.Globalization.CultureInfo.InvariantCulture) * 100;
+                arg = arg.Substring(0, at);
+                ownFloor = true;
+            }
             Action best = null;
             bool haveKey = false; int bestMax = 0; double bestChance = 0;
             foreach (int effect in AilmentsOf(arg))
@@ -891,7 +905,7 @@ namespace DtEngine
                         bool greater = !haveKey || maxHp > bestMax || (maxHp == bestMax && chance > bestChance);
                         // a floor of its own for an ailment whose roll is a fixed chance (Settings ailment_min_chance_<effect>)
                         object own = policySetup.Setting("ailment_min_chance_" + effect);
-                        double floorOf = own == null ? floor : Setup.ToDouble(own) * 100;
+                        double floorOf = own == null || ownFloor ? floor : Setup.ToDouble(own) * 100;
                         if (chance >= floorOf && greater)
                         {
                             best = new Action(unit, AKind.Skill, skill, level);

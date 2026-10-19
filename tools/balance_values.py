@@ -22,6 +22,8 @@ A row is one value of one record. Each kind of row has its address here, with th
     party_skills  PartySkillData: the id of its effect 0x4C (the size of a bonus is the program's, by effect)
     npcs          NPC.pck, NPCData of a guest ally at one stage of her growth (tools/npc_data.py): one of the six
                   stats from 0x20; NPCAIData: the weights of a set of her script
+    summons       Summon.pck, SummonData of one form of a summon (tools/summon_data.py): one of the six factors of its
+                  stats from 0x24; SummonAIData: the weights of a set of its script
     enchantments  EnchantData: the flags word 0x20
     quests        QuestData: the amount 0x40 of a quest whose reward is gold (kind 3 at 0x38)
     zones         a floor file of Dungeon/stNN/Data.pck: one of the chances of a wandering shop of a zone. These packs
@@ -51,6 +53,7 @@ import openpyxl                                          # noqa: E402
 import enemy_ai                                          # noqa: E402
 import enemy_data                                        # noqa: E402
 import npc_data                                          # noqa: E402
+import summon_data                                       # noqa: E402
 from extract_vanilla import SKILL_LAYOUTS, SLOT_SIZE, LEVELS, looks_float      # noqa: E402
 from pck_handler import PckArchive                       # noqa: E402
 
@@ -66,7 +69,8 @@ _L = {name: layout(name) for name in ('NPCData', 'EnemyStatusData', 'EnemyAttack
                                       'QuestData')}
 NPC_PCK, NPC_RECORD, NPC_AI = os.path.join('NPC', 'NPC.pck'), 'NPCData.bin', 'NPCAIData.bin'
 NPC_ID, NPC_STATS = _L['NPCData']['id'], _L['NPCData']['stats']
-NESTED_PCKS = (ENEMY_PCK, NPC_PCK)      # packs of a subfolder whose entries are archives themselves
+SUMMON_PCK, SUMMON_RECORD, SUMMON_AI = os.path.join('Summon', 'Summon.pck'), 'SummonData.bin', 'SummonAIData.bin'
+NESTED_PCKS = (ENEMY_PCK, NPC_PCK, SUMMON_PCK)      # packs of a subfolder whose entries are archives themselves
 FLOAT_TOLERANCE = 5e-5                    # the workbook holds floats rounded to four decimals
 ENEMY_STATS = dict(enemy_data.STATS)
 _E = _L['EnemyStatusData']
@@ -405,6 +409,41 @@ def npc_row(packs, row):
     raise Refused(f'no guest ally has the id {nid}')
 
 
+def _ai_weights(packs, row, where_pack, name, inner, field):
+    """'AI set <n> weights' (columns Vanilla and New: the weights of the slots, separated by spaces): one byte a slot after
+    the set marker of a script in the format of the enemies (tools/enemy_ai.py)."""
+    number_of_set = int(field.split()[2])
+    old, new = ([int(x) for x in str(row[c]).split()] for c in ('Vanilla', 'New'))
+    if len(old) != len(new) or len(new) > enemy_ai.WEIGHTS or not all(0 <= w <= 255 for w in new) or sum(new) == 0:
+        raise Refused('the weights must be as many as the vanilla ones, bytes, and not all 0')
+    old += [0] * (enemy_ai.WEIGHTS - len(old))
+    new += [0] * (enemy_ai.WEIGHTS - len(new))
+    buf = bytes(packs.entry(where_pack, name, inner))
+    needle = bytes([enemy_ai.SET, number_of_set] + old)
+    at = buf.find(needle)
+    if at == -1 or buf.find(needle, at + 1) != -1:
+        raise Refused(f'set {number_of_set} with the vanilla weights is not found once in the script')
+    packs.write_bytes(row, (where_pack, name, inner, at + 2), bytes(old), bytes(new))
+
+
+def summon_row(packs, row):
+    """Record '<id> <name> (level <n>)': one form of a summon of a grand sealbook (tools/summon_data.py); field one of the
+    six factors of its stats (a float: each stat is the best member's times it, 0x4ffc90), or 'AI set <n> weights', the
+    weights of a set of its SummonAIData script."""
+    sid, field = int(str(row['Record']).split()[0]), str(row['Field'])
+    if field not in summon_data.STATS and not re.fullmatch(r'AI set \d+ weights', field):
+        raise Refused(f'unknown field {field!r} of a summon')
+    for name, _ in packs.archive(SUMMON_PCK).files:
+        if struct.unpack_from('<i', packs.entry(SUMMON_PCK, name, SUMMON_RECORD), summon_data.RECORD['id'])[0] == sid:
+            if field in summon_data.STATS:
+                packs.write(row, (SUMMON_PCK, name, SUMMON_RECORD, summon_data.RECORD['factors'] + 4 * summon_data.STATS.index(field)), 'f',
+                            float(row['New']), vanilla=float(row['Vanilla']))
+            else:
+                _ai_weights(packs, row, SUMMON_PCK, name, SUMMON_AI, field)
+            return
+    raise Refused(f'no summon form has the id {sid}')
+
+
 def unique_row(packs, row):
     """Record 'Unique <id> <name>', field 'value', column Level the rank (10: the crown value); or field 'effect id',
     the effect the skill is a status of."""
@@ -508,7 +547,7 @@ def class_growth_row(packs, row):
 WRITERS = {'skills': skill_row, 'class_growth': class_growth_row, 'enemies': enemy_row, 'attacks': attack_row, 'sp_curve': sp_row,
            'equipment': equipment_row, 'sealbooks': sealbook_row, 'enchantments': enchantment_row, 'quests': quest_row,
            'items': item_row, 'unique': unique_row,
-           'party_skills': party_skill_row, 'npcs': npc_row, 'zones': zone_row}
+           'party_skills': party_skill_row, 'npcs': npc_row, 'zones': zone_row, 'summons': summon_row}
 
 
 def apply(rows=None, backup_dir=BACKUP_DIR):

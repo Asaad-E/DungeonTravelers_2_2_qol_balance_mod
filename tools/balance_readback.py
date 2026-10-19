@@ -22,6 +22,7 @@ import openpyxl                                          # noqa: E402
 import enemy_ai                                          # noqa: E402
 import enemy_data                                        # noqa: E402
 import npc_data                                          # noqa: E402
+import summon_data                                       # noqa: E402
 import extract_vanilla                                   # noqa: E402
 from gamedata import data as sim_data                         # noqa: E402
 from gamedata.variant import balance_data                     # noqa: E402
@@ -82,6 +83,7 @@ def built_data(built_dir=BUILT_DIR, source=SOURCE):
     for enemy in enemy_data.enemies(os.path.join(built_dir, 'Enemy', 'Enemy.pck')):
         data.enemies[enemy['id']] = enemy
     data.npcs = npc_data.npcs(os.path.join(built_dir, 'NPC', 'NPC.pck'))
+    data.summons = summon_data.summons(os.path.join(built_dir, 'Summon', 'Summon.pck'))
     return data
 
 
