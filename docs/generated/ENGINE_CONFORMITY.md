@@ -7,10 +7,10 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | Verdict | Items | Meaning |
 |---|---|---|
 | MATCH | 62 | the engine does what the program does |
-| FIXED | 32 | the audit found a difference; the engine was corrected (commit named) |
+| FIXED | 39 | the audit found a difference; the engine was corrected (commit named) |
 | MODEL-LIMIT | 5 | the engine leaves out a detail on purpose; the note says which, and where it can matter |
 | N/A | 0 | not a mechanic of a battle |
-| Total | 99 | |
+| Total | 106 | |
 
 ## Phase 0
 
@@ -185,3 +185,15 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P14.4 | Rounding in reports and component addition |  | SkillBattery.cs:RunMercenaries, Guests.cs:Report, Py.cs:Pct | FIXED (13c4e2f) | The components of the mercenary, guest and unique-skill tables are printed to one decimal, so their sum reads as the ranking. |
 | P14.5 | Credit attribution in the recorder |  | Battle.cs:Perform, Battle.cs:TakeDamage, Battle.cs:Healed, ClassStages.cs:Figures | MATCH |  |
 | P14.6 | Noise and effect size across suite measures |  | SkillBattery.cs:Judge, Contested.cs:Run, Contested.cs:Report, SupportBattery.cs:Run | FIXED (13c4e2f) | A difference counts only above max(threshold, z standard errors); scan runs 40, confirmed cells 5, contested and support battery 100 runs. |
+
+## Phase 15
+
+| Item | Mechanic | Program | Engine | Verdict | Note |
+|---|---|---|---|---|---|
+| P15.1 | A missed spell deals part of its damage; spells deal at least 1 to 5 | 0x44ed8c, 0x44ee33, 0x44ee70, 0x423257 | Battle.cs:MagicDamageActual, Battle.cs:Damage | FIXED (d8fd32b) | A missed spell deals half its damage, three quarters with enchantment 272, never a critical; any spell at 0 or less deals 1 to 5. Its other effects are not applied (not read). |
+| P15.2 | Enchantments 219 and 220: bonus by level gap | 0x44ca01, 0x44ecc1 | Battle.cs:LevelBonus | FIXED (d8fd32b) | +0.1 a piece to the other bonus when the target is of a higher (219) or lower (220) level. |
+| P15.3 | Enchantment 264: class weapon modifier | 0x4f7fb0 | Units.cs:BuildMember | FIXED (d8fd32b) | +0.02 to the class weapon modifier when carried. |
+| P15.4 | Enchantments 257 and 292: recovery when defending | 0x4197ae, 0x419843 | Battle.cs:Perform | FIXED (d8fd32b) | Defending recovers max(10, 20% max HP) and max(5, 10% max TP). |
+| P15.5 | Enchantments 144 - 149 and 296: recovery every turn | 0x437bb5, 0x437d7a | Battle.cs:EnchantRecovery | FIXED (d8fd32b) | HP 4% (min 4), 2% (min 2), 8% (min 10) a piece, all on 4 in 100 with 296; TP 4, 2, 6 a piece; after the statuses. |
+| P15.6 | Enchantment 194: all TP after a battle | 0x43d904 | Scenario.cs:RecoverAfterBattle | FIXED (d8fd32b) | As 193 for HP. |
+| P15.7 | Enchantment 293: rank of the unique skill | 0x4f716e | Units.cs:BuildMember | FIXED (d8fd32b) | +1 rank when the rank is 1 to 8. |

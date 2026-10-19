@@ -2023,6 +2023,132 @@
    "fixed_in": "13c4e2f",
    "note": "A difference counts only above max(threshold, z standard errors); scan runs 40, confirmed cells 5, contested and support battery 100 runs.",
    "reach": "All 4 scan/battery routines in `engine_cs/src/DtEngine/Suite` (`SkillBattery.Run`, `SkillBattery.RunMercenaries`, `Contested.Run`, `SupportBattery.Run`)."
+  },
+  {
+   "id": "P15.1",
+   "mechanic": "A missed spell deals part of its damage; spells deal at least 1 to 5",
+   "rule": "FORMULAS 16.9",
+   "program": [
+    "0x44ed8c",
+    "0x44ee33",
+    "0x44ee70",
+    "0x423257"
+   ],
+   "engine": [
+    "Battle.cs:MagicDamageActual",
+    "Battle.cs:Damage"
+   ],
+   "command": "python tools/exe_dis.py 0x44ed8c 0x44edec",
+   "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
+   "verdict": "FIXED",
+   "fixed_in": "d8fd32b",
+   "note": "A missed spell deals half its damage, three quarters with enchantment 272, never a critical; any spell at 0 or less deals 1 to 5. Its other effects are not applied (not read).",
+   "reach": ""
+  },
+  {
+   "id": "P15.2",
+   "mechanic": "Enchantments 219 and 220: bonus by level gap",
+   "rule": "FORMULAS 16.9",
+   "program": [
+    "0x44ca01",
+    "0x44ecc1"
+   ],
+   "engine": [
+    "Battle.cs:LevelBonus"
+   ],
+   "command": "python tools/exe_dis.py 0x44ca01 0x44ca61",
+   "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
+   "verdict": "FIXED",
+   "fixed_in": "d8fd32b",
+   "note": "+0.1 a piece to the other bonus when the target is of a higher (219) or lower (220) level.",
+   "reach": ""
+  },
+  {
+   "id": "P15.3",
+   "mechanic": "Enchantment 264: class weapon modifier",
+   "rule": "FORMULAS 16.9",
+   "program": [
+    "0x4f7fb0"
+   ],
+   "engine": [
+    "Units.cs:BuildMember"
+   ],
+   "command": "python tools/exe_dis.py 0x4f7fb0 0x4f8010",
+   "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
+   "verdict": "FIXED",
+   "fixed_in": "d8fd32b",
+   "note": "+0.02 to the class weapon modifier when carried.",
+   "reach": ""
+  },
+  {
+   "id": "P15.4",
+   "mechanic": "Enchantments 257 and 292: recovery when defending",
+   "rule": "FORMULAS 16.9",
+   "program": [
+    "0x4197ae",
+    "0x419843"
+   ],
+   "engine": [
+    "Battle.cs:Perform"
+   ],
+   "command": "python tools/exe_dis.py 0x4197ae 0x41980e",
+   "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
+   "verdict": "FIXED",
+   "fixed_in": "d8fd32b",
+   "note": "Defending recovers max(10, 20% max HP) and max(5, 10% max TP).",
+   "reach": ""
+  },
+  {
+   "id": "P15.5",
+   "mechanic": "Enchantments 144 - 149 and 296: recovery every turn",
+   "rule": "FORMULAS 16.9",
+   "program": [
+    "0x437bb5",
+    "0x437d7a"
+   ],
+   "engine": [
+    "Battle.cs:EnchantRecovery"
+   ],
+   "command": "python tools/exe_dis.py 0x437bb5 0x437c15",
+   "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
+   "verdict": "FIXED",
+   "fixed_in": "d8fd32b",
+   "note": "HP 4% (min 4), 2% (min 2), 8% (min 10) a piece, all on 4 in 100 with 296; TP 4, 2, 6 a piece; after the statuses.",
+   "reach": ""
+  },
+  {
+   "id": "P15.6",
+   "mechanic": "Enchantment 194: all TP after a battle",
+   "rule": "FORMULAS 16.9",
+   "program": [
+    "0x43d904"
+   ],
+   "engine": [
+    "Scenario.cs:RecoverAfterBattle"
+   ],
+   "command": "python tools/exe_dis.py 0x43d904 0x43d964",
+   "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
+   "verdict": "FIXED",
+   "fixed_in": "d8fd32b",
+   "note": "As 193 for HP.",
+   "reach": ""
+  },
+  {
+   "id": "P15.7",
+   "mechanic": "Enchantment 293: rank of the unique skill",
+   "rule": "FORMULAS 16.9",
+   "program": [
+    "0x4f716e"
+   ],
+   "engine": [
+    "Units.cs:BuildMember"
+   ],
+   "command": "python tools/exe_dis.py 0x4f716e 0x4f71ce",
+   "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
+   "verdict": "FIXED",
+   "fixed_in": "d8fd32b",
+   "note": "+1 rank when the rank is 1 to 8.",
+   "reach": ""
   }
  ]
 }
