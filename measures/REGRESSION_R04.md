@@ -35,7 +35,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C28 | variant | Diva | 50% | Meta with etoile for diva | 95% |
 | C29 | vanilla | Diva | 50% | Meta with etoile for diva | 78% |
 | C29 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 85% |
-| C29 | variant | Diva | 50% | Meta with etoile for diva | 88% |
+| C29 | variant | Diva | 50% | Meta with etoile for diva | 78% |
 | C30 | vanilla | Diva | 50% | Meta with etoile for diva | 92% |
 | C30 | variant | Diva | 50% | Meta with etoile for diva | 100% |
 | C32 | vanilla | Dark Lord | 80% | Meta with attacker for dark lord | 87% |

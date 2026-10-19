@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**52 nothing shown; 17 serves; 10 see SKILL_AILMENTS.md; 2 out of the fight (of 81).**
+**52 nothing shown; 18 serves; 10 see SKILL_AILMENTS.md; 2 out of the fight (of 82).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -17,7 +17,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Blood Rage | attacker | C38: wins +6%, length -6%, HP left +5 points | nothing shown |
 | Brave | dark lord | P24: wins +2%, length -7%, HP left +3 points | nothing shown |
 | Carrot and Stick | mistress | C30: wins +0%, length +1%, HP left +0 points | nothing shown |
-| Catalina | dolls | P24: wins +7%, length -14%, HP left +8 points | nothing shown |
+| Catalina | dolls | P24: wins +9%, length -15%, HP left +10 points | nothing shown |
 | Circle Heal | healer | P24: wins +0%, length -1%, HP left +1 points | nothing shown |
 | Circle Nurse | healer | C30: wins +0%, length +1%, HP left +1 points | nothing shown |
 | Circle Protect | sage | C40: wins +11%, length +6%, HP left +12 points | serves |
@@ -39,7 +39,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Fascinating Waltz | etoile | C40: wins +37%, length +4%, HP left +37 points | serves |
 | Fire Enchant | sage | P24: wins +0%, length -0%, HP left +2 points | nothing shown |
 | First Aid | maid | C38: wins +2%, length +1%, HP left +2 points | nothing shown |
-| Fleet Foot | dolls | C30: wins +1%, length -5%, HP left +3 points | nothing shown |
+| Fleet Foot | dolls | C30: wins +1%, length -4%, HP left +2 points | nothing shown |
 | Freeze | sage | - | see SKILL_AILMENTS.md |
 | Gloomy Tango | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Gold Steal | shooter | - | out of the fight: gold, not the fight |
@@ -47,20 +47,21 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Heal | healer | C38: wins -4%, length +2%, HP left -4 points | nothing shown |
 | High Risk, High Return | papillon | P24: wins +4%, length +20%, HP left +9 points | serves |
 | Holy Prayer | sage | C38: wins +2%, length -12%, HP left +0 points | nothing shown |
+| Illusion | dolls | C38: wins +3%, length +2%, HP left +8 points | serves |
 | Insurance | healer | P24: wins -1%, length +4%, HP left -2 points | nothing shown |
 | Last Stand | attacker | C30: wins +1%, length +1%, HP left +3 points | nothing shown |
 | Light Scroll | kunoichi | C30: wins +0%, length -7%, HP left +1 points | nothing shown |
 | Lightning Enchant | sage | P24: wins +0%, length -0%, HP left +2 points | nothing shown |
 | Magic Barrier | magical princess | C38: wins +3%, length -3%, HP left +6 points | serves |
 | Material Guard | tank | P24: wins +0%, length -0%, HP left +0 points | nothing shown |
-| Materialize | dolls | P24: wins +4%, length -9%, HP left +2 points | nothing shown |
+| Materialize | dolls | P24: wins +6%, length -9%, HP left +5 points | nothing shown |
 | Mini Circle Nurse | sage | C30: wins +0%, length -2%, HP left +1 points | nothing shown |
 | Moon Curtain | tank | C40: wins +0%, length +0%, HP left -0 points | nothing shown |
 | Nurse | healer | C40: wins +1%, length +3%, HP left +1 points | serves |
-| Oracles | dolls | C30: wins +1%, length -24%, HP left +2 points | nothing shown |
+| Oracles | dolls | C30: wins +1%, length -25%, HP left +1 points | nothing shown |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
 | Parry | tank | P24: wins -1%, length +0%, HP left -0 points | nothing shown |
-| Perdurabo | soul summoner | P24: wins +5%, length -6%, HP left +5 points | nothing shown |
+| Perdurabo | soul summoner | P24: wins +6%, length -9%, HP left +5 points | nothing shown |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Primevil | etoile | P24: wins +0%, length +0%, HP left +2 points | nothing shown |
 | Provoke | tank | C40: wins +15%, length +2%, HP left +15 points | serves |
