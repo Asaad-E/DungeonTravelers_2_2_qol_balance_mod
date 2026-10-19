@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**52 nothing shown; 18 serves; 10 see SKILL_AILMENTS.md; 2 out of the fight (of 82).**
+**53 nothing shown; 18 serves; 10 see SKILL_AILMENTS.md; 2 out of the fight (of 83).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -28,7 +28,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Cook | maid | C40: wins +1%, length +18%, HP left +0 points | serves |
 | Cover | tank | P24: wins -1%, length +0%, HP left -0 points | nothing shown |
 | Death | sage | - | see SKILL_AILMENTS.md |
-| Defender | tank | C40: wins -3%, length +0%, HP left -3 points | nothing shown |
+| Defender | tank | P24: wins -1%, length +0%, HP left -1 points | nothing shown |
 | Dispel | sage | P24: wins +5%, length -1%, HP left +7 points | serves |
 | Divine Shield | healer | C38: wins +6%, length -1%, HP left +6 points | serves |
 | Dumbing Mazurka | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
@@ -50,21 +50,22 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Illusion | dolls | C38: wins +3%, length +2%, HP left +8 points | serves |
 | Insurance | healer | P24: wins -1%, length +4%, HP left -2 points | nothing shown |
 | Last Stand | attacker | C30: wins +1%, length +1%, HP left +3 points | nothing shown |
-| Light Scroll | kunoichi | C30: wins +0%, length -7%, HP left +1 points | nothing shown |
+| Light Scroll | kunoichi | C30: wins +0%, length -6%, HP left +1 points | nothing shown |
 | Lightning Enchant | sage | P24: wins +0%, length -0%, HP left +2 points | nothing shown |
 | Magic Barrier | magical princess | C38: wins +3%, length -3%, HP left +6 points | serves |
 | Material Guard | tank | P24: wins +0%, length -0%, HP left +0 points | nothing shown |
 | Materialize | dolls | P24: wins +6%, length -9%, HP left +5 points | nothing shown |
 | Mini Circle Nurse | sage | C30: wins +0%, length -2%, HP left +1 points | nothing shown |
-| Moon Curtain | tank | C40: wins +0%, length +0%, HP left -0 points | nothing shown |
+| Moon Curtain | tank | C40: wins +1%, length +0%, HP left +0 points | nothing shown |
 | Nurse | healer | C40: wins +1%, length +3%, HP left +1 points | serves |
 | Oracles | dolls | C30: wins +1%, length -25%, HP left +1 points | nothing shown |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
-| Parry | tank | P24: wins -1%, length +0%, HP left -0 points | nothing shown |
+| Parry | tank | P24: wins +0%, length -1%, HP left +0 points | nothing shown |
 | Perdurabo | soul summoner | P24: wins +6%, length -9%, HP left +5 points | nothing shown |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Primevil | etoile | P24: wins +0%, length +0%, HP left +2 points | nothing shown |
-| Provoke | tank | C40: wins +15%, length +2%, HP left +15 points | serves |
+| Protect | tank | C30: wins +0%, length -10%, HP left +0 points | nothing shown |
+| Provoke | tank | C40: wins +16%, length +5%, HP left +17 points | serves |
 | Reading Requiem | maid | C38: wins +3%, length -3%, HP left +1 points | nothing shown |
 | Replenishing Carol | maid | C40: wins +21%, length -3%, HP left +20 points | serves |
 | Resurrect | healer | P24: wins +4%, length +2%, HP left +7 points | serves |
@@ -77,7 +78,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Sleep | sage | - | see SKILL_AILMENTS.md |
 | Slow | healer | - | see SKILL_AILMENTS.md |
 | Sorcerous Ballad | maid | C38: wins +1%, length +0%, HP left +2 points | nothing shown |
-| Spell Guard | tank | C40: wins -1%, length +0%, HP left -1 points | nothing shown |
+| Spell Guard | tank | C40: wins +1%, length +1%, HP left +1 points | nothing shown |
 | Spiritual Fantasia | maid | C38: wins +1%, length +0%, HP left +2 points | nothing shown |
 | Stab Guard | sage | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Star Dust Arrow | shooter | C30: wins +1%, length -19%, HP left +1 points | nothing shown |
@@ -85,6 +86,6 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Sun Veil | sage | P24: wins +4%, length +1%, HP left +7 points | serves |
 | Terrorize | sage | - | see SKILL_AILMENTS.md |
 | Trump Card | joker | P24: wins +4%, length +8%, HP left +3 points | serves |
-| Warm-Up | etoile | C40: wins -1%, length +2%, HP left +0 points | nothing shown |
+| Warm-Up | etoile | C40: wins +0%, length +3%, HP left +2 points | nothing shown |
 | Water Enchant | sage | P24: wins +0%, length -0%, HP left +2 points | nothing shown |
 | Wind Enchant | sage | P24: wins +0%, length -0%, HP left +2 points | nothing shown |

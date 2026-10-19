@@ -32,7 +32,7 @@ Balance variant. 8 random battles of the floor of each checkpoint in a row, HP a
 
 | Role | Class | Kind | C22 | C30 | C34 | C40 | HP left against the control | TP left against the control |
 |---|---|---|---|---|---|---|---|---|
-| tank | Valkyrie | tank | 100% / 99% / 14% | 100% / 99% / 22% | 100% / 97% / 26% | 78% / 100% / 39% | +1 | -1 |
+| tank | Valkyrie | tank | 100% / 99% / 14% | 100% / 99% / 22% | 100% / 96% / 26% | 78% / 100% / 39% | +0 | -1 |
 | attacker | Samurai | control | 98% / 100% / 15% | 98% / 98% / 25% | 100% / 96% / 27% | 85% / 100% / 37% | +0 | +0 |
 | maid | Diva | support | 100% / 99% / 31% | 100% / 99% / 42% | 98% / 98% / 55% | 98% / 99% / 56% | +1 | +20 |
 | healer | Bishop | support | 100% / 100% / 36% | 100% / 100% / 36% | 100% / 98% / 41% | 88% / 98% / 48% | +1 | +14 |
@@ -45,7 +45,7 @@ Balance variant. 8 random battles of the floor of each checkpoint in a row, HP a
 
 | Role | Class | Kind | P08 | P14 | P18 | P24 | HP left against the control | TP left against the control |
 |---|---|---|---|---|---|---|---|---|
-| tank | Valkyrie | tank | 98% / 95% / 59% | 100% / 100% / 83% | 100% / 100% / 89% | 92% / 90% / 73% | -1 | +0 |
+| tank | Valkyrie | tank | 98% / 95% / 60% | 100% / 100% / 83% | 100% / 100% / 89% | 92% / 91% / 74% | -1 | +0 |
 | attacker | Samurai | control | 98% / 94% / 54% | 100% / 100% / 86% | 100% / 99% / 92% | 90% / 97% / 73% | +0 | +0 |
 | maid | Diva | support | 92% / 97% / 67% | 100% / 100% / 89% | 100% / 100% / 93% | 100% / 97% / 82% | +1 | +6 |
 | healer | Bishop | support | 98% / 99% / 55% | 100% / 100% / 88% | 100% / 100% / 93% | 92% / 96% / 82% | +1 | +3 |

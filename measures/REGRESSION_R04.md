@@ -56,4 +56,4 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C38 | variant | Diva | 80% | Meta with etoile for diva | 83% |
 | C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 72% |
 | C40 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 60% |
-| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 93% |
+| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 92% |
