@@ -68,7 +68,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Resurrect | healer | P24: wins +5%, length +1%, HP left +6 points | serves |
 | Sacred Hymn | maid | P24: wins +1%, length +2%, HP left +0 points | nothing shown |
 | Self-Sacrifice | maid | C40: wins -3%, length +4%, HP left -2 points | serves |
-| Shadow Clone | kunoichi | P24: wins +1%, length -2%, HP left +3 points | nothing shown |
+| Shadow Clone | kunoichi | P24: wins +2%, length -5%, HP left +2 points | nothing shown |
 | Shadow Sew | kunoichi | - | see SKILL_AILMENTS.md |
 | Silence | sage | - | see SKILL_AILMENTS.md |
 | Slash Guard | sage | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
