@@ -1122,3 +1122,27 @@ linked to 253, 305 and 310 (a plain attack in the model, A17), what ends the arr
 life (A28: the GameFAQs guide says interruption does not and the death of the Sniper does), how long Genjimaru stays
 (A18). Fixed on the way: the range of a doll's plain attack was read as text and never matched.
 
+### 16.9 Read on 2026-10-19: the enchantments the engine did not count
+
+A sweep of every enchantment id the program counts (`push <id>` then `call [vtable+0xf0]`, 114 ids) against the engine
+found these unplayed; each is now in the engine (`Formulas.cs` names the constants):
+
+* **A missed spell is not a miss** (`0x44ed8c - 0x44ee81`): the roll of the hit chance of a spell, when it fails, sets
+  the result to "missed" but the damage is still dealt (the caller adds it, `0x423257`): half of it, three quarters
+  with a piece of **272** ("Reduce damage penalty for missed spells"); a missed spell cannot be critical. Any spell whose
+  damage comes to 0 or less deals 1 to 5 (a number below 5, plus 1). The other effects of a missed spell are not
+  applied in the engine (not read).
+* **219 / 220**: +0.1 a piece to the "other" bonus of a blow or a spell when the target's level is above (219) or below
+  (220) the attacker's (`0x44ca01 - 0x44ca8b`, `0x44ecc1 - 0x44ed4b`).
+* **264**: +0.02 to the class weapon modifier of the stats when any piece, the sealbook or the grand sealbook carries it,
+  once (`0x4f7fb0 - 0x4f7fd9`).
+* **257 / 292**: a unit that defends recovers max(10, int(max HP * 0.2)) HP and max(5, int(max TP * 0.1)) TP
+  (`0x4197ae - 0x41982c`, `0x419843 - 0x4198a6`).
+* **Recovery every turn**, state 16 after the statuses (`0x437bb5 - 0x437dfb`): HP max(4, max HP * 0.04 a piece of
+  **144**), plus max(2, 0.02 a piece of **145**), plus max(10, 0.08 a piece of **148**), plus all of it on 4 in 100 with
+  **296**; TP 4 a piece of **146**, 2 of **147**, 6 of **149**.
+* **194**: all the TP back after a battle, as 193 does for HP (`0x43d904 - 0x43d920`).
+* **293**: the rank of the bearer's own unique skill +1 when it is 1 to 8 (`0x4f716e - 0x4f7186`).
+* Outside the battle, read: **265** (the ailment that ends on a roll is checked every 5 steps on the map, every 2 with
+  it, `0x48d1e0 - 0x48d20a`; in battle every tick rolls), **267** (+0.1 a piece times (5 - members) to the other bonus:
+  nothing with a party of five, `0x44c924 - 0x44c990`).

@@ -177,10 +177,18 @@ namespace DtEngine
         public const double LEVEL_BONUS_SHARE = 0.1;
         // enchantment 264: +0.02 to the class weapon modifier of the stats when any piece carries it (0x4f7fb0 - 0x4f7fd9)
         public const int WEAPON_MODIFIER_ENCHANT = 264;
+        // a missed spell deals half its damage, three quarters with enchantment 272; at 0 or less it deals 1 to 5 (0x44ee33 - 0x44ee81)
+        public const int MISSED_SPELL_ENCHANT = 272, SPELL_FLOOR_ROLL = 5;
+        // the recovery of the enchantments every turn, state 16 (0x437bb5 - 0x437dfb): (enchantment, share of max HP a piece, floor)
+        public static readonly (int enchant, double share, int floor)[] HP_REGEN_ENCHANTS = { (144, 0.04, 4), (145, 0.02, 2), (148, 0.08, 10) };
+        public const int FULL_RECOVERY_ENCHANT = 296, FULL_RECOVERY_CHANCE = 4;
+        public static readonly (int enchant, int amount)[] TP_REGEN_ENCHANTS = { (146, 4), (147, 2), (149, 6) };
         // enchantments 257 and 292: what a defending unit recovers (0x4197ae - 0x41982c, 0x419843 - 0x4198a6)
         public const int DEFEND_HP_ENCHANT = 257, DEFEND_TP_ENCHANT = 292, DEFEND_HP_FLOOR = 10, DEFEND_TP_FLOOR = 5;
         public const double DEFEND_HP_SHARE = 0.2, DEFEND_TP_SHARE = 0.1;
         public const double WEAPON_MODIFIER_UP = 0.02;
+        // enchantment 293: +1 to the rank of the bearer's own unique skill when it is 1 to 8 (0x4f716e - 0x4f7186)
+        public const int UNIQUE_RANK_ENCHANT = 293;
         public const double FULL_HP_BONUS_SHARE = 0.1;
         public const int MAGIC_USER_LOW = 12, MAGIC_USER_HIGH = 20; // range(12, 20)
         public const int AILING_ENCHANT = 280;

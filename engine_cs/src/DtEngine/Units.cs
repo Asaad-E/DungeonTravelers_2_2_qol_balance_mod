@@ -440,7 +440,14 @@ namespace DtEngine
             bool hasUnique = false;
             int uniqueEffect = 0;
             double uniqueValue = 0;
+            // an enchantment on any piece, the sealbook, the grand sealbook or the forge (the list 0xf0 counts, 16.1)
+            bool Carries(int enchant) => equipment.Any(e => data.Equipment[e.EquipId].Enchants.Contains(enchant))
+                                         || (sealbook != T.NONE && data.SealbookEnchants.TryGetValue(sealbook, out var own) && own.Contains(enchant))
+                                         || (partyEnchants != null && partyEnchants.Contains(enchant))
+                                         || (forged != null && forged.TryGetValue(enchant, out int count) && count > 0);
             int rank = uniqueLevel ?? UniqueRank(level, crownBonus);
+            // enchantment 293 raises the rank of her own unique skill by one when it is 1 to 8 (0x4f716e - 0x4f7186)
+            if (rank >= 1 && rank <= 8 && Carries(F.UNIQUE_RANK_ENCHANT)) rank += 1;
             if (character != null && character.UniqueSkill != T.NONE && rank > 0)
             {
                 if (data.Unique.TryGetValue(character.UniqueSkill, out var u))
@@ -463,11 +470,7 @@ namespace DtEngine
             var modifiers = ModifierList(data, classId, previous);
             // enchantment 264 on any piece, the sealbook, the grand sealbook or the forge adds 0.02 to the class weapon modifier
             // (once, not per piece: 0x4f7fb0 - 0x4f7fd9)
-            bool weaponModifierUp = equipment.Any(u => data.Equipment[u.EquipId].Enchants.Contains(F.WEAPON_MODIFIER_ENCHANT))
-                                    || (sealbook != T.NONE && data.SealbookEnchants.TryGetValue(sealbook, out var own) && own.Contains(F.WEAPON_MODIFIER_ENCHANT))
-                                    || (partyEnchants != null && partyEnchants.Contains(F.WEAPON_MODIFIER_ENCHANT))
-                                    || (forged != null && forged.TryGetValue(F.WEAPON_MODIFIER_ENCHANT, out int fw) && fw > 0);
-            double modifierUp = weaponModifierUp ? F.WEAPON_MODIFIER_UP : 0.0;
+            double modifierUp = Carries(F.WEAPON_MODIFIER_ENCHANT) ? F.WEAPON_MODIFIER_UP : 0.0;
             var gains = new int[6];
             foreach (var use in equipment)
             {

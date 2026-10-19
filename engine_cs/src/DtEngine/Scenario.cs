@@ -966,7 +966,8 @@ namespace DtEngine
                 double share = F.AfterBattleFraction(values, extras);
                 foreach (var u in living)
                 {
-                    bool full = effect == 272 && u.Pieces(193) > 0;
+                    // 193 gives back all the HP, 194 all the TP (0x43d904 - 0x43d920)
+                    bool full = (effect == 272 && u.Pieces(193) > 0) || (effect == 273 && u.Pieces(194) > 0);
                     int gain = F.AfterBattleRecovery(pass == 0 ? u.MaxHp : u.MaxTp, share, full);
                     if (pass == 0) u.Hp = Math.Min(u.MaxHp, u.Hp + gain);
                     else u.Tp = Math.Min(u.MaxTp, u.Tp + gain);

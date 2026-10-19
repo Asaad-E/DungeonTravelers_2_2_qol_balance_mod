@@ -865,6 +865,7 @@
    "260": "traps",
    "262": "escape (the model never flees)",
    "263": "a member with no weapon",
+   "265": "ailments on the map (in battle every tick rolls)",
    "266": "pep",
    "267": "a party smaller than five",
    "270": "EXP",

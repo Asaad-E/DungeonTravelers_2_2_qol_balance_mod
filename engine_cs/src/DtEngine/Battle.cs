@@ -789,11 +789,32 @@ namespace DtEngine
                     if (s.Turns <= 0) unit.PopStatus(effect);
                 }
             }
+            EnchantRecovery(unit);
             if (unit.Kind == Kind.Doll)
             {
                 unit.Life -= 1;
                 if (unit.Life <= 0) RemoveDoll(unit);
             }
+        }
+
+        /// <summary>State 16, after the statuses: the HP and TP the enchantments of the unit give back every turn (0x437bb5 - 0x437dfb).
+        /// HP: max(4, max HP * 0.04 a piece of 144), plus max(2, 0.02 a piece of 145), plus max(10, 0.08 a piece of 148), plus all of
+        /// it on 4 in 100 with 296; TP: 4 a piece of 146, 2 of 147, 6 of 149.</summary>
+        void EnchantRecovery(Unit unit)
+        {
+            int heal = 0;
+            foreach (var (enchant, share, floor) in F.HP_REGEN_ENCHANTS)
+            {
+                int n = unit.Pieces(enchant);
+                if (n == 0) continue;
+                float f = (float)n * (float)share;
+                heal += Math.Max(floor, (int)((float)unit.MaxHp * f));
+            }
+            if (unit.Pieces(F.FULL_RECOVERY_ENCHANT) != 0 && Rng.RandRange(100) < F.FULL_RECOVERY_CHANCE) heal += unit.MaxHp;
+            if (heal > 0) Restore(unit, heal);
+            int tp = 0;
+            foreach (var (enchant, amount) in F.TP_REGEN_ENCHANTS) tp += amount * unit.Pieces(enchant);
+            if (tp > 0) unit.Tp = Math.Min(unit.MaxTp, unit.Tp + tp);
         }
 
         // --- performing an action ----------------------------------------------------------------------------
@@ -1242,7 +1263,18 @@ namespace DtEngine
                 if (target == null) return;
                 bool landed = Hits(action, target);
                 Trace?.Hit(this, action, target, landed);
-                if (!landed) return;
+                if (!landed)
+                {
+                    // a spell that misses still strikes for part of its damage (0x44ed8c - 0x44ee69; the caller adds it, 0x423257),
+                    // and nothing else of it lands
+                    if (!action.Magic || Special(action) || !Aimed(action, target) || action.Has(25) || Voided(action, target)) return;
+                    spellMissed = true;
+                    int grazed;
+                    try { grazed = Damage(action, target, index); }
+                    finally { spellMissed = false; }
+                    if (damageByTarget != null) { damageByTarget.TryGetValue(target, out int had); damageByTarget[target] = had + grazed; }
+                    return;
+                }
                 if (Voided(action, target)) return;
             }
             int dealt = 0;
@@ -1649,12 +1681,19 @@ namespace DtEngine
                                  critical, other);
         }
 
+        bool spellMissed;       // the spell being dealt missed its roll (Hits): its damage is cut, it cannot be critical
+
         int MagicDamageActual(Action action, Unit target, out bool critical)
         {
             var unit = action.Actor;
-            critical = unit.Has(301) && Rng.RandRange(100) < F.MAGIC_CRIT_CHANCE;
+            critical = !spellMissed && unit.Has(301) && Rng.RandRange(100) < F.MAGIC_CRIT_CHANCE;
             double value = MagicValue(action, target, false, critical ? F.MAGIC_CRIT_FACTOR : 1.0, critical);
-            return Math.Max(0, PyMath.Int(value));
+            int amount = PyMath.Int(value);
+            // a missed spell: half of it, three quarters with enchantment 272 (0x44ee33 - 0x44ee5d, divisions toward zero);
+            // a spell at 0 or less strikes for 1 to 5 (0x44ee70 - 0x44ee81)
+            if (spellMissed) amount = unit.Pieces(F.MISSED_SPELL_ENCHANT) != 0 ? amount * 3 / 4 : amount / 2;
+            if (amount <= 0) amount = Rng.RandRange(F.SPELL_FLOOR_ROLL) + 1;
+            return amount;
         }
 
         public double MagicDamageExpected(Action action, Unit target)
@@ -1662,7 +1701,7 @@ namespace DtEngine
             var unit = action.Actor;
             double critical = unit.Has(301) ? 1.0 + (F.MAGIC_CRIT_FACTOR - 1.0) * F.MAGIC_CRIT_CHANCE / 100.0 : 1.0;
             double value = MagicValue(action, target, true, critical, false);
-            double damage = Math.Max(0.0, value);
+            double damage = value < 1.0 ? (F.SPELL_FLOOR_ROLL + 1) / 2.0 : value;      // the mean of the roll of 1 to 5
             if (action.TryVal(296, out double cap)) damage = Math.Min(damage, (double)PyMath.Int(cap));
             return damage;
         }
@@ -1774,6 +1813,9 @@ namespace DtEngine
             if (VisiblyVoided(action, target)) return 0.0;
             double hits = MeanHits(action);
             double chance = HitChance(action, target);
+            // a missed spell still strikes for half (three quarters with enchantment 272)
+            if (action.Magic && !Special(action))
+                chance += (1 - chance) * (action.Actor.Pieces(F.MISSED_SPELL_ENCHANT) != 0 ? 0.75 : 0.5);
             if (action.Has(139) && target.St[116] != null && !target.Immune("instant death")) return chance * target.Hp;
             if (Special(action)) return chance * Math.Min(target.Hp, SpecialDamage(action, target));
             double perHit;
