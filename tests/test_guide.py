@@ -90,12 +90,17 @@ class TestGuideGeneration(unittest.TestCase):
 
     def test_sample_skills_and_costs(self):
         classes_md = self.built['classes.md']
-        # Provoke: Technique, Max Lv 5, SP Cost 30 (2, 4, 6, 8, 10), Single enemy, None, Description
-        self.assertIn('| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Attract an enemy\'s attacks. |', classes_md)
-        # Raging Smash: Technique, Max Lv 10, SP Cost 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10), Single enemy, Short, Description
-        self.assertIn('| Raging Smash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Powerful strike to one enemy. |', classes_md)
-        # Absolute Attack: Valkyrie, Passive, Max Lv 1, SP Cost 20, Description
-        self.assertIn('| Absolute Attack | Passive | 1 | 20 | - | - | No longer suffer counterattacks from enemies. |', classes_md)
+        # Provoke: Technique, Max Lv 5, Total SP 30 SP, Single enemy, None, with Enmity
+        self.assertIn('| Provoke | Technique | 5 | 30 SP | Single enemy | None |', classes_md)
+        self.assertIn('Enmity: 250', classes_md)
+        # War Cry: ATK scaling
+        self.assertIn('| War Cry | Technique | 5 | 30 SP | All allies | None |', classes_md)
+        self.assertIn('+8% -> +10% -> +12% -> +15% -> +18%', classes_md)
+        # Raging Smash: Technique, Max Lv 10, Total SP 55 SP, Single enemy, Short
+        self.assertIn('| Raging Smash | Technique | 10 | 55 SP | Single enemy | Short |', classes_md)
+        self.assertIn('125% -> 134', classes_md)
+        # Absolute Attack: Valkyrie, Passive, Max Lv 1, Total SP 20 SP
+        self.assertIn('| Absolute Attack | Passive | 1 | 20 SP | - | - | No longer suffer counterattacks from enemies. |', classes_md)
 
     def test_sample_weapon_modifiers(self):
         classes_md = self.built['classes.md']

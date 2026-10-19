@@ -51,16 +51,16 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Attract an enemy's attacks. |
-| War Cry | Technique | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's ATK. |
-| Raging Smash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Powerful strike to one enemy. |
-| Sword Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with sword equipped. |
-| Axe Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with axe equipped. |
-| Lance Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with lance equipped. |
-| Avenger | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally counterattack after receiving physical damage. |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
+| Provoke | Technique | 5 | 30 SP | Single enemy | None | Attract an enemy's attacks.<br>- Enmity: 250<br>- Turns: 3 -> 4 -> 5 -> 6 -> 7 \| TP Cost: 1 -> 2 -> 3 -> 4 -> 5 \| Speed: 1.5x -> 2x |
+| War Cry | Technique | 5 | 30 SP | All allies | None | Raise the party's ATK.<br>- ATK: +8% -> +10% -> +12% -> +15% -> +18% (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 5 -> 7 -> 9 -> 11 -> 13 |
+| Raging Smash | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Powerful strike to one enemy.<br>- ATK: 125% -> 134 -> 143 -> 152 -> 161 -> 170 -> 178 -> 186 -> 193 -> 200% (L10)<br>- Accuracy: +20% (+2%/Lv) \| TP Cost: 5 (+2-3/Lv) -> 28 \| Speed: 0.8x -> 0.9x |
+| Sword Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with sword equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Axe Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with axe equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Lance Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with lance equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Avenger | Passive | 5 | 30 SP | - | - | Occasionally counterattack after receiving physical damage.<br>- Counterattack rate: 6% -> 9% -> 12% -> 15% -> 18% (L1-5 Max) |
+| Double Attack | Passive | 5 | 30 SP | - | - | Occasionally attack twice when attacking normally.<br>- Double attack rate: 9% -> 12% -> 15% -> 18% -> 21% (L1-5 Max) |
 
 ---
 
@@ -107,16 +107,16 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Defender | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own DEF at the price of lowering own ATK. |
-| Shield Bash | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Shield skill. Deal bash damage to one enemy. May stun. |
-| Cover | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Take all physical damage in place of one ally. |
-| Parry | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None | Short-range skill. Use one's weapon to repel enemy attacks. |
-| Cross Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Sword/lance skill. Attack one enemy (effective vs. unholy monsters). |
-| Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None | Heal an ally's HP. |
-| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover HP every turn during battle. |
-| Auto-Guard | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally Defend automatically when receiving physical attacks. |
+| Defender | Technique | 5 | 30 SP | Self | None | Increase own DEF at the price of lowering own ATK.<br>- DEF: +20% -> +30% -> +40% -> +45% -> +50% (L1-5 Max)<br>- ATK: -11% -> -14% -> -17% -> -21% -> -25% \| Turns: 4 -> 8 \| TP Cost: 8 (+2/Lv) -> 16 |
+| Shield Bash | Technique | 5 | 30 SP | Single enemy | Short | Shield skill. Deal bash damage to one enemy. May stun.<br>- ATK: 85% -> 90% -> 94% -> 98% -> 102% (L1-5 Max) \| Accuracy: +6% (+3-4%/Lv) -> +20%<br>- Stun: 30% -> 32% -> 34% -> 36% -> 38% \| TP Cost: 6 -> 8 -> 10 -> 12 -> 14 |
+| Cover | Technique | 5 | 30 SP | Self | None | Take all physical damage in place of one ally.<br>- Cover ends per hit: 70% -> 62% -> 54% -> 46% -> 40% (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 10 -> 14 -> 18 -> 21 -> 24 |
+| Parry | Technique | 5 | 45 SP | Self | None | Short-range skill. Use one's weapon to repel enemy attacks.<br>- Parry ends per block: 80% -> 72% -> 64% -> 58% -> 52% (L1-5 Max)<br>- Turns: 3 -> 4 -> 5 -> 6 -> 7 \| TP Cost: 14 -> 17 -> 20 -> 23 -> 26 |
+| Cross Slash | Technique | 10 | 55 SP | Single enemy | Short | Sword/lance skill. Attack one enemy (effective vs. unholy monsters).<br>- ATK: 130% -> 140 -> 150 -> 160 -> 170 -> 180 -> 190 -> 200 -> 211 -> 222% (L10)<br>- Accuracy: +6% -> +20% \| Damage vs. unholy: +65% \| TP Cost: 12 (+3/Lv) -> 39 |
+| Heal | Magic | 10 | 55 SP | Single ally | None | Heal an ally's HP.<br>- Heals RES: 4x (+1x/Lv) -> 13x (L10 Max) \| Heal Cap: 100 (+60-80/Lv) -> 800<br>- TP Cost: 3 -> 5 -> 7 -> 10 -> 12 -> 14 -> 17 -> 20 -> 23 -> 26 \| Speed: 1.75x |
+| Mini Auto-Recovery | Passive | 5 | 15 SP | - | - | Slightly recover HP every turn during battle.<br>- HP recovery: 1% -> 2% -> 3% -> 4% -> 5% (L1-5 Max) |
+| Auto-Guard | Passive | 5 | 30 SP | - | - | Occasionally Defend automatically when receiving physical attacks.<br>- Auto-guard rate: 4% -> 6% -> 8% -> 10% -> 12% (L1-5 Max) |
 
 ---
 
@@ -162,16 +162,16 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Aura Eliminate | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May cancel enemy buffs. |
-| Berserk | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own ATK at the price of lowering own DEF. |
-| Frost Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Mid | Short-range skill. Deal mid-range water damage to one enemy. May freeze. |
-| Geo Break | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Axe skill. Deal earth damage to one enemy. May petrify. |
-| Blood Rage | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Raise max HP. |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
-| Preparation | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Gain increased speed based on missing HP. |
-| Dark Aura | Passive | 6 | 63 (3, 6, 9, 12, 15, 18) | - | - | Debuff an enemy when they inflict short-range damage. |
+| Aura Eliminate | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Attack one enemy. May cancel enemy buffs.<br>- Accuracy: +20% -> +22 -> +24 -> +26 -> +28 -> +30 -> +31 -> +32 -> +33 -> +35% (L10)<br>- Buff cancel rate: 68% (+1-2%/Lv) -> 85% \| TP Cost: 5 (+1-2/Lv) -> 18 \| Speed: 0.9x |
+| Berserk | Technique | 5 | 30 SP | Self | None | Increase own ATK at the price of lowering own DEF.<br>- ATK: +20% -> +30% -> +40% -> +45% -> +50% (L1-5 Max)<br>- DEF: -11% -> -14% -> -17% -> -21% -> -25% \| Turns: 4 -> 8 \| TP Cost: 8 (+2/Lv) -> 16 |
+| Frost Slash | Technique | 10 | 55 SP | Single enemy | Mid | Short-range skill. Deal mid-range water damage to one enemy. May freeze.<br>- ATK: 130% -> 144 -> 157 -> 170 -> 182 -> 194 -> 204 -> 212 -> 220 -> 228% (L10)<br>- Freeze: 20% (+3-4%/Lv) -> 50% \| Accuracy: +14% \| TP Cost: 9 (+3/Lv) -> 36 |
+| Geo Break | Technique | 10 | 55 SP | Single enemy | Short | Axe skill. Deal earth damage to one enemy. May petrify.<br>- ATK: 135% (+11-14%/Lv) -> 247% \| Petrify: 20% (+1-2%/Lv) -> 35% \| Accuracy: +10%<br>- TP Cost: 9 -> 12 -> 15 -> 18 -> 21 -> 24 -> 28 -> 32 -> 37 -> 42 |
+| Blood Rage | Magic | 5 | 30 SP | Self | None | Raise max HP.<br>- Max HP increase rate: 20% -> 28% -> 36% -> 45% -> 50% (L1-5 Max)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 \| TP Cost: 27 -> 31 -> 35 -> 39 -> 43 \| Speed: 1.5x |
+| Adaptation | Passive | 10 | 55 SP | - | - | Raise resistance to all elements.<br>- Elemental resistance: 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 (L10) |
+| Preparation | Passive | 5 | 30 SP | - | - | Gain increased speed based on missing HP.<br>- Speed increase: 15% -> 16% -> 17% -> 18% -> 20% (L1-5 Max) |
+| Dark Aura | Passive | 6 | 63 SP | - | - | Debuff an enemy when they inflict short-range damage.<br>- Number of possible debuffs: 1 -> 2 -> 3 -> 4 -> 5 -> 6 (L6) |
 
 ---
 
@@ -218,20 +218,20 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Material Guard | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Shield skill. Reduce physical damage taken by the party once. |
-| Spell Guard | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Shield skill. Reduce magic damage taken by the party once. |
-| Gust Thrust | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Lance skill. Deal wind damage to one enemy. May silence. |
-| Daedalus Attack | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Random enemies | Short | Lance skill. 3-5 hits on random enemies. Stronger with a Heavy Lance. |
-| Ether Strike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Mid | Sword/lance skill. Pierces through to the back row. |
-| Circle Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Heal the party's HP. |
-| Protect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's DEF. |
-| Moon Curtain | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's resistance to fire, water, lightning, wind, and earth. |
-| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover TP every turn during battle. |
-| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally survive at 1 HP after being dealt fatal damage. |
-| Absolute Attack | Passive | 1 | 20 | - | - | No longer suffer counterattacks from enemies. |
-| Imperial Guard | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Decrease physical damage to the back row when using a shield in the front row. |
+| Material Guard | Technique | 10 | 55 SP | All allies | None | Shield skill. Reduce physical damage taken by the party once.<br>- Damage reduction rate: 12% -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26 -> 28 -> 30%<br>- Turns: 5 \| TP Cost: 20 -> 23 -> 26 -> 29 -> 31 -> 34 -> 37 -> 40 -> 43 -> 45 |
+| Spell Guard | Technique | 10 | 55 SP | All allies | None | Shield skill. Reduce magic damage taken by the party once.<br>- Damage reduction rate: 12% -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26 -> 28 -> 30%<br>- Turns: 5 \| TP Cost: 20 -> 23 -> 26 -> 29 -> 31 -> 34 -> 37 -> 40 -> 43 -> 45 |
+| Gust Thrust | Technique | 10 | 55 SP | Single enemy | Short | Lance skill. Deal wind damage to one enemy. May silence.<br>- ATK: 135% -> 149 -> 163 -> 176 -> 189 -> 201 -> 213 -> 223 -> 234 -> 245% (L10)<br>- Silence: 20% (+3-4%/Lv) -> 50% \| Accuracy: +15% \| TP Cost: 7 (+3/Lv) -> 34 |
+| Daedalus Attack | Technique | 10 | 55 SP | Random enemies | Short | Lance skill. 3-5 hits on random enemies. Stronger with a Heavy Lance.<br>- ATK: 116% -> 118 -> 120 -> 124 -> 128 -> 132 -> 136 -> 140 -> 146 -> 152% (L10)<br>- Heavy Lance bonus: +20% \| TP Cost: 36 (+3-6/Lv) -> 71 \| Speed: 0.7x -> 0.8x |
+| Ether Strike | Technique | 10 | 55 SP | Piercing | Mid | Sword/lance skill. Pierces through to the back row.<br>- ATK: 120% -> 130 -> 142 -> 154 -> 165 -> 176 -> 186 -> 196 -> 204 -> 212% (L10)<br>- Accuracy: +5% (+1-2%/Lv) -> +15% \| TP Cost: 32 (+3/Lv) -> 59 \| Speed: 0.8x |
+| Circle Heal | Magic | 10 | 55 SP | All allies | None | Heal the party's HP.<br>- Heals RES: 2.5x (+0.5x/Lv) -> 7x (L10 Max) \| Heal Cap: 80 (+50-60/Lv) -> 600<br>- TP Cost: 15 -> 20 -> 25 -> 30 -> 35 -> 40 -> 46 -> 52 -> 58 -> 64 \| Speed: 1.35x |
+| Protect | Magic | 5 | 30 SP | Single ally | None | Raise an ally's DEF.<br>- DEF: +10% -> +14% -> +18% -> +22% -> +25% (L1-5 Max)<br>- Turns: 5 -> 6 -> 7 -> 8 -> 9 \| TP Cost: 9 -> 11 -> 13 -> 15 -> 17 \| Chant: 1.25x |
+| Moon Curtain | Magic | 5 | 30 SP | All allies | None | Raise the party's resistance to fire, water, lightning, wind, and earth.<br>- Elemental resistance increase: 5 -> 10 -> 15 -> 20 -> 25 (L1-5 Max)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 \| TP Cost: 16 -> 20 -> 24 -> 28 -> 32 \| Chant: 1.25x |
+| Auto-Refresh | Passive | 5 | 30 SP | - | - | Recover TP every turn during battle.<br>- TP recovery: 3 -> 6 -> 9 -> 12 -> 16 (L1-5 Max) |
+| Guts | Passive | 5 | 30 SP | - | - | Occasionally survive at 1 HP after being dealt fatal damage.<br>- Survival rate: 10% -> 15% -> 20% -> 25% -> 30% (L1-5 Max) |
+| Absolute Attack | Passive | 1 | 20 SP | - | - | No longer suffer counterattacks from enemies. |
+| Imperial Guard | Passive | 5 | 30 SP | - | - | Decrease physical damage to the back row when using a shield in the front row.<br>- Physical damage: -6% -> -7% -> -8% -> -9% -> -10% (L1-5 Max) |
 
 ---
 
@@ -299,18 +299,18 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Backward Swing | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Katana skill. Deal bash damage to one enemy. May paralyze. |
-| Last Stand | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Raise own critical rate, but also own vulnerability to critical hits. |
-| Halving Slice | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short | Katana skill. Deal slash damage to an enemy row. May instakill. |
-| Armor Penetration | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Katana skill. Deal defense-piercing damage and DEF down to one enemy. |
-| Onikagura | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short | Katana skill. Deal slash damage to an enemy row. |
-| Moonlight Purgatory | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Katana skill. Deal slash damage 3 times to one enemy. Living targets only. |
-| Katana Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with katana equipped. |
-| Mind's Eye | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Occasionally parry and counterattack when targeted by an enemy. |
-| Triple Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack thrice when attacking normally. |
-| Flowing Water Stance | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - | Increase evasion rate against stab attacks. |
+| Backward Swing | Technique | 10 | 55 SP | Single enemy | Short | Katana skill. Deal bash damage to one enemy. May paralyze.<br>- ATK: 106% -> 112 -> 118 -> 124 -> 130 -> 134 -> 138 -> 142 -> 146 -> 150% (L10)<br>- Accuracy: +5% (+2-3%/Lv) -> +28% \| Paralysis: 20% -> 50% \| TP Cost: 6 (+2/Lv) -> 24 |
+| Last Stand | Technique | 5 | 30 SP | Self | None | Raise own critical rate, but also own vulnerability to critical hits.<br>- Critical rate: 5% (+2.5%/Lv) -> 15% (L5 Max) \| Enemy critical rate: 4% (+2%/Lv)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 \| TP Cost: 12 -> 14 -> 16 -> 18 -> 20 |
+| Halving Slice | Technique | 10 | 55 SP | Enemy row | Short | Katana skill. Deal slash damage to an enemy row. May instakill.<br>- ATK: 80% -> 83 -> 86 -> 89 -> 91 -> 94 -> 97 -> 100 -> 105 -> 110% (L10)<br>- Instakill: 10% (+1-2%/Lv) -> 20% \| Power decrease: 10% \| TP Cost: 38 (+4/Lv) -> 74 |
+| Armor Penetration | Technique | 10 | 55 SP | Single enemy | Short | Katana skill. Deal defense-piercing damage and DEF down to one enemy.<br>- ATK: 84% -> 88 -> 92 -> 96 -> 100 -> 104 -> 108 -> 112 -> 116 -> 120% (L10)<br>- Enemy DEF: -16% (-1%/Lv) \| Turns: 4 \| TP Cost: 14 (+2/Lv) -> 32 \| Speed: 0.8x |
+| Onikagura | Technique | 10 | 55 SP | Enemy row | Short | Katana skill. Deal slash damage to an enemy row.<br>- ATK: 104% -> 108 -> 112 -> 116 -> 120 -> 124 -> 128 -> 132 -> 136 -> 140% (L10)<br>- TP Cost: 22 -> 26 -> 30 -> 34 -> 38 -> 42 -> 46 -> 50 -> 54 -> 58 |
+| Moonlight Purgatory | Technique | 10 | 55 SP | Single enemy | Short | Katana skill. Deal slash damage 3 times to one enemy. Living targets only.<br>- ATK: 118% -> 120 -> 124 -> 128 -> 132 -> 136 -> 140 -> 146 -> 152 -> 158% (L10)<br>- Critical rate: 10% \| TP Cost: 36 (+2-3/Lv) -> 61 \| Speed: 0.7x -> 0.8x |
+| Katana Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with katana equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Mind's Eye | Passive | 5 | 45 SP | - | - | Occasionally parry and counterattack when targeted by an enemy.<br>- Activation rate: 4% -> 6% -> 8% -> 10% -> 12% (L1-5 Max) |
+| Triple Attack | Passive | 5 | 30 SP | - | - | Occasionally attack thrice when attacking normally.<br>- Triple attack rate: 5% -> 8% -> 11% -> 14% -> 17% (L1-5 Max) |
+| Flowing Water Stance | Passive | 5 | 25 SP | - | - | Increase evasion rate against stab attacks.<br>- Evasion rate: 20% -> 24% -> 28% -> 32% -> 36% (L1-5 Max) |
 
 ---
 
@@ -356,19 +356,19 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Attract | Technique | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Attract all enemies' attacks. |
-| Blood Drain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy to regain HP. |
-| Soul Drain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy to regain TP. |
-| Megaton Press | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Axe skill. Attack an enemy, then the next immediate enemy in the turn order. |
-| Shock Spiral | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short | Short-range skill. Deal lightning damage to an enemy row. May paralyze. |
-| Power Charge | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Deal increased physical damage next turn. |
-| Life Bring | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Absorb HP from an enemy row. |
-| Brave | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's ATK. |
-| Grudge Accumulator | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Convert some received damage to TP. |
-| Dark Quest | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase ATK while inflicted with status ailments. |
-| First Grid | Passive | 1 | 10 | - | - | Occasionally get the first action regardless of speed. |
+| Attract | Technique | 5 | 30 SP | All enemies | None | Attract all enemies' attacks.<br>- Enmity: 150<br>- Turns: 3 -> 4 -> 5 -> 6 -> 7 \| TP Cost: 4 -> 5 -> 6 -> 7 -> 8 \| Speed: 1.25x -> 1.77x |
+| Blood Drain | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Attack one enemy to regain HP.<br>- ATK: 74% (+4%/Lv) -> 110% (L10 Max) \| HP Absorb: 15% (+1-2%/Lv) -> 25%<br>- TP Cost: 12 -> 15 -> 18 -> 21 -> 24 -> 27 -> 30 -> 32 -> 34 -> 36 \| Speed: 0.9x |
+| Soul Drain | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Attack one enemy to regain TP.<br>- ATK: 65% -> 70 -> 75 -> 80 -> 84 -> 88 -> 91 -> 94 -> 97 -> 100% (L10)<br>- TP Absorb: 10% (+1-2%/Lv) -> 20% \| TP Cost: 6 (+2/Lv) -> 24 \| Speed: 0.9x |
+| Megaton Press | Technique | 10 | 55 SP | Single enemy | Short | Axe skill. Attack an enemy, then the next immediate enemy in the turn order.<br>- ATK: 120% -> 130 -> 140 -> 148 -> 156 -> 164 -> 170 -> 176 -> 180 -> 184% (L10)<br>- Targets: 2 (Lv1-3) -> 3 (Lv4-6) -> 4 (Lv7-8) -> 5 (L9-10) \| TP: 26 (+4-6/Lv) -> 68 |
+| Shock Spiral | Technique | 10 | 55 SP | Enemy row | Short | Short-range skill. Deal lightning damage to an enemy row. May paralyze.<br>- ATK: 96% -> 100 -> 104 -> 108 -> 113 -> 118 -> 123 -> 128 -> 133 -> 138% (L10)<br>- Paralysis: 20% (+2-3%/Lv) -> 40% \| TP Cost: 26 (+4-5/Lv) -> 64 \| Speed: 0.8x |
+| Power Charge | Technique | 5 | 30 SP | Self | None | Deal increased physical damage next turn.<br>- Damage: 2.05x -> 2.1x -> 2.16x -> 2.22x -> 2.3x (L1-5 Max)<br>- Turns: 2 \| TP Cost: 15 -> 18 -> 21 -> 24 -> 27 \| Speed: 0.84x -> 0.9x |
+| Life Bring | Magic | 10 | 55 SP | Enemy row | None | Absorb HP from an enemy row.<br>- Pwr: 75 (+35-45/Lv) -> 450 \| Accuracy: 65% (+2-3%/Lv) -> 87% \| HP Absorb: 100%<br>- TP Cost: 18 -> 21 -> 24 -> 27 -> 30 -> 34 -> 38 -> 42 -> 46 -> 50 \| Speed: 1.5x |
+| Brave | Magic | 5 | 30 SP | Single ally | None | Raise an ally's ATK.<br>- ATK: +10% -> +13% -> +16% -> +19% -> +22% (L1-5 Max)<br>- Turns: 5 -> 6 -> 7 -> 8 -> 9 \| TP Cost: 9 -> 11 -> 13 -> 15 -> 17 \| Chant: 1.25x |
+| Grudge Accumulator | Passive | 5 | 30 SP | - | - | Convert some received damage to TP.<br>- TP conversion: 4% -> 8% -> 12% -> 16% -> 20% (L1-5 Max) |
+| Dark Quest | Passive | 5 | 30 SP | - | - | Increase ATK while inflicted with status ailments.<br>- ATK: +15% -> +18% -> +21% -> +24% -> +27% (L1-5 Max) |
+| First Grid | Passive | 1 | 10 SP | - | - | Occasionally get the first action regardless of speed. |
 
 ---
 
@@ -418,16 +418,16 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Gold Steal | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Steal pocket money from an enemy. |
-| Sharp Stab | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Dagger skill. Inflict a critical hit with stab damage. |
-| Evade | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own physical evasion rate. |
-| Cleanse | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Cure status ailments for a single ally. |
-| Poison Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow/gun skill. Attack one enemy. May poison. |
-| Dagger Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with dagger equipped. |
-| Elusiveness | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | May escape from battle more easily. |
-| Lucky Me | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase the amount of money the enemies drop. |
+| Gold Steal | Technique | 5 | 30 SP | Single enemy | None | Steal pocket money from an enemy.<br>- Steal success: 40% -> 45% -> 50% -> 57% -> 64% (L1-5 Max)<br>- Speed: 1x -> 1.5x |
+| Sharp Stab | Technique | 10 | 55 SP | Single enemy | Short | Dagger skill. Inflict a critical hit with stab damage.<br>- ATK: 105% -> 109 -> 113 -> 116 -> 119 -> 121 -> 123 -> 125 -> 127 -> 129% (L10)<br>- TP Cost: 5 -> 8 -> 11 -> 14 -> 17 -> 20 -> 23 -> 26 -> 28 -> 30 \| Speed: 0.9x |
+| Evade | Technique | 5 | 30 SP | Self | None | Increase own physical evasion rate.<br>- Evasion: +10% -> +13% -> +16% -> +18% -> +20% (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 4 -> 6 -> 8 -> 10 -> 12 |
+| Cleanse | Technique | 5 | 25 SP | Single ally | None | Cure status ailments for a single ally.<br>- Cures: poison > paralysis > silence > freeze > sleep<br>- TP Cost: 3 -> 4 -> 5 -> 6 -> 7 (L1-5 Max) |
+| Poison Shot | Technique | 10 | 55 SP | Single enemy | Long | Bow/gun skill. Attack one enemy. May poison.<br>- ATK: 118% -> 125 -> 132 -> 139 -> 146 -> 152 -> 158 -> 162 -> 166 -> 170% (L10)<br>- Poison: 20% (+3-4%/Lv) -> 50% \| TP Cost: 7 (+2/Lv) -> 25 |
+| Dagger Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with dagger equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 12 -> 14 -> 15 -> 16 -> 17% (L10) |
+| Elusiveness | Passive | 5 | 30 SP | - | - | May escape from battle more easily.<br>- Battle escape rate: 20% -> 25% -> 30% -> 35% -> 40% (L1-5 Max) |
+| Lucky Me | Passive | 5 | 30 SP | - | - | Increase the amount of money the enemies drop.<br>- Gold drop rate: 25% -> 50% -> 75% -> 100% -> 125% (L1-5 Max) |
 
 ---
 
@@ -473,14 +473,14 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Freeze Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May freeze. |
-| Paralysis Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May paralyze. |
-| Gravity Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May slow. |
-| Arrow Rain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long | Bow skill. Shoot a barrage of arrows that rains upon all enemies. |
-| Bow Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with bow equipped. |
-| Caution | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Limit enemies' preemptive attacks. |
+| Freeze Shot | Technique | 10 | 55 SP | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May freeze.<br>- ATK: 118% -> 125 -> 132 -> 139 -> 146 -> 152 -> 158 -> 162 -> 166 -> 170% (L10)<br>- Freeze: 20% (+3-4%/Lv) -> 50% \| TP Cost: 8 (+2/Lv) -> 26 |
+| Paralysis Shot | Technique | 10 | 55 SP | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May paralyze.<br>- ATK: 118% -> 125 -> 132 -> 139 -> 146 -> 152 -> 158 -> 162 -> 166 -> 170% (L10)<br>- Paralysis: 20% (+3-4%/Lv) -> 50% \| TP Cost: 8 (+2/Lv) -> 26 |
+| Gravity Shot | Technique | 10 | 55 SP | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May slow.<br>- ATK: 116% -> 122 -> 128 -> 134 -> 140 -> 145 -> 150 -> 155 -> 160 -> 165% (L10)<br>- Slow: 20% (+3-4%/Lv) -> 50% \| TP Cost: 9 (+2/Lv) -> 27 \| Speed: 0.95x |
+| Arrow Rain | Technique | 10 | 55 SP | All enemies | Long | Bow skill. Shoot a barrage of arrows that rains upon all enemies.<br>- ATK: 84% -> 88 -> 92 -> 96 -> 100 -> 103 -> 106 -> 109 -> 112 -> 115% (L10)<br>- TP Cost: 20 -> 23 -> 27 -> 30 -> 33 -> 36 -> 39 -> 42 -> 45 -> 48 \| Speed: 0.65x |
+| Bow Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with bow equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Caution | Passive | 5 | 30 SP | - | - | Limit enemies' preemptive attacks.<br>- Enemy preemptive attack rate: -20% -> -28% -> -36% -> -44% -> -50% (L1-5 Max) |
 
 ---
 
@@ -525,14 +525,14 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Sleep Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May cause sleep. |
-| Silence Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May silence. |
-| Stun Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May stun. |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
-| Murder | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally instakill when inflicting a critical hit. |
-| Awareness | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase party's preemptive attack rate. |
+| Sleep Sting | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Attack one enemy. May cause sleep.<br>- ATK: 116% -> 120 -> 124 -> 128 -> 132 -> 136 -> 140 -> 144 -> 150 -> 156% (L10)<br>- Sleep: 20% (+3-4%/Lv) -> 50% \| TP Cost: 7 (+2/Lv) -> 25 \| Speed: 0.9x |
+| Silence Sting | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Attack one enemy. May silence.<br>- ATK: 116% -> 120 -> 124 -> 128 -> 132 -> 136 -> 140 -> 144 -> 150 -> 156% (L10)<br>- Silence: 20% (+3-4%/Lv) -> 50% \| TP Cost: 7 (+2/Lv) -> 25 \| Speed: 0.9x |
+| Stun Sting | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Attack one enemy. May stun.<br>- ATK: 112% -> 116 -> 120 -> 124 -> 128 -> 132 -> 136 -> 140 -> 144 -> 150% (L10)<br>- Stun: 20% (+3-4%/Lv) -> 50% \| TP Cost: 7 (+2/Lv) -> 25 \| Speed: 0.9x |
+| Adaptation | Passive | 10 | 55 SP | - | - | Raise resistance to all elements.<br>- Elemental resistance: 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 (L10) |
+| Murder | Passive | 5 | 30 SP | - | - | Occasionally instakill when inflicting a critical hit.<br>- Activation rate: 8% -> 11% -> 14% -> 17% -> 20% (L1-5 Max) |
+| Awareness | Passive | 5 | 30 SP | - | - | Increase party's preemptive attack rate.<br>- Preemptive attack rate: 8% -> 11% -> 14% -> 17% -> 20% (L1-5 Max) |
 
 ---
 
@@ -578,16 +578,16 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Aim | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None | Increase own accuracy. |
-| Chain Spike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow/gun skill. Attack one enemy multiple times with escalating crit rate. |
-| Guided Shot | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | Long | Bow/gun skill. Fire a single shot certain to hit one enemy. |
-| Spiral Arrow | Technique | 5 | 45 (3, 6, 9, 12, 15) | Single enemy | Long | Bow skill. Shoot a powerful single shot at one enemy for stab damage. |
-| Star Dust Arrow | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | Long | Bow skill. Shower enemies with a rain of arrows across multiple turns. |
-| Divine Cannon | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Long | Bow skill. Deal stab damage to one enemy and pierce to the back row. |
-| Warning Shot | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | With bow equipped, occasionally halt an enemy's action. |
-| Support Shot | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | With bow equipped, occasionally attack again after an ally's attack. |
+| Aim | Technique | 10 | 55 SP | Self | None | Increase own accuracy.<br>- Accuracy: +15% -> +17 -> +19 -> +21 -> +23 -> +25 -> +26 -> +27 -> +28 -> +30% (L10)<br>- Turns: 5 -> 9 \| TP Cost: 5 -> 8 -> 11 -> 14 -> 17 -> 20 -> 22 -> 24 -> 26 -> 28 |
+| Chain Spike | Technique | 10 | 55 SP | Single enemy | Long | Bow/gun skill. Attack one enemy multiple times with escalating crit rate.<br>- Number of attacks: 3 (Lv1-4) -> 4 (Lv5-8) -> 5 (L9-10) \| ATK: 104% -> 148%<br>- Power decrease: 25% -> 14% \| TP Cost: 30 (+4-6/Lv) -> 72 \| Speed: 0.75x -> 0.85x |
+| Guided Shot | Technique | 5 | 25 SP | Single enemy | Long | Bow/gun skill. Fire a single shot certain to hit one enemy.<br>- ATK: 114% -> 118% -> 122% -> 126% -> 130% (L1-5 Max)<br>- TP Cost: 8 -> 10 -> 12 -> 14 -> 16 \| Speed: 1x -> 1.12x |
+| Spiral Arrow | Technique | 5 | 45 SP | Single enemy | Long | Bow skill. Shoot a powerful single shot at one enemy for stab damage.<br>- Damage: 3.3x -> 3.45x -> 3.6x -> 3.8x -> 4x (L1-5 Max) \| ATK: 88%<br>- TP Cost: 42 -> 50 -> 57 -> 63 -> 68 \| Speed: 0.4x |
+| Star Dust Arrow | Technique | 10 | 55 SP | None | Long | Bow skill. Shower enemies with a rain of arrows across multiple turns.<br>- ATK: 100% -> 102 -> 104 -> 106 -> 108 -> 110 -> 112 -> 114 -> 117 -> 120% (L10)<br>- 1-3 hits \| Turns: 2 (Lv1-9) -> 3 (L10 Max) \| TP Cost: 35 (+3/Lv) -> 62 |
+| Divine Cannon | Technique | 10 | 55 SP | Piercing | Long | Bow skill. Deal stab damage to one enemy and pierce to the back row.<br>- ATK: 130% -> 144 -> 158 -> 171 -> 184 -> 196 -> 207 -> 217 -> 226 -> 234% (L10)<br>- Critical rate: 5% (+1-3%/Lv) -> 25% \| TP Cost: 24 (+3-4/Lv) -> 55 \| Speed: 0.7x |
+| Warning Shot | Passive | 5 | 45 SP | - | - | With bow equipped, occasionally halt an enemy's action.<br>- Activation rate: 2% -> 3% -> 4% -> 5% -> 6% (L1-5 Max) |
+| Support Shot | Passive | 5 | 30 SP | - | - | With bow equipped, occasionally attack again after an ally's attack.<br>- Activation rate: 4% -> 6% -> 8% -> 10% -> 12% (L1-5 Max) |
 
 ---
 
@@ -654,23 +654,23 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Item Steal | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Steal an item from an enemy. |
-| Pursuit Stab | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Dagger skill. Inflict stab damage relative to enemy's total buffs and debuffs. |
-| Fleet Foot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None | Increase own speed. |
-| Chain Spike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow/gun skill. Attack one enemy multiple times with escalating crit rate. |
-| Identify | Technique | 5 | 30 (2, 4, 6, 8, 10) | Item | None | Identify unknown items. |
-| Trap Search | Technique | 10 | 35 (1, 2, 2, 3, 3, 4, 4, 5, 5, 6) | All allies | None | Protect allies from gas and damage traps. |
-| Treasure Search | Technique | 1 | 5 | Self | None | Detect how many unopened treasure chests are left on the current floor. |
-| Hard Whipping | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Mid | Whip skill. Deal bash damage to an enemy row from mid-range. |
-| Light | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Illuminate the dungeon to find hidden pathways. |
-| Whistle | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise encounter rate. |
-| Triple Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack thrice when attacking normally. |
-| Treasure Hunt | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase the enemies' item drop rate. |
-| Recycle | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Occasionally keep disposable items after using them in battle. |
-| Item Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increase the effects of HP and TP recovery items during battle. |
-| Negotiate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce purchase and identification prices at shops. |
+| Item Steal | Technique | 5 | 30 SP | Single enemy | None | Steal an item from an enemy.<br>- Steal success: 30% -> 35% -> 40% -> 45% -> 50% (L1-5 Max)<br>- Speed: 0.6x -> 0.8x |
+| Pursuit Stab | Technique | 5 | 30 SP | Single enemy | Short | Dagger skill. Inflict stab damage relative to enemy's total buffs and debuffs.<br>- ATK: 170% -> 182% -> 194% -> 204% -> 212% (L1-5 Max)<br>- TP Cost: 24 -> 28 -> 32 -> 35 -> 38 \| Speed: 0.85x |
+| Fleet Foot | Technique | 10 | 55 SP | Self | None | Increase own speed.<br>- Speed increase: 10% -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 20% (L10)<br>- Turns: 3 (Lv1-3) -> 4 (Lv4-6) -> 5 (Lv7-9) -> 6 (L10) \| TP Cost: 14 (+2/Lv) -> 32 |
+| Chain Spike | Technique | 10 | 55 SP | Single enemy | Long | Bow/gun skill. Attack one enemy multiple times with escalating crit rate.<br>- Number of attacks: 3 (Lv1-4) -> 4 (Lv5-8) -> 5 (L9-10) \| ATK: 104% -> 148%<br>- Power decrease: 25% -> 14% \| TP Cost: 30 (+4-6/Lv) -> 72 \| Speed: 0.75x -> 0.85x |
+| Identify | Technique | 5 | 30 SP | Item | None | Identify unknown items.<br>- Identification success rate: 32% -> 44% -> 56% -> 68% -> 80% (L1-5 Max)<br>- TP Cost: 10 -> 8 -> 6 -> 4 -> 2 |
+| Trap Search | Technique | 10 | 35 SP | All allies | None | Protect allies from gas and damage traps.<br>- Turns: 6 -> 8 -> 10 -> 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24<br>- TP Cost: 24 -> 28 -> 32 -> 36 -> 40 -> 43 -> 46 -> 49 -> 52 -> 55 |
+| Treasure Search | Technique | 1 | 5 SP | Self | None | Detect how many unopened treasure chests are left on the current floor. |
+| Hard Whipping | Technique | 10 | 55 SP | Enemy row | Mid | Whip skill. Deal bash damage to an enemy row from mid-range.<br>- ATK: 120% -> 124 -> 128 -> 132 -> 136 -> 140 -> 145 -> 150 -> 155 -> 160% (L10)<br>- Power decrease: 10% \| TP Cost: 22 (+3-4/Lv) -> 50 \| Speed: 0.75x -> 0.85x |
+| Light | Magic | 10 | 55 SP | All allies | None | Illuminate the dungeon to find hidden pathways.<br>- Turns: 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26 -> 28 -> 30 |
+| Whistle | Magic | 10 | 55 SP | All allies | None | Raise encounter rate.<br>- Turns: 10 -> 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26 -> 28<br>- TP Cost: 12 -> 11 -> 10 -> 9 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3 |
+| Triple Attack | Passive | 5 | 30 SP | - | - | Occasionally attack thrice when attacking normally.<br>- Triple attack rate: 5% -> 8% -> 11% -> 14% -> 17% (L1-5 Max) |
+| Treasure Hunt | Passive | 5 | 30 SP | - | - | Increase the enemies' item drop rate.<br>- Item drop rate: 4% -> 6% -> 8% -> 10% -> 12% (L1-5 Max) |
+| Recycle | Passive | 5 | 45 SP | - | - | Occasionally keep disposable items after using them in battle.<br>- Item keep rate: 25% -> 27% -> 29% -> 32% -> 35% (L1-5 Max) |
+| Item Mastery | Passive | 10 | 55 SP | - | - | Increase the effects of HP and TP recovery items during battle.<br>- Item effects: 10% -> 20 -> 30 -> 40 -> 50 -> 60 -> 70 -> 80 -> 90 -> 100% (L10) |
+| Negotiate | Passive | 5 | 30 SP | - | - | Reduce purchase and identification prices at shops.<br>- Negotiation rate: 10% -> 14% -> 18% -> 22% -> 25% (L1-5 Max) |
 
 ---
 
@@ -717,22 +717,22 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Phoenix | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Long | Projectile skill. Attack and decrease speed for an enemy row. |
-| Ninja Piledriver | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal bash damage to one enemy. May stun. |
-| Shadow Clone | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Dodge enemy attacks by creating a shadow clone. |
-| Shadow Sew | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Disable skill usage for an enemy row. Level must exceed the target's. |
-| Light Scroll | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None | Lower all enemies' accuracy. |
-| Fire Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal fire damage based on enemy's max HP and lower ATK to an enemy row. |
-| Water Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal water damage based on enemy's max HP and lower magic def. to an enemy row. |
-| Lightning Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal lightning damage based on enemy's max HP and lower speed to an enemy row. |
-| Wind Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal wind damage based on enemy's max HP and lower evasion to an enemy row. |
-| Earth Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal earth damage based on enemy's max HP and lower DEF to an enemy row. |
-| Katana Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with katana equipped. |
-| Projectile Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with projectile weapon equipped. |
-| Dual Wield | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Can equip two one-handed weapons at the same time. |
-| Barrage | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Occasionally attack twice when attacking normally. |
+| Phoenix | Technique | 10 | 55 SP | Enemy row | Long | Projectile skill. Attack and decrease speed for an enemy row.<br>- ATK: 94% (+3-6%/Lv) -> 130% \| Speed decrease chance: 30% -> 75% \| Speed decrease: 10%<br>- Turns: 4 \| TP Cost: 24 -> 27 -> 30 -> 33 -> 36 -> 39 -> 42 -> 45 -> 48 -> 50 |
+| Ninja Piledriver | Technique | 10 | 55 SP | Single enemy | None | Deal bash damage to one enemy. May stun.<br>- ATK: 120% -> 126 -> 132 -> 139 -> 146 -> 154 -> 162 -> 170 -> 180 -> 192% (L10)<br>- Stun: 10% -> 20% \| TP Cost: 12 -> 15 -> 18 -> 21 -> 24 -> 27 -> 30 -> 32 -> 34 -> 36 |
+| Shadow Clone | Magic | 5 | 30 SP | Self | None | Dodge enemy attacks by creating a shadow clone.<br>- Number of dodges: 1 -> 2 -> 3 -> 4 -> 5 (L1-5 Max)<br>- Turns: 3 -> 3 -> 4 -> 4 -> 5 \| TP Cost: 23 -> 27 -> 32 -> 38 -> 45 \| Speed: 0.85x |
+| Shadow Sew | Magic | 5 | 30 SP | Enemy row | None | Disable skill usage for an enemy row. Level must exceed the target's.<br>- Shadow Sew Success: 30% -> 32% -> 35% -> 37% -> 40% (L1-5 Max)<br>- Turns: 3 \| TP Cost: 36 -> 39 -> 43 -> 47 -> 52 \| Speed: 0.8x \| Chant: 0.8x -> 0.88x |
+| Light Scroll | Magic | 5 | 25 SP | All enemies | None | Lower all enemies' accuracy.<br>- Accuracy: -10% -> -12% -> -14% -> -16% -> -18% (L1-5 Max)<br>- Turns: 3 \| TP Cost: 15 -> 18 -> 21 -> 24 -> 27 \| Chant: 1.15x -> 1.3x |
+| Fire Scroll | Magic | 5 | 30 SP | Enemy row | None | Deal fire damage based on enemy's max HP and lower ATK to an enemy row.<br>- Max HP damage: 4% -> 5% -> 6% -> 7% -> 8% (L1-5 Max) \| Accuracy: 64% (+4%/Lv)<br>- ATK: -4% (-1%/Lv) (3 Turns) \| Damage cap: 250 -> 500 \| TP Cost: 20 (+5/Lv) -> 40 |
+| Water Scroll | Magic | 5 | 30 SP | Enemy row | None | Deal water damage based on enemy's max HP and lower magic def. to an enemy row.<br>- Max HP damage: 4% -> 5% -> 6% -> 7% -> 8% (L1-5 Max) \| Accuracy: 64% (+4%/Lv)<br>- Magic defense: -7% -> -18% \| Damage cap: 250 -> 500 \| TP Cost: 20 (+5/Lv) -> 40 |
+| Lightning Scroll | Magic | 5 | 30 SP | Enemy row | None | Deal lightning damage based on enemy's max HP and lower speed to an enemy row.<br>- Max HP damage: 4% -> 5% -> 6% -> 7% -> 8% (L1-5 Max) \| Accuracy: 64% (+4%/Lv)<br>- Speed decrease: 4% (+1%/Lv) \| Damage cap: 250 -> 500 \| TP Cost: 20 (+5/Lv) -> 40 |
+| Wind Scroll | Magic | 5 | 30 SP | Enemy row | None | Deal wind damage based on enemy's max HP and lower evasion to an enemy row.<br>- Max HP damage: 4% -> 5% -> 6% -> 7% -> 8% (L1-5 Max) \| Accuracy: 64% (+4%/Lv)<br>- Evasion: -7% (-2%/Lv) (3 Turns) \| Damage cap: 250 -> 500 \| TP Cost: 20 (+5/Lv) -> 40 |
+| Earth Scroll | Magic | 5 | 30 SP | Enemy row | None | Deal earth damage based on enemy's max HP and lower DEF to an enemy row.<br>- Max HP damage: 4% -> 5% -> 6% -> 7% -> 8% (L1-5 Max) \| Accuracy: 64% (+4%/Lv)<br>- DEF: -4% (-1%/Lv) (3 Turns) \| Damage cap: 250 -> 500 \| TP Cost: 20 (+5/Lv) -> 40 |
+| Katana Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with katana equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Projectile Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with projectile weapon equipped.<br>- ATK bonus: 5% -> 7 -> 9 -> 11 -> 13 -> 15 -> 17 -> 18 -> 19 -> 20% (L10) |
+| Dual Wield | Passive | 10 | 55 SP | - | - | Can equip two one-handed weapons at the same time.<br>- Sub-weapon ATK: 30% -> 35 -> 40 -> 45 -> 50 -> 54 -> 58 -> 62 -> 68 -> 72% (L10) |
+| Barrage | Passive | 10 | 55 SP | - | - | Occasionally attack twice when attacking normally.<br>- Double attack rate: 20% -> 21 -> 22 -> 23 -> 24 -> 25 -> 26 -> 28 -> 30 -> 32% (L10) |
 
 ---
 
@@ -781,15 +781,15 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Fireball | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal fire damage to one enemy. |
-| Ice Edge | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal water damage to one enemy. |
-| Thunderbolt | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal lightning damage to one enemy. |
-| Air Cutter | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal wind damage to one enemy. |
-| Stone Hammer | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal earth damage to one enemy. |
-| Poison | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None | Poison all enemies. |
-| Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None | Heal an ally's HP. |
+| Fireball | Magic | 10 | 55 SP | Single enemy | None | Deal fire damage to one enemy.<br>- Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)<br>- Accuracy: 86% (+1%/Lv) \| TP Cost: 5 (+2-4/Lv) -> 32 \| Speed: 2.25x |
+| Ice Edge | Magic | 10 | 55 SP | Single enemy | None | Deal water damage to one enemy.<br>- Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)<br>- Accuracy: 86% (+1%/Lv) \| TP Cost: 5 (+2-4/Lv) -> 32 \| Speed: 2.25x |
+| Thunderbolt | Magic | 10 | 55 SP | Single enemy | None | Deal lightning damage to one enemy.<br>- Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)<br>- Accuracy: 86% (+1%/Lv) \| TP Cost: 5 (+2-4/Lv) -> 32 \| Speed: 2.25x |
+| Air Cutter | Magic | 10 | 55 SP | Single enemy | None | Deal wind damage to one enemy.<br>- Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)<br>- Accuracy: 86% (+1%/Lv) \| TP Cost: 5 (+2-4/Lv) -> 32 \| Speed: 2.25x |
+| Stone Hammer | Magic | 10 | 55 SP | Single enemy | None | Deal earth damage to one enemy.<br>- Pwr: 70 -> 105 -> 140 -> 175 -> 220 -> 270 -> 320 -> 380 -> 450 -> 520 (L10)<br>- Accuracy: 86% (+1%/Lv) \| TP Cost: 5 (+2-4/Lv) -> 32 \| Speed: 2.25x |
+| Poison | Magic | 5 | 25 SP | All enemies | None | Poison all enemies.<br>- Accuracy: 75% -> 78% -> 81% -> 83% -> 85% (L1-5 Max)<br>- TP Cost: 4 -> 5 -> 6 -> 7 -> 8 \| Speed: 2.15x \| Chant: 1.2x -> 1.4x |
+| Heal | Magic | 10 | 55 SP | Single ally | None | Heal an ally's HP.<br>- Heals RES: 4x (+1x/Lv) -> 13x (L10 Max) \| Heal Cap: 100 (+60-80/Lv) -> 800<br>- TP Cost: 3 -> 5 -> 7 -> 10 -> 12 -> 14 -> 17 -> 20 -> 23 -> 26 \| Speed: 1.75x |
 
 ---
 
@@ -834,18 +834,18 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Fire Blast | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal fire damage to an enemy row. |
-| Ice Storm | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal water damage to an enemy row. |
-| Thunder Chain | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal lightning damage to an enemy row. |
-| Air Turbulence | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal wind damage to an enemy row. |
-| Stone Shower | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal earth damage to an enemy row. |
-| Blood Absorb | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal non-elemental damage to one enemy to regain HP. |
-| Magic Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Magic attack power bonus. |
-| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover TP every turn during battle. |
-| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Make it harder for chants, songs, and dances to be interrupted. |
-| Critical Magic | Passive | 1 | 10 | - | - | Occasionally land critical hits with offensive spells. |
+| Fire Blast | Magic | 10 | 55 SP | Enemy row | None | Deal fire damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Ice Storm | Magic | 10 | 55 SP | Enemy row | None | Deal water damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Thunder Chain | Magic | 10 | 55 SP | Enemy row | None | Deal lightning damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Air Turbulence | Magic | 10 | 55 SP | Enemy row | None | Deal wind damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Stone Shower | Magic | 10 | 55 SP | Enemy row | None | Deal earth damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Blood Absorb | Magic | 10 | 55 SP | Single enemy | None | Deal non-elemental damage to one enemy to regain HP.<br>- Pwr: 60 -> 95 -> 130 -> 165 -> 200 -> 230 -> 260 -> 290 -> 320 -> 350 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| HP Absorb: 100% \| TP Cost: 9 (+1/Lv) -> 18 |
+| Magic Mastery | Passive | 10 | 55 SP | - | - | Magic attack power bonus.<br>- Magic attack bonus: 6% -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Auto-Refresh | Passive | 5 | 30 SP | - | - | Recover TP every turn during battle.<br>- TP recovery: 3 -> 6 -> 9 -> 12 -> 16 (L1-5 Max) |
+| Concentrate | Passive | 5 | 30 SP | - | - | Make it harder for chants, songs, and dances to be interrupted.<br>- LvUp: Interruption rate DOWN |
+| Critical Magic | Passive | 1 | 10 SP | - | - | Occasionally land critical hits with offensive spells. |
 
 ---
 
@@ -890,27 +890,27 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Holy Prayer | Technique | 5 | 15 (1, 2, 3, 4, 5) | Self | None | Recover some TP. |
-| Stun | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Stun one enemy. |
-| Freeze | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Freeze all enemies. |
-| Paralyze | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Paralyze all enemies. |
-| Silence | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Silence all enemies. |
-| Fire Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with fire. |
-| Water Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with water. |
-| Lightning Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with lightning. |
-| Wind Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with wind. |
-| Earth Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with earth. |
-| Mini Circle Nurse | Magic | 8 | 32 (1, 1, 3, 3, 5, 5, 7, 7) | Ally row | None | Cure one row of allies' status ailments. |
-| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Reduce incoming physical damage by a certain amount. |
-| Return | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Escape from the dungeon. |
-| Circle Brave | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's ATK. |
-| Circle Protect | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's DEF. |
-| Heal Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Healing magic bonus. Raises healing cap. |
-| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover TP every turn during battle. |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
-| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce chant time. |
+| Holy Prayer | Technique | 5 | 15 SP | Self | None | Recover some TP.<br>- TP recovery: 16% -> 18% -> 20% -> 22% -> 25% (L1-5 Max)<br>- Speed: 0.9x |
+| Stun | Magic | 5 | 30 SP | Single enemy | None | Stun one enemy.<br>- Accuracy: 65% -> 68% -> 71% -> 73% -> 75% (L1-5 Max)<br>- TP Cost: 10 -> 12 -> 14 -> 16 -> 18 \| Speed: 0.8x -> 0.92x \| Chant: 1.25x |
+| Freeze | Magic | 5 | 30 SP | All enemies | None | Freeze all enemies.<br>- Accuracy: 70% -> 72% -> 74% -> 76% -> 78% (L1-5 Max)<br>- TP Cost: 6 -> 7 -> 8 -> 9 -> 10 \| Speed: 1.5x \| Chant: 1.5x -> 1.66x |
+| Paralyze | Magic | 5 | 30 SP | All enemies | None | Paralyze all enemies.<br>- Accuracy: 65% -> 68% -> 71% -> 73% -> 75% (L1-5 Max)<br>- TP Cost: 6 -> 7 -> 8 -> 9 -> 10 \| Speed: 1.5x \| Chant: 1x -> 1.2x |
+| Silence | Magic | 5 | 30 SP | All enemies | None | Silence all enemies.<br>- Accuracy: 70% -> 72% -> 74% -> 76% -> 78% (L1-5 Max)<br>- TP Cost: 6 -> 7 -> 8 -> 9 -> 10 \| Speed: 1.5x \| Chant: 1.5x -> 1.66x |
+| Fire Enchant | Magic | 5 | 25 SP | Single ally | None | Imbue an ally's weapon with fire.<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 (L1-5 Max) \| TP Cost: 6 -> 7 -> 8 -> 9 -> 10<br>- Speed: 1.5x -> 1.7x \| Chant: 1.75x -> 2.25x |
+| Water Enchant | Magic | 5 | 25 SP | Single ally | None | Imbue an ally's weapon with water.<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 (L1-5 Max) \| TP Cost: 6 -> 7 -> 8 -> 9 -> 10<br>- Speed: 1.5x -> 1.7x \| Chant: 1.75x -> 2.25x |
+| Lightning Enchant | Magic | 5 | 25 SP | Single ally | None | Imbue an ally's weapon with lightning.<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 (L1-5 Max) \| TP Cost: 6 -> 7 -> 8 -> 9 -> 10<br>- Speed: 1.5x -> 1.7x \| Chant: 1.75x -> 2.25x |
+| Wind Enchant | Magic | 5 | 25 SP | Single ally | None | Imbue an ally's weapon with wind.<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 (L1-5 Max) \| TP Cost: 6 -> 7 -> 8 -> 9 -> 10<br>- Speed: 1.5x -> 1.7x \| Chant: 1.75x -> 2.25x |
+| Earth Enchant | Magic | 5 | 25 SP | Single ally | None | Imbue an ally's weapon with earth.<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 (L1-5 Max) \| TP Cost: 6 -> 7 -> 8 -> 9 -> 10<br>- Speed: 1.5x -> 1.7x \| Chant: 1.75x -> 2.25x |
+| Mini Circle Nurse | Magic | 8 | 32 SP | Ally row | None | Cure one row of allies' status ailments.<br>- Cures: poison > paralysis > silence > freeze > sleep > petrify > slow > all debuffs<br>- TP Cost: 7 -> 10 -> 13 -> 16 -> 19 -> 21 -> 24 -> 28 \| Speed: 1.75x \| Chant: 2.25x |
+| Divine Shield | Magic | 5 | 30 SP | Self | None | Reduce incoming physical damage by a certain amount.<br>- Amount of damage reduced: 30% -> 33% -> 37% -> 41% -> 45% (L1-5 Max)<br>- Turns: 4 \| TP Cost: 24 -> 28 -> 33 -> 37 -> 42 \| Speed: 1.5x \| Chant: 0.75x |
+| Return | Magic | 5 | 30 SP | All allies | None | Escape from the dungeon.<br>- TP Cost: 28 -> 21 -> 14 -> 7 -> 1 (L1-5 Max) |
+| Circle Brave | Magic | 5 | 30 SP | All allies | None | Raise the party's ATK.<br>- ATK: +8% -> +10% -> +12% -> +14% -> +16% (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 12 -> 15 -> 18 -> 20 -> 22 \| Chant: 1.15x |
+| Circle Protect | Magic | 5 | 30 SP | All allies | None | Raise the party's DEF.<br>- DEF: +8% -> +10% -> +12% -> +14% -> +16% (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 12 -> 15 -> 18 -> 20 -> 22 \| Chant: 1.15x |
+| Heal Mastery | Passive | 10 | 55 SP | - | - | Healing magic bonus. Raises healing cap.<br>- HP recovery bonus: 8% -> 10 -> 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26% (L10)<br>- Heal Cap: +10% -> +20 -> +30 -> +40 -> +50 -> +60 -> +70 -> +80 -> +90 -> +100% |
+| Mini Auto-Refresh | Passive | 5 | 15 SP | - | - | Slightly recover TP every turn during battle.<br>- TP recovery: 1 -> 3 -> 5 -> 7 -> 9 (L1-5 Max) |
+| Adaptation | Passive | 10 | 55 SP | - | - | Raise resistance to all elements.<br>- Elemental resistance: 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 (L10) |
+| Fast Cast | Passive | 5 | 30 SP | - | - | Reduce chant time.<br>- Chant time: -8% -> -11% -> -14% -> -17% -> -20% (L1-5 Max) |
 
 ---
 
@@ -955,24 +955,24 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Fire Blast | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal fire damage to an enemy row. |
-| Ice Storm | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal water damage to an enemy row. |
-| Thunder Chain | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal lightning damage to an enemy row. |
-| Air Turbulence | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal wind damage to an enemy row. |
-| Stone Shower | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal earth damage to an enemy row. |
-| Slow | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Slow an enemy row. |
-| Circle Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Heal the party's HP. |
-| Nurse | Magic | 8 | 20 (1, 1, 2, 2, 3, 3, 4, 4) | Single ally | None | Cure status ailments for a single ally. |
-| Resurrect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Revive a dead ally. |
-| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Reduce incoming physical damage by a certain amount. |
-| Light | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Illuminate the dungeon to find hidden pathways. |
-| Return | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Escape from the dungeon. |
-| Heal Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Healing magic bonus. Raises healing cap. |
-| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover HP every turn during battle. |
-| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover TP every turn during battle. |
-| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce chant time. |
+| Fire Blast | Magic | 10 | 55 SP | Enemy row | None | Deal fire damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Ice Storm | Magic | 10 | 55 SP | Enemy row | None | Deal water damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Thunder Chain | Magic | 10 | 55 SP | Enemy row | None | Deal lightning damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Air Turbulence | Magic | 10 | 55 SP | Enemy row | None | Deal wind damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Stone Shower | Magic | 10 | 55 SP | Enemy row | None | Deal earth damage to an enemy row.<br>- Pwr: 90 -> 120 -> 160 -> 200 -> 240 -> 290 -> 340 -> 400 -> 460 -> 530 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 15 (+4-6/Lv) -> 60 \| Speed: 1.7x |
+| Slow | Magic | 5 | 30 SP | Enemy row | None | Slow an enemy row.<br>- Accuracy: 50% -> 55% -> 60% -> 64% -> 68% (L1-5 Max)<br>- TP Cost: 15 -> 17 -> 19 -> 21 -> 23 \| Chant: 1x -> 1.12x |
+| Circle Heal | Magic | 10 | 55 SP | All allies | None | Heal the party's HP.<br>- Heals RES: 2.5x (+0.5x/Lv) -> 7x (L10 Max) \| Heal Cap: 80 (+50-60/Lv) -> 600<br>- TP Cost: 15 -> 20 -> 25 -> 30 -> 35 -> 40 -> 46 -> 52 -> 58 -> 64 \| Speed: 1.35x |
+| Nurse | Magic | 8 | 20 SP | Single ally | None | Cure status ailments for a single ally.<br>- Cures: poison > paralysis > silence > freeze > sleep > petrify > slow > all debuffs<br>- TP Cost: 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 \| Speed: 2.25x \| Chant: 2.75x |
+| Resurrect | Magic | 5 | 30 SP | Single ally | None | Revive a dead ally.<br>- HP on revival: 40% -> 52% -> 64% -> 76% -> 88% (L1-5 Max)<br>- TP Cost: 26 -> 30 -> 34 -> 38 -> 42 \| Speed: 1.25x \| Chant: 1.3x -> 1.5x |
+| Divine Shield | Magic | 5 | 30 SP | Self | None | Reduce incoming physical damage by a certain amount.<br>- Amount of damage reduced: 30% -> 33% -> 37% -> 41% -> 45% (L1-5 Max)<br>- Turns: 4 \| TP Cost: 24 -> 28 -> 33 -> 37 -> 42 \| Speed: 1.5x \| Chant: 0.75x |
+| Light | Magic | 10 | 55 SP | All allies | None | Illuminate the dungeon to find hidden pathways.<br>- Turns: 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26 -> 28 -> 30 |
+| Return | Magic | 5 | 30 SP | All allies | None | Escape from the dungeon.<br>- TP Cost: 28 -> 21 -> 14 -> 7 -> 1 (L1-5 Max) |
+| Heal Mastery | Passive | 10 | 55 SP | - | - | Healing magic bonus. Raises healing cap.<br>- HP recovery bonus: 8% -> 10 -> 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26% (L10)<br>- Heal Cap: +10% -> +20 -> +30 -> +40 -> +50 -> +60 -> +70 -> +80 -> +90 -> +100% |
+| Mini Auto-Recovery | Passive | 5 | 15 SP | - | - | Slightly recover HP every turn during battle.<br>- HP recovery: 1% -> 2% -> 3% -> 4% -> 5% (L1-5 Max) |
+| Mini Auto-Refresh | Passive | 5 | 15 SP | - | - | Slightly recover TP every turn during battle.<br>- TP recovery: 1 -> 3 -> 5 -> 7 -> 9 (L1-5 Max) |
+| Fast Cast | Passive | 5 | 30 SP | - | - | Reduce chant time.<br>- Chant time: -8% -> -11% -> -14% -> -17% -> -20% (L1-5 Max) |
 
 ---
 
@@ -1017,24 +1017,24 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Loose Spirit | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None | Briefly sacrifice magic accuracy to increase magic damage. |
-| Inferno | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal fire damage to all enemies. |
-| Crimson Flare | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous fire damage to one enemy. |
-| Diamond Dust | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal water damage to all enemies. |
-| Cocytus | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous water damage to one enemy. |
-| Lightning | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal lightning damage to all enemies. |
-| Muon Plasma | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous lightning damage to one enemy. |
-| Tornado | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal wind damage to all enemies. |
-| Tempest | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous wind damage to one enemy. |
-| Meteor | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal earth damage to all enemies. |
-| Gaia Crush | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous earth damage to one enemy. |
-| Soul Absorb | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal non-elemental damage to one enemy to regain TP. |
-| Slow | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Slow an enemy row. |
-| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce chant time. |
-| Economy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce TP Cost in battle. |
-| Nirvana | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - | Heighten magic accuracy. |
+| Loose Spirit | Technique | 5 | 45 SP | Self | None | Briefly sacrifice magic accuracy to increase magic damage.<br>- Magic damage: +38% -> +42% -> +47% -> +53% -> +60% (L1-5 Max)<br>- Magic accuracy: -2% (-2%/Lv) \| Turns: 6 \| TP Cost: 20 -> 23 -> 26 -> 29 -> 32 |
+| Inferno | Magic | 10 | 55 SP | All enemies | None | Deal fire damage to all enemies.<br>- Pwr: 300 -> 350 -> 400 -> 450 -> 500 -> 550 -> 590 -> 650 -> 690 -> 750 (L10)<br>- Accuracy: 75% (+1-2%/Lv) -> 85% \| TP Cost: 42 (+6-10/Lv) -> 120 \| Speed: 1.3x |
+| Crimson Flare | Magic | 5 | 30 SP | Single enemy | None | Deal tremendous fire damage to one enemy.<br>- Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5 Max) \| Accuracy: 82% (+2%/Lv)<br>- TP Cost: 40 -> 50 -> 60 -> 72 -> 84 \| Speed: 1.5x \| Chant: 0.75x -> 0.7x |
+| Diamond Dust | Magic | 10 | 55 SP | All enemies | None | Deal water damage to all enemies.<br>- Pwr: 300 -> 350 -> 400 -> 450 -> 500 -> 550 -> 590 -> 650 -> 690 -> 750 (L10)<br>- Accuracy: 75% (+1-2%/Lv) -> 85% \| TP Cost: 42 (+6-10/Lv) -> 120 \| Speed: 1.3x |
+| Cocytus | Magic | 5 | 30 SP | Single enemy | None | Deal tremendous water damage to one enemy.<br>- Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5 Max) \| Accuracy: 82% (+2%/Lv)<br>- TP Cost: 40 -> 50 -> 60 -> 72 -> 84 \| Speed: 1.5x \| Chant: 0.75x -> 0.7x |
+| Lightning | Magic | 10 | 55 SP | All enemies | None | Deal lightning damage to all enemies.<br>- Pwr: 300 -> 350 -> 400 -> 450 -> 500 -> 550 -> 590 -> 650 -> 690 -> 750 (L10)<br>- Accuracy: 75% (+1-2%/Lv) -> 85% \| TP Cost: 42 (+6-10/Lv) -> 120 \| Speed: 1.3x |
+| Muon Plasma | Magic | 5 | 30 SP | Single enemy | None | Deal tremendous lightning damage to one enemy.<br>- Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5 Max) \| Accuracy: 82% (+2%/Lv)<br>- TP Cost: 40 -> 50 -> 60 -> 72 -> 84 \| Speed: 1.5x \| Chant: 0.75x -> 0.7x |
+| Tornado | Magic | 10 | 55 SP | All enemies | None | Deal wind damage to all enemies.<br>- Pwr: 300 -> 350 -> 400 -> 450 -> 500 -> 550 -> 590 -> 650 -> 690 -> 750 (L10)<br>- Accuracy: 75% (+1-2%/Lv) -> 85% \| TP Cost: 42 (+6-10/Lv) -> 120 \| Speed: 1.3x |
+| Tempest | Magic | 5 | 30 SP | Single enemy | None | Deal tremendous wind damage to one enemy.<br>- Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5 Max) \| Accuracy: 82% (+2%/Lv)<br>- TP Cost: 40 -> 50 -> 60 -> 72 -> 84 \| Speed: 1.5x \| Chant: 0.75x -> 0.7x |
+| Meteor | Magic | 10 | 55 SP | All enemies | None | Deal earth damage to all enemies.<br>- Pwr: 300 -> 350 -> 400 -> 450 -> 500 -> 550 -> 590 -> 650 -> 690 -> 750 (L10)<br>- Accuracy: 75% (+1-2%/Lv) -> 85% \| TP Cost: 42 (+6-10/Lv) -> 120 \| Speed: 1.3x |
+| Gaia Crush | Magic | 5 | 30 SP | Single enemy | None | Deal tremendous earth damage to one enemy.<br>- Pwr: 620 -> 760 -> 920 -> 1100 -> 1300 (L1-5 Max) \| Accuracy: 82% (+2%/Lv)<br>- TP Cost: 40 -> 50 -> 60 -> 72 -> 84 \| Speed: 1.5x \| Chant: 0.75x -> 0.7x |
+| Soul Absorb | Magic | 10 | 55 SP | Single enemy | None | Deal non-elemental damage to one enemy to regain TP.<br>- Pwr: 22 -> 30 -> 38 -> 46 -> 54 -> 60 -> 66 -> 72 -> 78 -> 82 \| Accuracy: 80% -> 90%<br>- TP Absorb: 100% \| TP Cost: 6 (+1/Lv) -> 15 \| Speed: 1.75x \| Chant: 1.25x -> 1.07x |
+| Slow | Magic | 5 | 30 SP | Enemy row | None | Slow an enemy row.<br>- Accuracy: 50% -> 55% -> 60% -> 64% -> 68% (L1-5 Max)<br>- TP Cost: 15 -> 17 -> 19 -> 21 -> 23 \| Chant: 1x -> 1.12x |
+| Fast Cast | Passive | 5 | 30 SP | - | - | Reduce chant time.<br>- Chant time: -8% -> -11% -> -14% -> -17% -> -20% (L1-5 Max) |
+| Economy | Passive | 5 | 30 SP | - | - | Reduce TP Cost in battle.<br>- TP Cost reduction: 10% -> 15% -> 20% -> 25% -> 30% (L1-5 Max) |
+| Nirvana | Passive | 5 | 25 SP | - | - | Heighten magic accuracy.<br>- Accuracy: 3% -> 5% -> 7% -> 9% -> 12% (L1-5 Max) |
 
 ---
 
@@ -1100,19 +1100,19 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Cover | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Take all physical damage in place of one ally. |
-| Magical Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Short | Sword skill. Deal slash damage to all enemies. |
-| Magic Barrier | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Reduce magic damage taken for the party. |
-| Magical Change | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None | Transform to increase own overall stats. |
-| Magical Spark | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Perform a powerful lightning strike to one enemy. |
-| Accelerator | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's speed. |
-| Illusion | Magic | 3 | 18 (3, 6, 9) | Self | None | Create 2 magical afterimages that let you dodge one attack each. |
-| Rainbow Flash | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal non-elemental damage to an enemy row. |
-| Sword Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with sword equipped. |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
-| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally survive at 1 HP after being dealt fatal damage. |
+| Cover | Technique | 5 | 30 SP | Self | None | Take all physical damage in place of one ally.<br>- Cover ends per hit: 70% -> 62% -> 54% -> 46% -> 40% (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 10 -> 14 -> 18 -> 21 -> 24 |
+| Magical Slash | Technique | 10 | 55 SP | All enemies | Short | Sword skill. Deal slash damage to all enemies.<br>- ATK: 120% -> 124 -> 128 -> 132 -> 136 -> 140 -> 144 -> 148 -> 154 -> 160% (L10)<br>- TP Cost: 36 -> 40 -> 44 -> 48 -> 52 -> 57 -> 62 -> 67 -> 73 -> 79 |
+| Magic Barrier | Technique | 10 | 55 SP | All allies | None | Reduce magic damage taken for the party.<br>- Damage reduction: 18% -> 20 -> 22 -> 24 -> 26 -> 28 -> 30 -> 32 -> 34 -> 36% (L10)<br>- Turns: 4 -> 7 \| TP Cost: 22 -> 25 -> 28 -> 31 -> 34 -> 38 -> 42 -> 46 -> 50 -> 56 |
+| Magical Change | Technique | 5 | 45 SP | Self | None | Transform to increase own overall stats.<br>- Stat: +20% -> +23% -> +26% -> +29% -> +32% (L1-5 Max)<br>- Turns: 4 -> 4 -> 5 -> 5 -> 6 \| TP Cost: 52 -> 60 -> 70 -> 80 -> 92 \| Speed: 1.25x |
+| Magical Spark | Technique | 10 | 55 SP | Single enemy | Short | Short-range skill. Perform a powerful lightning strike to one enemy.<br>- ATK: 136% -> 142 -> 148 -> 155 -> 162 -> 172 -> 182 -> 193 -> 204 -> 216% (L10)<br>- Accuracy: +10% (+1-2%/Lv) -> +20% \| TP Cost: 13 (+3-4/Lv) -> 45 \| Speed: 0.9x -> 1x |
+| Accelerator | Magic | 5 | 30 SP | Single ally | None | Raise an ally's speed.<br>- Speed increase: 8% -> 9% -> 10% -> 11% -> 12% (L1-5 Max)<br>- Turns: 3 \| TP Cost: 15 -> 18 -> 21 -> 24 -> 27 \| Speed: 1.25x -> 1.41x |
+| Illusion | Magic | 3 | 18 SP | Self | None | Create 2 magical afterimages that let you dodge one attack each.<br>- Turns: 3 -> 4 -> 5 (L1-3 Max) \| TP Cost: 30 -> 38 -> 46 \| Speed: 0.85x<br>- Chant: 0.75x -> 0.65x |
+| Rainbow Flash | Magic | 10 | 55 SP | Enemy row | None | Deal non-elemental damage to an enemy row.<br>- Pwr: 350 -> 390 -> 430 -> 470 -> 510 -> 550 -> 590 -> 630 -> 680 -> 720 (L10)<br>- Accuracy: 86% (+1%/Lv) \| TP Cost: 22 (+4-6/Lv) -> 66 \| Speed: 1.3x |
+| Sword Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with sword equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Double Attack | Passive | 5 | 30 SP | - | - | Occasionally attack twice when attacking normally.<br>- Double attack rate: 9% -> 12% -> 15% -> 18% -> 21% (L1-5 Max) |
+| Guts | Passive | 5 | 30 SP | - | - | Occasionally survive at 1 HP after being dealt fatal damage.<br>- Survival rate: 10% -> 15% -> 20% -> 25% -> 30% (L1-5 Max) |
 
 ---
 
@@ -1178,24 +1178,24 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Identify | Technique | 5 | 30 (2, 4, 6, 8, 10) | Item | None | Identify unknown items. |
-| Bible Thump | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Tome skill. RES-based bash damage to one enemy. May freeze/silence. |
-| Sleep | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Put an enemy row to sleep. |
-| Petrify | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Petrify an enemy row. |
-| Death | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Instakill one enemy. |
-| Terrorize | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Stun an enemy row. |
-| Dispel | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None | Negate buffs for all enemies. |
-| Stab Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None | Raise one row of allies' resistance to stab damage. |
-| Slash Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None | Raise one row of allies' resistance to slash damage. |
-| Bash Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None | Raise one row of allies' resistance to bash damage. |
-| Sun Veil | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's magic defense. |
-| Accelerator | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's speed. |
-| Amplify | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None | Raise an ally's max HP. |
-| Prism Dawn | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | None | Pierce to the back row with a raw magic attack and RES-based extra damage. |
-| Esarhaddon | Passive | 6 | 36 (1, 3, 5, 7, 9, 11) | - | - | Automatically heal inflicted status ailments at the start of each turn. |
-| Economy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce TP Cost in battle. |
+| Identify | Technique | 5 | 30 SP | Item | None | Identify unknown items.<br>- Identification success rate: 32% -> 44% -> 56% -> 68% -> 80% (L1-5 Max)<br>- TP Cost: 10 -> 8 -> 6 -> 4 -> 2 |
+| Bible Thump | Technique | 10 | 55 SP | Single enemy | Short | Tome skill. RES-based bash damage to one enemy. May freeze/silence.<br>- ATK: 150% -> 162 -> 174 -> 186 -> 198 -> 208 -> 218 -> 228 -> 236 -> 244% (L10)<br>- Freeze: 20% (+3-4%/Lv) -> 50% \| Silence: 20% -> 50% \| TP Cost: 9 (+3/Lv) -> 36 |
+| Sleep | Magic | 5 | 30 SP | Enemy row | None | Put an enemy row to sleep.<br>- Accuracy: 65% -> 68% -> 71% -> 73% -> 75% (L1-5 Max)<br>- TP Cost: 10 -> 12 -> 14 -> 16 -> 18 \| Chant: 0.75x -> 0.87x |
+| Petrify | Magic | 5 | 30 SP | Enemy row | None | Petrify an enemy row.<br>- Accuracy: 70% -> 72% -> 74% -> 76% -> 78% (L1-5 Max)<br>- TP Cost: 15 -> 17 -> 19 -> 21 -> 23 \| Chant: 0.75x -> 0.87x |
+| Death | Magic | 5 | 30 SP | Single enemy | None | Instakill one enemy.<br>- Accuracy: 50% -> 52% -> 55% -> 58% -> 60% (L1-5 Max)<br>- TP Cost: 12 -> 14 -> 16 -> 18 -> 20 \| Chant: 0.75x -> 0.87x |
+| Terrorize | Magic | 5 | 30 SP | Enemy row | None | Stun an enemy row.<br>- Accuracy: 54% -> 58% -> 62% -> 66% -> 70% (L1-5 Max)<br>- TP Cost: 22 -> 24 -> 26 -> 28 -> 30 \| Speed: 0.4x -> 0.5x \| Chant: 1.25x |
+| Dispel | Magic | 5 | 25 SP | All enemies | None | Negate buffs for all enemies.<br>- Accuracy: 55% -> 65% -> 75% -> 85% -> 95% (L1-5 Max) \| Buff cancel rate: 100%<br>- TP Cost: 8 -> 11 -> 14 -> 18 -> 22 \| Speed: 1.25x \| Chant: 1.25x -> 1.45x |
+| Stab Guard | Magic | 5 | 25 SP | Ally row | None | Raise one row of allies' resistance to stab damage.<br>- Resistance: 20 -> 24 -> 28 -> 32 -> 36 (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 15 -> 17 -> 19 -> 21 -> 23 |
+| Slash Guard | Magic | 5 | 25 SP | Ally row | None | Raise one row of allies' resistance to slash damage.<br>- Resistance: 18 -> 24 -> 28 -> 32 -> 36 (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 15 -> 17 -> 19 -> 21 -> 23 |
+| Bash Guard | Magic | 5 | 25 SP | Ally row | None | Raise one row of allies' resistance to bash damage.<br>- Resistance: 18 -> 24 -> 28 -> 32 -> 36 (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 15 -> 17 -> 19 -> 21 -> 23 |
+| Sun Veil | Magic | 5 | 30 SP | All allies | None | Raise the party's magic defense.<br>- Magic defense: +10% -> +12% -> +14% -> +16% -> +18% (L1-5 Max)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 \| TP Cost: 16 -> 20 -> 24 -> 28 -> 32 \| Chant: 1.25x |
+| Accelerator | Magic | 5 | 30 SP | Single ally | None | Raise an ally's speed.<br>- Speed increase: 8% -> 9% -> 10% -> 11% -> 12% (L1-5 Max)<br>- Turns: 3 \| TP Cost: 15 -> 18 -> 21 -> 24 -> 27 \| Speed: 1.25x -> 1.41x |
+| Amplify | Magic | 10 | 55 SP | Single ally | None | Raise an ally's max HP.<br>- Max HP: +20% -> +23 -> +26 -> +29 -> +32 -> +35 -> +38 -> +41 -> +44 -> +47% (L10)<br>- Turns: 5 -> 5 -> 6 -> 6 -> 7 -> 7 -> 8 -> 8 -> 9 -> 10 \| TP Cost: 18 (+3/Lv) -> 45 |
+| Prism Dawn | Magic | 10 | 55 SP | Piercing | None | Pierce to the back row with a raw magic attack and RES-based extra damage.<br>- Pwr: 100 -> 130 -> 160 -> 200 -> 240 -> 280 -> 320 -> 370 -> 420 -> 480 (L10)<br>- Accuracy: 80% (+1-2%/Lv) -> 90% \| TP Cost: 30 (+4/Lv) -> 66 \| Speed: 0.85x |
+| Esarhaddon | Passive | 6 | 36 SP | - | - | Automatically heal inflicted status ailments at the start of each turn.<br>- LvUp: Can cure poison > paralysis > silence > freeze > sleep > slow |
+| Economy | Passive | 5 | 30 SP | - | - | Reduce TP Cost in battle.<br>- TP Cost reduction: 10% -> 15% -> 20% -> 25% -> 30% (L1-5 Max) |
 
 ---
 
@@ -1241,17 +1241,17 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Holy Gavel | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Mace skill. Deal bash damage with an inexorable thud. |
-| Justice | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Mace skill. Decrease the enemy's DEF as you attack. |
-| Shine Curse | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal non-elemental damage to all enemies (effective vs. unholy monsters). |
-| Full Heal | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Fully heal one ally's HP. |
-| Circle Nurse | Magic | 8 | 36 (1, 2, 3, 4, 5, 6, 7, 8) | All allies | None | Cure party's status ailments. |
-| Moon Curtain | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's resistance to fire, water, lightning, wind, and earth. |
-| Insurance | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | While active, immediately revive upon death. |
-| Mace Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with mace equipped. |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
+| Holy Gavel | Technique | 10 | 55 SP | Single enemy | Short | Mace skill. Deal bash damage with an inexorable thud.<br>- Damage: 2x -> 2.2 -> 2.4 -> 2.6 -> 2.8 -> 3 -> 3.25 -> 3.5 -> 3.75 -> 4x (L10)<br>- Accuracy: +10% (+2-4%/Lv) -> +30% \| ATK: 82% \| TP Cost: 28 (+4/Lv) -> 64 |
+| Justice | Technique | 10 | 55 SP | Single enemy | Short | Mace skill. Decrease the enemy's DEF as you attack.<br>- ATK: 135% -> 147 -> 159 -> 171 -> 183 -> 193 -> 203 -> 213 -> 220 -> 225% \| DEF: -10%<br>- Turns: 4 \| TP Cost: 25 -> 29 -> 33 -> 37 -> 41 -> 45 -> 48 -> 51 -> 54 -> 57 |
+| Shine Curse | Magic | 10 | 55 SP | All enemies | None | Deal non-elemental damage to all enemies (effective vs. unholy monsters).<br>- Pwr: 250 (+40-50/Lv) -> 640 \| Accuracy: 60% -> 70% \| Damage vs. unholy: +100%<br>- TP Cost: 45 -> 52 -> 59 -> 66 -> 74 -> 80 -> 86 -> 90 -> 95 -> 100 \| Speed: 1.75x |
+| Full Heal | Magic | 5 | 30 SP | Single ally | None | Fully heal one ally's HP.<br>- TP Cost: 48 -> 45 -> 42 -> 39 -> 36 (L1-5 Max) \| Speed: 1.15x \| Chant: 1.5x -> 1.75x |
+| Circle Nurse | Magic | 8 | 36 SP | All allies | None | Cure party's status ailments.<br>- Cures: poison > paralysis > silence > freeze > sleep > petrify > slow > all debuffs<br>- TP Cost: 9 -> 12 -> 15 -> 18 -> 21 -> 25 -> 30 -> 36 \| Speed: 1.5x \| Chant: 2x |
+| Moon Curtain | Magic | 5 | 30 SP | All allies | None | Raise the party's resistance to fire, water, lightning, wind, and earth.<br>- Elemental resistance increase: 5 -> 10 -> 15 -> 20 -> 25 (L1-5 Max)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 \| TP Cost: 16 -> 20 -> 24 -> 28 -> 32 \| Chant: 1.25x |
+| Insurance | Magic | 5 | 30 SP | Self | None | While active, immediately revive upon death.<br>- Amount of HP on revival: 10% -> 20% -> 30% -> 40% -> 50% (L1-5 Max)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 \| TP Cost: 25 -> 30 -> 35 -> 40 -> 45 \| Speed: 1.5x |
+| Mace Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with mace equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Double Attack | Passive | 5 | 30 SP | - | - | Occasionally attack twice when attacking normally.<br>- Double attack rate: 9% -> 12% -> 15% -> 18% -> 21% (L1-5 Max) |
 
 ---
 
@@ -1300,15 +1300,15 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| First Aid | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Heal an ally's HP. |
-| Cook | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Heal an ally's TP. |
-| Self-Sacrifice | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Distribute all of one's TP to the target. |
-| Clean | Technique | 5 | 25 (1, 3, 5, 7, 9) | Self | None | Clean one's surroundings in order to increase mobility. |
-| Lullaby | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Put an enemy to sleep. |
-| Generous Heart | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Party's HP and TP is restored slightly after a battle. |
-| Maid Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all maid skills. |
+| First Aid | Technique | 5 | 30 SP | Single ally | None | Heal an ally's HP.<br>- HP recovery: 12% -> 15% -> 18% -> 21% -> 25% (L1-5 Max) |
+| Cook | Technique | 5 | 30 SP | Single ally | None | Heal an ally's TP.<br>- TP recovery: 10% -> 11% -> 12% -> 13% -> 15% (L1-5 Max)<br>- Speed: 0.85x |
+| Self-Sacrifice | Technique | 5 | 25 SP | Single ally | None | Distribute all of one's TP to the target.<br>- TP transfer bonus: 100% -> 110% -> 120% -> 130% -> 140% (L1-5 Max) |
+| Clean | Technique | 5 | 25 SP | Self | None | Clean one's surroundings in order to increase mobility.<br>- Speed increase: 12% -> 14% -> 16% -> 18% -> 20% (L1-5 Max)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 |
+| Lullaby | Magic | 5 | 25 SP | Single enemy | None | Put an enemy to sleep.<br>- Accuracy: 70% -> 73% -> 76% -> 79% -> 82% (L1-5 Max)<br>- Speed: 1.5x \| Chant: 1.5x -> 1.66x |
+| Generous Heart | Passive | 5 | 30 SP | - | - | Party's HP and TP is restored slightly after a battle.<br>- Post-battle HP: 6% -> 7% -> 8% -> 10% -> 12% (L1-5 Max)<br>- Post-battle TP: 3% -> 4% -> 5% -> 7% -> 9% |
+| Maid Mastery | Passive | 10 | 55 SP | - | - | Increased effects for all maid skills.<br>- Maid skill bonus: 1% -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10% (L10) |
 
 ---
 
@@ -1354,14 +1354,14 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Spiritual Fantasia | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's magic attack power while song lasts. |
-| Sacred Hymn | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's magic defense power while song lasts. |
-| Replenishing Carol | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Gradually heal the party's HP while song lasts. |
-| Blissful Chorale | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Gradually heal the party's TP while song lasts. |
-| Experience Paean | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's acquired EXP while song lasts. |
-| Song Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all songs. |
+| Spiritual Fantasia | Magic | 10 | 55 SP | All allies | None | Raise the party's magic attack power while song lasts.<br>- Magic attack: +10% -> +11 -> +12 -> +13 -> +14 -> +15 -> +16 -> +17 -> +18 -> +20%<br>- Speed: 1.35x \| Chant: 1.25x -> 1.7x |
+| Sacred Hymn | Magic | 10 | 55 SP | All allies | None | Raise the party's magic defense power while song lasts.<br>- Magic defense: +10% -> +11 -> +12 -> +13 -> +14 -> +15 -> +16 -> +17 -> +18 -> +20%<br>- Speed: 1.35x \| Chant: 1.25x -> 1.7x |
+| Replenishing Carol | Magic | 10 | 55 SP | All allies | None | Gradually heal the party's HP while song lasts.<br>- HP recovery: 20 -> 35 -> 50 -> 65 -> 80 -> 100 -> 130 -> 170 -> 210 -> 250 (L10)<br>- Speed: 1.35x \| Chant: 1.25x -> 1.7x |
+| Blissful Chorale | Magic | 10 | 55 SP | All allies | None | Gradually heal the party's TP while song lasts.<br>- TP recovery: 4 -> 6 -> 8 -> 10 -> 12 -> 14 -> 18 -> 22 -> 26 -> 30 (L10)<br>- Speed: 1.35x \| Chant: 1.1x -> 1.5x |
+| Experience Paean | Magic | 10 | 55 SP | All allies | None | Raise the party's acquired EXP while song lasts.<br>- EXP: +16% -> +17 -> +18 -> +19 -> +20 -> +21 -> +22 -> +23 -> +24 -> +25% (L10)<br>- Speed: 1.35x \| Chant: 1.25x -> 1.7x |
+| Song Mastery | Passive | 10 | 55 SP | - | - | Increased effects for all songs.<br>- Singing skill bonus: 3% -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12% (L10) |
 
 ---
 
@@ -1407,14 +1407,14 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Warm-Up | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own physical evasion rate and magical evasion rate. |
-| Fascinating Waltz | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' ATK while dance lasts. |
-| Alluring Samba | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' DEF while dance lasts. |
-| Gloomy Tango | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' accuracy while dance lasts. |
-| Gravitating Polka | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' evasion while dance lasts. |
-| Dance Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all dances. |
+| Warm-Up | Technique | 5 | 30 SP | Self | None | Increase own physical evasion rate and magical evasion rate.<br>- Physical evasion: +15% (+2-3%/Lv) -> +25% \| Magic evasion: +10% (+2-3%/Lv) -> +20%<br>- Turns: 3 -> 4 -> 5 -> 6 -> 7 \| TP Cost: 12 -> 14 -> 16 -> 18 -> 20 \| Speed: 0.9x |
+| Fascinating Waltz | Technique | 10 | 55 SP | All enemies | None | Dance skill. Lower all enemies' ATK while dance lasts.<br>- ATK: -4% -> -6 -> -8 -> -10 -> -11 -> -12 -> -13 -> -14 -> -15 -> -16% (L10)<br>- Speed: 0.75x |
+| Alluring Samba | Technique | 10 | 55 SP | All enemies | None | Dance skill. Lower all enemies' DEF while dance lasts.<br>- DEF: -5% -> -7 -> -9 -> -11 -> -13 -> -15 -> -17 -> -19 -> -21 -> -23% (L10)<br>- Speed: 0.75x |
+| Gloomy Tango | Technique | 10 | 55 SP | All enemies | None | Dance skill. Lower all enemies' accuracy while dance lasts.<br>- Accuracy: -4% -> -5 -> -6 -> -7 -> -8 -> -9 -> -10 -> -11 -> -12 -> -13% (L10)<br>- Speed: 0.75x |
+| Gravitating Polka | Technique | 10 | 55 SP | All enemies | None | Dance skill. Lower all enemies' evasion while dance lasts.<br>- Evasion: -5% -> -7 -> -9 -> -11 -> -13 -> -15 -> -17 -> -19 -> -21 -> -23% (L10)<br>- Speed: 0.75x |
+| Dance Mastery | Passive | 10 | 55 SP | - | - | Increased effects for all dances.<br>- Dancing skill bonus: 3% -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12% (L10) |
 
 ---
 
@@ -1460,18 +1460,18 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Barrage Rondo | Magic | 1 | 10 | All allies | None | Raise the party's chance of doing multiple strikes while song lasts. |
-| Concentration Prelude | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's critical rate while song lasts. |
-| Reading Requiem | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Decrease the party's chant time while song lasts. |
-| Lightning March | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's speed while song lasts. |
-| Sorcerous Ballad | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's magic accuracy while song lasts. |
-| Panic Voice | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal non-elemental damage to all enemies. May stun. |
-| Auto-Recovery | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover HP every turn during battle. |
-| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Make it harder for chants, songs, and dances to be interrupted. |
-| Self Session | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Become capable of performing two songs at once. |
-| Fast Talk | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Reduce chant time for songs. |
+| Barrage Rondo | Magic | 1 | 10 SP | All allies | None | Raise the party's chance of doing multiple strikes while song lasts.<br>- Speed: 1.35x \| Chant: 1.4x |
+| Concentration Prelude | Magic | 10 | 55 SP | All allies | None | Raise the party's critical rate while song lasts.<br>- Critical rate: 10% -> 12 -> 14 -> 16 -> 18 -> 20 -> 22 -> 24 -> 26 -> 28% (L10)<br>- Speed: 1.35x \| Chant: 1.4x -> 2x |
+| Reading Requiem | Magic | 10 | 55 SP | All allies | None | Decrease the party's chant time while song lasts.<br>- Chant time: -10% -> -11 -> -12 -> -13 -> -14 -> -15 -> -16 -> -17 -> -18 -> -20%<br>- Speed: 1.35x \| Chant: 1.4x -> 2x |
+| Lightning March | Magic | 10 | 55 SP | All allies | None | Raise the party's speed while song lasts.<br>- Speed increase: 6% -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10)<br>- Speed: 1.35x \| Chant: 1.1x -> 1.5x |
+| Sorcerous Ballad | Magic | 10 | 55 SP | All allies | None | Raise the party's magic accuracy while song lasts.<br>- Magic accuracy: +6% -> +7 -> +8 -> +9 -> +10 -> +11 -> +12 -> +13 -> +14 -> +15%<br>- Speed: 1.35x \| Chant: 1.25x -> 1.7x |
+| Panic Voice | Magic | 10 | 55 SP | All enemies | None | Deal non-elemental damage to all enemies. May stun.<br>- Pwr: 240 (+40/Lv) -> 600 (L10 Max) \| Accuracy: 76% (+1%/Lv) \| Stun: 25%<br>- TP Cost: 36 -> 42 -> 48 -> 54 -> 60 -> 66 -> 72 -> 80 -> 88 -> 96 \| Speed: 1.5x |
+| Auto-Recovery | Passive | 5 | 30 SP | - | - | Recover HP every turn during battle.<br>- HP recovery: 2% -> 4% -> 6% -> 8% -> 10% (L1-5 Max) |
+| Concentrate | Passive | 5 | 30 SP | - | - | Make it harder for chants, songs, and dances to be interrupted.<br>- LvUp: Interruption rate DOWN |
+| Self Session | Passive | 5 | 30 SP | - | - | Become capable of performing two songs at once.<br>- Speed: 6% -> 9% -> 12% -> 15% -> 18% (L1-5 Max) |
+| Fast Talk | Passive | 10 | 55 SP | - | - | Reduce chant time for songs.<br>- Song chant time: -10% -> -11 -> -12 -> -13 -> -14 -> -15 -> -16 -> -17 -> -18 -> -20% |
 
 ---
 
@@ -1539,20 +1539,20 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Attract an enemy's attacks. |
-| War Cry | Technique | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's ATK. |
-| Hard Whipping | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Mid | Whip skill. Deal bash damage to an enemy row from mid-range. |
-| Enticing Love | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Mid | Whip skill. Attack one enemy 1-5 times from mid-range. |
-| Absolute Obedience | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Whip skill. Deal bash damage to one enemy twice. May silence/paralyze. |
-| Resurrect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Revive a dead ally. |
-| Carrot and Stick | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Heal an enemy's HP to decrease its physical and magic defense. |
-| Whip Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with whip equipped. |
-| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover TP every turn during battle. |
-| Knock Down | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally parry when receiving long-range attacks. |
-| Ecstasy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Briefly increase ATK and DEX when HP drops below 50%. |
-| Counter Whip | Passive | 1 | 20 | - | - | Whip skill. Strike back with a normal attack before a targeted attack hits you. |
+| Provoke | Technique | 5 | 30 SP | Single enemy | None | Attract an enemy's attacks.<br>- Enmity: 250<br>- Turns: 3 -> 4 -> 5 -> 6 -> 7 \| TP Cost: 1 -> 2 -> 3 -> 4 -> 5 \| Speed: 1.5x -> 2x |
+| War Cry | Technique | 5 | 30 SP | All allies | None | Raise the party's ATK.<br>- ATK: +8% -> +10% -> +12% -> +15% -> +18% (L1-5 Max)<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 5 -> 7 -> 9 -> 11 -> 13 |
+| Hard Whipping | Technique | 10 | 55 SP | Enemy row | Mid | Whip skill. Deal bash damage to an enemy row from mid-range.<br>- ATK: 120% -> 124 -> 128 -> 132 -> 136 -> 140 -> 145 -> 150 -> 155 -> 160% (L10)<br>- Power decrease: 10% \| TP Cost: 22 (+3-4/Lv) -> 50 \| Speed: 0.75x -> 0.85x |
+| Enticing Love | Technique | 5 | 30 SP | Single enemy | Mid | Whip skill. Attack one enemy 1-5 times from mid-range.<br>- ATK: 107% -> 114% -> 121% -> 128% -> 136% (L1-5 Max)<br>- TP Cost: 30 -> 34 -> 38 -> 42 -> 46 \| Speed: 0.75x -> 0.8x |
+| Absolute Obedience | Technique | 5 | 30 SP | Single enemy | Short | Whip skill. Deal bash damage to one enemy twice. May silence/paralyze.<br>- ATK: 135% -> 142% -> 149% -> 157% -> 165% (L1-5 Max) \| Silence: 25% (+3%/Lv)<br>- Paralysis: 20% -> 23% -> 26% -> 29% -> 32% \| TP Cost: 20 -> 24 -> 28 -> 32 -> 36 |
+| Resurrect | Magic | 5 | 30 SP | Single ally | None | Revive a dead ally.<br>- HP on revival: 40% -> 52% -> 64% -> 76% -> 88% (L1-5 Max)<br>- TP Cost: 26 -> 30 -> 34 -> 38 -> 42 \| Speed: 1.25x \| Chant: 1.3x -> 1.5x |
+| Carrot and Stick | Magic | 5 | 25 SP | Single enemy | None | Heal an enemy's HP to decrease its physical and magic defense.<br>- DEF: -5% -> -6% -> -7% -> -8% -> -10% (L1-5 Max) \| Magic defense: -10% -> -15%<br>- Accuracy: 80% -> 90% \| HP recovery: 35 -> 25 \| Turns: 3 \| TP: 18 (+2-4/Lv) -> 32 |
+| Whip Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with whip equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 12 -> 14 -> 15 -> 16 -> 17% (L10) |
+| Auto-Refresh | Passive | 5 | 30 SP | - | - | Recover TP every turn during battle.<br>- TP recovery: 3 -> 6 -> 9 -> 12 -> 16 (L1-5 Max) |
+| Knock Down | Passive | 5 | 30 SP | - | - | Occasionally parry when receiving long-range attacks.<br>- Activation rate: 10% -> 15% -> 20% -> 25% -> 30% (L1-5 Max) |
+| Ecstasy | Passive | 5 | 30 SP | - | - | Briefly increase ATK and DEX when HP drops below 50%.<br>- ATK/DEX: +10% -> +11% -> +12% -> +13% -> +15% (L1-5 Max) |
+| Counter Whip | Passive | 1 | 20 SP | - | - | Whip skill. Strike back with a normal attack before a targeted attack hits you. |
 
 ---
 
@@ -1598,17 +1598,17 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Debilitating Salsa | Technique | 10 | 95 (2, 4, 6, 8, 10, 11, 12, 13, 14, 15) | All enemies | None | Dance skill. Damage all enemies at the start of user's turn while dance lasts. |
-| Dumbing Mazurka | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' speed while dance lasts. |
-| Emaciating Hopak | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' elemental resistances while dance lasts. |
-| Primevil | Magic | 8 | 64 (1, 3, 5, 7, 9, 11, 13, 15) | All allies | None | Sacrifice yourself to revive, heal, and recover status effects for the rest of the party. |
-| Auto-Recovery | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover HP every turn during battle. |
-| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally survive at 1 HP after being dealt fatal damage. |
-| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Make it harder for chants, songs, and dances to be interrupted. |
-| On Stage | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Become capable of performing two dances at once. |
-| Magnificent Steps | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Mesmerize enemies, causing them to occasionally do nothing. |
+| Debilitating Salsa | Technique | 10 | 95 SP | All enemies | None | Dance skill. Damage all enemies at the start of user's turn while dance lasts.<br>- Max HP damage: 3% -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12% (L10)<br>- Total damage cap: 250 -> 275 -> 300 -> 325 -> 350 -> 375 -> 400 -> 430 -> 460 -> 500 |
+| Dumbing Mazurka | Technique | 10 | 55 SP | All enemies | None | Dance skill. Lower all enemies' speed while dance lasts.<br>- Speed decrease: 5% -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14% (L10)<br>- Speed: 0.75x |
+| Emaciating Hopak | Technique | 10 | 55 SP | All enemies | None | Dance skill. Lower all enemies' elemental resistances while dance lasts.<br>- Resistance decrease: 7 -> 9 -> 11 -> 13 -> 15 -> 17 -> 19 -> 21 -> 23 -> 25 (L10)<br>- Speed: 0.75x |
+| Primevil | Magic | 8 | 64 SP | All allies | None | Sacrifice yourself to revive, heal, and recover status effects for the rest of the party.<br>- Heals RES: 11x -> 13 -> 15 -> 17 -> 19 -> 21 -> 23 -> 25x (L8)<br>- Recoverable status ailments: 1 (+1/Lv) \| HP on revival: 10% (+5-10%/Lv) -> 50% |
+| Auto-Recovery | Passive | 5 | 30 SP | - | - | Recover HP every turn during battle.<br>- HP recovery: 2% -> 4% -> 6% -> 8% -> 10% (L1-5 Max) |
+| Guts | Passive | 5 | 30 SP | - | - | Occasionally survive at 1 HP after being dealt fatal damage.<br>- Survival rate: 10% -> 15% -> 20% -> 25% -> 30% (L1-5 Max) |
+| Concentrate | Passive | 5 | 30 SP | - | - | Make it harder for chants, songs, and dances to be interrupted.<br>- LvUp: Interruption rate DOWN |
+| On Stage | Passive | 5 | 30 SP | - | - | Become capable of performing two dances at once.<br>- Speed: 6% -> 9% -> 12% -> 15% -> 18% (L1-5 Max) |
+| Magnificent Steps | Passive | 5 | 45 SP | - | - | Mesmerize enemies, causing them to occasionally do nothing.<br>- Occurrence rate: 3% -> 4% -> 5% -> 6% -> 7% (L1-5 Max) |
 
 ---
 
@@ -1658,14 +1658,14 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Fleet Foot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None | Increase own speed. |
-| Danger Shoot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Random enemies | Long | Attack 0-4 times on random targets. |
-| Coffee Break | Technique | 5 | 25 (1, 3, 5, 7, 9) | Self | None | Take a break to heal own HP and raise Pep. |
-| Roulette Circus | Technique | 1 | 10 | None | None | Spin the magic roulette. Nobody knows what will happen. |
-| Weapon Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus for all weapons. |
-| Present for Me | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - | Sometimes pick up items while moving around the dungeons. |
+| Fleet Foot | Technique | 10 | 55 SP | Self | None | Increase own speed.<br>- Speed increase: 10% -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 20% (L10)<br>- Turns: 3 (Lv1-3) -> 4 (Lv4-6) -> 5 (Lv7-9) -> 6 (L10) \| TP Cost: 14 (+2/Lv) -> 32 |
+| Danger Shoot | Technique | 10 | 55 SP | Random enemies | Long | Attack 0-4 times on random targets.<br>- ATK: 104% -> 108 -> 112 -> 116 -> 120 -> 124 -> 127 -> 130 -> 133 -> 136% (L10)<br>- Accuracy: +20% \| TP Cost: 27 -> 30 -> 33 -> 36 -> 40 -> 44 -> 48 -> 52 -> 56 -> 60 |
+| Coffee Break | Technique | 5 | 25 SP | Self | None | Take a break to heal own HP and raise Pep.<br>- HP recovery: 20% -> 25% -> 30% -> 35% -> 40% (L1-5 Max)<br>- TP Cost: 6 -> 7 -> 8 -> 9 -> 10 \| Speed: 1.5x |
+| Roulette Circus | Technique | 1 | 10 SP | None | None | Spin the magic roulette. Nobody knows what will happen. |
+| Weapon Mastery | Passive | 10 | 55 SP | - | - | ATK bonus for all weapons.<br>- ATK bonus: 2% -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 12% (L10) |
+| Present for Me | Passive | 5 | 25 SP | - | - | Sometimes pick up items while moving around the dungeons.<br>- Found item quality: 1 -> 2 -> 3 -> 4 -> 5 (L1-5 Max) |
 
 ---
 
@@ -1712,13 +1712,13 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Spartan | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None | Summon Spartan for short-range bash damage. |
-| Oracles | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None | Summon Oracles for mid-range INT-based damage and possible paralysis. |
-| Catalina | Technique | 5 | 30 (2, 4, 6, 8, 10) | None | None | Summon Catalina to heal allies' HP. |
-| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover TP every turn during battle. |
-| Doll Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all doll skills. |
+| Spartan | Technique | 10 | 55 SP | None | None | Summon Spartan for short-range bash damage.<br>- ATK: 144% -> 147 -> 150 -> 154 -> 158 -> 162 -> 166 -> 170 -> 175 -> 180% (L10)<br>- Turns: 3 (Lv1-3) -> 4 (Lv4-6) -> 5 (Lv7-9) -> 6 (L10) \| TP Cost: 20 -> 42 |
+| Oracles | Technique | 10 | 55 SP | None | None | Summon Oracles for mid-range INT-based damage and possible paralysis.<br>- ATK: 126% (+2-5%/Lv) -> 157% \| Paralysis: 30% (+3-5%/Lv) -> 64% (L10)<br>- Turns: 3 (Lv1-4) -> 4 (Lv5-8) -> 5 (Lv9-10) \| TP Cost: 24 -> 48 \| Speed: 0.9x |
+| Catalina | Technique | 5 | 30 SP | None | None | Summon Catalina to heal allies' HP.<br>- Heal Power: 4 -> 6 -> 8 -> 10 -> 12 (L1-5 Max)<br>- Turns: 3 (Lv1-2) -> 4 (Lv3-4) -> 5 (L5 Max) \| TP Cost: 30 -> 48 \| Speed: 0.9x |
+| Mini Auto-Refresh | Passive | 5 | 15 SP | - | - | Slightly recover TP every turn during battle.<br>- TP recovery: 1 -> 3 -> 5 -> 7 -> 9 (L1-5 Max) |
+| Doll Mastery | Passive | 10 | 55 SP | - | - | Increased effects for all doll skills.<br>- Doll skill bonus: 3% -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12% (L10) |
 
 ---
 
@@ -1764,15 +1764,15 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Checkmate | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Attack one enemy. May instakill. |
-| Surprise Fist | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long | 50/50 chance of non-elemental damage to each enemy. May stun. |
-| High Risk, High Return | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own ATK at the price of lowering own DEF. |
-| Magic Box | Technique | 1 | 10 | None | None | Open a magic box. Nobody knows what will happen. |
-| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover HP every turn during battle. |
-| Anti-Dark Aura | Passive | 1 | 20 | - | - | Nullify the effects of enemy Dark Auras. |
-| Pretend | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Occasionally nullify physical damage. |
+| Checkmate | Technique | 10 | 55 SP | Single enemy | Short | Attack one enemy. May instakill.<br>- ATK: 120% -> 126 -> 132 -> 138 -> 142 -> 150 -> 158 -> 168 -> 178 -> 190% (L10)<br>- Instakill: 15% (+1-2%/Lv) -> 25% \| TP Cost: 17 (+2/Lv) -> 35 \| Speed: 0.88x |
+| Surprise Fist | Technique | 10 | 55 SP | All enemies | Long | 50/50 chance of non-elemental damage to each enemy. May stun.<br>- ATK: 95% -> 99 -> 103 -> 107 -> 111 -> 115 -> 119 -> 123 -> 127 -> 131% (L10)<br>- Stun: 40% (+3-4%/Lv) -> 70% \| TP Cost: 32 (+2/Lv) -> 50 \| Speed: 0.65x |
+| High Risk, High Return | Technique | 5 | 30 SP | Self | None | Increase own ATK at the price of lowering own DEF.<br>- ATK: 15% (+5%/Lv) -> 35% (L5 Max) \| DEF: -11% -> -14% -> -17% -> -21% -> -25%<br>- Turns: 4 -> 5 -> 6 -> 7 -> 8 \| TP Cost: 8 -> 10 -> 12 -> 14 -> 16 |
+| Magic Box | Technique | 1 | 10 SP | None | None | Open a magic box. Nobody knows what will happen. |
+| Mini Auto-Recovery | Passive | 5 | 15 SP | - | - | Slightly recover HP every turn during battle.<br>- HP recovery: 1% -> 2% -> 3% -> 4% -> 5% (L1-5 Max) |
+| Anti-Dark Aura | Passive | 1 | 20 SP | - | - | Nullify the effects of enemy Dark Auras. |
+| Pretend | Passive | 5 | 45 SP | - | - | Occasionally nullify physical damage.<br>- Activation rate: 8% -> 9% -> 10% -> 11% -> 12% (L1-5 Max) |
 
 ---
 
@@ -1818,17 +1818,17 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Mercidarian | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None | Summon Mercidarian for random long-range stab damage to all foes. |
-| Perdurabo | Technique | 8 | 36 (1, 2, 3, 4, 5, 6, 7, 8) | None | None | Summon Perdurabo to cure two allies' status ailments. |
-| Musiy | Technique | 7 | 84 (3, 6, 9, 12, 15, 18, 21) | None | None | Summon Musiy for immediate single-target attack magic. |
-| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Reduce incoming physical damage by a certain amount. |
-| Soul Eater | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal enormous damage to one enemy that possesses life. Low chance of instakill. |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
-| Double Puppet | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Become capable of controlling two dolls at once. |
-| Soul Seal | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Increase doll power with the strength of the equipped Sealbook. |
-| Destiny Line | Passive | 1 | 20 | - | - | Increase doll summon duration by 1 turn. |
+| Mercidarian | Technique | 10 | 55 SP | None | None | Summon Mercidarian for random long-range stab damage to all foes.<br>- ATK: 100% -> 104 -> 108 -> 112 -> 118 -> 123 -> 128 -> 133 -> 138 -> 143% (L10)<br>- Turns: 2 (Lv1-4) -> 3 (Lv5-7) -> 4 (Lv8-10) \| TP Cost: 42 -> 70 \| Speed: 0.75x |
+| Perdurabo | Technique | 8 | 36 SP | None | None | Summon Perdurabo to cure two allies' status ailments.<br>- Cures: poison > paralysis > silence > freeze > sleep > petrify > slow > all debuffs<br>- Duration: 5 \| TP Cost: 22 -> 24 -> 26 -> 28 -> 30 -> 32 -> 34 -> 38 \| Speed: 1.15x |
+| Musiy | Technique | 7 | 84 SP | None | None | Summon Musiy for immediate single-target attack magic.<br>- Pwr: 180 -> 240 -> 310 -> 390 -> 480 -> 585 -> 700 (L7 Max)<br>- Turns: 4 \| TP Cost: 38 (+4-6/Lv) -> 68 \| Speed: 0.82x -> 0.92x |
+| Divine Shield | Magic | 5 | 30 SP | Self | None | Reduce incoming physical damage by a certain amount.<br>- Amount of damage reduced: 30% -> 33% -> 37% -> 41% -> 45% (L1-5 Max)<br>- Turns: 4 \| TP Cost: 24 -> 28 -> 33 -> 37 -> 42 \| Speed: 1.5x \| Chant: 0.75x |
+| Soul Eater | Magic | 10 | 55 SP | Single enemy | None | Deal enormous damage to one enemy that possesses life. Low chance of instakill.<br>- Pwr: 360 (+40-50/Lv) -> 740 \| Accuracy: 76% (+1%/Lv) \| Instakill: 12%<br>- TP Cost: 32 -> 35 -> 38 -> 41 -> 44 -> 47 -> 50 -> 52 -> 54 -> 56 \| Speed: 1.2x |
+| Adaptation | Passive | 10 | 55 SP | - | - | Raise resistance to all elements.<br>- Elemental resistance: 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 (L10) |
+| Double Puppet | Passive | 5 | 30 SP | - | - | Become capable of controlling two dolls at once.<br>- Speed: 6% -> 9% -> 12% -> 15% -> 18% (L1-5 Max) |
+| Soul Seal | Passive | 5 | 45 SP | - | - | Increase doll power with the strength of the equipped Sealbook.<br>- Sealbook ability: +15% -> +18% -> +21% -> +24% -> +27% (L1-5 Max) |
+| Destiny Line | Passive | 1 | 20 SP | - | - | Increase doll summon duration by 1 turn. |
 
 ---
 
@@ -1896,19 +1896,19 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Materialize | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Turn a weakened enemy into food. Ineffective against some enemies. |
-| Rose Queen | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long | Deal non-elemental damage to all enemies with a storm of roses. May poison. |
-| Tinker Squash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Fan skill. Deal bashing damage to one enemy. May delay enemy turn. |
-| Graceful Rose | Technique | 1 | 5 | Single enemy | Long | Fan skill. With increased ATK, deal long-range damage to one enemy. |
-| Illusion | Magic | 3 | 18 (3, 6, 9) | Self | None | Create 2 magical afterimages that let you dodge one attack each. |
-| Insurance | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | While active, immediately revive upon death. |
-| Limit Field | Magic | 5 | 30 (2, 4, 6, 8, 10) | Everyone | None | Create a field that reduces damage for both sides for a time. |
-| Fan Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with fan equipped. |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
-| Esarhaddon | Passive | 6 | 36 (1, 3, 5, 7, 9, 11) | - | - | Automatically heal inflicted status ailments at the start of each turn. |
-| Elegant Dancing | Passive | 1 | 20 | - | - | Nullify first hit of battle against user (does not work for status ailments). |
+| Materialize | Technique | 5 | 25 SP | Single enemy | None | Turn a weakened enemy into food. Ineffective against some enemies.<br>- Conversion success: 35% -> 42% -> 49% -> 57% -> 65% (L1-5 Max)<br>- TP Cost: 24 -> 26 -> 28 -> 30 -> 32 \| Speed: 0.85x |
+| Rose Queen | Technique | 10 | 55 SP | All enemies | Long | Deal non-elemental damage to all enemies with a storm of roses. May poison.<br>- ATK: 118% -> 125 -> 132 -> 139 -> 146 -> 152 -> 158 -> 164 -> 170 -> 176% (L10)<br>- Poison: 50% (+3-4%/Lv) -> 80% \| TP Cost: 22 (+4/Lv) -> 58 \| Speed: 0.6x -> 0.7x |
+| Tinker Squash | Technique | 10 | 55 SP | Single enemy | Short | Fan skill. Deal bashing damage to one enemy. May delay enemy turn.<br>- ATK: 150% -> 162 -> 174 -> 186 -> 198 -> 208 -> 218 -> 228 -> 240 -> 256% (L10)<br>- Turn delay rate: 25% (+2%/Lv) \| TP Cost: 10 (+2-3/Lv) -> 32 \| Speed: 0.95x |
+| Graceful Rose | Technique | 1 | 5 SP | Single enemy | Long | Fan skill. With increased ATK, deal long-range damage to one enemy.<br>- ATK: 120%<br>- Speed: 1.15x |
+| Illusion | Magic | 3 | 18 SP | Self | None | Create 2 magical afterimages that let you dodge one attack each.<br>- Turns: 3 -> 4 -> 5 (L1-3 Max) \| TP Cost: 30 -> 38 -> 46 \| Speed: 0.85x<br>- Chant: 0.75x -> 0.65x |
+| Insurance | Magic | 5 | 30 SP | Self | None | While active, immediately revive upon death.<br>- Amount of HP on revival: 10% -> 20% -> 30% -> 40% -> 50% (L1-5 Max)<br>- Turns: 6 -> 7 -> 8 -> 9 -> 10 \| TP Cost: 25 -> 30 -> 35 -> 40 -> 45 \| Speed: 1.5x |
+| Limit Field | Magic | 5 | 30 SP | Everyone | None | Create a field that reduces damage for both sides for a time.<br>- Damage reduction: 25% -> 27% -> 29% -> 32% -> 35% (L1-5 Max)<br>- Turns: 3 \| TP Cost: 28 -> 31 -> 34 -> 37 -> 40 \| Speed: 0.75x \| Chant: 1.75x |
+| Fan Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with fan equipped.<br>- ATK bonus: 5% -> 7 -> 9 -> 11 -> 13 -> 15 -> 17 -> 18 -> 19 -> 20% (L10) |
+| Double Attack | Passive | 5 | 30 SP | - | - | Occasionally attack twice when attacking normally.<br>- Double attack rate: 9% -> 12% -> 15% -> 18% -> 21% (L1-5 Max) |
+| Esarhaddon | Passive | 6 | 36 SP | - | - | Automatically heal inflicted status ailments at the start of each turn.<br>- LvUp: Can cure poison > paralysis > silence > freeze > sleep > slow |
+| Elegant Dancing | Passive | 1 | 20 SP | - | - | Nullify first hit of battle against user (does not work for status ailments). |
 
 ---
 
@@ -1954,15 +1954,15 @@ Equipment compatibility based on class usability flags.
 
 #### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| Skill | Type | Max Lv | Total SP | Target | Range | Effect & Scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| Mad Zapper | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Mid | Short-range skill. Pierce through to the back row with stab damage. May slow. |
-| Life Bringer | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Short-range skill. Attack one enemy and reduce target's max HP. |
-| Trump Card | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Convert current DEF to bonus ATK (DEF becomes 0). |
-| Showtime | Technique | 1 | 15 | None | None | Something emerges from the shadows. Nobody knows what will happen. |
-| Beast Binder | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Mid | Whip skill. Attack one enemy 1-3 times from mid-range. Crits against Beasts. |
-| Heaven or Hell | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Either heal or damage an enemy based on the enemy's HP. |
-| Axe Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with axe equipped. |
-| Avenger | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally counterattack after receiving physical damage. |
-| Murder | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally instakill when inflicting a critical hit. |
-| Triple Joker | Passive | 1 | 20 | - | - | Heighten the probability of beneficial results for random effect skills. |
+| Mad Zapper | Technique | 10 | 55 SP | Piercing | Mid | Short-range skill. Pierce through to the back row with stab damage. May slow.<br>- ATK: 130% (+8%/Lv) -> 202% (L10 Max) \| Slow: 25% -> 45% \| Accuracy: -5% (+2%/Lv)<br>- TP Cost: 24 -> 27 -> 30 -> 33 -> 36 -> 39 -> 42 -> 45 -> 48 -> 50 \| Speed: 0.75x |
+| Life Bringer | Technique | 5 | 30 SP | Single enemy | Short | Short-range skill. Attack one enemy and reduce target's max HP.<br>- ATK: 88% -> 92% -> 97% -> 103% -> 110% (L1-5 Max) \| Max HP reduction: 50% -> 100%<br>- Turns: 6 \| TP Cost: 15 -> 18 -> 21 -> 23 -> 25 \| Speed: 0.85x |
+| Trump Card | Technique | 5 | 30 SP | Self | None | Convert current DEF to bonus ATK (DEF becomes 0).<br>- DEF conversion bonus: 60% -> 80% -> 100% -> 125% -> 150% (L1-5 Max)<br>- Turns: 2 \| TP Cost: 38 -> 41 -> 44 -> 47 -> 50 \| Speed: 1.15x |
+| Showtime | Technique | 1 | 15 SP | None | None | Something emerges from the shadows. Nobody knows what will happen. |
+| Beast Binder | Technique | 10 | 55 SP | Single enemy | Mid | Whip skill. Attack one enemy 1-3 times from mid-range. Crits against Beasts.<br>- ATK: 118% -> 122 -> 126 -> 130 -> 134 -> 138 -> 142 -> 145 -> 148 -> 151% (L10)<br>- Accuracy UP \| TP Cost: 18 -> 20 -> 22 -> 24 -> 26 -> 28 -> 31 -> 34 -> 37 -> 40 |
+| Heaven or Hell | Magic | 5 | 25 SP | Single enemy | None | Either heal or damage an enemy based on the enemy's HP.<br>- Maximum damage UP \| Maximum heal UP<br>- TP Cost: 30 -> 33 -> 36 -> 39 -> 42 (L1-5 Max) \| Speed: 1.5x \| Chant: 0.84x -> 0.8x |
+| Axe Mastery | Passive | 10 | 55 SP | - | - | ATK bonus with axe equipped.<br>- ATK bonus: 3% -> 5 -> 7 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15% (L10) |
+| Avenger | Passive | 5 | 30 SP | - | - | Occasionally counterattack after receiving physical damage.<br>- Counterattack rate: 6% -> 9% -> 12% -> 15% -> 18% (L1-5 Max) |
+| Murder | Passive | 5 | 30 SP | - | - | Occasionally instakill when inflicting a critical hit.<br>- Activation rate: 8% -> 11% -> 14% -> 17% -> 20% (L1-5 Max) |
+| Triple Joker | Passive | 1 | 20 SP | - | - | Heighten the probability of beneficial results for random effect skills. |

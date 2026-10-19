@@ -6,6 +6,8 @@ Player reference documentation for the original English PC release of Dungeon Tr
 
 Stat tables record raw class attributes at milestone levels from 1 to 99. Modifiers operate additively unless specified by game logic. Equipment usability lists weapon classes and defensive gear categories supported by internal compatibility bitmasks.
 
+Total SP indicates the cumulative Skill Points required to master a skill from level 0 to Max Level (generally 30 SP for 5-level skills and 55 SP for 10-level skills). Effect & Scaling lists both base functionality and exact numerical increases across skill levels.
+
 ## Glossary
 
 Core combat parameters, calculations, and mechanical terms used throughout this guide.

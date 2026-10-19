@@ -74,10 +74,12 @@ def load_guide_text(path=GUIDE_TEXT_PATH):
     if 'SkillDescriptions' in wb.sheetnames:
         for row in wb['SkillDescriptions'].iter_rows(values_only=True):
             if row and row[0] != 'Category':
-                # key by (Category, Skill_ID) and by Name
-                cat, sid, sname, sdesc = row[0], row[1], row[2], row[3] or ''
-                skill_descriptions[(cat, sid)] = sdesc
-                skill_descriptions[sname] = sdesc
+                cat, sid, sname = row[0], row[1], row[2]
+                sdesc = row[3] or ''
+                scaling = row[4] or '' if len(row) > 4 else ''
+                entry = (sdesc, scaling)
+                skill_descriptions[(cat, sid)] = entry
+                skill_descriptions[sname] = entry
             
     return {
         'sections': sections,
@@ -118,6 +120,8 @@ def build_readme_content(guide_text, snapshot):
     lines.append('')
     lines.append(sec['readme_how_to_read']['text'])
     lines.append('')
+    lines.append('Total SP indicates the cumulative Skill Points required to master a skill from level 0 to Max Level (generally 30 SP for 5-level skills and 55 SP for 10-level skills). Effect & Scaling lists both base functionality and exact numerical increases across skill levels.')
+    lines.append('')
     
     # Glossary
     lines.append(sec['readme_glossary']['title'])
@@ -147,6 +151,19 @@ def get_equipment_counts_for_class(cid, snapshot, guide_text):
                 name = guide_text['equiptypes'].get((cat, -1), f'Category {cat}')
                 armor[name] = armor.get(name, 0) + 1
     return weapons, armor
+
+
+def format_skill_cell(s_cat, sid, s_name, guide_text):
+    desc, scaling = guide_text['skill_descriptions'].get((s_cat, sid), guide_text['skill_descriptions'].get(s_name, ('', '')))
+    parts = []
+    if desc:
+        parts.append(desc)
+    if scaling:
+        for line in scaling.splitlines():
+            line_clean = line.strip().replace('   |   ', ' | ').replace('|', '\\|')
+            if line_clean:
+                parts.append(f"- {line_clean}")
+    return '<br>'.join(parts) if parts else '-'
 
 
 def build_classes_content(guide_text, snapshot):
@@ -293,18 +310,13 @@ def build_classes_content(guide_text, snapshot):
                     max_lv = s['levels']
                     sp_list = s['sp'][:max_lv] if s['sp'] else []
                     total_sp = sum(sp_list)
-                    if len(sp_list) > 1:
-                        sp_str = f'{total_sp} ({", ".join(str(x) for x in sp_list)})'
-                    elif len(sp_list) == 1:
-                        sp_str = f'{total_sp}'
-                    else:
-                        sp_str = '0'
+                    sp_str = f'{total_sp} SP' if total_sp > 0 else '0 SP'
                     tgt_code = s['target'] if s['target'] is not None else -1
                     tgt_str = guide_text['targets'].get(tgt_code, '-')
                     rng_code = s['range'] if s['range'] is not None else -1
                     rng_str = guide_text['ranges'].get(rng_code, '-')
-                    s_desc = guide_text['skill_descriptions'].get((s_cat, s['id']), guide_text['skill_descriptions'].get(s_name, ''))
-                    lines.append(f'| {s_name} | {s_cat} | {max_lv} | {sp_str} | {tgt_str} | {rng_str} | {s_desc} |')
+                    cell_desc = format_skill_cell(s_cat, s['id'], s_name, guide_text)
+                    lines.append(f'| {s_name} | {s_cat} | {max_lv} | {sp_str} | {tgt_str} | {rng_str} | {cell_desc} |')
                 lines.append('')
             else:
                 lines.append('No skills learned directly.')
