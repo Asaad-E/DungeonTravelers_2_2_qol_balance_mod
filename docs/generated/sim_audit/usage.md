@@ -1,6 +1,6 @@
 ## usage
 
-217 skills of a plan never used: 92 dominated, 90 no rule of the role uses it, 6 not usable with the weapon of the role, 29 situational.
+216 skills of a plan never used: 92 dominated, 89 no rule of the role uses it, 6 not usable with the weapon of the role, 29 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -122,7 +122,6 @@
 | soul summoner (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Perdurabo | no rule of the role uses it |
-| soul summoner (Lizerietta) | 62 | C38 | Oracles | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 62 | C38 | Danger Shoot | dominated: 8% of the best (Soul Eater) at the start of the fight |
 | soul summoner (Lizerietta) | 90 | P24 | Catalina | no rule of the role uses it |
