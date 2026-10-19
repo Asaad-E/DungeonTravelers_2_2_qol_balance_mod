@@ -133,6 +133,7 @@ namespace DtEngine.Suite
             var rows = Parts.Read(c, "unique_skills");
             var scored = new List<(double wins, Obj row, List<string> cells, double length, double hp)>();
             Func<List<double>, double> mean = xs => xs.Count > 0 ? Py.Sum(xs) / xs.Count : 0.0;
+            int minWins = Noise.MinWins(c);
             foreach (var r in rows)
             {
                 var cells = new List<string>(); var wins = new List<double>(); var lengths = new List<double>(); var hps = new List<double>();
@@ -141,7 +142,7 @@ namespace DtEngine.Suite
                     var a = cell.O("without"); var b = cell.O("with");
                     wins.Add(b.D("won") - a.D("won"));
                     hps.Add(b.D("hp_left") - a.D("hp_left"));
-                    double? length = Py.Truthy(a.Get("time")) && Py.Truthy(b.Get("time")) ? 1 - b.D("time") / a.D("time") : (double?)null;
+                    double? length = Noise.LengthReadable(a, b, minWins) ? 1 - b.D("time") / a.D("time") : (double?)null;
                     if (length != null) lengths.Add(length.Value);
                     cells.Add(Py.Pct(a.D("won"), 0) + " > " + Py.Pct(b.D("won"), 0) + (length != null ? " (" + Py.Pct(length.Value, 0, true) + ")" : ""));
                 }
@@ -156,7 +157,7 @@ namespace DtEngine.Suite
                 "| Girl | Unique skill | Role | " + head + " | Wins, mean | Length, mean | HP left, mean |", "|---|---|---|" + string.Concat(Enumerable.Repeat("---|", places.Count + 3)),
             };
             foreach (var (wins, r, cells, length, hp) in ordered)
-                lines.Add("| " + r.S("girl") + " | " + Py.Str(r.Get("skill")) + " | " + r.S("role") + " | " + string.Join(" | ", cells) + " | " + Py.F(wins * 100, 0, true) + " | " + Py.Pct(length, 0, true) + " | " + Py.F(hp * 100, 0, true) + " |");
+                lines.Add("| " + r.S("girl") + " | " + Py.Str(r.Get("skill")) + " | " + r.S("role") + " | " + string.Join(" | ", cells) + " | " + Py.F(wins * 100, 1, true) + " | " + Py.Pct(length, 1, true) + " | " + Py.F(hp * 100, 0, true) + " |");
             c.WriteText(c.Path("measures", "UNIQUE_SKILLS.md"), M.Lines(lines), true);
         }
     }

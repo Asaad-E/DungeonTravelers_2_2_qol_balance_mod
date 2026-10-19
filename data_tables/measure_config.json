@@ -450,7 +450,8 @@
   },
   "wins": 0.08,
   "length": 0.03,
-  "hp": 0.03
+  "hp": 0.03,
+  "runs": 100
  },
  "random_battles": {
   "chain": 30,
@@ -828,24 +829,53 @@
   ],
   "chain": 4,
   "chain_seed": 1601,
-  "scan_runs": 20,
+  "scan_runs": 40,
   "confirm_runs": 200,
   "mercenary_scan_runs": 60,
   "mercenary_confirm_runs": 600,
   "mercenary_profile_runs": 400,
   "mercenary_profile_batch": 36,
   "mercenary_profile_min_wins": 20,
-  "mercenary_band": [0.04, 0.08],
+  "mercenary_band": [
+   0.04,
+   0.08
+  ],
   "sealbook_runs": 60,
-  "sealbook_stretches": [["early story", "C01"], ["late story", "C25"], ["postgame", "P01"]],
+  "sealbook_stretches": [
+   [
+    "early story",
+    "C01"
+   ],
+   [
+    "late story",
+    "C25"
+   ],
+   [
+    "postgame",
+    "P01"
+   ]
+  ],
   "sealbook_outside_battle": {
-    "212": "encounter rate", "214": "encounter rate", "217": "TP on the map", "258": "treasure", "259": "shops",
-    "260": "traps", "262": "escape (the model never flees)", "263": "a member with no weapon",
-    "266": "pep", "267": "a party smaller than five", "270": "EXP", "290": "joint skills (out of the model)",
-    "291": "chests", "294": "food", "297": "a hired mercenary (none in this battery)"
+   "212": "encounter rate",
+   "214": "encounter rate",
+   "217": "TP on the map",
+   "258": "treasure",
+   "259": "shops",
+   "260": "traps",
+   "262": "escape (the model never flees)",
+   "263": "a member with no weapon",
+   "266": "pep",
+   "267": "a party smaller than five",
+   "270": "EXP",
+   "290": "joint skills (out of the model)",
+   "291": "chests",
+   "294": "food",
+   "297": "a hired mercenary (none in this battery)"
   },
-  "mercenary_band_exempt": ["Three Fates"],
-  "confirm_cells": 3,
+  "mercenary_band_exempt": [
+   "Three Fates"
+  ],
+  "confirm_cells": 5,
   "batch": 2000,
   "wins": 0.08,
   "length": 0.03,
@@ -922,7 +952,7 @@
   ],
   "walk": 10,
   "chain_seed": 1602,
-  "runs": 40,
+  "runs": 100,
   "batch": 300,
   "wins": 0.08,
   "hp": 0.05,
@@ -1015,5 +1045,10 @@
     "confirm": "100"
    }
   }
+ },
+ "statistics": {
+  "about": "How far a difference must stand above the noise of the battles before a measure reads it. A difference of wins, length or HP left counts only when it is at least the threshold of the measure and at least z standard errors of the difference (paired runs: run k of both sides plays the same seed; else two independent shares). A length is compared only when both sides won at least min_wins fights.",
+  "z": 2.0,
+  "min_wins": 20
  }
 }

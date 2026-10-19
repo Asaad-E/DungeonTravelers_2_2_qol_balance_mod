@@ -53,21 +53,41 @@ namespace DtEngine.Suite
             return true;
         }
 
-        static void Judge(Cell cell, Obj cfg)
+        /// <summary>The verdict of a cell. Every difference counts only above max(threshold of the configuration, z paired standard errors)
+        /// (configuration "statistics"); the length is compared on the runs both sides won, and only when there are at least min_wins of them.</summary>
+        static void Judge(Cell cell, Obj cfg, double z, int minWins)
         {
-            double w = cfg.D("wins"), l = cfg.D("length"), h = cfg.D("hp");
+            double w = cfg.D("wins"), l = cfg.D("length"), h = cfg.D("hp"), tpGain = cfg.D("tp"), aliveGain = cfg.D("alive");
+            var A = cell.Without.Runs; var B = cell.With.Runs;
             var a = Figures(cell.Without); var b = Figures(cell.With);
+            int n = Math.Min(A.Length, B.Length);
+            List<double> Of(RunResult[] runs, Func<RunResult, double> f) => runs.Take(n).Select(f).ToList();
             cell.Wins = b.wins - a.wins;
-            cell.Length = a.time.HasValue && b.time.HasValue ? 1 - b.time.Value / a.time.Value : 0.0;
             cell.Hp = b.hp - a.hp;
             cell.Tp = b.tp - a.tp;
             cell.Alive = b.alive - a.alive;
-            double tpGain = cfg.D("tp"), aliveGain = cfg.D("alive");
+            double winsT = Math.Max(w, z * Noise.Paired(Of(A, x => x.Won ? 1 : 0), Of(B, x => x.Won ? 1 : 0)));
+            double hpT = Math.Max(h, z * Noise.Paired(Of(A, x => x.HpLeft), Of(B, x => x.HpLeft)));
+            double tpT = Math.Max(tpGain, z * Noise.Paired(Of(A, x => x.TpLeft), Of(B, x => x.TpLeft)));
+            double aliveT = Math.Max(aliveGain, z * Noise.Paired(Of(A, x => x.Alive), Of(B, x => x.Alive)));
+            var both = Enumerable.Range(0, n).Where(k => A[k].Won && B[k].Won).ToList();
+            double lengthT = double.PositiveInfinity;
+            cell.Length = 0.0;
+            if (both.Count >= minWins)
+            {
+                double ta = both.Average(k => A[k].Time);
+                if (ta > 0)
+                {
+                    cell.Length = 1 - both.Average(k => B[k].Time) / ta;
+                    lengthT = Math.Max(l, z * Noise.Paired(both.Select(k => B[k].Time / ta).ToList(), both.Select(k => A[k].Time / ta).ToList()));
+                }
+            }
             cell.Same = SameRuns(cell.Without, cell.With);
-            cell.Serves = !cell.Same && (cell.Wins >= w || (cell.Wins > -w && (cell.Length >= l || cell.Hp >= h || cell.Tp >= tpGain || cell.Alive >= aliveGain)));
-            cell.Hurts = !cell.Same && (cell.Wins <= -w || (cell.Wins < w && cell.Length <= -l && cell.Hp <= 0));
-            cell.Score = cell.Wins <= -w ? double.NegativeInfinity
-                       : new[] { cell.Wins / w, cell.Length / l, cell.Hp / h, cell.Tp / tpGain, cell.Alive / aliveGain }.Max();
+            bool winsUp = cell.Wins >= winsT, winsDown = cell.Wins <= -winsT;
+            cell.Serves = !cell.Same && (winsUp || (!winsDown && (cell.Length >= lengthT || cell.Hp >= hpT || cell.Tp >= tpT || cell.Alive >= aliveT)));
+            cell.Hurts = !cell.Same && (winsDown || (!winsUp && cell.Length <= -lengthT && cell.Hp <= 0));
+            cell.Score = winsDown ? double.NegativeInfinity
+                       : new[] { cell.Wins / winsT, double.IsInfinity(lengthT) ? 0.0 : cell.Length / lengthT, cell.Hp / hpT, cell.Tp / tpT, cell.Alive / aliveT }.Max();
         }
 
         /// <summary>The stages of the configuration ({name, low, high, columns}) that a level falls in.</summary>
@@ -291,7 +311,7 @@ namespace DtEngine.Suite
                 for (int k = 0; k < part.Count; k++)
                 {
                     part[k].Without = done[2 * k]; part[k].With = done[2 * k + 1];
-                    Judge(part[k], cfg);
+                    Judge(part[k], cfg, Noise.Z(c), Noise.MinWins(c));
                     part[k].Without = null; part[k].With = null;
                 }
                 done.Clear(); jobs.Clear();
@@ -712,7 +732,7 @@ namespace DtEngine.Suite
                 string acts = string.Join(", ", uses.OrderByDescending(kv => kv.Value).Take(5).Select(kv => kv.Key + " " + Py.Pct(kv.Value, 0)));
                 text.Add("| " + name + " | " + list.Count + " | " + Py.F(Mean(p => p.Actions), 1) + " | " + Py.F(Mean(p => p.SummonActions), 1) + " | "
                          + Py.Pct(Mean(p => p.DamageShare), 0) + " | " + Py.Pct(Mean(p => p.HealShare), 0) + " | " + Py.Pct(Mean(p => p.Members), 0, true) + " | "
-                         + Py.Pct(Mean(p => p.Summon), 0, true) + " | " + Py.Pct(Mean(p => p.Wins), 0, true) + " | " + (list.Any(x => x.p.LengthRead) ? Py.Pct(list.Where(x => x.p.LengthRead).Average(x => x.p.Length), 0, true) : "-") + " | " + acts + " |");
+                         + Py.Pct(Mean(p => p.Summon), 0, true) + " | " + Py.Pct(Mean(p => p.Wins), 1, true) + " | " + (list.Any(x => x.p.LengthRead) ? Py.Pct(list.Where(x => x.p.LengthRead).Average(x => x.p.Length), 1, true) : "-") + " | " + acts + " |");
                 var row = (Obj)rows.First(r => ((Obj)r).S("guest") == name);
                 row.Set("profile", Jb.L(list.Select(x => (object)new Obj
                 {

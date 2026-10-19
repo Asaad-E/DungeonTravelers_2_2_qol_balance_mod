@@ -138,7 +138,9 @@ namespace DtEngine.Suite
         static void Report(Ctx c, Obj cfg, List<(string stage, List<string> cids, List<(string role, string cls, string kind)> roles)> plan,
                            List<Cell> cells, int runs, int walk, string control)
         {
-            double w = cfg.D("wins"), h = cfg.D("hp"), d = cfg.D("deaths"), it = cfg.D("items"), good = cfg.D("good_share");
+            double w = cfg.D("wins"), h = cfg.D("hp"), d = cfg.D("deaths"), it = cfg.D("items"), good = cfg.D("good_share"), z = Noise.Z(c);
+            // the bar of a difference of wins: the threshold, or z standard errors of two shares of the runs when the noise is larger
+            double WinsBar(Dictionary<string, double> a, Dictionary<string, double> b) => Math.Max(w, z * Noise.Shares(a["won"], runs, b["won"], runs));
             var at = cells.ToDictionary(x => (x.Stage, x.Cid, x.Party, x.Context, x.Role));
             var rows = new List<object>();
             var text = new List<string>
@@ -177,10 +179,10 @@ namespace DtEngine.Suite
                             return vals.Count > 0 ? vals.Average() : double.NaN;
                         }
                         bool Worse(Dictionary<string, double> a, Dictionary<string, double> b) =>
-                            a["won"] - b["won"] <= -w || b["lowest_hp"] - a["lowest_hp"] >= h || a["deaths"] - b["deaths"] >= d || a["items"] - b["items"] >= it;
+                            a["won"] - b["won"] <= -WinsBar(a, b) || b["lowest_hp"] - a["lowest_hp"] >= h || a["deaths"] - b["deaths"] >= d || a["items"] - b["items"] >= it;
                         bool Serves(Dictionary<string, double> a, Dictionary<string, double> b)
                         {
-                            if (a["won"] - b["won"] >= w) return true;
+                            if (a["won"] - b["won"] >= WinsBar(a, b)) return true;
                             if (Worse(a, b)) return false;
                             return a["lowest_hp"] - b["lowest_hp"] >= h || b["deaths"] - a["deaths"] >= d || b["items"] - a["items"] >= it;
                         }

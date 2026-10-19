@@ -24,9 +24,10 @@ namespace DtEngine.Suite
             return names;
         }
 
-        public static void Run(Ctx c, int runs = 30)
+        public static void Run(Ctx c)
         {
             var inp = c.In("skill_value_contested");
+            int runs = (int)Py.Num(inp.Get("runs"));
             var contested = inp.A("contested").Select(x => (string)x).ToList();
             var notBattle = inp.O("not_battle");
             var data = c.Data("variant");
@@ -57,7 +58,8 @@ namespace DtEngine.Suite
             var rows = new List<object>();
             foreach (var p in plan)
             {
-                var cells = p.cells.Select(x => (object)new Obj { { "checkpoint", x.cid }, { "without", SkillValue.Figures(done[x.without]) }, { "with", SkillValue.Figures(done[x.with]) } }).ToList();
+                var cells = p.cells.Select(x => (object)new Obj { { "checkpoint", x.cid }, { "without", SkillValue.Figures(done[x.without]) }, { "with", SkillValue.Figures(done[x.with]) },
+                                                                 { "compare", Noise.Compare(done[x.without], done[x.with], Noise.MinWins(c)) } }).ToList();
                 var row = new Obj { { "skill", p.name }, { "role", p.role }, { "cells", cells } };
                 if (p.kind != null) row.Set("kind", p.kind);
                 rows.Add(row);
@@ -68,7 +70,7 @@ namespace DtEngine.Suite
         public static void Report(Ctx c)
         {
             var inp = c.In("skill_value_contested");
-            double wins0 = inp.D("wins"), length0 = inp.D("length"), hp0 = inp.D("hp");
+            double wins0 = inp.D("wins"), length0 = inp.D("length"), hp0 = inp.D("hp"), z = Noise.Z(c);
             var contested = inp.A("contested").Select(x => (string)x).ToList();
             var rows = Parts.Read(c, "skill_value_contested");
             rows = rows.Select((r, i) => (r, i)).OrderBy(x => x.r.S("skill"), StringComparer.Ordinal).ThenBy(x => x.i).Select(x => x.r).ToList();
@@ -88,11 +90,13 @@ namespace DtEngine.Suite
                     var found = new List<(double score, string cid, double wins, double length, double hp)>();
                     foreach (Obj cell in r.A("cells"))
                     {
-                        var a = cell.O("without"); var b = cell.O("with");
-                        double wins = b.D("won") - a.D("won");
-                        double length = Py.Truthy(a.Get("time_won")) && Py.Truthy(b.Get("time_won")) ? 1 - b.D("time_won") / a.D("time_won") : 0.0;
-                        double hp = b.D("hp_left") - a.D("hp_left");
-                        found.Add((Math.Max(Math.Max(wins / wins0, length / length0), hp / hp0), cell.S("checkpoint"), wins, length, hp));
+                        // each difference over the bar it must pass: the threshold, or z paired standard errors when the noise is larger;
+                        // the length only on min_wins fights both sides won
+                        var cmp = cell.O("compare");
+                        double wins = cmp.D("wins"), hp = cmp.D("hp");
+                        double length = cmp.Has("length") ? cmp.D("length") : 0.0;
+                        double score = Math.Max(Math.Max(Noise.Ratio(cmp, "wins", wins0, z), Noise.Ratio(cmp, "length", length0, z)), Noise.Ratio(cmp, "hp", hp0, z));
+                        found.Add((score, cell.S("checkpoint"), wins, length, hp));
                     }
                     var top = found[0];
                     foreach (var f in found.Skip(1))

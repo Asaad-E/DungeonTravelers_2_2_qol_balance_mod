@@ -1,5 +1,5 @@
 """
-The snapshot the C# battle engine (engine_cs/) reads: everything the simulator of sim/ touches in a battle and in the
+The snapshot the C# battle engine (engine_cs/) reads: everything the engine touches in a battle and in the
 building of a party and its enemies, for the game as it is ("vanilla") and for the Balance variant, plus the choices of
 the model (data_tables/sim_setup.xlsx). Python stays the owner of the data; the engine holds no value of the mod.
 
@@ -233,7 +233,7 @@ def measure_inputs(setup, vanilla, variant):
         'audit_readings': rows_json(setup.audit_readings),
     }
     for key in ('win_rates', 'sim_audit', 'skill_value', 'support_chains', 'class_stages_report', 'mercenaries', 'party_skills',
-                'postgame_compare', 'skill_value_contested', 'random_battles', 'regression_r04', 'skill_battery', 'support_battery', 'class_search'):
+                'postgame_compare', 'skill_value_contested', 'random_battles', 'regression_r04', 'skill_battery', 'support_battery', 'class_search', 'statistics'):
         out[key] = config[key]
     # the name a unique skill has in the variant (column Balance_Name of balance_skill_text.xlsx), else the game's
     renamed = {int(r['Filename'].split('_')[-1].split('.')[0]): r['Balance_Name']

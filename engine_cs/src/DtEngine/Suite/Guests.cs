@@ -37,7 +37,7 @@ namespace DtEngine.Suite
             return new Obj
             {
                 { "won", (double)won.Count / res.Length }, { "time", won.Count > 0 ? (object)(Py.Sum(won.Select(r => r.Time)) / won.Count) : null },
-                { "hp_left", Py.Sum(res.Select(r => r.HpLeft)) / res.Length },
+                { "hp_left", Py.Sum(res.Select(r => r.HpLeft)) / res.Length }, { "runs", (long)res.Length },
             };
         }
 
@@ -88,6 +88,7 @@ namespace DtEngine.Suite
             var places = c.In("mercenaries").A("places").Select(x => (string)x).ToList();
             var rows = Parts.Read(c, "mercenaries");
             var baseCells = rows.First(r => r.Get("guest") == null).O("cells");
+            int minWins = Noise.MinWins(c);
             var scored = new List<(double score, string guest, double wins, double length, double hp, string cells)>();
             var failed = new List<string>();
             foreach (var r in rows)
@@ -96,7 +97,7 @@ namespace DtEngine.Suite
                 var cells = r.O("cells");
                 if (places.Any(p => cells.O(p).Has("error"))) { failed.Add(r.S("guest")); continue; }
                 double wins = Py.Sum(places.Select(p => cells.O(p).D("won") - baseCells.O(p).D("won"))) / places.Count;
-                var lengths = places.Where(p => Py.Truthy(cells.O(p).Get("time")) && Py.Truthy(baseCells.O(p).Get("time"))).Select(p => 1 - cells.O(p).D("time") / baseCells.O(p).D("time")).ToList();
+                var lengths = places.Where(p => Noise.LengthReadable(baseCells.O(p), cells.O(p), minWins)).Select(p => 1 - cells.O(p).D("time") / baseCells.O(p).D("time")).ToList();
                 double hp = Py.Sum(places.Select(p => cells.O(p).D("hp_left") - baseCells.O(p).D("hp_left"))) / places.Count;
                 double length = lengths.Count > 0 ? Py.Sum(lengths) / lengths.Count : 0;
                 scored.Add((wins + length, r.S("guest"), wins, length, hp, string.Join(" ", places.Select(p => Py.Pct(cells.O(p).D("won"), 0)))));
@@ -110,7 +111,7 @@ namespace DtEngine.Suite
             var ordered = scored.OrderByDescending(x => x.score).ThenByDescending(x => x.guest, StringComparer.Ordinal).ThenByDescending(x => x.wins).ThenByDescending(x => x.length)
                                 .ThenByDescending(x => x.hp).ThenByDescending(x => x.cells, StringComparer.Ordinal);
             foreach (var (_, name, wins, length, hp, cells) in ordered)
-                lines.Add("| " + (name == "summon" ? "the summon of the grand sealbook" : name) + " | " + cells + " | " + Py.F(wins * 100, 0, true) + " | " + Py.Pct(length, 0, true) + " | " + Py.F(hp * 100, 0, true) + " |");
+                lines.Add("| " + (name == "summon" ? "the summon of the grand sealbook" : name) + " | " + cells + " | " + Py.F(wins * 100, 1, true) + " | " + Py.Pct(length, 1, true) + " | " + Py.F(hp * 100, 0, true) + " |");
             if (failed.Count > 0) { lines.Add(""); lines.Add("Not played (the model failed on their record): " + string.Join(", ", failed)); }
             c.WriteText(c.Path("measures", "MERCENARIES.md"), M.Lines(lines), true);
         }
