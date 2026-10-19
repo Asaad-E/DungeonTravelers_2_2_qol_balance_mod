@@ -5,7 +5,7 @@ Evaluation of the ways to let a member who is behind catch up, and of the crown.
 
 Writes docs/generated/CATCH_UP_OPTIONS.md. Every option is defined in the sheet CatchUpOptions of
 data_tables/balance_criteria.xlsx (so it can be edited and run again), and is computed with the rules of
-sim/progression.py on the vanilla enemies, zones and table of EXP per level.
+gamedata/progression.py on the vanilla enemies, zones and table of EXP per level.
 
 Kinds of option:
     vanilla     nothing changed

@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace DtEngine
 {
-    /// <summary>The key of an entry of the recorder: a unit; a unit and a name (a skill, an item); or the thief of a stolen item (sim/battle.py Recorder).</summary>
+    /// <summary>The key of an entry of the recorder: a unit; a unit and a name (a skill, an item); or the thief of a stolen item.</summary>
     public readonly struct RecKey : IEquatable<RecKey>
     {
         public readonly Unit Unit;

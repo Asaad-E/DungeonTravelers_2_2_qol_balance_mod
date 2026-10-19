@@ -224,7 +224,7 @@ def catch_up_sections(enemies):
                                    for f in floor['formations']) / 100.0
     lines = ['## Catching up', '',
              'Random battles a member needs to reach the level of the party, fighting in the zone whose enemies are closest '
-             f'to that level, with {PARTY} members alive and no EXP bonus (`sim/progression.py`, `docs/FORMULAS.md` 6c). '
+             f'to that level, with {PARTY} members alive and no EXP bonus (`gamedata/progression.py`, `docs/FORMULAS.md` 6c). '
              '"Own pace" is what one more level costs a member who is already on level, in the same zone. Bosses, quests and '
              'the EXP the party itself keeps gaining are left out.', '']
     rows = []

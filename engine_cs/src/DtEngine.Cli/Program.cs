@@ -93,7 +93,7 @@ namespace DtEngine.Cli
             return 0;
         }
 
-        /// <summary>dtcli measure --snapshot S --jobs J --out R [--threads N]: the measures of sim/measures.py (expedition, play_checkpoint, check_change, walked_zones).</summary>
+        /// <summary>dtcli measure --snapshot S --jobs J --out R [--threads N]: the measures that play battles (expedition, play_checkpoint, check_change, walked_zones).</summary>
         static int MeasureCommand(string[] args)
         {
             string snapshotPath = Opt(args, "--snapshot"), jobsPath = Opt(args, "--jobs"), outPath = Opt(args, "--out");

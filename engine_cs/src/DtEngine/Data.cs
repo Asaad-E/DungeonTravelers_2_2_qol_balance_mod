@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DtEngine
 {
-    // Skill target codes (sim/data.py)
+    // Skill target codes (gamedata/data.py)
     public static class T
     {
         public const int SINGLE = 0, RANDOM = 1, ROW = 2, PIERCE = 3, ALL = 4;

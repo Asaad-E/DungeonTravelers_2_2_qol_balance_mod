@@ -59,7 +59,7 @@ namespace DtEngine
 
     public sealed class Battle
     {
-        // --- what the effects are (constants of sim/battle.py) ---------------------------------------------
+        // --- what the effects are -----------------------------------------------------------------------
         public const int PLAIN_HIT = 0, MAGIC_POWER = 1;
         const double POISON_SHARE = 0.05;
         const int POISON_CAP = 250;

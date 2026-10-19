@@ -34,7 +34,7 @@ namespace DtEngine
         public List<BattleResult> Parts = new List<BattleResult>();
     }
 
-    /// <summary>sim/scenario.py and the parts of sim/measures.py that build a party and its enemies and play runs.</summary>
+    /// <summary>A party and its enemies built for a checkpoint, and the runs played.</summary>
     public sealed partial class Scenario
     {
         static readonly (int level, string label)[] STAGES = { (30, "Lv30 class"), (15, "Lv15 class"), (1, "Base class") };

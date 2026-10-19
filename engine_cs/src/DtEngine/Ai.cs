@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DtEngine
 {
-    /// <summary>sim/ai.py: what an enemy, a summon or a guest ally does on its turn (its script of EnemyAIData).</summary>
+    /// <summary>What an enemy, a summon or a guest ally does on its turn (its script of EnemyAIData).</summary>
     public static class Ai
     {
         const int TARGET = 1;

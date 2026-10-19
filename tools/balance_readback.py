@@ -1,14 +1,14 @@
 """
 What the built packs of the Balance variant hold, read back with the readers of the project, set against what the
-simulator plays. Step 2 of "build_variant.py balance".
+engine plays. Step 2 of "build_variant.py balance".
 
     python tools/balance_readback.py
 
 tools/balance_values.py checks its own writes byte by byte; this is the other half, by another road: the folder
 build/balance/base/ is extracted like the originals (tools/extract_vanilla.py, into
-build/balance/tables/source_of_truth.xlsx) and loaded with the loaders of sim/data.py; the enemies are read by
+build/balance/tables/source_of_truth.xlsx) and loaded with the loaders of gamedata/data.py; the enemies are read by
 tools/enemy_data.py. Every skill, enemy attack, piece of equipment, sealbook, enchantment, level and enemy must then
-equal the variant of the simulator (sim/variant.py over the vanilla data): the game files and the model say the same
+equal the variant of the model (gamedata/variant.py over the vanilla data): the game files and the model say the same
 thing, or the build stops. The workbook it leaves is the source the texts of the variant are generated from.
 """
 import os
@@ -72,7 +72,7 @@ def extract_final(built_dir, output_dir, output):
 
 
 def built_data(built_dir=BUILT_DIR, source=SOURCE):
-    """The tables a change can touch, loaded from the built folder as sim/data.py loads the originals."""
+    """The tables a change can touch, loaded from the built folder as gamedata/data.py loads the originals."""
     data = sim_data.GameData()
     wb = openpyxl.load_workbook(source, read_only=True)
     sim_data._load_skills(wb, data)

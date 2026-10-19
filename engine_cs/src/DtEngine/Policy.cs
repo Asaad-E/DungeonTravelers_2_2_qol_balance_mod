@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace DtEngine
 {
-    /// <summary>sim/policy.py: what a party member does on its turn, by the rules of its role.</summary>
+    /// <summary>What a party member does on its turn, by the rules of its role.</summary>
     public sealed class Policy
     {
         static readonly int[] HEAL_EFFECTS = { 103, 104, 128, 132 };
@@ -425,8 +425,8 @@ namespace DtEngine
                 if (code == T.PIERCE)
                 {
                     // the units the blow goes on to, as Battle.Targets takes them: those the target keeps behind it
-                    // (Battle.Behind, the program's list at 0x64 - 0x68) that can be targeted (2026-10-16; sim/policy.py
-                    // took the first foe of the other row, and only from the front row)
+                    // (Battle.Behind, the program's list at 0x64 - 0x68) that can be targeted (2026-10-16; before, the
+                    // first foe of the other row, and only from the front row)
                     foreach (var behind in battle.Behind(target))
                     {
                         if (Array.IndexOf(foes, behind) < 0) continue;

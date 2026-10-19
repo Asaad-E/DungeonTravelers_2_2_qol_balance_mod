@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DtEngine
 {
-    /// <summary>sim/formulas.py: the battle formulas as pure functions, with the same order of operations.</summary>
+    /// <summary>The battle formulas as pure functions, in the order of operations of the program (docs/FORMULAS.md).</summary>
     public static class F
     {
         public const double HIT_SCALE = 0.885;

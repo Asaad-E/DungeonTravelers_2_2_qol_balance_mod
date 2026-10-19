@@ -34,7 +34,7 @@ Rules of the step (docs/philosophy.md 2.5):
   * a row this step cannot write as it stands is refused with its reason, never skipped in silence: the build stops;
   * only the bytes of the field change. check() reads the result against the originals byte by byte and wants every
     differing byte inside a field a row wrote, and every field a row wrote to hold its new value.
-Rows in state "blocked" are not of the variant (sim/variant.py leaves them out too): a row that cannot be written, with
+Rows in state "blocked" are not of the variant (gamedata/variant.py leaves them out too): a row that cannot be written, with
 its reason in the column Why, waiting for a decision.
 """
 import os

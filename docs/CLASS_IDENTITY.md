@@ -11,7 +11,7 @@ the themes, not to this page.
 
 **Sources.** The "概要" (overview) and "特徴" (character) paragraphs of the class pages of the Japanese wiki (atwiki
 dt2-2, pages 117 to 148), which quote or paraphrase the in-game class description; the skills each class learns,
-read from the skill tree of the game (`sim/data.py`, `tools/skill_tree_data.py`); and the class tree, read from the
+read from the skill tree of the game (`gamedata/data.py`, `tools/skill_tree_data.py`); and the class tree, read from the
 growth rows of the executable (`tools/class_data.py`: an advanced class reached from two classes has one growth row
 per route). The GameFAQs guide is not used here: its verdicts are the register's business.
 

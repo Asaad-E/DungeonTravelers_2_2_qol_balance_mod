@@ -24,7 +24,7 @@ namespace DtEngine
         public List<string> Out = new List<string>();
     }
 
-    /// <summary>The measures of sim/measures.py that play battles (expedition, play_checkpoint, check_change) and sim.scenario.walked_zones.</summary>
+    /// <summary>The measures that play battles (expedition, play_checkpoint, check_change) and the zones walked to a checkpoint.</summary>
     public static class Measures
     {
         /// <summary>sim.measures.expedition: random battles in a row on one floor zone, HP and TP carried over, until the party falls or the

@@ -6,7 +6,7 @@ namespace DtEngine
 {
     /// <summary>
     /// The text trace of a battle: one header per battle, one line per turn, with the events of the turn, the state of every
-    /// unit and the count of 32-bit random words drawn. engine_cs/parity/py_trace.py writes the same lines from sim/.
+    /// unit and the count of 32-bit random words drawn. The golden check (dtcli golden) compares these lines with the recorded ones.
     /// Level 2 adds the draws of the generator.
     /// </summary>
     public sealed class TextTrace : IBattleTrace
