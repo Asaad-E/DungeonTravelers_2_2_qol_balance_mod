@@ -1,8 +1,8 @@
 """
 Builds the player reference guide for Dungeon Travelers 2-2 into docs/guide/*.md.
 All figures and data come strictly from the extracted snapshot (build/engine_snapshot.json)
-and game binaries. Wording, glossary terms, and column headers are loaded from
-data_tables/guide_text.xlsx.
+and game binaries. Wording, glossary terms, column headers, and official descriptions
+are loaded from data_tables/guide_text.xlsx.
 """
 import argparse
 import json
@@ -63,6 +63,21 @@ def load_guide_text(path=GUIDE_TEXT_PATH):
                 'tier': row[2],
                 'route_from': row[3] or ''
             }
+
+    class_profiles = {}
+    if 'ClassProfiles' in wb.sheetnames:
+        for row in wb['ClassProfiles'].iter_rows(values_only=True):
+            if row and row[0] != 'Class_ID':
+                class_profiles[row[0]] = row[2] or ''
+
+    skill_descriptions = {}
+    if 'SkillDescriptions' in wb.sheetnames:
+        for row in wb['SkillDescriptions'].iter_rows(values_only=True):
+            if row and row[0] != 'Category':
+                # key by (Category, Skill_ID) and by Name
+                cat, sid, sname, sdesc = row[0], row[1], row[2], row[3] or ''
+                skill_descriptions[(cat, sid)] = sdesc
+                skill_descriptions[sname] = sdesc
             
     return {
         'sections': sections,
@@ -71,7 +86,9 @@ def load_guide_text(path=GUIDE_TEXT_PATH):
         'targets': targets,
         'ranges': ranges,
         'equiptypes': equiptypes,
-        'class_meta': class_meta
+        'class_meta': class_meta,
+        'class_profiles': class_profiles,
+        'skill_descriptions': skill_descriptions,
     }
 
 
@@ -149,7 +166,7 @@ def build_classes_content(guide_text, snapshot):
     growth_dict = {k: v for k, v in snapshot['growth']}
     skills_list = snapshot['skills']
     
-    # Group class modifiers by class ID and previous class
+    # Group class modifiers by class ID
     class_mods = {}
     for m in snapshot['class_modifiers']:
         class_mods.setdefault(m['class'], []).append(m)
@@ -162,6 +179,8 @@ def build_classes_content(guide_text, snapshot):
         lines_by_name.setdefault(line_name, []).append(cid)
         
     for line_name, class_ids in lines_by_name.items():
+        lines.append('---')
+        lines.append('')
         lines.append(f'## {line_name} Line')
         lines.append('')
         
@@ -170,25 +189,27 @@ def build_classes_content(guide_text, snapshot):
             meta = guide_text['class_meta'].get(cid, {})
             tier = meta.get('tier', '')
             route_from = meta.get('route_from', '')
+            profile = guide_text['class_profiles'].get(cid, '')
             
+            lines.append('---')
+            lines.append('')
             lines.append(f'### {cname}')
             lines.append('')
+            
+            # Classification details
             tier_info = f'- **{h["tier"]}:** {tier}'
             if route_from:
                 tier_info += f' ({h["route"]}: {route_from})'
             lines.append(tier_info)
             lines.append('')
             
-            # Equipment allowed
-            weapons, armor = get_equipment_counts_for_class(cid, snapshot, guide_text)
-            lines.append(sec['equip_section']['title'])
-            lines.append('')
-            weapon_str = ', '.join(f'{w} ({cnt})' for w, cnt in sorted(weapons.items()))
-            armor_str = ', '.join(f'{a} ({cnt})' for a, cnt in sorted(armor.items()))
-            lines.append(f'- **{h["weapon_types"]}:** {weapon_str}')
-            lines.append(f'- **{h["gear_categories"]}:** {armor_str}')
-            lines.append('')
-            
+            # Class Overview & Role
+            if profile:
+                lines.append(sec['overview_section']['title'])
+                lines.append('')
+                lines.append(f'> {profile}')
+                lines.append('')
+                
             # Weapon specialty modifiers
             mods_for_class = class_mods.get(cid, [])
             if mods_for_class:
@@ -197,7 +218,6 @@ def build_classes_content(guide_text, snapshot):
                 lines.append(sec['modifier_section']['text'])
                 lines.append('')
                 
-                # Check if modifiers depend on previous class
                 has_prev = any(m['previous'] is not None for m in mods_for_class)
                 if has_prev:
                     lines.append(f'| {h["route"]} | {h["slot"]} | {h["equipment_type"]} | {h["bonus"]} |')
@@ -220,6 +240,19 @@ def build_classes_content(guide_text, snapshot):
                             lines.append(f'| {slot_name} | {eq_name} | {bonus_pct} |')
                 lines.append('')
                 
+            # Usable Equipment
+            weapons, armor = get_equipment_counts_for_class(cid, snapshot, guide_text)
+            lines.append(sec['equip_section']['title'])
+            lines.append('')
+            if sec['equip_section']['text']:
+                lines.append(sec['equip_section']['text'])
+                lines.append('')
+            weapon_str = ', '.join(f'{w} ({cnt})' for w, cnt in sorted(weapons.items()))
+            armor_str = ', '.join(f'{a} ({cnt})' for a, cnt in sorted(armor.items()))
+            lines.append(f'- **{h["weapon_types"]}:** {weapon_str}')
+            lines.append(f'- **{h["gear_categories"]}:** {armor_str}')
+            lines.append('')
+            
             # Stat growth
             lines.append(sec['growth_section']['title'])
             lines.append('')
@@ -228,13 +261,12 @@ def build_classes_content(guide_text, snapshot):
             if 'by_previous' in growth_info:
                 for prev_cid, row_idx in growth_info['by_previous']:
                     prev_name = class_names[prev_cid]
-                    lines.append(f'#### Route from {prev_name}')
+                    lines.append(f'##### Route from {prev_name}')
                     lines.append('')
                     lines.append(f'| {h["level"]} | {h["hp"]} | {h["tp"]} | {h["atk"]} | {h["def"]} | {h["int"]} | {h["res"]} | {h["dex"]} | {h["agi"]} |')
                     lines.append('| --- | --- | --- | --- | --- | --- | --- | --- | --- |')
                     row_data = growth_dict[row_idx]
                     for lvl in MILESTONE_LEVELS:
-                        # order: [atk, def, int, res, dex, agi, hp, tp]
                         st = row_data[lvl - 1]
                         lines.append(f'| {lvl} | {st[6]} | {st[7]} | {st[0]} | {st[1]} | {st[2]} | {st[3]} | {st[4]} | {st[5]} |')
                     lines.append('')
@@ -253,8 +285,8 @@ def build_classes_content(guide_text, snapshot):
             lines.append(sec['skills_section']['title'])
             lines.append('')
             if learned:
-                lines.append(f'| {h["skill"]} | {h["category"]} | {h["max_lv"]} | {h["sp_cost"]} | {h["target"]} | {h["range"]} |')
-                lines.append('| --- | --- | --- | --- | --- | --- |')
+                lines.append(f'| {h["skill"]} | {h["category"]} | {h["max_lv"]} | {h["sp_cost"]} | {h["target"]} | {h["range"]} | {h["description"]} |')
+                lines.append('| --- | --- | --- | --- | --- | --- | --- |')
                 for s in learned:
                     s_name = s['name']
                     s_cat = s['category']
@@ -271,7 +303,8 @@ def build_classes_content(guide_text, snapshot):
                     tgt_str = guide_text['targets'].get(tgt_code, '-')
                     rng_code = s['range'] if s['range'] is not None else -1
                     rng_str = guide_text['ranges'].get(rng_code, '-')
-                    lines.append(f'| {s_name} | {s_cat} | {max_lv} | {sp_str} | {tgt_str} | {rng_str} |')
+                    s_desc = guide_text['skill_descriptions'].get((s_cat, s['id']), guide_text['skill_descriptions'].get(s_name, ''))
+                    lines.append(f'| {s_name} | {s_cat} | {max_lv} | {sp_str} | {tgt_str} | {rng_str} | {s_desc} |')
                 lines.append('')
             else:
                 lines.append('No skills learned directly.')

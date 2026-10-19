@@ -4,26 +4,36 @@ Progression tables, equipment access, weapon specialty modifiers, and skill tree
 
 Classes are organized into five base lines across three tiers: Base (Tier 1), Intermediate (Tier 2, Level 15), and Advanced (Tier 3, Level 30). Six Advanced classes possess distinct growth tables depending on their intermediate class route.
 
+---
+
 ## Fighter Line
+
+---
 
 ### Fighter
 
 - **Tier:** Base
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (5), Dagger (7), Fan (1), Mace (4), Polearm (6), Sword (18)
-- **Defensive Gear:** Accessory (41), Armor (20), Helm (19), Shield (18)
+> With high physical strength and extraordinary stamina, these soldiers can wield a variety of short-range weapons. They act as vanguards who rout their foes whilst also shielding their comrades from attack.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Sword | +1% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (5), Dagger (7), Fan (1), Mace (4), Polearm (6), Sword (18)
+- **Defensive Gear:** Accessory (41), Armor (20), Helm (19), Shield (18)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -39,31 +49,32 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1150 | 234 | 92 | 84 | 55 | 70 | 83 | 65 |
 | 99 | 1261 | 256 | 101 | 92 | 60 | 76 | 90 | 71 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| War Cry | Technique | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Raging Smash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Sword Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Axe Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Lance Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Avenger | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Attract an enemy's attacks. |
+| War Cry | Technique | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's ATK. |
+| Raging Smash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Powerful strike to one enemy. |
+| Sword Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with sword equipped. |
+| Axe Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with axe equipped. |
+| Lance Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with lance equipped. |
+| Avenger | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally counterattack after receiving physical damage. |
+| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
+
+---
 
 ### Paladin
 
 - **Tier:** Intermediate (Promotion Route: Fighter)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (5), Dagger (6), Fan (2), Mace (3), Polearm (19), Sword (25)
-- **Defensive Gear:** Accessory (42), Armor (20), Helm (19), Shield (27)
+> Holy knights of the front line who protect their comrades by using themselves as human shields. They excel in defense and can handle skills which provide even more stability. Their purpose is to protect allies rather than defeat enemies.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
@@ -71,7 +82,14 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | Weapon | Polearm | +3% |
 | Shield | Shield | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (5), Dagger (6), Fan (2), Mace (3), Polearm (19), Sword (25)
+- **Defensive Gear:** Accessory (42), Armor (20), Helm (19), Shield (27)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -87,38 +105,46 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1443 | 265 | 112 | 130 | 69 | 85 | 97 | 82 |
 | 99 | 1588 | 291 | 123 | 143 | 76 | 94 | 106 | 90 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Defender | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Shield Bash | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short |
-| Cover | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Parry | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None |
-| Cross Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None |
-| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - |
-| Auto-Guard | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Defender | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own DEF at the price of lowering own ATK. |
+| Shield Bash | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Shield skill. Deal bash damage to one enemy. May stun. |
+| Cover | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Take all physical damage in place of one ally. |
+| Parry | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None | Short-range skill. Use one's weapon to repel enemy attacks. |
+| Cross Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Sword/lance skill. Attack one enemy (effective vs. unholy monsters). |
+| Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None | Heal an ally's HP. |
+| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover HP every turn during battle. |
+| Auto-Guard | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally Defend automatically when receiving physical attacks. |
+
+---
 
 ### Berserker
 
 - **Tier:** Intermediate (Promotion Route: Fighter)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (29), Dagger (8), Fan (1), Mace (5), Polearm (2), Sword (23)
-- **Defensive Gear:** Accessory (43), Armor (23), Helm (20), Shield (22)
+> Short-range battle experts who excel at using two-handed swords and axes. They care little for weak attacks; instead, they obliterate enemies with a single powerful blow. An absolute must-have for an attack-focused party.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Sword | +2% |
 | Weapon | Axe | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (29), Dagger (8), Fan (1), Mace (5), Polearm (2), Sword (23)
+- **Defensive Gear:** Accessory (43), Armor (23), Helm (20), Shield (22)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -134,31 +160,32 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1301 | 268 | 128 | 126 | 78 | 79 | 106 | 86 |
 | 99 | 1430 | 294 | 141 | 138 | 86 | 87 | 116 | 95 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Aura Eliminate | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Berserk | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Frost Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Mid |
-| Geo Break | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Blood Rage | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Preparation | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Dark Aura | Passive | 6 | 63 (3, 6, 9, 12, 15, 18) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Aura Eliminate | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May cancel enemy buffs. |
+| Berserk | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own ATK at the price of lowering own DEF. |
+| Frost Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Mid | Short-range skill. Deal mid-range water damage to one enemy. May freeze. |
+| Geo Break | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Axe skill. Deal earth damage to one enemy. May petrify. |
+| Blood Rage | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Raise max HP. |
+| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
+| Preparation | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Gain increased speed based on missing HP. |
+| Dark Aura | Passive | 6 | 63 (3, 6, 9, 12, 15, 18) | - | - | Debuff an enemy when they inflict short-range damage. |
+
+---
 
 ### Valkyrie
 
 - **Tier:** Advanced (Promotion Route: Paladin)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (5), Dagger (6), Fan (2), Mace (4), Polearm (33), Sword (30)
-- **Defensive Gear:** Accessory (48), Armor (23), Helm (22), Shield (30)
+> They have no superior when it comes to short-range fortitude. With their immense strength and beauty, they are oft likened to war angels leading armies into battle. Their strong counterattack as they defend their allies seals the victory.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
@@ -166,7 +193,14 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | Weapon | Polearm | +5% |
 | Shield | Shield | +3% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (5), Dagger (6), Fan (2), Mace (4), Polearm (33), Sword (30)
+- **Defensive Gear:** Accessory (48), Armor (23), Helm (22), Shield (30)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -182,35 +216,36 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1709 | 288 | 127 | 145 | 86 | 115 | 116 | 95 |
 | 99 | 1895 | 318 | 140 | 161 | 95 | 128 | 128 | 105 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Material Guard | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Spell Guard | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Gust Thrust | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Daedalus Attack | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Random enemies | Short |
-| Ether Strike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Mid |
-| Circle Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Protect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Moon Curtain | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Absolute Attack | Passive | 1 | 20 | - | - |
-| Imperial Guard | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Material Guard | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Shield skill. Reduce physical damage taken by the party once. |
+| Spell Guard | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Shield skill. Reduce magic damage taken by the party once. |
+| Gust Thrust | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Lance skill. Deal wind damage to one enemy. May silence. |
+| Daedalus Attack | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Random enemies | Short | Lance skill. 3-5 hits on random enemies. Stronger with a Heavy Lance. |
+| Ether Strike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Mid | Sword/lance skill. Pierces through to the back row. |
+| Circle Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Heal the party's HP. |
+| Protect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's DEF. |
+| Moon Curtain | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's resistance to fire, water, lightning, wind, and earth. |
+| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover TP every turn during battle. |
+| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally survive at 1 HP after being dealt fatal damage. |
+| Absolute Attack | Passive | 1 | 20 | - | - | No longer suffer counterattacks from enemies. |
+| Imperial Guard | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Decrease physical damage to the back row when using a shield in the front row. |
+
+---
 
 ### Samurai
 
 - **Tier:** Advanced (Promotion Route: Paladin or Berserker)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (1), Dagger (6), Fan (1), Katana (30), Mace (1), Polearm (10), Sword (21)
-- **Defensive Gear:** Accessory (50), Armor (24), Helm (21), Shield (19)
+> Swordswomen who inflict deadly slash damage with each swing. A single hit from one of their masterful skills can slice a foe in half. They also show great technical nous with their ability to dodge enemy strikes before mounting a swift counterattack.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Promotion Route | Slot | Equipment Type | Modifier |
 | --- | --- | --- | --- |
@@ -221,9 +256,16 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | From Berserker | Weapon | Axe | +2% |
 | From Berserker | Weapon | Katana | +3% |
 
-### Stat Growth
+#### Usable Equipment
 
-#### Route from Paladin
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (1), Dagger (6), Fan (1), Katana (30), Mace (1), Polearm (10), Sword (21)
+- **Defensive Gear:** Accessory (50), Armor (24), Helm (21), Shield (19)
+
+#### Stat Growth
+
+##### Route from Paladin
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -239,7 +281,7 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1441 | 303 | 161 | 120 | 70 | 88 | 126 | 109 |
 | 99 | 1587 | 335 | 179 | 132 | 78 | 97 | 139 | 122 |
 
-#### Route from Berserker
+##### Route from Berserker
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -255,40 +297,48 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1360 | 314 | 167 | 116 | 79 | 75 | 132 | 114 |
 | 99 | 1497 | 348 | 185 | 126 | 87 | 83 | 146 | 127 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Backward Swing | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Last Stand | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Halving Slice | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short |
-| Armor Penetration | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Onikagura | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short |
-| Moonlight Purgatory | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Katana Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Mind's Eye | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - |
-| Triple Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Flowing Water Stance | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Backward Swing | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Katana skill. Deal bash damage to one enemy. May paralyze. |
+| Last Stand | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Raise own critical rate, but also own vulnerability to critical hits. |
+| Halving Slice | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short | Katana skill. Deal slash damage to an enemy row. May instakill. |
+| Armor Penetration | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Katana skill. Deal defense-piercing damage and DEF down to one enemy. |
+| Onikagura | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short | Katana skill. Deal slash damage to an enemy row. |
+| Moonlight Purgatory | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Katana skill. Deal slash damage 3 times to one enemy. Living targets only. |
+| Katana Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with katana equipped. |
+| Mind's Eye | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Occasionally parry and counterattack when targeted by an enemy. |
+| Triple Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack thrice when attacking normally. |
+| Flowing Water Stance | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - | Increase evasion rate against stab attacks. |
+
+---
 
 ### Dark Lord
 
 - **Tier:** Advanced (Promotion Route: Berserker)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (32), Dagger (8), Fan (1), Mace (5), Polearm (8), Sword (27)
-- **Defensive Gear:** Accessory (48), Armor (26), Helm (22), Shield (25)
+> Drawing power from the darkness, these battle goddesses will not stop until they have wholly consumed the lives and spirits of their opponents. The merciless blows delivered by these jet-black soldiers leave their enemies with nothing.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Sword | +2% |
 | Weapon | Axe | +5% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (32), Dagger (8), Fan (1), Mace (5), Polearm (8), Sword (27)
+- **Defensive Gear:** Accessory (48), Armor (26), Helm (22), Shield (25)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -304,43 +354,53 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1517 | 293 | 150 | 132 | 102 | 96 | 142 | 105 |
 | 99 | 1679 | 323 | 165 | 146 | 114 | 107 | 157 | 116 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Attract | Technique | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None |
-| Blood Drain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Soul Drain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Megaton Press | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Shock Spiral | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short |
-| Power Charge | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Life Bring | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Brave | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Grudge Accumulator | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Dark Quest | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| First Grid | Passive | 1 | 10 | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Attract | Technique | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Attract all enemies' attacks. |
+| Blood Drain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy to regain HP. |
+| Soul Drain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy to regain TP. |
+| Megaton Press | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Axe skill. Attack an enemy, then the next immediate enemy in the turn order. |
+| Shock Spiral | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Short | Short-range skill. Deal lightning damage to an enemy row. May paralyze. |
+| Power Charge | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Deal increased physical damage next turn. |
+| Life Bring | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Absorb HP from an enemy row. |
+| Brave | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's ATK. |
+| Grudge Accumulator | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Convert some received damage to TP. |
+| Dark Quest | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase ATK while inflicted with status ailments. |
+| First Grid | Passive | 1 | 10 | - | - | Occasionally get the first action regardless of speed. |
+
+---
 
 ## Scout Line
+
+---
 
 ### Scout
 
 - **Tier:** Base
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (4), Bow (6), Dagger (24), Fan (1), Gun (2), Katana (1), Mace (4), Projectile (5), Sword (3)
-- **Defensive Gear:** Accessory (39), Armor (17), Helm (14), Shield (11)
+> Using nimble body movements, they can create opportunities to not only attack, but also steal money. Their strength lies in how they can change battle styles depending on the situation, as they are skilled in both shortsword and bow techniques.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Dagger | +1% |
 | Weapon | Bow | +1% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (4), Bow (6), Dagger (24), Fan (1), Gun (2), Katana (1), Mace (4), Projectile (5), Sword (3)
+- **Defensive Gear:** Accessory (39), Armor (17), Helm (14), Shield (11)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -356,38 +416,46 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 977 | 291 | 80 | 64 | 64 | 77 | 95 | 94 |
 | 99 | 1071 | 319 | 87 | 70 | 70 | 84 | 104 | 103 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Gold Steal | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Sharp Stab | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Evade | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Cleanse | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None |
-| Poison Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long |
-| Dagger Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Elusiveness | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Lucky Me | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Gold Steal | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Steal pocket money from an enemy. |
+| Sharp Stab | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Dagger skill. Inflict a critical hit with stab damage. |
+| Evade | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own physical evasion rate. |
+| Cleanse | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Cure status ailments for a single ally. |
+| Poison Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow/gun skill. Attack one enemy. May poison. |
+| Dagger Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with dagger equipped. |
+| Elusiveness | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | May escape from battle more easily. |
+| Lucky Me | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase the amount of money the enemies drop. |
+
+---
 
 ### Archer
 
 - **Tier:** Intermediate (Promotion Route: Scout)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (1), Bow (27), Dagger (12), Fan (1), Gun (3), Projectile (3), Sword (3)
-- **Defensive Gear:** Accessory (41), Armor (16), Helm (15), Shield (10)
+> Archers, adept at providing support from long distances. They attack with great accuracy and can inflict various status ailments upon their targets. When faced with numerous adversaries, they can blacken the skies with a shower of arrows.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Dagger | +2% |
 | Weapon | Bow | +3% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (1), Bow (27), Dagger (12), Fan (1), Gun (3), Projectile (3), Sword (3)
+- **Defensive Gear:** Accessory (41), Armor (16), Helm (15), Shield (10)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -403,35 +471,43 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1079 | 325 | 97 | 88 | 67 | 81 | 131 | 111 |
 | 99 | 1186 | 357 | 106 | 97 | 73 | 89 | 144 | 122 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Freeze Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long |
-| Paralysis Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long |
-| Gravity Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long |
-| Arrow Rain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long |
-| Bow Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Caution | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Freeze Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May freeze. |
+| Paralysis Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May paralyze. |
+| Gravity Shot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow skill. Deal stab damage to one enemy. May slow. |
+| Arrow Rain | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long | Bow skill. Shoot a barrage of arrows that rains upon all enemies. |
+| Bow Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with bow equipped. |
+| Caution | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Limit enemies' preemptive attacks. |
+
+---
 
 ### Assassin
 
 - **Tier:** Intermediate (Promotion Route: Scout)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (5), Bow (3), Dagger (31), Fan (1), Gun (1), Katana (2), Mace (3), Projectile (7), Staff (1), Sword (3)
-- **Defensive Gear:** Accessory (41), Armor (18), Helm (16), Shield (11)
+> Shortsword users who employ agility to trick their foes, sneaking behind them to strike critical hits. Can both lead the attack and provide support by inflicting various status ailments. Their sharp strikes will occasionally dispatch an enemy in one hit.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Dagger | +3% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (5), Bow (3), Dagger (31), Fan (1), Gun (1), Katana (2), Mace (3), Projectile (7), Staff (1), Sword (3)
+- **Defensive Gear:** Accessory (41), Armor (18), Helm (16), Shield (11)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -447,36 +523,44 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1123 | 307 | 92 | 84 | 75 | 77 | 123 | 119 |
 | 99 | 1234 | 336 | 101 | 92 | 83 | 85 | 134 | 131 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Sleep Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Silence Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Stun Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Murder | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Awareness | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Sleep Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May cause sleep. |
+| Silence Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May silence. |
+| Stun Sting | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Attack one enemy. May stun. |
+| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
+| Murder | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally instakill when inflicting a critical hit. |
+| Awareness | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase party's preemptive attack rate. |
+
+---
 
 ### Sniper
 
 - **Tier:** Advanced (Promotion Route: Archer)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (1), Bow (32), Dagger (13), Fan (1), Gun (7), Projectile (3), Sword (3)
-- **Defensive Gear:** Accessory (45), Armor (19), Helm (17), Shield (10)
+> With their god-like speed, these long-range specialists pierce every target they set their eyes on. Their ultimate strikes are lethal to foes. Can use both warning shots and covering fire to provide support from a distance.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Dagger | +2% |
 | Weapon | Bow | +5% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (1), Bow (32), Dagger (13), Fan (1), Gun (7), Projectile (3), Sword (3)
+- **Defensive Gear:** Accessory (45), Armor (19), Helm (17), Shield (10)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -492,31 +576,32 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1155 | 351 | 110 | 98 | 74 | 89 | 155 | 122 |
 | 99 | 1273 | 387 | 121 | 108 | 82 | 99 | 171 | 135 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Aim | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None |
-| Chain Spike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long |
-| Guided Shot | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | Long |
-| Spiral Arrow | Technique | 5 | 45 (3, 6, 9, 12, 15) | Single enemy | Long |
-| Star Dust Arrow | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | Long |
-| Divine Cannon | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Long |
-| Warning Shot | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - |
-| Support Shot | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Aim | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None | Increase own accuracy. |
+| Chain Spike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow/gun skill. Attack one enemy multiple times with escalating crit rate. |
+| Guided Shot | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | Long | Bow/gun skill. Fire a single shot certain to hit one enemy. |
+| Spiral Arrow | Technique | 5 | 45 (3, 6, 9, 12, 15) | Single enemy | Long | Bow skill. Shoot a powerful single shot at one enemy for stab damage. |
+| Star Dust Arrow | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | Long | Bow skill. Shower enemies with a rain of arrows across multiple turns. |
+| Divine Cannon | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Long | Bow skill. Deal stab damage to one enemy and pierce to the back row. |
+| Warning Shot | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | With bow equipped, occasionally halt an enemy's action. |
+| Support Shot | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | With bow equipped, occasionally attack again after an ally's attack. |
+
+---
 
 ### Treasure Hunter
 
 - **Tier:** Advanced (Promotion Route: Archer or Assassin)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (4), Bow (11), Dagger (31), Fan (1), Gun (3), Katana (1), Mace (2), Projectile (6), Sword (3), Whip (15)
-- **Defensive Gear:** Accessory (47), Armor (21), Helm (17), Shield (12)
+> Able to wield a variety of weapons including shortswords, whips, and bows, as well as steal treasure from enemies. Using their trained judgement, they can also expertly manage and identify inventory. Treasurers who serve to enrich the party's wallet.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Promotion Route | Slot | Equipment Type | Modifier |
 | --- | --- | --- | --- |
@@ -526,9 +611,16 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | From Assassin | Weapon | Bow | +2% |
 | From Assassin | Weapon | Whip | +3% |
 
-### Stat Growth
+#### Usable Equipment
 
-#### Route from Archer
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (4), Bow (11), Dagger (31), Fan (1), Gun (3), Katana (1), Mace (2), Projectile (6), Sword (3), Whip (15)
+- **Defensive Gear:** Accessory (47), Armor (21), Helm (17), Shield (12)
+
+#### Stat Growth
+
+##### Route from Archer
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -544,7 +636,7 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1272 | 354 | 94 | 106 | 90 | 101 | 148 | 125 |
 | 99 | 1407 | 391 | 103 | 117 | 100 | 112 | 163 | 138 |
 
-#### Route from Assassin
+##### Route from Assassin
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -560,38 +652,39 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1286 | 344 | 92 | 100 | 89 | 96 | 142 | 127 |
 | 99 | 1423 | 379 | 101 | 111 | 99 | 106 | 157 | 140 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Item Steal | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Pursuit Stab | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short |
-| Fleet Foot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None |
-| Chain Spike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long |
-| Identify | Technique | 5 | 30 (2, 4, 6, 8, 10) | Item | None |
-| Trap Search | Technique | 10 | 35 (1, 2, 2, 3, 3, 4, 4, 5, 5, 6) | All allies | None |
-| Treasure Search | Technique | 1 | 5 | Self | None |
-| Hard Whipping | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Mid |
-| Light | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Whistle | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Triple Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Treasure Hunt | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Recycle | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - |
-| Item Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Negotiate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Item Steal | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Steal an item from an enemy. |
+| Pursuit Stab | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Dagger skill. Inflict stab damage relative to enemy's total buffs and debuffs. |
+| Fleet Foot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None | Increase own speed. |
+| Chain Spike | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Long | Bow/gun skill. Attack one enemy multiple times with escalating crit rate. |
+| Identify | Technique | 5 | 30 (2, 4, 6, 8, 10) | Item | None | Identify unknown items. |
+| Trap Search | Technique | 10 | 35 (1, 2, 2, 3, 3, 4, 4, 5, 5, 6) | All allies | None | Protect allies from gas and damage traps. |
+| Treasure Search | Technique | 1 | 5 | Self | None | Detect how many unopened treasure chests are left on the current floor. |
+| Hard Whipping | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Mid | Whip skill. Deal bash damage to an enemy row from mid-range. |
+| Light | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Illuminate the dungeon to find hidden pathways. |
+| Whistle | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise encounter rate. |
+| Triple Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack thrice when attacking normally. |
+| Treasure Hunt | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Increase the enemies' item drop rate. |
+| Recycle | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Occasionally keep disposable items after using them in battle. |
+| Item Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increase the effects of HP and TP recovery items during battle. |
+| Negotiate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce purchase and identification prices at shops. |
+
+---
 
 ### Kunoichi
 
 - **Tier:** Advanced (Promotion Route: Assassin)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (8), Bow (3), Dagger (29), Fan (3), Katana (16), Mace (3), Projectile (15), Staff (1), Sword (3)
-- **Defensive Gear:** Accessory (46), Armor (20), Helm (21), Shield (12)
+> Spies who utilize their blazing speed to battle opponents. They use shadow clones to nullify enemy attacks, and sometimes fight with a sword in each hand. In addition to far-range shuriken strikes, they are also skilled in a multitude of martial arts.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
@@ -599,7 +692,14 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | Weapon | Katana | +3% |
 | Weapon | Projectile | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (8), Bow (3), Dagger (29), Fan (3), Katana (16), Mace (3), Projectile (15), Staff (1), Sword (3)
+- **Defensive Gear:** Accessory (46), Armor (20), Helm (21), Shield (12)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -615,45 +715,55 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1219 | 330 | 95 | 89 | 85 | 87 | 151 | 135 |
 | 99 | 1345 | 363 | 104 | 98 | 94 | 96 | 166 | 149 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Phoenix | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Long |
-| Ninja Piledriver | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Shadow Clone | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Shadow Sew | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Light Scroll | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None |
-| Fire Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Water Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Lightning Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Wind Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Earth Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Katana Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Projectile Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Dual Wield | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Barrage | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Phoenix | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Long | Projectile skill. Attack and decrease speed for an enemy row. |
+| Ninja Piledriver | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal bash damage to one enemy. May stun. |
+| Shadow Clone | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Dodge enemy attacks by creating a shadow clone. |
+| Shadow Sew | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Disable skill usage for an enemy row. Level must exceed the target's. |
+| Light Scroll | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None | Lower all enemies' accuracy. |
+| Fire Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal fire damage based on enemy's max HP and lower ATK to an enemy row. |
+| Water Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal water damage based on enemy's max HP and lower magic def. to an enemy row. |
+| Lightning Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal lightning damage based on enemy's max HP and lower speed to an enemy row. |
+| Wind Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal wind damage based on enemy's max HP and lower evasion to an enemy row. |
+| Earth Scroll | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Deal earth damage based on enemy's max HP and lower DEF to an enemy row. |
+| Katana Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with katana equipped. |
+| Projectile Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with projectile weapon equipped. |
+| Dual Wield | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Can equip two one-handed weapons at the same time. |
+| Barrage | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Occasionally attack twice when attacking normally. |
+
+---
 
 ## Magic User Line
+
+---
 
 ### Magic User
 
 - **Tier:** Base
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Dagger (5), Fan (1), Gun (1), Mace (6), Polearm (1), Projectile (2), Staff (10), Tome (6)
-- **Defensive Gear:** Accessory (38), Armor (14), Helm (14), Shield (9)
+> A basic magician type who can use all general elements of magic. Their ability to replenish HP with Heal makes them a necessary member of any party.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Staff | +1% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Dagger (5), Fan (1), Gun (1), Mace (6), Polearm (1), Projectile (2), Staff (10), Tome (6)
+- **Defensive Gear:** Accessory (38), Armor (14), Helm (14), Shield (9)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -669,36 +779,44 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 761 | 417 | 48 | 49 | 95 | 84 | 68 | 82 |
 | 99 | 835 | 457 | 53 | 54 | 104 | 92 | 75 | 89 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Fireball | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Ice Edge | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Thunderbolt | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Air Cutter | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Stone Hammer | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Poison | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None |
-| Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fireball | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal fire damage to one enemy. |
+| Ice Edge | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal water damage to one enemy. |
+| Thunderbolt | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal lightning damage to one enemy. |
+| Air Cutter | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal wind damage to one enemy. |
+| Stone Hammer | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal earth damage to one enemy. |
+| Poison | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None | Poison all enemies. |
+| Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None | Heal an ally's HP. |
+
+---
 
 ### Sorceress
 
 - **Tier:** Intermediate (Promotion Route: Magic User)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Dagger (5), Fan (1), Gun (1), Mace (3), Polearm (1), Projectile (2), Staff (17)
-- **Defensive Gear:** Accessory (38), Armor (14), Helm (15), Shield (9)
+> Adept at magic attacks which cover a wide area. Their low defense can be a problem, but they provide stellar support with extraordinarily powerful magic. Capable of either dabbling in multiple elements or mastering one in particular.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Staff | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Dagger (5), Fan (1), Gun (1), Mace (3), Polearm (1), Projectile (2), Staff (17)
+- **Defensive Gear:** Accessory (38), Armor (14), Helm (15), Shield (9)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -714,39 +832,47 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 824 | 526 | 50 | 69 | 129 | 107 | 80 | 85 |
 | 99 | 904 | 579 | 55 | 76 | 142 | 117 | 88 | 93 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Fire Blast | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Ice Storm | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Thunder Chain | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Air Turbulence | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Stone Shower | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Blood Absorb | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Magic Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Critical Magic | Passive | 1 | 10 | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fire Blast | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal fire damage to an enemy row. |
+| Ice Storm | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal water damage to an enemy row. |
+| Thunder Chain | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal lightning damage to an enemy row. |
+| Air Turbulence | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal wind damage to an enemy row. |
+| Stone Shower | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal earth damage to an enemy row. |
+| Blood Absorb | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal non-elemental damage to one enemy to regain HP. |
+| Magic Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Magic attack power bonus. |
+| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover TP every turn during battle. |
+| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Make it harder for chants, songs, and dances to be interrupted. |
+| Critical Magic | Passive | 1 | 10 | - | - | Occasionally land critical hits with offensive spells. |
+
+---
 
 ### Enchantress
 
 - **Tier:** Intermediate (Promotion Route: Magic User)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Dagger (5), Fan (3), Gun (1), Mace (9), Polearm (1), Projectile (5), Staff (13), Tome (7)
-- **Defensive Gear:** Accessory (40), Armor (15), Helm (15), Shield (12)
+> Technical masters who can imbue allies' weapons with various elemental abilities. This skill can be difficult to properly manage, especially when taking into account varying enemy weaknesses. Their true worth is in the excellent support they provide.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Tome | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Dagger (5), Fan (3), Gun (1), Mace (9), Polearm (1), Projectile (5), Staff (13), Tome (7)
+- **Defensive Gear:** Accessory (40), Armor (15), Helm (15), Shield (12)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -762,48 +888,56 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 908 | 497 | 53 | 74 | 124 | 121 | 90 | 91 |
 | 99 | 998 | 547 | 59 | 82 | 136 | 133 | 98 | 99 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Holy Prayer | Technique | 5 | 15 (1, 2, 3, 4, 5) | Self | None |
-| Stun | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Freeze | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None |
-| Paralyze | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None |
-| Silence | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None |
-| Fire Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None |
-| Water Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None |
-| Lightning Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None |
-| Wind Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None |
-| Earth Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None |
-| Mini Circle Nurse | Magic | 8 | 32 (1, 1, 3, 3, 5, 5, 7, 7) | Ally row | None |
-| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Return | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Circle Brave | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Circle Protect | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Heal Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Holy Prayer | Technique | 5 | 15 (1, 2, 3, 4, 5) | Self | None | Recover some TP. |
+| Stun | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Stun one enemy. |
+| Freeze | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Freeze all enemies. |
+| Paralyze | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Paralyze all enemies. |
+| Silence | Magic | 5 | 30 (2, 4, 6, 8, 10) | All enemies | None | Silence all enemies. |
+| Fire Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with fire. |
+| Water Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with water. |
+| Lightning Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with lightning. |
+| Wind Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with wind. |
+| Earth Enchant | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Imbue an ally's weapon with earth. |
+| Mini Circle Nurse | Magic | 8 | 32 (1, 1, 3, 3, 5, 5, 7, 7) | Ally row | None | Cure one row of allies' status ailments. |
+| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Reduce incoming physical damage by a certain amount. |
+| Return | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Escape from the dungeon. |
+| Circle Brave | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's ATK. |
+| Circle Protect | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's DEF. |
+| Heal Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Healing magic bonus. Raises healing cap. |
+| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover TP every turn during battle. |
+| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
+| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce chant time. |
+
+---
 
 ### Priestess
 
 - **Tier:** Intermediate (Promotion Route: Magic User)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Dagger (2), Fan (3), Mace (8), Polearm (1), Projectile (5), Staff (14), Tome (14)
-- **Defensive Gear:** Accessory (39), Armor (15), Helm (15), Shield (12)
+> A rear support class that specializes in healing magic. They can heal the party, revive fallen comrades, and use a wide-reaching, albeit single-element, magic attack. There can be no doubt regarding their importance in lengthy dungeon explorations.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Mace | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Dagger (2), Fan (3), Mace (8), Polearm (1), Projectile (5), Staff (14), Tome (14)
+- **Defensive Gear:** Accessory (39), Armor (15), Helm (15), Shield (12)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -819,45 +953,53 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 921 | 505 | 55 | 78 | 119 | 133 | 85 | 90 |
 | 99 | 1014 | 556 | 60 | 86 | 131 | 147 | 93 | 98 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Fire Blast | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Ice Storm | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Thunder Chain | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Air Turbulence | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Stone Shower | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Slow | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Circle Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Nurse | Magic | 8 | 20 (1, 1, 2, 2, 3, 3, 4, 4) | Single ally | None |
-| Resurrect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Light | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Return | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Heal Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - |
-| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - |
-| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fire Blast | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal fire damage to an enemy row. |
+| Ice Storm | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal water damage to an enemy row. |
+| Thunder Chain | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal lightning damage to an enemy row. |
+| Air Turbulence | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal wind damage to an enemy row. |
+| Stone Shower | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal earth damage to an enemy row. |
+| Slow | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Slow an enemy row. |
+| Circle Heal | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Heal the party's HP. |
+| Nurse | Magic | 8 | 20 (1, 1, 2, 2, 3, 3, 4, 4) | Single ally | None | Cure status ailments for a single ally. |
+| Resurrect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Revive a dead ally. |
+| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Reduce incoming physical damage by a certain amount. |
+| Light | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Illuminate the dungeon to find hidden pathways. |
+| Return | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Escape from the dungeon. |
+| Heal Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Healing magic bonus. Raises healing cap. |
+| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover HP every turn during battle. |
+| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover TP every turn during battle. |
+| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce chant time. |
+
+---
 
 ### Witch
 
 - **Tier:** Advanced (Promotion Route: Sorceress)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Dagger (6), Fan (1), Gun (1), Mace (3), Polearm (1), Projectile (2), Staff (17), Tome (4)
-- **Defensive Gear:** Accessory (43), Armor (19), Helm (16), Shield (9)
+> Attack experts, able to cast the most powerful spells of each elemental set. Top-rank area attacks wipe out enemy parties, whilst destructive solo attacks obliterate single enemies, leaving not even a trace of their meager existence.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Staff | +5% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Dagger (6), Fan (1), Gun (1), Mace (3), Polearm (1), Projectile (2), Staff (17), Tome (4)
+- **Defensive Gear:** Accessory (43), Armor (19), Helm (16), Shield (9)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -873,39 +1015,40 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 888 | 612 | 54 | 78 | 162 | 115 | 95 | 92 |
 | 99 | 978 | 678 | 59 | 86 | 179 | 127 | 105 | 101 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Loose Spirit | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None |
-| Inferno | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Crimson Flare | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Diamond Dust | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Cocytus | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Lightning | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Muon Plasma | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Tornado | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Tempest | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Meteor | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Gaia Crush | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Soul Absorb | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Slow | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Economy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Nirvana | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Loose Spirit | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None | Briefly sacrifice magic accuracy to increase magic damage. |
+| Inferno | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal fire damage to all enemies. |
+| Crimson Flare | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous fire damage to one enemy. |
+| Diamond Dust | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal water damage to all enemies. |
+| Cocytus | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous water damage to one enemy. |
+| Lightning | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal lightning damage to all enemies. |
+| Muon Plasma | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous lightning damage to one enemy. |
+| Tornado | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal wind damage to all enemies. |
+| Tempest | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous wind damage to one enemy. |
+| Meteor | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal earth damage to all enemies. |
+| Gaia Crush | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Deal tremendous earth damage to one enemy. |
+| Soul Absorb | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal non-elemental damage to one enemy to regain TP. |
+| Slow | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Slow an enemy row. |
+| Fast Cast | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce chant time. |
+| Economy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce TP Cost in battle. |
+| Nirvana | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - | Heighten magic accuracy. |
+
+---
 
 ### Magical Princess
 
 - **Tier:** Advanced (Promotion Route: Sorceress or Enchantress)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Bow (10), Dagger (6), Fan (3), Gun (1), Mace (11), Polearm (2), Projectile (2), Staff (9), Sword (22)
-- **Defensive Gear:** Accessory (49), Armor (25), Helm (20), Shield (18)
+> Magical girls who can handle even hand-to-hand combat with love and vigor. After using Magical Change to heighten their abilities, they clean up their foes with area attacks. Per their name, they also wield magic, making them great all-around fighters.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Promotion Route | Slot | Equipment Type | Modifier |
 | --- | --- | --- | --- |
@@ -914,9 +1057,16 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | From Enchantress | Weapon | Tome | +2% |
 | From Enchantress | Weapon | Sword | +4% |
 
-### Stat Growth
+#### Usable Equipment
 
-#### Route from Sorceress
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Bow (10), Dagger (6), Fan (3), Gun (1), Mace (11), Polearm (2), Projectile (2), Staff (9), Sword (22)
+- **Defensive Gear:** Accessory (49), Armor (25), Helm (20), Shield (18)
+
+#### Stat Growth
+
+##### Route from Sorceress
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -932,7 +1082,7 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1263 | 550 | 111 | 91 | 135 | 119 | 122 | 105 |
 | 99 | 1410 | 607 | 125 | 102 | 149 | 132 | 135 | 116 |
 
-#### Route from Enchantress
+##### Route from Enchantress
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -948,34 +1098,35 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1322 | 507 | 119 | 96 | 126 | 127 | 129 | 109 |
 | 99 | 1475 | 558 | 133 | 107 | 139 | 140 | 142 | 120 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Cover | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Magical Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Short |
-| Magic Barrier | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Magical Change | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None |
-| Magical Spark | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Accelerator | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Illusion | Magic | 3 | 18 (3, 6, 9) | Self | None |
-| Rainbow Flash | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None |
-| Sword Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Cover | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Take all physical damage in place of one ally. |
+| Magical Slash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Short | Sword skill. Deal slash damage to all enemies. |
+| Magic Barrier | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Reduce magic damage taken for the party. |
+| Magical Change | Technique | 5 | 45 (3, 6, 9, 12, 15) | Self | None | Transform to increase own overall stats. |
+| Magical Spark | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Perform a powerful lightning strike to one enemy. |
+| Accelerator | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's speed. |
+| Illusion | Magic | 3 | 18 (3, 6, 9) | Self | None | Create 2 magical afterimages that let you dodge one attack each. |
+| Rainbow Flash | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | None | Deal non-elemental damage to an enemy row. |
+| Sword Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with sword equipped. |
+| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
+| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally survive at 1 HP after being dealt fatal damage. |
+
+---
 
 ### Sage
 
 - **Tier:** Advanced (Promotion Route: Enchantress or Priestess)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Dagger (3), Fan (5), Mace (9), Polearm (1), Projectile (5), Staff (14), Tome (16)
-- **Defensive Gear:** Accessory (48), Armor (19), Helm (16), Shield (13)
+> A support class specializing in magic that provides buffs to their allies. Possessing skills which automatically heal status ailments, they display their true power in lengthy encounters. They can swing the inevitable tough battles in your favor.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Promotion Route | Slot | Equipment Type | Modifier |
 | --- | --- | --- | --- |
@@ -984,9 +1135,16 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | From Priestess | Weapon | Staff | +3% |
 | From Priestess | Weapon | Tome | +3% |
 
-### Stat Growth
+#### Usable Equipment
 
-#### Route from Enchantress
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Dagger (3), Fan (5), Mace (9), Polearm (1), Projectile (5), Staff (14), Tome (16)
+- **Defensive Gear:** Accessory (48), Armor (19), Helm (16), Shield (13)
+
+#### Stat Growth
+
+##### Route from Enchantress
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1002,7 +1160,7 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1131 | 570 | 62 | 88 | 144 | 130 | 110 | 99 |
 | 99 | 1256 | 630 | 68 | 98 | 159 | 144 | 121 | 109 |
 
-#### Route from Priestess
+##### Route from Priestess
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1018,46 +1176,54 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1147 | 588 | 64 | 91 | 137 | 138 | 118 | 96 |
 | 99 | 1273 | 651 | 71 | 101 | 151 | 152 | 129 | 106 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Identify | Technique | 5 | 30 (2, 4, 6, 8, 10) | Item | None |
-| Bible Thump | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Sleep | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Petrify | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Death | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| Terrorize | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None |
-| Dispel | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None |
-| Stab Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None |
-| Slash Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None |
-| Bash Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None |
-| Sun Veil | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Accelerator | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Amplify | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None |
-| Prism Dawn | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | None |
-| Esarhaddon | Passive | 6 | 36 (1, 3, 5, 7, 9, 11) | - | - |
-| Economy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Identify | Technique | 5 | 30 (2, 4, 6, 8, 10) | Item | None | Identify unknown items. |
+| Bible Thump | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Tome skill. RES-based bash damage to one enemy. May freeze/silence. |
+| Sleep | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Put an enemy row to sleep. |
+| Petrify | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Petrify an enemy row. |
+| Death | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Instakill one enemy. |
+| Terrorize | Magic | 5 | 30 (2, 4, 6, 8, 10) | Enemy row | None | Stun an enemy row. |
+| Dispel | Magic | 5 | 25 (1, 3, 5, 7, 9) | All enemies | None | Negate buffs for all enemies. |
+| Stab Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None | Raise one row of allies' resistance to stab damage. |
+| Slash Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None | Raise one row of allies' resistance to slash damage. |
+| Bash Guard | Magic | 5 | 25 (1, 3, 5, 7, 9) | Ally row | None | Raise one row of allies' resistance to bash damage. |
+| Sun Veil | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's magic defense. |
+| Accelerator | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Raise an ally's speed. |
+| Amplify | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single ally | None | Raise an ally's max HP. |
+| Prism Dawn | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | None | Pierce to the back row with a raw magic attack and RES-based extra damage. |
+| Esarhaddon | Passive | 6 | 36 (1, 3, 5, 7, 9, 11) | - | - | Automatically heal inflicted status ailments at the start of each turn. |
+| Economy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Reduce TP Cost in battle. |
+
+---
 
 ### Bishop
 
 - **Tier:** Advanced (Promotion Route: Priestess)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Dagger (3), Fan (3), Mace (13), Polearm (1), Projectile (5), Staff (14), Tome (15)
-- **Defensive Gear:** Accessory (46), Armor (19), Helm (16), Shield (13)
+> Healing gurus in control of powerful restorative magic, such as party-wide healing of status ailments. They are formidable in attack as well, with mighty skills like Holy Gavel or Justice. Bishops greatly increase the survival rate of their party.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Staff | +2% |
 | Weapon | Mace | +3% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Dagger (3), Fan (3), Mace (13), Polearm (1), Projectile (5), Staff (14), Tome (15)
+- **Defensive Gear:** Accessory (46), Armor (19), Helm (16), Shield (13)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1073,40 +1239,50 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1063 | 583 | 74 | 86 | 132 | 146 | 98 | 95 |
 | 99 | 1177 | 646 | 82 | 95 | 146 | 161 | 107 | 104 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Holy Gavel | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Justice | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Shine Curse | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Full Heal | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Circle Nurse | Magic | 8 | 36 (1, 2, 3, 4, 5, 6, 7, 8) | All allies | None |
-| Moon Curtain | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Insurance | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Mace Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Holy Gavel | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Mace skill. Deal bash damage with an inexorable thud. |
+| Justice | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Mace skill. Decrease the enemy's DEF as you attack. |
+| Shine Curse | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal non-elemental damage to all enemies (effective vs. unholy monsters). |
+| Full Heal | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Fully heal one ally's HP. |
+| Circle Nurse | Magic | 8 | 36 (1, 2, 3, 4, 5, 6, 7, 8) | All allies | None | Cure party's status ailments. |
+| Moon Curtain | Magic | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's resistance to fire, water, lightning, wind, and earth. |
+| Insurance | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | While active, immediately revive upon death. |
+| Mace Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with mace equipped. |
+| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
+
+---
 
 ## Maid Line
+
+---
 
 ### Maid
 
 - **Tier:** Base
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (2), Dagger (8), Fan (5), Gun (2), Mace (4), Polearm (1), Projectile (2)
-- **Defensive Gear:** Accessory (42), Armor (17), Helm (16), Shield (8)
+> Skilled at neither physical attack nor magic, but can activate a wide range of special effects in battle without needing to chant beforehand or expend TP. They tend to fill the role of the unsung hero.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Accessory | Accessory | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (2), Dagger (8), Fan (5), Gun (2), Mace (4), Polearm (1), Projectile (2)
+- **Defensive Gear:** Accessory (42), Armor (17), Helm (16), Shield (8)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1122,37 +1298,45 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 850 | 101 | 58 | 58 | 46 | 74 | 72 | 58 |
 | 99 | 932 | 112 | 64 | 64 | 50 | 80 | 78 | 64 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| First Aid | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Cook | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Self-Sacrifice | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None |
-| Clean | Technique | 5 | 25 (1, 3, 5, 7, 9) | Self | None |
-| Lullaby | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None |
-| Generous Heart | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Maid Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| First Aid | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Heal an ally's HP. |
+| Cook | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Heal an ally's TP. |
+| Self-Sacrifice | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single ally | None | Distribute all of one's TP to the target. |
+| Clean | Technique | 5 | 25 (1, 3, 5, 7, 9) | Self | None | Clean one's surroundings in order to increase mobility. |
+| Lullaby | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Put an enemy to sleep. |
+| Generous Heart | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Party's HP and TP is restored slightly after a battle. |
+| Maid Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all maid skills. |
+
+---
 
 ### Bard
 
 - **Tier:** Intermediate (Promotion Route: Maid)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Bow (4), Dagger (7), Fan (5), Mace (6), Microphone (14), Polearm (1), Sword (1), Whip (1)
-- **Defensive Gear:** Accessory (43), Armor (18), Helm (18), Shield (8)
+> Singers whose stunning voices strengthen the entire party. Since their battle capabilities are limited, they primarily reside in the back row where their allies can defend them. Their songs motivate, heal, and overall act as a huge support.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Accessory | Accessory | +2% |
 | Weapon | Microphone | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Bow (4), Dagger (7), Fan (5), Mace (6), Microphone (14), Polearm (1), Sword (1), Whip (1)
+- **Defensive Gear:** Accessory (43), Armor (18), Helm (18), Shield (8)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1168,36 +1352,44 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 885 | 114 | 61 | 78 | 58 | 103 | 82 | 67 |
 | 99 | 971 | 125 | 67 | 85 | 64 | 113 | 90 | 73 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Spiritual Fantasia | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Sacred Hymn | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Replenishing Carol | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Blissful Chorale | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Experience Paean | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Song Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Spiritual Fantasia | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's magic attack power while song lasts. |
+| Sacred Hymn | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's magic defense power while song lasts. |
+| Replenishing Carol | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Gradually heal the party's HP while song lasts. |
+| Blissful Chorale | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Gradually heal the party's TP while song lasts. |
+| Experience Paean | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's acquired EXP while song lasts. |
+| Song Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all songs. |
+
+---
 
 ### Dancer
 
 - **Tier:** Intermediate (Promotion Route: Maid)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Bow (4), Dagger (9), Fan (7), Instrument (15), Mace (4), Polearm (1), Whip (1)
-- **Defensive Gear:** Accessory (44), Armor (19), Helm (19), Shield (8)
+> A technical class that is primarily responsible for debuffing their adversaries. Members of this class captivate their enemies by performing a whole-body dance routine. Those who observe their dazzling techniques become weakened and cursed.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Accessory | Accessory | +2% |
 | Weapon | Instrument | +3% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Bow (4), Dagger (9), Fan (7), Instrument (15), Mace (4), Polearm (1), Whip (1)
+- **Defensive Gear:** Accessory (44), Armor (19), Helm (19), Shield (8)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1213,36 +1405,44 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 908 | 118 | 64 | 82 | 54 | 98 | 86 | 61 |
 | 99 | 997 | 130 | 70 | 90 | 59 | 108 | 94 | 67 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Warm-Up | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Fascinating Waltz | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Alluring Samba | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Gloomy Tango | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Gravitating Polka | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Dance Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Warm-Up | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own physical evasion rate and magical evasion rate. |
+| Fascinating Waltz | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' ATK while dance lasts. |
+| Alluring Samba | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' DEF while dance lasts. |
+| Gloomy Tango | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' accuracy while dance lasts. |
+| Gravitating Polka | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' evasion while dance lasts. |
+| Dance Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all dances. |
+
+---
 
 ### Diva
 
 - **Tier:** Advanced (Promotion Route: Bard)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Bow (6), Dagger (7), Fan (5), Mace (6), Microphone (15), Polearm (1), Sword (1), Whip (1)
-- **Defensive Gear:** Accessory (47), Armor (23), Helm (19), Shield (8)
+> Support class specializing in skills that boost the abilities of their comrades. With vocals that could rattle even the Milky Way, they provide courage to all who listen and send off their comrades in a much improved state.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Accessory | Accessory | +2% |
 | Weapon | Microphone | +4% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Bow (6), Dagger (7), Fan (5), Mace (6), Microphone (15), Polearm (1), Sword (1), Whip (1)
+- **Defensive Gear:** Accessory (47), Armor (23), Helm (19), Shield (8)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1258,33 +1458,34 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 970 | 265 | 66 | 84 | 73 | 132 | 98 | 87 |
 | 99 | 1069 | 299 | 72 | 93 | 81 | 146 | 108 | 96 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Barrage Rondo | Magic | 1 | 10 | All allies | None |
-| Concentration Prelude | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Reading Requiem | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Lightning March | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Sorcerous Ballad | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None |
-| Panic Voice | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Auto-Recovery | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Self Session | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Fast Talk | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Barrage Rondo | Magic | 1 | 10 | All allies | None | Raise the party's chance of doing multiple strikes while song lasts. |
+| Concentration Prelude | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's critical rate while song lasts. |
+| Reading Requiem | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Decrease the party's chant time while song lasts. |
+| Lightning March | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's speed while song lasts. |
+| Sorcerous Ballad | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All allies | None | Raise the party's magic accuracy while song lasts. |
+| Panic Voice | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Deal non-elemental damage to all enemies. May stun. |
+| Auto-Recovery | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover HP every turn during battle. |
+| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Make it harder for chants, songs, and dances to be interrupted. |
+| Self Session | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Become capable of performing two songs at once. |
+| Fast Talk | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Reduce chant time for songs. |
+
+---
 
 ### Mistress
 
 - **Tier:** Advanced (Promotion Route: Bard or Dancer)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Bow (4), Dagger (9), Fan (14), Gun (5), Mace (2), Polearm (2), Projectile (1), Whip (16)
-- **Defensive Gear:** Accessory (50), Armor (22), Helm (19), Shield (10)
+> Hard workers who finally reached the status of master after extensive work as subordinate maids. As if affected by past trauma, they tend to exhibit quite sadistic behavior. Their favorite weapon is the whip, and they love to castigate their rivals.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Promotion Route | Slot | Equipment Type | Modifier |
 | --- | --- | --- | --- |
@@ -1295,9 +1496,16 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | From Dancer | Weapon | Instrument | +2% |
 | From Dancer | Weapon | Whip | +3% |
 
-### Stat Growth
+#### Usable Equipment
 
-#### Route from Bard
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Bow (4), Dagger (9), Fan (14), Gun (5), Mace (2), Polearm (2), Projectile (1), Whip (16)
+- **Defensive Gear:** Accessory (50), Armor (22), Helm (19), Shield (10)
+
+#### Stat Growth
+
+##### Route from Bard
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1313,7 +1521,7 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1144 | 420 | 102 | 97 | 87 | 119 | 134 | 113 |
 | 99 | 1269 | 478 | 113 | 107 | 97 | 132 | 148 | 126 |
 
-#### Route from Dancer
+##### Route from Dancer
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1329,42 +1537,50 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1189 | 432 | 113 | 100 | 72 | 105 | 140 | 105 |
 | 99 | 1321 | 491 | 126 | 110 | 80 | 115 | 156 | 117 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |
-| War Cry | Technique | 5 | 30 (2, 4, 6, 8, 10) | All allies | None |
-| Hard Whipping | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Mid |
-| Enticing Love | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Mid |
-| Absolute Obedience | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short |
-| Resurrect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None |
-| Carrot and Stick | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None |
-| Whip Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Knock Down | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Ecstasy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Counter Whip | Passive | 1 | 20 | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Attract an enemy's attacks. |
+| War Cry | Technique | 5 | 30 (2, 4, 6, 8, 10) | All allies | None | Raise the party's ATK. |
+| Hard Whipping | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Enemy row | Mid | Whip skill. Deal bash damage to an enemy row from mid-range. |
+| Enticing Love | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Mid | Whip skill. Attack one enemy 1-5 times from mid-range. |
+| Absolute Obedience | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Whip skill. Deal bash damage to one enemy twice. May silence/paralyze. |
+| Resurrect | Magic | 5 | 30 (2, 4, 6, 8, 10) | Single ally | None | Revive a dead ally. |
+| Carrot and Stick | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Heal an enemy's HP to decrease its physical and magic defense. |
+| Whip Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with whip equipped. |
+| Auto-Refresh | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover TP every turn during battle. |
+| Knock Down | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally parry when receiving long-range attacks. |
+| Ecstasy | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Briefly increase ATK and DEX when HP drops below 50%. |
+| Counter Whip | Passive | 1 | 20 | - | - | Whip skill. Strike back with a normal attack before a targeted attack hits you. |
+
+---
 
 ### Etoile
 
 - **Tier:** Advanced (Promotion Route: Dancer)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Bow (6), Dagger (9), Fan (7), Instrument (15), Mace (4), Polearm (1), Whip (1)
-- **Defensive Gear:** Accessory (47), Armor (24), Helm (20), Shield (8)
+> Admired by all as they soar across the battlefield. Even enemies are captivated by their ravishing dances. Not only are they delightfully dainty, but they are known to rescue their comrades from danger, even at the cost of their own lives!
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Accessory | Accessory | +2% |
 | Weapon | Instrument | +4% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Bow (6), Dagger (9), Fan (7), Instrument (15), Mace (4), Polearm (1), Whip (1)
+- **Defensive Gear:** Accessory (47), Armor (24), Helm (20), Shield (8)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1380,41 +1596,51 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1095 | 145 | 74 | 90 | 67 | 108 | 102 | 90 |
 | 99 | 1212 | 161 | 81 | 100 | 74 | 119 | 112 | 100 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Debilitating Salsa | Technique | 10 | 95 (2, 4, 6, 8, 10, 11, 12, 13, 14, 15) | All enemies | None |
-| Dumbing Mazurka | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Emaciating Hopak | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None |
-| Primevil | Magic | 8 | 64 (1, 3, 5, 7, 9, 11, 13, 15) | All allies | None |
-| Auto-Recovery | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| On Stage | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Magnificent Steps | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Debilitating Salsa | Technique | 10 | 95 (2, 4, 6, 8, 10, 11, 12, 13, 14, 15) | All enemies | None | Dance skill. Damage all enemies at the start of user's turn while dance lasts. |
+| Dumbing Mazurka | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' speed while dance lasts. |
+| Emaciating Hopak | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | None | Dance skill. Lower all enemies' elemental resistances while dance lasts. |
+| Primevil | Magic | 8 | 64 (1, 3, 5, 7, 9, 11, 13, 15) | All allies | None | Sacrifice yourself to revive, heal, and recover status effects for the rest of the party. |
+| Auto-Recovery | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Recover HP every turn during battle. |
+| Guts | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally survive at 1 HP after being dealt fatal damage. |
+| Concentrate | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Make it harder for chants, songs, and dances to be interrupted. |
+| On Stage | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Become capable of performing two dances at once. |
+| Magnificent Steps | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Mesmerize enemies, causing them to occasionally do nothing. |
+
+---
 
 ## Spieler Line
+
+---
 
 ### Spieler
 
 - **Tier:** Base
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (1), Dagger (14), Fan (5), Gun (2), Katana (1), Mace (7), Polearm (2), Projectile (7), Sword (3), Whip (8)
-- **Defensive Gear:** Accessory (42), Armor (18), Helm (17), Shield (13)
+> An eccentric class with many skills, the effects of which are left completely up to chance. It is an utter mystery whether or not they are actually useful...
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Dagger | +1% |
 | Weapon | Projectile | +1% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (1), Dagger (14), Fan (5), Gun (2), Katana (1), Mace (7), Polearm (2), Projectile (7), Sword (3), Whip (8)
+- **Defensive Gear:** Accessory (42), Armor (18), Helm (17), Shield (13)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1430,29 +1656,30 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 929 | 207 | 87 | 80 | 51 | 74 | 109 | 80 |
 | 99 | 1018 | 227 | 95 | 88 | 56 | 81 | 119 | 88 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Fleet Foot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None |
-| Danger Shoot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Random enemies | Long |
-| Coffee Break | Technique | 5 | 25 (1, 3, 5, 7, 9) | Self | None |
-| Roulette Circus | Technique | 1 | 10 | None | None |
-| Weapon Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Present for Me | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fleet Foot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Self | None | Increase own speed. |
+| Danger Shoot | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Random enemies | Long | Attack 0-4 times on random targets. |
+| Coffee Break | Technique | 5 | 25 (1, 3, 5, 7, 9) | Self | None | Take a break to heal own HP and raise Pep. |
+| Roulette Circus | Technique | 1 | 10 | None | None | Spin the magic roulette. Nobody knows what will happen. |
+| Weapon Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus for all weapons. |
+| Present for Me | Passive | 5 | 25 (1, 3, 5, 7, 9) | - | - | Sometimes pick up items while moving around the dungeons. |
+
+---
 
 ### Doll Master
 
 - **Tier:** Intermediate (Promotion Route: Spieler)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (1), Dagger (17), Fan (7), Mace (5), Polearm (1), Projectile (7), Staff (12), Sword (13), Tome (12), Whip (13)
-- **Defensive Gear:** Accessory (46), Armor (20), Helm (18), Shield (14)
+> By breathing life into puppets, members of this class are able to create their own underlings. Since the puppets take on lives of their own and act without any direct input from their masters, the summoner herself is able to maneuver freely.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
@@ -1460,7 +1687,14 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | Weapon | Projectile | +1% |
 | Weapon | Staff | +1% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (1), Dagger (17), Fan (7), Mace (5), Polearm (1), Projectile (7), Staff (12), Sword (13), Tome (12), Whip (13)
+- **Defensive Gear:** Accessory (46), Armor (20), Helm (18), Shield (14)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1476,35 +1710,43 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 959 | 294 | 86 | 83 | 109 | 103 | 109 | 94 |
 | 99 | 1050 | 322 | 94 | 91 | 120 | 113 | 119 | 103 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Spartan | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None |
-| Oracles | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None |
-| Catalina | Technique | 5 | 30 (2, 4, 6, 8, 10) | None | None |
-| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - |
-| Doll Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Spartan | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None | Summon Spartan for short-range bash damage. |
+| Oracles | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None | Summon Oracles for mid-range INT-based damage and possible paralysis. |
+| Catalina | Technique | 5 | 30 (2, 4, 6, 8, 10) | None | None | Summon Catalina to heal allies' HP. |
+| Mini Auto-Refresh | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover TP every turn during battle. |
+| Doll Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Increased effects for all doll skills. |
+
+---
 
 ### Trickster
 
 - **Tier:** Intermediate (Promotion Route: Spieler)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (4), Dagger (16), Fan (8), Gun (4), Katana (1), Mace (6), Polearm (2), Projectile (6), Staff (1), Sword (6), Whip (9)
-- **Defensive Gear:** Accessory (42), Armor (17), Helm (22), Shield (15)
+> Rather than consistency, members of this class relish the instability that comes with not knowing what will happen. In times of great danger, they may be able to turn the tables in your party's favor... Maybe.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Dagger | +2% |
 | Weapon | Projectile | +2% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (4), Dagger (16), Fan (8), Gun (4), Katana (1), Mace (6), Polearm (2), Projectile (6), Staff (1), Sword (6), Whip (9)
+- **Defensive Gear:** Accessory (42), Armor (17), Helm (22), Shield (15)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1520,37 +1762,45 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1028 | 254 | 103 | 91 | 102 | 101 | 115 | 108 |
 | 99 | 1129 | 278 | 113 | 99 | 112 | 111 | 126 | 118 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Checkmate | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Surprise Fist | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long |
-| High Risk, High Return | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Magic Box | Technique | 1 | 10 | None | None |
-| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - |
-| Anti-Dark Aura | Passive | 1 | 20 | - | - |
-| Pretend | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Checkmate | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Attack one enemy. May instakill. |
+| Surprise Fist | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long | 50/50 chance of non-elemental damage to each enemy. May stun. |
+| High Risk, High Return | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Increase own ATK at the price of lowering own DEF. |
+| Magic Box | Technique | 1 | 10 | None | None | Open a magic box. Nobody knows what will happen. |
+| Mini Auto-Recovery | Passive | 5 | 15 (1, 2, 3, 4, 5) | - | - | Slightly recover HP every turn during battle. |
+| Anti-Dark Aura | Passive | 1 | 20 | - | - | Nullify the effects of enemy Dark Auras. |
+| Pretend | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Occasionally nullify physical damage. |
+
+---
 
 ### Soul Summoner
 
 - **Tier:** Advanced (Promotion Route: Doll Master)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (1), Dagger (22), Fan (7), Mace (6), Polearm (1), Projectile (7), Staff (14), Sword (20), Tome (13), Whip (13)
-- **Defensive Gear:** Accessory (52), Armor (24), Helm (23), Shield (15)
+> The highest rank of puppeteer, this class can employ immensely powerful puppets. They possess skills such as the ability to breathe life into two puppets at once or to absorb the power of the equipped Sealbook and bestow it upon their servants.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Sword | +3% |
 | Weapon | Staff | +3% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (1), Dagger (22), Fan (7), Mace (6), Polearm (1), Projectile (7), Staff (14), Sword (20), Tome (13), Whip (13)
+- **Defensive Gear:** Accessory (52), Armor (24), Helm (23), Shield (15)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1566,32 +1816,33 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1000 | 331 | 92 | 83 | 117 | 109 | 109 | 94 |
 | 99 | 1097 | 363 | 101 | 91 | 129 | 120 | 119 | 103 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Mercidarian | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None |
-| Perdurabo | Technique | 8 | 36 (1, 2, 3, 4, 5, 6, 7, 8) | None | None |
-| Musiy | Technique | 7 | 84 (3, 6, 9, 12, 15, 18, 21) | None | None |
-| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Soul Eater | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None |
-| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Double Puppet | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Soul Seal | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - |
-| Destiny Line | Passive | 1 | 20 | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Mercidarian | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | None | None | Summon Mercidarian for random long-range stab damage to all foes. |
+| Perdurabo | Technique | 8 | 36 (1, 2, 3, 4, 5, 6, 7, 8) | None | None | Summon Perdurabo to cure two allies' status ailments. |
+| Musiy | Technique | 7 | 84 (3, 6, 9, 12, 15, 18, 21) | None | None | Summon Musiy for immediate single-target attack magic. |
+| Divine Shield | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Reduce incoming physical damage by a certain amount. |
+| Soul Eater | Magic | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | None | Deal enormous damage to one enemy that possesses life. Low chance of instakill. |
+| Adaptation | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | Raise resistance to all elements. |
+| Double Puppet | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Become capable of controlling two dolls at once. |
+| Soul Seal | Passive | 5 | 45 (3, 6, 9, 12, 15) | - | - | Increase doll power with the strength of the equipped Sealbook. |
+| Destiny Line | Passive | 1 | 20 | - | - | Increase doll summon duration by 1 turn. |
+
+---
 
 ### Papillon
 
 - **Tier:** Advanced (Promotion Route: Doll Master or Trickster)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (1), Dagger (21), Fan (16), Gun (4), Katana (1), Mace (6), Polearm (1), Projectile (9), Staff (2), Sword (8), Tome (6), Whip (9)
-- **Defensive Gear:** Accessory (56), Armor (28), Helm (20), Shield (16)
+> Using hand-fans proficiently as weapons, they are skilled in both short and long distance combat. They are unique not only in weapon choice, but also skill selection, most notable of which is an ultimate skill that turns a weakened enemy into... food?
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Promotion Route | Slot | Equipment Type | Modifier |
 | --- | --- | --- | --- |
@@ -1602,9 +1853,16 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | From Trickster | Weapon | Projectile | +2% |
 | From Trickster | Weapon | Fan | +3% |
 
-### Stat Growth
+#### Usable Equipment
 
-#### Route from Doll Master
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (1), Dagger (21), Fan (16), Gun (4), Katana (1), Mace (6), Polearm (1), Projectile (9), Staff (2), Sword (8), Tome (6), Whip (9)
+- **Defensive Gear:** Accessory (56), Armor (28), Helm (20), Shield (16)
+
+#### Stat Growth
+
+##### Route from Doll Master
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1620,7 +1878,7 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1144 | 293 | 104 | 89 | 113 | 111 | 113 | 98 |
 | 99 | 1258 | 321 | 114 | 98 | 124 | 122 | 124 | 107 |
 
-#### Route from Trickster
+##### Route from Trickster
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1636,41 +1894,49 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1165 | 312 | 118 | 101 | 108 | 100 | 121 | 111 |
 | 99 | 1282 | 341 | 130 | 111 | 119 | 110 | 133 | 122 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Materialize | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None |
-| Rose Queen | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long |
-| Tinker Squash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |
-| Graceful Rose | Technique | 1 | 5 | Single enemy | Long |
-| Illusion | Magic | 3 | 18 (3, 6, 9) | Self | None |
-| Insurance | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Limit Field | Magic | 5 | 30 (2, 4, 6, 8, 10) | Everyone | None |
-| Fan Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Esarhaddon | Passive | 6 | 36 (1, 3, 5, 7, 9, 11) | - | - |
-| Elegant Dancing | Passive | 1 | 20 | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Materialize | Technique | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Turn a weakened enemy into food. Ineffective against some enemies. |
+| Rose Queen | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | All enemies | Long | Deal non-elemental damage to all enemies with a storm of roses. May poison. |
+| Tinker Squash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Fan skill. Deal bashing damage to one enemy. May delay enemy turn. |
+| Graceful Rose | Technique | 1 | 5 | Single enemy | Long | Fan skill. With increased ATK, deal long-range damage to one enemy. |
+| Illusion | Magic | 3 | 18 (3, 6, 9) | Self | None | Create 2 magical afterimages that let you dodge one attack each. |
+| Insurance | Magic | 5 | 30 (2, 4, 6, 8, 10) | Self | None | While active, immediately revive upon death. |
+| Limit Field | Magic | 5 | 30 (2, 4, 6, 8, 10) | Everyone | None | Create a field that reduces damage for both sides for a time. |
+| Fan Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with fan equipped. |
+| Double Attack | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally attack twice when attacking normally. |
+| Esarhaddon | Passive | 6 | 36 (1, 3, 5, 7, 9, 11) | - | - | Automatically heal inflicted status ailments at the start of each turn. |
+| Elegant Dancing | Passive | 1 | 20 | - | - | Nullify first hit of battle against user (does not work for status ailments). |
+
+---
 
 ### Joker
 
 - **Tier:** Advanced (Promotion Route: Trickster)
 
-### Usable Equipment
+#### Class Overview
 
-- **Weapon Types:** Axe (31), Dagger (27), Fan (4), Katana (1), Mace (7), Polearm (2), Projectile (4), Staff (1), Sword (12), Whip (16)
-- **Defensive Gear:** Accessory (51), Armor (26), Helm (26), Shield (20)
+> Death gods who wander the battlefield in search of enemy blood. However, they quickly tire of this hunt, so instead drink their own blood in order to transform into a destroyer. This haunting visage strikes fear into the hearts of all onlookers.
 
-### Weapon Specialty Modifiers
+#### Weapon Specialty Modifiers
 
-Equipping a specialized weapon or gear type adds a percentage bonus: int((character_stat + piece_stat) * modifier) to all non-zero equipment stats (Address 0x4f7c60).
+Equipping a specialized weapon, shield, or accessory grants a percentage bonus to all non-zero stats on that piece: `int((character_stat + piece_stat) * modifier)`.
 
 | Slot | Equipment Type | Modifier |
 | --- | --- | --- |
 | Weapon | Whip | +3% |
 | Weapon | Axe | +4% |
 
-### Stat Growth
+#### Usable Equipment
+
+Equipment compatibility based on class usability flags.
+
+- **Weapon Types:** Axe (31), Dagger (27), Fan (4), Katana (1), Mace (7), Polearm (2), Projectile (4), Staff (1), Sword (12), Whip (16)
+- **Defensive Gear:** Accessory (51), Armor (26), Helm (26), Shield (20)
+
+#### Stat Growth
 
 | Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1686,17 +1952,17 @@ Equipping a specialized weapon or gear type adds a percentage bonus: int((charac
 | 90 | 1197 | 268 | 124 | 89 | 90 | 80 | 142 | 115 |
 | 99 | 1317 | 294 | 136 | 98 | 98 | 87 | 157 | 126 |
 
-### Learned Skills
+#### Learned Skills
 
-| Skill | Type | Max Lv | SP Cost | Target | Range |
-| --- | --- | --- | --- | --- | --- |
-| Mad Zapper | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Mid |
-| Life Bringer | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short |
-| Trump Card | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None |
-| Showtime | Technique | 1 | 15 | None | None |
-| Beast Binder | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Mid |
-| Heaven or Hell | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None |
-| Axe Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - |
-| Avenger | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Murder | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - |
-| Triple Joker | Passive | 1 | 20 | - | - |
+| Skill | Type | Max Lv | SP Cost | Target | Range | Description |
+| --- | --- | --- | --- | --- | --- | --- |
+| Mad Zapper | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Piercing | Mid | Short-range skill. Pierce through to the back row with stab damage. May slow. |
+| Life Bringer | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | Short | Short-range skill. Attack one enemy and reduce target's max HP. |
+| Trump Card | Technique | 5 | 30 (2, 4, 6, 8, 10) | Self | None | Convert current DEF to bonus ATK (DEF becomes 0). |
+| Showtime | Technique | 1 | 15 | None | None | Something emerges from the shadows. Nobody knows what will happen. |
+| Beast Binder | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Mid | Whip skill. Attack one enemy 1-3 times from mid-range. Crits against Beasts. |
+| Heaven or Hell | Magic | 5 | 25 (1, 3, 5, 7, 9) | Single enemy | None | Either heal or damage an enemy based on the enemy's HP. |
+| Axe Mastery | Passive | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | - | - | ATK bonus with axe equipped. |
+| Avenger | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally counterattack after receiving physical damage. |
+| Murder | Passive | 5 | 30 (2, 4, 6, 8, 10) | - | - | Occasionally instakill when inflicting a critical hit. |
+| Triple Joker | Passive | 1 | 20 | - | - | Heighten the probability of beneficial results for random effect skills. |

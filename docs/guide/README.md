@@ -1,6 +1,6 @@
 # Dungeon Travelers 2-2 Reference Guide (Vanilla)
 
-Reference documentation for the original English PC release of Dungeon Travelers 2-2. All data and formulas are extracted directly from the game executable (DT22_en_unwrapped.exe) and packaged archive files.
+Player reference documentation for the original English PC release of Dungeon Travelers 2-2. All data, mechanics, and formulas are compiled directly from the original game files.
 
 ## How to Read the Tables
 
@@ -12,19 +12,19 @@ Core combat parameters, calculations, and mechanical terms used throughout this 
 
 | Term | Definition |
 | --- | --- |
-| HP | Hit Points. Unit is incapacitated when reduced to 0. |
+| HP | Hit Points. The unit is knocked out when reduced to 0. |
 | TP | Technical Points. Consumed to execute skills and spells. |
-| ATK | Attack stat (index 0). Scales physical damage before opponent DEF reduction (0x44b36e). |
-| DEF | Physical defence stat (index 1). Mitigates physical damage; subtracted from incoming attack values (0x44b9c0). |
-| INT | Intelligence stat (index 2). Determines magic attack strength and magic evasion calculations (0x44dc97). |
-| RES | Resistance stat (index 3). Mitigates magic damage and provides base elemental protection (0x44e070). |
-| DEX | Dexterity stat (index 4). Influences physical accuracy and critical hit chance (0x44aac1, 0x44f1d8). |
-| AGI | Agility stat (index 5). Governs physical evasion and action gauge recovery rate (0x44aac1, 0x449b4c). |
-| Chant | Casting interval required by certain spells and skills before execution (0x449d9a). Damage taken relative to max HP creates interruption chance (0x44d001). |
-| Weight / Delay | Weapon recovery factor indexed by weapon rank (A+ to F). Increases turn wait time proportionally with unit level (0x449bd4). |
-| Swing | Damage variance factor assigned to weapons, spells, and enemies (0x44b2f1, 0x44db97). |
-| Hit / Evasion | Accuracy versus evasion check. Physical hit rate is bounded between 5% and 100% (0x44ae84); spell hit rate is bounded between 25% and 95% (0x44da2b). |
-| Resistance | Reduces damage of the corresponding attribute by 0.5% per point (0x44c576). Mitigates ailment infliction chance in increments of 10 points (0x481fc2). |
-| Target Weight | Position-based enmity value determining probability of being targeted by single-target attacks (0x43f7e9, table 0x6517a0). |
-| Range | Distance factor based on combat rows (front vs back). Melee skills lose damage over distance; ranged skills bypass distance penalties (0x44a7d0). |
-| Level Reset (Crown) | Process of returning a character to level 1 from level 50 or higher (0x4f94f0). Grants permanent stat bonus points up to a hard cap of 50. |
+| ATK | Physical attack power. Scales damage of normal attacks and physical skills before enemy DEF reduction. |
+| DEF | Physical defence. Reduces incoming physical damage directly from the attacker's attack value. |
+| INT | Intelligence. Determines magic attack power and influences magic evasion. |
+| RES | Resistance. Reduces incoming magic damage and provides base protection against elemental attacks. |
+| DEX | Dexterity. Increases physical hit accuracy and critical hit chance. |
+| AGI | Agility. Increases physical evasion rate and speeds up action gauge recovery in the turn order. |
+| Chant | Casting preparation time required before executing certain spells and skills. Damage sustained relative to max HP can interrupt the chant. |
+| Weight / Delay | Weapon recovery delay determined by weapon rank (A+ to F). Slower weapons increase the wait time before the unit's next turn, scaling with level. |
+| Swing | Inherent damage variance factor assigned to weapons, spells, and enemies. |
+| Hit / Evasion | Accuracy check between attacker and target. Physical hit rate is bounded between 5% and 100%; offensive spells are bounded between 25% and 95%. |
+| Resistance | Reduces damage of that element by 0.5% per point of resistance. Also mitigates status ailment infliction chance in increments of 10 points. |
+| Target Weight | Enmity value determining the likelihood of being targeted by single-target attacks, influenced by row position, Provoke, and equipment. |
+| Range | Distance between front and back combat rows. Short-range attacks lose damage when targeting or used from the back row; long-range attacks suffer no distance penalty. |
+| Level Reset (Crown) | Returning a character to level 1 from level 50 or higher to earn permanent bonus stat points, up to a maximum of 50. |

@@ -20,9 +20,9 @@ PROJECT_DIR = _paths.PROJECT_DIR
 GUIDE_DIR = os.path.join(PROJECT_DIR, 'docs', 'guide')
 SNAPSHOT_PATH = os.path.join(PROJECT_DIR, 'build', 'engine_snapshot.json')
 
-FORBIDDEN_WORDS = [
+FORBIDDEN_EDITORIAL_WORDS = [
     'note that', "it's worth noting", 'keep in mind', 'in summary',
-    'crucially', 'powerful', 'robust', 'seamless', 'comprehensive',
+    'crucially', 'robust', 'seamless', 'comprehensive',
     'dive into', 'unverified'
 ]
 
@@ -45,22 +45,21 @@ class TestGuideGeneration(unittest.TestCase):
             self.assertEqual(content_on_disk, self.built[filename], f"{filename} content on disk does not match generator output")
             self.assertGreater(len(content_on_disk), 100, f"{filename} is unexpectedly small")
 
-    def test_no_forbidden_phrases_or_machine_paths(self):
+    def test_no_forbidden_editorial_phrases_or_machine_paths(self):
         for filename, content in self.built.items():
             lower_content = content.lower()
-            for word in FORBIDDEN_WORDS:
-                self.assertNotIn(word, lower_content, f"Forbidden phrase '{word}' found in {filename}")
-            # Ensure no local machine paths (e.g. C:\Users or C:/Users)
+            for word in FORBIDDEN_EDITORIAL_WORDS:
+                self.assertNotIn(word, lower_content, f"Forbidden editorial phrase '{word}' found in {filename}")
             self.assertNotIn('c:\\users', lower_content, f"Machine path found in {filename}")
             self.assertNotIn('c:/users', lower_content, f"Machine path found in {filename}")
+            # Ensure no raw memory addresses in the player guide
+            self.assertNotIn('0x', content, f"Hexadecimal memory address found in {filename}")
 
     def test_sample_growth_figures_match_snapshot(self):
         classes_md = self.built['classes.md']
         growth = self.growth_dict
 
         # Fighter (row 0)
-        # stat order in growth: [atk, def, int, res, dex, agi, hp, tp]
-        # table order: Level | HP | TP | ATK | DEF | INT | RES | DEX | AGI
         f_lv1 = growth[0][0]
         f_lv1_row = f"| 1 | {f_lv1[6]} | {f_lv1[7]} | {f_lv1[0]} | {f_lv1[1]} | {f_lv1[2]} | {f_lv1[3]} | {f_lv1[4]} | {f_lv1[5]} |"
         self.assertIn(f_lv1_row, classes_md, "Fighter Lv1 stat row mismatch")
@@ -91,12 +90,12 @@ class TestGuideGeneration(unittest.TestCase):
 
     def test_sample_skills_and_costs(self):
         classes_md = self.built['classes.md']
-        # Provoke: Technique, Max Lv 5, SP Cost 30 (2, 4, 6, 8, 10), Single enemy, None
-        self.assertIn('| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None |', classes_md)
-        # Raging Smash: Technique, Max Lv 10, SP Cost 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10), Single enemy, Short
-        self.assertIn('| Raging Smash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short |', classes_md)
-        # Absolute Attack: Valkyrie, Passive, Max Lv 1, SP Cost 20
-        self.assertIn('| Absolute Attack | Passive | 1 | 20 | - | - |', classes_md)
+        # Provoke: Technique, Max Lv 5, SP Cost 30 (2, 4, 6, 8, 10), Single enemy, None, Description
+        self.assertIn('| Provoke | Technique | 5 | 30 (2, 4, 6, 8, 10) | Single enemy | None | Attract an enemy\'s attacks. |', classes_md)
+        # Raging Smash: Technique, Max Lv 10, SP Cost 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10), Single enemy, Short, Description
+        self.assertIn('| Raging Smash | Technique | 10 | 55 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) | Single enemy | Short | Short-range skill. Powerful strike to one enemy. |', classes_md)
+        # Absolute Attack: Valkyrie, Passive, Max Lv 1, SP Cost 20, Description
+        self.assertIn('| Absolute Attack | Passive | 1 | 20 | - | - | No longer suffer counterattacks from enemies. |', classes_md)
 
     def test_sample_weapon_modifiers(self):
         classes_md = self.built['classes.md']
