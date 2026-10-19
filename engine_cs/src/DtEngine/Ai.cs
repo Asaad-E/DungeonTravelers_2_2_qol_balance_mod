@@ -6,7 +6,6 @@ namespace DtEngine
     /// <summary>sim/ai.py: what an enemy, a summon or a guest ally does on its turn (its script of EnemyAIData).</summary>
     public static class Ai
     {
-        const int MAX_SWITCHES = 8;
         const int TARGET = 1;
         const int CHAIN = 0x1000, TO_SET = 0x2000, SLOT = 0x4000, ATTACK_ID = 0x8000;
 
@@ -25,21 +24,37 @@ namespace DtEngine
             // every choice (0x430f8c - 0x430fa6)
             unit.AiTargets = null;
             if (attacks.Length == 0) return new Action(unit, AKind.Defend);
-            if (unit.St[117] != null || unit.St[114] != null || unit.St[123] != null) return AttackAction(battle, unit, 0, T.NONE);
+            var chosen = ChooseAttack(battle, unit);
+            // the choice is then replaced by the unit's plain attack (0x4312b0 - 0x4313b5): always under shadow sew (123, slot 0xd0 of
+            // the unit class), for a spell (bit 2 of the attack's flags) under silence (117, slot 0xc0), for a technique (bit 1) under
+            // freeze (114, slot 0xb4). The plain attack the program takes is the record's own (0xc8 of the enemy's status data, 0x54 of a
+            // summon's form, 0x58 of a guest's record); the engine takes attack slot 0, the plain attack in the data it reads
+            if (chosen.Atk != null && (unit.St[123] != null || (unit.St[117] != null && chosen.Atk.Spell) || (unit.St[114] != null && chosen.Atk.Technique)))
+                return AttackAction(battle, unit, 0, T.NONE);
+            return chosen;
+        }
+
+        static Action ChooseAttack(Battle battle, Unit unit)
+        {
+            var attacks = unit.Attacks;
             var script = unit.Script;
             if (script == null) return AttackAction(battle, unit, RollUniform(battle, attacks), T.NONE);
             unit.AiSet = 0;
             Decided decided = Run(battle, unit, script.Opening, -1);
-            int switches = 0;
+            // a set switch marks the set left as done; a switch to a set already done this choice, or to no set, ends the choice
+            // (0x4311c8, 0x431054, 0x43105c): no limit on the number of switches
+            var done = new HashSet<int>();
+            bool first = true;
             while (decided.None || decided.Kind == 3)
             {
                 if (!decided.None)
                 {
+                    done.Add(unit.AiSet);
+                    if (done.Contains(decided.Value) || script.Get(decided.Value) == null) { decided = new Decided(0, 0); break; }
                     unit.AiSet = decided.Value;
-                    switches++;
-                    if (switches > MAX_SWITCHES) break;
                 }
-                var entry = script.Get(unit.AiSet) ?? script.Get(script.MinSet());
+                var entry = script.Get(unit.AiSet) ?? (first ? script.Get(script.MinSet()) : null);
+                first = false;
                 if (entry == null)
                 {
                     decided = new Decided(1, RollUniform(battle, attacks));
@@ -78,6 +93,9 @@ namespace DtEngine
         static Decided Run(Battle battle, Unit unit, CommandList list, int rolled)
         {
             var commands = list.Commands;
+            // a set switch whose second tail byte is 0 does not stop the commands (0x4325cf): the next ones still run, and one that
+            // decides an attack wins; the switch is taken when none does
+            var pending = new Decided(0, 0);
             for (int k = 0; k < commands.Length; k++)
             {
                 var command = commands[k];
@@ -97,9 +115,10 @@ namespace DtEngine
                 var result = FinalResult(battle, unit, command, rolled);
                 if (result.None) continue;
                 if (once) unit.OnceDone.Add(key);
+                if (result.Kind == 3 && !command.Stop) { pending = result; continue; }
                 return result;
             }
-            return new Decided(0, 0);
+            return pending;
         }
 
         static Decided FinalResult(Battle battle, Unit unit, Command command, int rolled)
@@ -112,8 +131,9 @@ namespace DtEngine
                 result = command.Result;
             }
             if ((result & TO_SET) != 0) return new Decided(3, result & 0x0FFF);
-            if ((result & SLOT) != 0) return new Decided(1, result & 0x0FFF);
-            if ((result & ATTACK_ID) != 0) return new Decided(2, result & 0x0FFF);
+            // a slot the unit does not have, or an attack id it does not carry, decides nothing (P4.8 of the audit)
+            if ((result & SLOT) != 0) return (result & 0x0FFF) < unit.Attacks.Length ? new Decided(1, result & 0x0FFF) : new Decided(0, 0);
+            if ((result & ATTACK_ID) != 0) return Array.IndexOf(unit.Attacks, result & 0x0FFF) >= 0 ? new Decided(2, result & 0x0FFF) : new Decided(0, 0);
             return new Decided(0, 0);
         }
 
@@ -174,6 +194,8 @@ namespace DtEngine
                 int id = SkillOf(unit, args[0]);
                 var attack = id != T.NONE ? battle.Data.GetAttack(id) : null;
                 if (attack == null) return false;
+                // with an attack already rolled, the command holds only when it names that attack (0x4321aa - 0x4321b7)
+                if (rolled >= 0 && rolled < unit.Attacks.Length && unit.Attacks[rolled] != id) return false;
                 unit.Uses.TryGetValue(attack.Name ?? "", out int used);
                 return used >= args[1];
             }
@@ -187,7 +209,8 @@ namespace DtEngine
 
         static int SourceValue(Battle battle, Unit unit, int source)
         {
-            var allies = battle.AlliesArray(unit);
+            // allies are the candidates of the unit's side (0x43e6d0): units below 2000, never a doll, the summon or a guest
+            var allies = battle.TargetableArray(unit.Side);
             var foes = battle.TargetableArray(1 - unit.Side);
             switch (source)
             {
@@ -249,49 +272,48 @@ namespace DtEngine
             return action;
         }
 
+        /// <summary>The unit a target kind of command 1 names (0x433350): the candidates that qualify are collected and one is drawn
+        /// evenly among them (0x4346b5 - 0x4346cd); the candidates of a side are units below 2000 (0x43e6d0).</summary>
         static Unit PickByKind(Battle battle, Unit unit, int kind, EnemyAttack attack)
         {
-            var allies = battle.AlliesArray(unit);
+            var allies = battle.TargetableArray(unit.Side);
             var foes = battle.TargetableArray(1 - unit.Side);
+            var found = new List<Unit>();
             switch (kind)
             {
-                case 0: return MinBy(allies, u => u.HpRatio);
-                case 1: return MinBy(foes, u => u.HpRatio);
-                case 2: return MinBy(allies, u => u.TpRatio);
-                case 3: return MinBy(foes, u => u.TpRatio);
-                case 4: case 9: case 13:
-                    foreach (var u in allies) if (HasAnyAilment(u)) return u;
-                    return null;
-                case 5: case 14:
-                    foreach (var u in foes) if (HasAnyAilment(u)) return u;
-                    return null;
-                case 6: foreach (var u in foes) if (u.Chant != null) return u; return null;
-                case 7: foreach (var u in foes) if (!u.Front) return u; return null;
+                case 0: Lowest(allies, u => u.HpRatio, found); break;
+                case 1: Lowest(foes, u => u.HpRatio, found); break;
+                case 2: Lowest(allies, u => u.TpRatio, found); break;
+                case 3: Lowest(foes, u => u.TpRatio, found); break;
+                case 4: case 9: case 13: foreach (var u in allies) if (HasAnyAilment(u)) found.Add(u); break;
+                case 5: case 14: foreach (var u in foes) if (HasAnyAilment(u)) found.Add(u); break;
+                case 6: foreach (var u in foes) if (u.Chant != null) found.Add(u); break;
+                case 7: foreach (var u in foes) if (!u.Front) found.Add(u); break;
                 case 8:
                     foreach (var u in allies)
                     {
                         bool shares = false;
                         for (int i = 0; i < attack.EffId.Length; i++) if (u.St[attack.EffId[i]] != null) shares = true;
-                        if (!shares) return u;
+                        if (!shares) found.Add(u);
                     }
-                    return null;
-                case 10: foreach (var u in foes) if (u.Front) return u; return null;
-                case 11: foreach (var u in foes) if (HasBuff(u)) return u; return null;
-                case 12: foreach (var u in allies) if (HasDebuff(u)) return u; return null;
-                case 15: foreach (var u in battle.AlliesArray(unit, false)) if (!u.Alive) return u; return null;
-                default: return null;
+                    break;
+                case 10: foreach (var u in foes) if (u.Front) found.Add(u); break;
+                case 11: foreach (var u in foes) if (HasBuff(u)) found.Add(u); break;
+                case 12: foreach (var u in allies) if (HasDebuff(u)) found.Add(u); break;
+                case 15:
+                    foreach (var u in battle.AlliesArray(unit, false))
+                        if (!u.Alive && u.Kind != Kind.Doll && u.Kind != Kind.Summon && u.Kind != Kind.Npc) found.Add(u);
+                    break;
+                default: break;
             }
+            return found.Count == 0 ? null : found[battle.Rng.ChoiceIndex(found.Count)];
         }
 
-        static Unit MinBy(Unit[] list, Func<Unit, double> key)
+        static void Lowest(Unit[] list, Func<Unit, double> key, List<Unit> found)
         {
-            Unit best = null; double bestKey = 0;
-            foreach (var u in list)
-            {
-                double k = key(u);
-                if (best == null || k < bestKey) { best = u; bestKey = k; }
-            }
-            return best;
+            double best = double.MaxValue;
+            foreach (var u in list) best = Math.Min(best, key(u));
+            foreach (var u in list) if (key(u) == best) found.Add(u);
         }
     }
 }

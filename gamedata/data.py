@@ -63,7 +63,7 @@ class Skill:
     effects: [(effect id, kind of the slot, [value per level])]; kind as docs/FORMULAS.md 9.2 (0 passive, 2 property
     of the action, 3 map, 4 done to the target, 5 a status that lasts turns)."""
     __slots__ = ('category', 'id', 'name', 'levels', 'target', 'attr', 'group', 'weapons', 'effects', 'tp', 'sp',
-                 'speed', 'cast', 'accuracy', 'turns', 'classes', 'pattern', 'range', 'chant_stat')
+                 'speed', 'cast', 'accuracy', 'turns', 'classes', 'pattern', 'range', 'chant_stat', 'swing')
 
     def __init__(self, **kw):
         for k in self.__slots__:
@@ -89,7 +89,7 @@ class Skill:
 class EnemyAttack:
     """An EnemyAttackData record: also the attacks of summons and guest allies, and the passives of enemies."""
     __slots__ = ('id', 'name', 'target', 'attr', 'chant_speed', 'accuracy', 'power', 'turns', 'speed', 'effects',
-                 'range', 'passive', 'chant_stat', 'spell')
+                 'range', 'passive', 'chant_stat', 'spell', 'technique')
 
     def __init__(self, **kw):
         for k in self.__slots__:
@@ -189,7 +189,11 @@ def _load_skills(wb, data):
                       speed=field('speed') or [1.0] * count, cast=field('cast'), accuracy=field('arr_0xFC'),
                       turns=field('turns') or [0] * count, classes=info.get('classes', []),
                       pattern=info.get('pattern'), range=_skill_range(r['Category'], r['Group_0x30']),
-                      chant_stat=_chant_stat(r['Category'], r['Group_0x30']))
+                      chant_stat=_chant_stat(r['Category'], r['Group_0x30']),
+                      # the float at file 0x124 (+0x13c in memory): the swing of a spell, rolled per cast as
+                      # (n below 2 * int(100 * swing) + 1, minus int(100 * swing)) / 100 (0x44dbc3 - 0x44dc18); an enemy
+                      # attack has none (skill id -1 skips it, 0x44dba6)
+                      swing=float(r['Misc_0x124'] or 0.0))
         data.skills[key] = skill
         if r['Category'] != 'Passive':
             data.skill_by_id[r['Skill_ID']] = skill
@@ -221,7 +225,10 @@ def _load_attacks(wb, data):
             passive='Passive Skill' in str(r['Vanilla_Desc'] or ''),
             chant_stat=_enemy_chant_stat(r['Anim_0x28'] or 0),
             # bit 2 of the word at file 0x28 (+0x40 in memory): a spell, which an anti-magic zone stops (0x41a483)
-            spell=bool((r['Anim_0x28'] or 0) >> 2 & 1))
+            spell=bool((r['Anim_0x28'] or 0) >> 2 & 1),
+            # bit 1 of the same word: a technique, which freeze stops (the choice of an AI unit, 0x431344 for spells under
+            # silence, 0x4312e4 for techniques under freeze)
+            technique=bool((r['Anim_0x28'] or 0) >> 1 & 1))
 
 
 def _enemy_chant_stat(word):

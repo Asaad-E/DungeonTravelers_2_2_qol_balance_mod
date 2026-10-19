@@ -564,6 +564,18 @@ namespace DtEngine
             return best;
         }
 
+        /// <summary>A member lacks a buff when she has none of that effect, or when the one she has was put by the summon or a guest
+        /// and is weaker than this action's (a status of the same effect replaces the old one even when weaker, 0x4f9b72: a player
+        /// casts her stronger buff again over a guest's weaker one; P13.4 of the audit).</summary>
+        static bool Lacks(Unit m, int effect, Action action)
+        {
+            var s = m.St[effect];
+            if (s == null) return true;
+            if (s.Source == null || (s.Source.Kind != Kind.Summon && s.Source.Kind != Kind.Npc)) return false;
+            double mine = action.Val(effect, 0.0);
+            return Math.Abs(s.Value) < Math.Abs(mine);
+        }
+
         static bool ProvokedByUnit(Unit enemy, Unit unit)
         {
             foreach (var p in enemy.ProvokedBy) if (p.unit == unit) return true;
@@ -736,7 +748,7 @@ namespace DtEngine
                 int code = action.TargetCode;
                 if (code == T.SELF || code == T.NO_TARGET)
                 {
-                    if (unit.St[effect] != null) continue;
+                    if (!Lacks(unit, effect, action)) continue;
                     if (effect == 26)
                     {
                         if (unit.HpRatio < 0.35) continue;
@@ -748,7 +760,7 @@ namespace DtEngine
                 if (code == T.ALLY)
                 {
                     var lacking = new List<Unit>();
-                    foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && m.St[effect] == null) lacking.Add(m);
+                    foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && Lacks(m, effect, action)) lacking.Add(m);
                     if (lacking.Count == 0) continue;
                     if (effect == 171)
                     {
@@ -781,7 +793,7 @@ namespace DtEngine
                 if (code == T.ALLIES || code == T.ALLY_ROW || code == T.EVERYONE)
                 {
                     int members = 0, lackingN = 0;
-                    foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member) { members++; if (m.St[effect] == null) lackingN++; }
+                    foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member) { members++; if (Lacks(m, effect, action)) lackingN++; }
                     double share = partyBuffRecastShare;
                     if (lackingN == 0 || lackingN < share * members) continue;
                     return action;

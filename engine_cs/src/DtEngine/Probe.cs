@@ -38,7 +38,7 @@ namespace DtEngine
             {
                 var statuses = u.StatusOrder();
                 Array.Sort(statuses);
-                list.Add(new UnitState { Unit = u, Alive = u.Alive, Hp = u.Hp, Tp = u.Tp, Statuses = statuses, NextTime = PyMath.RoundTo(u.NextTime, 6), Items = u.Items.Count, Stolen = u.Stolen });
+                list.Add(new UnitState { Unit = u, Alive = u.Alive, Hp = u.Hp, Tp = u.Tp, Statuses = statuses, NextTime = PyMath.RoundTo(u.NextTime, 6), Items = u.Items.Count, Stolen = u.StolenGold || u.StolenItem });
             }
             return list;
         }

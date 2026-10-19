@@ -49,6 +49,7 @@ def skill_json(s):
         'cast': None if s.cast is None else list(s.cast),
         'accuracy': None if s.accuracy is None else list(s.accuracy),
         'turns': list(s.turns), 'classes': list(s.classes or []), 'range': s.range, 'chant_stat': s.chant_stat,
+        'swing': s.swing or 0.0,
     }
 
 
@@ -57,7 +58,7 @@ def attack_json(a):
         'id': a.id, 'name': a.name, 'target': a.target, 'attr': a.attr, 'chant_speed': a.chant_speed,
         'accuracy': a.accuracy, 'power': a.power, 'turns': a.turns, 'speed': a.speed,
         'effects': [[e, k, v] for e, k, v in a.effects], 'range': a.range, 'passive': bool(a.passive),
-        'chant_stat': a.chant_stat, 'spell': bool(a.spell),
+        'chant_stat': a.chant_stat, 'spell': bool(a.spell), 'technique': bool(a.technique),
     }
 
 
@@ -69,6 +70,8 @@ def command_json(c):
         out['result'] = c['result']
     if 'once' in c:
         out['once'] = bool(c['once'])
+    if 'stop' in c:
+        out['stop'] = bool(c['stop'])
     if 'and' in c:
         out['and'] = command_json(c['and'])
     return out

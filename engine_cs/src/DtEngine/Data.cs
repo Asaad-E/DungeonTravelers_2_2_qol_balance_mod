@@ -30,6 +30,7 @@ namespace DtEngine
     {
         public string Category;
         public bool IsMagic, IsTechnique, IsPassive;
+        public double Swing;      // a spell's own swing (file 0x124), rolled per cast; an enemy attack has none
         public int Id;
         public string Name;
         public int Levels;
@@ -83,7 +84,7 @@ namespace DtEngine
         public double[] EffValue;
         public bool[] EffIsInt;
         public int Range = T.NONE;
-        public bool Passive, Spell;
+        public bool Passive, Spell, Technique;       // Spell: bit 2 of the flags word (silence, anti-magic); Technique: bit 1 (freeze)
         public int ChantStat;
         public bool Chanted => ChantSpeed != 0;
         public Action.FxSet Fx;       // the effects as arrays shared by the actions (made when first asked)
@@ -96,6 +97,7 @@ namespace DtEngine
         public bool HasResult;
         public int Result;
         public bool HasOnce, Once;
+        public bool Stop = true;   // second tail byte: stop reading the commands after a set switch (0x4325cf); top level only
         public Command And;
         public int ListId;     // identity of the list the command stands in (the key of once_done)
     }

@@ -168,6 +168,8 @@ namespace DtEngine
             }
         }
         public const double ELEMENT_ENCHANT_SHARE = 0.2;
+        public static readonly List<int> DEMON_WALL_RACES = new List<int> { 5, 7, 8 };   // the attacker races Demon Wall stops (0x557e1c, 0x557e7c, 0x557eac)
+        public const double ELEMENT_BOOST_CAP = 0.4;          // the element boost of a spell is at most 0.4 (0x44e409, 0x44e41e)
         public const int FULL_HP_BONUS_ENCHANT = 271;
         public const double FULL_HP_BONUS_SHARE = 0.1;
         public const int MAGIC_USER_LOW = 12, MAGIC_USER_HIGH = 20; // range(12, 20)

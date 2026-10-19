@@ -100,7 +100,7 @@ namespace DtEngine
         public double UniqueValue;
         public Character Character;
         public int ClassId = T.NONE;
-        public bool Defending, Stolen;
+        public bool Defending, StolenGold, StolenItem;     // a gold steal and an item steal each succeed once (0x155, 0x154 of the unit)
         public Dictionary<int, int> Items = new Dictionary<int, int>();
         public bool Adult, Shield;
         public string Role = "attacker";
@@ -108,6 +108,8 @@ namespace DtEngine
         public int[] Raw;
         public int Sealbook = T.NONE;
         public int EnemyId = T.NONE;
+        public bool IsGuest;          // a hired guest ally (built with the kind of the summon)
+        public int TieKey;            // order on a tie of times (0x440b85): member 999 - slot, enemy 994 - index, summon 930, guest 929, doll lowest
         public int Slot = T.NONE;              // formation slot of an enemy; NONE when not set
         public double Exp, Gold;
         public bool Snack;
@@ -567,6 +569,7 @@ namespace DtEngine
             double weight = data.WeaponRanks.TryGetValue(record.Rank, out var w) ? w : 2.0;
             // a guest ally has no HP and is never a target (0x43e6d0); the figure only keeps the unit standing
             var unit = new Unit(record.Name, Unit.PARTY, record.Level, 9999, 0, record.Stats, null, weight, 0.0, T.NONE, Kind.Summon);
+            unit.IsGuest = true;
             unit.Attacks = record.Attacks;
             unit.Script = record.Script;
             foreach (int id in record.Passives)

@@ -281,9 +281,18 @@ namespace DtEngine
             return r;
         }
 
+        /// <summary>The candidates of a side with the test of life left out: its units below 2000, alive or fallen.</summary>
+        Unit[] OwnSideAll(int side)
+        {
+            var r = new List<Unit>();
+            foreach (var u in SideArray(side, false)) if (u.Kind != Kind.Doll && u.Kind != Kind.Summon && u.Kind != Kind.Npc) r.Add(u);
+            return r.ToArray();
+        }
+
         void AddUnit(Unit unit)
         {
             unit.Position = Units.Count;
+            unit.TieKey = unit.Kind == Kind.Enemy ? 994 - unit.Position : -unit.Position;     // a unit made during the battle comes after the others on a tie
             unit.Roster = roster;
             Units.Add(unit);
             roster.Version++;
@@ -363,11 +372,21 @@ namespace DtEngine
 
         public void Start()
         {
+            // members, enemies and dolls start at the value of a plain action (0x449176 - 0x449180: _SetTime, slot 0x20 of the battle
+            // class); the summon and a guest at a random gauge (0x449194 - 0x4491ba), unless an enemy of the battle has bit 1 of its
+            // flags word (+0x54 of its status data, 0x439f3f - 0x439f46, the byte +0x33 of the battle), when they take the plain value too
+            int members = 0, enemies = 0;
+            foreach (var u in Units)
+                u.TieKey = u.Kind == Kind.Member ? 999 - members++ : u.Kind == Kind.Enemy ? 994 - enemies++
+                         : u.Kind == Kind.Summon ? (u.IsGuest ? 929 : 930) : -u.Position;
+            bool flagged = false;
+            foreach (var u in Units)
+                if (u.Kind == Kind.Enemy && u.EnemyId != T.NONE && Data.Enemies.TryGetValue(u.EnemyId, out var rec) && ((rec.Flags >> 1) & 1) != 0) flagged = true;
             foreach (var u in Units)
             {
                 double gauge;
-                if (u.Kind == Kind.Summon || u.Kind == Kind.Npc) gauge = 1.0 - Wait(u);
-                else gauge = (Rng.RandRange(START_GAUGE) + 1) / 1000.0;
+                if ((u.Kind == Kind.Summon || u.Kind == Kind.Npc) && !flagged) gauge = (Rng.RandRange(START_GAUGE) + 1) / 1000.0;
+                else gauge = 1.0 - Wait(u);
                 u.NextTime = 1.0 - gauge;
             }
             bool ambush = Ambush(Unit.PARTY) || Ambush(Unit.ENEMIES);
@@ -409,7 +428,7 @@ namespace DtEngine
                 foreach (var u in Units)
                 {
                     if (!u.Alive) continue;
-                    if (unit == null || u.NextTime < unit.NextTime || (u.NextTime == unit.NextTime && u.Position < unit.Position)) unit = u;
+                    if (unit == null || u.NextTime < unit.NextTime || (u.NextTime == unit.NextTime && u.TieKey > unit.TieKey)) unit = u;
                 }
                 Time = unit.NextTime;
                 Trace?.TurnStart(this, unit);
@@ -541,9 +560,10 @@ namespace DtEngine
             }
             if (effect == 350 && Roll(value))
             {
+                // one doll of the other side, drawn evenly (0x437787 - 0x437845): never the summon or a guest, never more than one
                 var list = new List<Unit>();
-                foreach (var u in Units) if (u.Side != unit.Side && u.Alive && (u.Kind == Kind.Doll || u.Kind == Kind.Summon)) list.Add(u);
-                foreach (var other in list) RemoveDoll(other);
+                foreach (var u in Units) if (u.Side != unit.Side && u.Alive && u.Kind == Kind.Doll) list.Add(u);
+                if (list.Count > 0) RemoveDoll(list[Rng.ChoiceIndex(list.Count)]);
             }
             if (effect == 448 && Roll(value))
             {
@@ -846,7 +866,8 @@ namespace DtEngine
             }
             foreach (var t in targets)
             {
-                if (t.Side != unit.Side && t.Has(303) && !unit.Has(307))
+                // Counter Whip answers a physical action, never one of a doll, the summon or a guest (P7.3 of the audit)
+                if (t.Side != unit.Side && t.Has(303) && !unit.Has(307) && action.Physical && !NotACandidate(unit))
                 {
                     Counter(t, unit);
                     break;
@@ -866,6 +887,7 @@ namespace DtEngine
                 }
             }
             int index = 0;
+            reprisal.Clear();
             damageByTarget = Rec != null ? new Dictionary<Unit, int>() : null;
             foreach (var target in targets)
             {
@@ -886,6 +908,17 @@ namespace DtEngine
                 }
             }
             guarding.Clear();
+            // Reprisal after the action: the first target, in order, whose record is set and who still bears it and stands (0x424d50 -
+            // 0x424de7); one counter for the whole action
+            foreach (var target in targets)
+            {
+                if (reprisal.TryGetValue(target, out bool set) && set && target.Has(249) && target.Alive)
+                {
+                    Counter(target, unit);
+                    break;
+                }
+            }
+            reprisal.Clear();
             if (action.Has(SACRIFICE) && unit.Alive) LoseHp(unit, unit.MaxHp, unit);
             if (damageByTarget != null)
             {
@@ -893,9 +926,10 @@ namespace DtEngine
                     if (unit.Side == Unit.ENEMIES && kv.Key.Side == Unit.PARTY) Rec.LargestHit.Max(new RecKey(unit), kv.Value);
                 damageByTarget = null;
             }
-            if (action.Kind == AKind.Attack)
+            // Support Shot: the givers are units below 2000 of the attacker's side, and a doll's attack starts none (P7.3 of the audit)
+            if (action.Kind == AKind.Attack && !NotACandidate(unit))
             {
-                foreach (var ally in AlliesArray(unit))
+                foreach (var ally in TargetableArray(unit.Side))
                 {
                     if (ally != unit && ally.Has(260) && Roll(ally.Value(260)))
                     {
@@ -914,6 +948,11 @@ namespace DtEngine
         }
 
         static readonly Unit[] NoUnits = new Unit[0];
+        readonly Dictionary<Unit, bool> reprisal = new Dictionary<Unit, bool>();
+
+        /// <summary>A doll, the summon or a guest: numbered 2000 or more, never a candidate (0x43e6d0), never answered by a counter
+        /// (0x43b5f0, 0x43b610).</summary>
+        static bool NotACandidate(Unit u) => u.Kind == Kind.Doll || u.Kind == Kind.Summon || u.Kind == Kind.Npc;
 
         /// <summary>One unit of the actor's own side for scopes 5 and 7 (0x43f450): the unit given when it is still a candidate; a unit
         /// given that is not (dead) yields the candidate with the lowest HP ratio, the last of them on a tie (0x43f668 - 0x43f6e9);
@@ -943,8 +982,10 @@ namespace DtEngine
             var unit = action.Actor;
             int code = action.TargetCode;
             var foes = TargetableArray(1 - unit.Side);
-            // the candidates on the unit's own side: units numbered below 2000 (0x43e6d0), so never a doll, the summon or a guest ally
-            var friends = TargetableArray(unit.Side);
+            // the candidates on the unit's own side: units numbered below 2000 (0x43e6d0), so never a doll, the summon or a guest ally;
+            // an action that revives (105) or cures (106) leaves out the test of life, so fallen members are candidates too (0x56d570,
+            // stored at +0x3a of the action and passed to 0x43af10 at 0x43ec49)
+            var friends = action.Has(105) || action.Has(106) ? OwnSideAll(unit.Side) : TargetableArray(unit.Side);
             var chosen = action.Target;
             if (code == T.SINGLE || code == T.PIERCE || code == T.ROW)
             {
@@ -976,32 +1017,31 @@ namespace DtEngine
             }
             if (code == T.RANDOM) return foes;
             if (code == T.ALL) return foes;
+            // everyone / anyone: the candidates of both sides, units below 2000 (0x43e6d0), never a doll, the summon or a guest
             if (code == T.EVERYONE)
             {
                 var r = new List<Unit>();
-                foreach (var u in Units) if (u.Alive) r.Add(u);
+                foreach (var u in Units) if (u.Alive && !NotACandidate(u)) r.Add(u);
                 return r.ToArray();
             }
             if (code == T.ANYONE)
             {
                 var r = new List<Unit>();
-                foreach (var u in Units) if (u.Alive) r.Add(u);
-                return new[] { r[Rng.ChoiceIndex(r.Count)] };
+                foreach (var u in Units) if (u.Alive && !NotACandidate(u)) r.Add(u);
+                return r.Count > 0 ? new[] { r[Rng.ChoiceIndex(r.Count)] } : NoUnits;
             }
             if (code == T.SELF || code == T.NO_TARGET) return new[] { unit };
             if (code == T.ALLY)
             {
-                if (action.Has(105))
-                {
-                    Unit dead = null;
-                    foreach (var u in AlliesArray(unit, false)) if (!u.Alive && u.Kind == Kind.Member) { dead = u; break; }
-                    if (chosen != null && !chosen.Alive) return new[] { chosen };
-                    return dead != null ? new[] { dead } : NoUnits;
-                }
                 var one = OwnSidePick(chosen, friends);
                 return one != null ? new[] { one } : NoUnits;
             }
-            if (code == T.RANDOM_ALLY) return friends.Length > 0 ? new[] { friends[Rng.ChoiceIndex(friends.Length)] } : NoUnits;
+            if (code == T.RANDOM_ALLY)
+            {
+                // a target given that is still a candidate is kept (0x43f5c2); otherwise an even roll
+                if (chosen != null && Array.IndexOf(friends, chosen) >= 0) return new[] { chosen };
+                return friends.Length > 0 ? new[] { friends[Rng.ChoiceIndex(friends.Length)] } : NoUnits;
+            }
             if (code == T.ALLY_ROW)
             {
                 var picked = OwnSidePick(chosen, friends);
@@ -1023,12 +1063,12 @@ namespace DtEngine
 
         static void InsertionSortByTime(List<Unit> list)
         {
-            // stable sort by (next_time, position)
+            // stable sort by (next_time, tie key)
             for (int i = 1; i < list.Count; i++)
             {
                 var x = list[i];
                 int j = i - 1;
-                while (j >= 0 && (list[j].NextTime > x.NextTime || (list[j].NextTime == x.NextTime && list[j].Position > x.Position)))
+                while (j >= 0 && (list[j].NextTime > x.NextTime || (list[j].NextTime == x.NextTime && list[j].TieKey < x.TieKey)))
                 {
                     list[j + 1] = list[j];
                     j--;
@@ -1210,7 +1250,8 @@ namespace DtEngine
             if (c == T.SINGLE || c == T.RANDOM)
             {
                 var covers = new List<Unit>();
-                foreach (var u in AlliesArray(target)) if (u != target && u.St[171] != null && u.Alive) covers.Add(u);
+                // only units below 2000 can cover (P5.5 of the audit): never a doll, the summon or a guest
+                foreach (var u in TargetableArray(target.Side)) if (u != target && u.St[171] != null && u.Alive) covers.Add(u);
                 if (covers.Count > 0)
                 {
                     var cover = covers[Rng.ChoiceIndex(covers.Count)];
@@ -1413,8 +1454,11 @@ namespace DtEngine
             }
             if (!special)
             {
-                Unit wall = DemonWallOf(target);
+                Unit wall = DemonWallOf(target, action.Actor);
                 if (wall != null) amount = Math.Max(0, PyMath.Int(amount + amount * wall.Value(DEMON_WALL)));
+                var actor = action.Actor;
+                if (!action.Magic && actor.HasUnique && actor.UniqueEffect == 440 && actor.Pep > 100)
+                    amount += PyMath.Int(amount * (actor.Pep - 100) / Math.Max(1.0, actor.UniqueValue) / 100.0);
             }
             if (target.St[116] != null && !special) amount = amount * F.SLEEP_NUM / F.SLEEP_DEN;
             if (!special && action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) amount += PyMath.Int(amount * F.AILING_SHARE);
@@ -1435,8 +1479,11 @@ namespace DtEngine
         }
 
         /// <summary>The first living unit of the target's side that has Demon Wall.</summary>
-        Unit DemonWallOf(Unit target)
+        /// <summary>Demon Wall (356) lowers only the blows of an enemy of race 5, 7 or 8 (0x44cb6c - 0x44cba2; races read at
+        /// 0x557e1c, 0x557e7c, 0x557eac); the wall is the first unit of the target's side that bears it.</summary>
+        Unit DemonWallOf(Unit target, Unit attacker)
         {
+            if (attacker.Side != Unit.ENEMIES || attacker.Kind != Kind.Enemy || F.DEMON_WALL_RACES.IndexOf(attacker.Race) < 0) return null;
             foreach (var u in Units) if (u.Side == target.Side && u.Alive && u.Has(DEMON_WALL)) return u;
             return null;
         }
@@ -1503,7 +1550,8 @@ namespace DtEngine
                 }
                 if (any) other += min;
             }
-            if (unit.HasUnique && unit.UniqueEffect == 440 && unit.Pep > 100)
+            // Positive Trance is an integer step after the cut (0x44ccb2, P6.9 of the audit); the expectation keeps it in the bonus
+            if (expect && unit.HasUnique && unit.UniqueEffect == 440 && unit.Pep > 100)
                 other += (unit.Pep - 100) / Math.Max(1.0, unit.UniqueValue) / 100.0;
             if (action.Has(136)) other += action.Val(136, 0) * index;
             if (action.Has(DARK_QUEST) || unit.Has(DARK_QUEST))
@@ -1569,7 +1617,7 @@ namespace DtEngine
                     default: status = 327; enchant = 82; break;
                 }
                 int both = F.BothSidesElement(attr);
-                elementBoost = F.ELEMENT_ENCHANT_SHARE * ((unit.St[status] != null ? 1 : 0) + unit.Pieces(enchant) + target.Pieces(enchant) + unit.Pieces(both) + target.Pieces(both));
+                elementBoost = Math.Min(F.ELEMENT_BOOST_CAP, F.ELEMENT_ENCHANT_SHARE * ((unit.St[status] != null ? 1 : 0) + unit.Pieces(enchant) + target.Pieces(enchant) + unit.Pieces(both) + target.Pieces(both)));
             }
             int resistIndex = T.ResistIndex(attr);
             int resistance = resistIndex >= 0 ? target.Resistance(resistIndex) : 0;
@@ -1583,7 +1631,8 @@ namespace DtEngine
                 foreach (int e in MAGIC_DEFENCE_MODIFIERS) AddValue(ref s, target, e);
                 targetMods = s.Result;
             }
-            double swing = expect ? 0.0 : Swing(unit);
+            // the swing of a spell is the spell's own (0x44dbc3 - 0x44dc18), never the caster's weapon; an enemy attack has none
+            double swing = expect || action.Skill == null ? 0.0 : SwingOf(action.Skill.Swing);
             return F.MagicDamage(unit.Stat(Unit.INT) * ZoneFactor(unit, action), power, target.Stat(Unit.RES), mastery, modifiers,
                                  Math.Min(50, 4 * unit.Pieces(37) + 2 * unit.Pieces(38)), second, elementBoost, targetMods,
                                  Math.Min(50, 4 * target.Pieces(41) + 2 * target.Pieces(42)), swing, powerBoost, cut, resistance,
@@ -1728,7 +1777,7 @@ namespace DtEngine
             if (target.St[116] != null && !Special(action)) perHit = perHit * F.SLEEP_NUM / F.SLEEP_DEN;
             if (!Special(action))
             {
-                Unit wall = DemonWallOf(target);
+                Unit wall = DemonWallOf(target, action.Actor);
                 if (wall != null) perHit = Math.Max(0.0, perHit + perHit * wall.Value(DEMON_WALL));
             }
             if (!Special(action) && action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) perHit += perHit * F.AILING_SHARE;
@@ -1797,9 +1846,11 @@ namespace DtEngine
             return 0;
         }
 
-        double Swing(Unit unit)
+        double Swing(Unit unit) => SwingOf(unit.Swing);
+
+        double SwingOf(double swing)
         {
-            int n = PyMath.Round(100 * (unit.Swing != 0 ? unit.Swing : 0.0));
+            int n = PyMath.Round(100 * swing);
             if (n <= 0) return 0.0;
             return (Rng.RandInt(0, 2 * n) - n) / 100.0;
         }
@@ -1906,7 +1957,8 @@ namespace DtEngine
 
         void Interrupt(Unit target, int amount, bool critical, bool physical)
         {
-            double enchant = 0.10 * target.Pieces(57) + 0.06 * target.Pieces(58) + 0.03 * target.Pieces(59);
+            // the interruption enchantments of the target: 57, 58, 59 lower the rate, 60 and 61 raise it (P6.10 of the audit)
+            double enchant = 0.10 * target.Pieces(57) + 0.06 * target.Pieces(58) + 0.03 * target.Pieces(59) - 0.06 * target.Pieces(60) + 0.20 * target.Pieces(61);
             double chance = F.InterruptionChance(amount, target.MaxHp, target.Value(264), enchant, critical, physical, Options.InterruptProduct ?? Data.InterruptProduct);
             if (Rng.Random() < chance)
             {
@@ -2042,10 +2094,15 @@ namespace DtEngine
                 }
                 if ((effect == 60 || effect == 61) && hostile)
                 {
-                    double chance = 0.5 * (unit.Stat(Unit.DEX) + 50) / (target.Stat(Unit.AGI) + 50) * (action.Val(60, 0.0) + action.Val(61, 0.0));
-                    if (!target.Stolen && Rng.RandRange(100) < PyMath.Int(F.Clamp(chance, 0.05, 0.95) * 100))
+                    // gold (60) and items (61) are stolen once each (bytes 0x155, 0x154 of the unit); an item can be stolen only from an
+                    // enemy whose flags word has bit 15 (0x4503bf - 0x4503d4)
+                    bool item = effect == 61;
+                    bool allowed = !item || (target.EnemyId != T.NONE && Data.Enemies.TryGetValue(target.EnemyId, out var er) && ((er.Flags >> 15) & 1) != 0);
+                    bool already = item ? target.StolenItem : target.StolenGold;
+                    double chance = 0.5 * (unit.Stat(Unit.DEX) + 50) / (target.Stat(Unit.AGI) + 50) * action.Val(effect, 0.0);
+                    if (allowed && !already && Rng.RandRange(100) < PyMath.Int(F.Clamp(chance, 0.05, 0.95) * 100))
                     {
-                        target.Stolen = true;
+                        if (item) target.StolenItem = true; else target.StolenGold = true;
                         Rec?.ItemsUsed.Add(new RecKey(unit, true), 1);
                     }
                     continue;
@@ -2129,28 +2186,27 @@ namespace DtEngine
                     }
                 }
             }
-            if (hostile && dealt != 0)
+            // the answers of the unit hit (0x423cd0): skipped whole when the attacker is a doll, the summon or a guest (0x423d0e - 0x423d38)
+            if (hostile && dealt != 0 && !NotACandidate(unit))
             {
+                // Dark Aura: each stat debuff is set to -0.1, not deepened (0x423d9b onward)
                 if (target.Has(262) && action.Physical && action.Reach == T.SHORT && !unit.Has(304))
                 {
                     int points = PyMath.Int(target.Value(262));
                     int[] order = { 45, 44, 43, 42, 41, 46 };
                     int n = Math.Max(0, Math.Min(points < 0 ? order.Length + points : points, order.Length));
-                    for (int k = 0; k < n; k++)
-                    {
-                        int statEffect = order[k];
-                        var old = unit.St[statEffect];
-                        unit.SetStatus(new Status(statEffect, (old != null ? old.Value : 0.0) - 0.1, DARK_AURA_TURNS, target));
-                    }
+                    for (int k = 0; k < n; k++) unit.SetStatus(new Status(order[k], -0.1, DARK_AURA_TURNS, target));
                 }
-                if (unit.Has(293) && Roll(unit.Value(293)) && !target.Immune("slow"))
+                // Slow Target is a passive of the unit hit, which slows the unit that hit it (0x424317 - 0x42436b)
+                if (target.Has(293) && action.Reach == T.SHORT && Roll(target.Value(293)) && !unit.Immune("slow"))
                 {
-                    target.SetStatus(new Status(122, 1.0, 0, unit).WithData(SLOW_TARGET_RECOVERY));
-                    target.SetStatus(new Status(168, -0.75, SLOW_TARGET_TURNS, unit));
+                    unit.SetStatus(new Status(122, 1.0, 0, target).WithData(SLOW_TARGET_RECOVERY));
+                    unit.SetStatus(new Status(168, -0.75, SLOW_TARGET_TURNS, target));
                 }
-                if (target.Has(249) && action.Physical && (action.Reach == T.SHORT || action.Reach == T.MID) && !unit.Has(307) &&
-                    Roll(target.Value(249)) && target.Alive)
-                    Counter(target, unit);
+                // Reprisal rolls on every hit and writes the result on the target's record, the last hit's roll standing
+                // (0x424711); one counter at most is set up after the whole action (0x4247e0)
+                if (target.Has(249) && action.Physical && (action.Reach == T.SHORT || action.Reach == T.MID) && !unit.Has(307))
+                    reprisal[target] = Roll(target.Value(249));
             }
         }
 
@@ -2380,11 +2436,14 @@ namespace DtEngine
                     target.NextTime = Time + Wait(target);
                 }
             }
-            else if (effect == 128 || effect == 131)
+            else if (effect == 128)
             {
-                int amount = PyMath.Int(target.MaxHp * value);
-                if (effect == 131 && hasCap) amount = Math.Min(amount, PyMath.Int(cap));
-                Healed(unit, Restore(target, amount));
+                Healed(unit, Restore(target, PyMath.Int(target.MaxHp * value)));
+            }
+            else if (effect == 131)
+            {
+                // Heal Enemy: a fixed amount, the value itself, with no cap (0x483da0 - 0x483dad)
+                Healed(unit, Restore(target, PyMath.Int(value)));
             }
             else if (effect == 132)
             {
@@ -2408,11 +2467,23 @@ namespace DtEngine
 
         void Counter(Unit unit, Unit attacker)
         {
+            // a counter is never set up against a doll, the summon or a guest (0x43b5f0, 0x43b610 at 0x42261b - 0x422637); the
+            // hit that started it stays voided
+            if (NotACandidate(attacker)) return;
             if (unit.Alive && attacker.Alive)
             {
-                var saved = damageByTarget;              // the counter keeps a record of its own hits (sim: resolve(..., {}))
+                if (unit == attacker) return;
+                var saved = damageByTarget;              // the counter keeps a record of its own hits
                 damageByTarget = null;
-                Resolve(new Action(unit, AKind.Attack), attacker, 0);
+                // an enemy counters with its first attack (P7.1 of the audit); a member with a plain attack (the skill its status
+                // links to is not read: a model limit)
+                Action answer = new Action(unit, AKind.Attack);
+                if (unit.Kind == Kind.Enemy && unit.Attacks != null && unit.Attacks.Length > 0)
+                {
+                    var atk = Data.GetAttack(unit.Attacks[0]);
+                    if (atk != null) answer = new Action(unit, AKind.Enemy, atk, 1);
+                }
+                Resolve(answer, attacker, 0);
                 damageByTarget = saved;
             }
         }
@@ -2575,7 +2646,9 @@ namespace DtEngine
             Rec?.ItemsUsed.Add(new RecKey(unit, item.Name), 1);
             var target = action.Target ?? unit;
             double mastery = unit.Passive(275, 0.0);
-            for (int i = 0; i < item.Kinds.Length; i++)
+            // pairs 0 and 1 of an item act on a unit of the user's side, pairs 2 and 3 on one of the other side (P11.1 of the audit)
+            int from = target.Side == unit.Side ? 0 : 2, to = Math.Min(item.Kinds.Length, from + 2);
+            for (int i = from; i < to; i++)
             {
                 int kind = item.Kinds[i];
                 double value = item.Values[i];

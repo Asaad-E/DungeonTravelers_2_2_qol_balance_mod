@@ -248,6 +248,7 @@ namespace DtEngine
             if (e.TryGetProperty("args", out var args)) c.Args = Ints(args);
             if (e.TryGetProperty("result", out var res)) { c.HasResult = true; c.Result = I(res); }
             if (e.TryGetProperty("once", out var once)) { c.HasOnce = true; c.Once = B(once); }
+            if (e.TryGetProperty("stop", out var stop)) c.Stop = B(stop);
             if (e.TryGetProperty("and", out var and)) c.And = LoadCommand(and, owner);
             return c;
         }
@@ -298,6 +299,7 @@ namespace DtEngine
                     Accuracy = Doubles(s.GetProperty("accuracy")), Turns = Doubles(s.GetProperty("turns")),
                     Classes = Ints(s.GetProperty("classes")), Range = I(s.GetProperty("range")),
                     ChantStat = ChantStatOf(s.GetProperty("chant_stat")),
+                    Swing = s.TryGetProperty("swing", out var sw) && sw.ValueKind == JsonValueKind.Number ? sw.GetDouble() : 0.0,
                 };
                 k.IsMagic = k.Category == "Magic"; k.IsTechnique = k.Category == "Technique"; k.IsPassive = k.Category == "Passive";
                 var effs = new List<Effect>();
@@ -322,6 +324,7 @@ namespace DtEngine
                     Accuracy = D(a.GetProperty("accuracy")), Power = D(a.GetProperty("power")), Turns = I(a.GetProperty("turns")),
                     Speed = D(a.GetProperty("speed")), Range = I(a.GetProperty("range")), Passive = B(a.GetProperty("passive")),
                     ChantStat = ChantStatOf(a.GetProperty("chant_stat")), Spell = B(a.GetProperty("spell")),
+                    Technique = a.TryGetProperty("technique", out var tq) && B(tq),
                 };
                 var ids = new List<int>(); var kinds = new List<int>(); var vals = new List<double>(); var wholes = new List<bool>();
                 foreach (var x in a.GetProperty("effects").EnumerateArray()) { ids.Add(I(x[0])); kinds.Add(I(x[1])); vals.Add(D(x[2])); wholes.Add(IsWhole(x[2])); }
