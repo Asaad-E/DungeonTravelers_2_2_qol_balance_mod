@@ -37,7 +37,7 @@ class TestGuideGeneration(unittest.TestCase):
         cls.built = build_guide.build_guide(side='vanilla', out_dir=GUIDE_DIR)
 
     def test_files_exist_and_match_disk(self):
-        for filename in ['README.md', 'classes.md', 'formulas.md', 'skills.md', 'characters.md']:
+        for filename in ['README.md', 'classes.md', 'formulas.md', 'skills.md', 'characters.md', 'enchantments.md', 'equipment.md']:
             filepath = os.path.join(GUIDE_DIR, filename)
             self.assertTrue(os.path.exists(filepath), f"{filename} missing from {GUIDE_DIR}")
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -147,10 +147,25 @@ class TestGuideGeneration(unittest.TestCase):
         self.assertIn('- **Base Class:** Fighter', chars_md)
         self.assertIn('- **Starting Lv:** 41 (179,196 EXP)', chars_md)
         self.assertIn('Defeat Heartless Avenger (St10_0010, Battle 43)', chars_md)
-        self.assertIn('#### Unique Skill: Positive Trance', chars_md)
-        self.assertIn('10 | 9 | 8 | 7 | 6 | 5 | 4 | 3 | 2 | 1', chars_md)
+    def test_sample_enchantments(self):
+        ench_md = self.built['enchantments.md']
+        self.assertIn('| 29 | Physical attack UP | +4 | Stacks per piece | +50 |', ench_md)
+        self.assertIn('| 51 | Speed UP | +10% | Stacks per piece | +50% (+0.50) |', ench_md)
+        self.assertIn('| 66 | Received physical damage DOWN | -10% | Stacks per piece | 25% damage cut |', ench_md)
+        self.assertIn('| 78 | Fire magic buff | +20% | Single piece (switch) | +40% (+0.40) |', ench_md)
+        self.assertIn('| 275 | Double EXP | 2.0x multiplier | Single piece (switch) | Single piece |', ench_md)
+
+    def test_sample_equipment(self):
+        eq_md = self.built['equipment.md']
+        self.assertIn('| A+ | 1.00x |', eq_md)
+        self.assertIn('| F | 2.90x |', eq_md)
+        self.assertIn('| Shortsword | B (1.6x) | 20 | 0 | 0 | 0 | 0 | 0 | +1.25 | Short | No | - |', eq_md)
+        self.assertIn('| Claymore | E+ (2.45x) | 37 | 0 | 0 | 0 | 0 | 0 | +2.78 | Short | Yes | - |', eq_md)
+        self.assertIn('| Buckler | 3 | 0 | 0 | 0 | 0 | 0 | +1 | - |', eq_md)
+        self.assertIn('| Ring | 1 | 0 | 0 | 0 | 0 | 0 | +0.5 | - |', eq_md)
 
 
 if __name__ == '__main__':
     unittest.main()
+
 

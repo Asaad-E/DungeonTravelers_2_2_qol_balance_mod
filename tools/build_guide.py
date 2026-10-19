@@ -124,8 +124,46 @@ def load_source_of_truth(path=SOT_PATH):
             w_req = r[10]
             if w_req:
                 weapon_reqs[(cat, sid)] = w_req
-                weapon_reqs[r[3]] = w_req
-    return {'unique_skills': unique_skills, 'weapon_reqs': weapon_reqs}
+    enchants = {}
+    if 'Enchants' in wb.sheetnames:
+        for r in list(wb['Enchants'].iter_rows(values_only=True))[1:]:
+            enchants[r[1]] = {
+                'name': r[2],
+                'stacks': bool((r[5] or 0) & 1)
+            }
+    weapon_ranks = {}
+    if 'WeaponRanks' in wb.sheetnames:
+        for r in list(wb['WeaponRanks'].iter_rows(values_only=True))[1:]:
+            weapon_ranks[r[1]] = {
+                'rank': r[2],
+                'delay': r[3]
+            }
+    return {
+        'unique_skills': unique_skills,
+        'weapon_reqs': weapon_reqs,
+        'enchants': enchants,
+        'weapon_ranks': weapon_ranks,
+    }
+
+
+ENCHANT_SIZES_PATH = os.path.join(PROJECT, 'docs', 'generated', 'ENCHANT_SIZES.md')
+
+
+def load_enchant_sizes(path=ENCHANT_SIZES_PATH):
+    sizes = {}
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('|') and not line.startswith('| Id') and not line.startswith('|---'):
+                    parts = [p.strip() for p in line.split('|')[1:-1]]
+                    if len(parts) >= 4:
+                        try:
+                            eid = int(parts[0])
+                            sizes[eid] = (parts[2], parts[3])
+                        except ValueError:
+                            pass
+    return sizes
 
 
 def load_snapshot(side='vanilla', path=SNAPSHOT_PATH):
@@ -573,11 +611,191 @@ def build_characters_content(guide_text, snapshot, sot_data):
     return '\n'.join(lines)
 
 
+def format_enchant_entry(eid, name, stacks, enchant_sizes):
+    size_info = enchant_sizes.get(eid, ('', ''))
+    raw_val = size_info[0]
+    
+    val_str = '-'
+    cap_str = '-'
+    
+    if 29 <= eid <= 44:
+        cap_str = '+50'
+    elif 47 <= eid <= 48:
+        cap_str = '-50'
+    elif 51 <= eid <= 56:
+        cap_str = '+50% (+0.50)'
+    elif 66 <= eid <= 71:
+        cap_str = '25% damage cut'
+    elif 78 <= eid <= 82:
+        cap_str = '+40% (+0.40)'
+    elif eid == 275:
+        val_str = '2.0x multiplier'
+        cap_str = 'Single piece'
+    elif eid == 269:
+        val_str = '-15 points'
+        cap_str = 'Trap check'
+        
+    if raw_val == 'any piece':
+        val_str = 'Active switch'
+    elif raw_val in ('4', '2', '3'):
+        val_str = f'+{raw_val}'
+    elif raw_val == '0.1':
+        val_str = '-10%' if 'DOWN' in name or eid in (66, 68) else ('10% of damage' if 'TP' in name else '+10%')
+    elif raw_val == '0.05':
+        val_str = '-5%' if 'DOWN' in name or eid in (67, 69) else ('5% of damage' if 'TP' in name else '+5%')
+    elif raw_val == '0.2':
+        val_str = '-20%' if 'DOWN' in name else '+20%'
+    elif raw_val == '0.08':
+        val_str = '-8%'
+    elif raw_val == '0.04':
+        val_str = '-4%'
+    elif raw_val == '0.06':
+        val_str = '-6%' if 'DOWN' in name else '+6%'
+    elif raw_val == '0.03':
+        val_str = '-3%'
+    elif raw_val.startswith('0.2'):
+        val_str = '+20%'
+    elif raw_val and raw_val != '?':
+        val_str = raw_val
+        
+    stack_str = 'Stacks per piece' if stacks else 'Single piece (switch)'
+    return val_str, stack_str, cap_str
+
+
+def build_enchantments_content(guide_text, snapshot, sot_data, enchant_sizes):
+    sec = guide_text['sections']
+    h = guide_text['headers']
+    lines = []
+    
+    lines.append(sec['enchantments_title']['title'])
+    lines.append('')
+    lines.append(sec['enchantments_title']['text'])
+    lines.append('')
+    
+    lines.append(f"| ID | {h.get('enchantment', 'Enchantment')} | {h.get('magnitude', 'Value / Scaling')} | {h.get('stacking', 'Stacking Rule')} | {h.get('cap', 'Cap / Limit')} |")
+    lines.append('| --- | --- | --- | --- | --- |')
+    
+    enchants = sot_data['enchants']
+    for eid in sorted(enchants):
+        einfo = enchants[eid]
+        ename = einfo['name']
+        stacks = einfo['stacks']
+        val_str, stack_str, cap_str = format_enchant_entry(eid, ename, stacks, enchant_sizes)
+        lines.append(f"| {eid} | {ename} | {val_str} | {stack_str} | {cap_str} |")
+        
+    lines.append('')
+    return '\n'.join(lines)
+
+
+def build_equipment_content(guide_text, snapshot, sot_data):
+    sec = guide_text['sections']
+    h = guide_text['headers']
+    lines = []
+    
+    lines.append(sec['equipment_title']['title'])
+    lines.append('')
+    lines.append(sec['equipment_title']['text'])
+    lines.append('')
+    
+    # 1. Weapon Delay Ranks
+    lines.append('---')
+    lines.append('')
+    lines.append('## Weapon Delay Ranks')
+    lines.append('')
+    lines.append('Weapon recovery delay is determined by weapon rank. Slower weapon ranks impose larger recovery delays, reducing action frequency.')
+    lines.append('')
+    lines.append('| Rank | Delay Multiplier |')
+    lines.append('| --- | --- |')
+    
+    rank_dict = {}
+    for idx, rinfo in sorted(sot_data['weapon_ranks'].items()):
+        rk = rinfo['rank']
+        dl = rinfo['delay']
+        rank_dict[idx] = f"{rk} ({dl:g}x)"
+        lines.append(f"| {rk} | {dl:.2f}x |")
+    lines.append('')
+    
+    ench_names = {eid: info['name'] for eid, info in sot_data['enchants'].items()}
+    equipment_list = snapshot['equipment']
+    
+    # Weapons grouped by weapon type
+    weapon_groups = [
+        ('Swords', [0]),
+        ('Daggers', [1]),
+        ('Axes', [2]),
+        ('Polearms', [3]),
+        ('Maces', [4]),
+        ('Staves', [5]),
+        ('Tomes', [6]),
+        ('Bows', [7]),
+        ('Katanas', [8]),
+        ('Projectiles', [9]),
+        ('Whips', [10]),
+        ('Fans', [11]),
+        ('Microphones', [12]),
+        ('Instruments', [13]),
+        ('Guns', list(range(14, 21))),
+    ]
+    
+    lines.append('---')
+    lines.append('')
+    lines.append('## Weapons')
+    lines.append('')
+    
+    for group_title, type_codes in weapon_groups:
+        group_items = [p for p in equipment_list if p['category'] == 0 and p['type'] in type_codes]
+        if not group_items:
+            continue
+            
+        lines.append(f"### {group_title}")
+        lines.append('')
+        lines.append(f"| {h.get('weapon', 'Weapon')} | {h.get('delay_rank', 'Delay Rank')} | {h['atk']} | {h['def']} | {h['int']} | {h['res']} | {h['dex']} | {h['agi']} | {h.get('upgrade_rate', 'Upgrade Rate')} | {h['range']} | {h.get('two_handed', '2-Handed')} | {h.get('innate_enchants', 'Innate Enchants')} |")
+        lines.append('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |')
+        
+        for p in group_items:
+            st = p['stats']
+            rnk = rank_dict.get(p['rank'], '-')
+            rng_code = p['range']
+            rng_str = guide_text['ranges'].get(rng_code, '-')
+            two_h = 'Yes' if p['two_handed'] else 'No'
+            enchs = ', '.join(ench_names.get(e, f'Enchant {e}') for e in p['enchants']) if p['enchants'] else '-'
+            u_rate = f"+{p['rate']:g}" if p['rate'] > 0 else '0'
+            lines.append(f"| {p['name']} | {rnk} | {st['atk']} | {st['def']} | {st['int']} | {st['res']} | {st['dex']} | {st['agi']} | {u_rate} | {rng_str} | {two_h} | {enchs} |")
+        lines.append('')
+        
+    # Armor categories: Shields (1), Headgear (2), Body Armor (3), Accessories (4)
+    armor_categories = [
+        ('Shields', 1, h.get('shield', 'Shield')),
+        ('Headgear', 2, h.get('headgear', 'Headgear')),
+        ('Body Armor', 3, h.get('body_armor', 'Armor')),
+        ('Accessories', 4, h.get('accessory', 'Accessory')),
+    ]
+    
+    for cat_title, cat_code, col_header in armor_categories:
+        cat_items = [p for p in equipment_list if p['category'] == cat_code]
+        lines.append('---')
+        lines.append('')
+        lines.append(f"## {cat_title}")
+        lines.append('')
+        lines.append(f"| {col_header} | {h['def']} | {h['res']} | {h['atk']} | {h['int']} | {h['dex']} | {h['agi']} | {h.get('upgrade_rate', 'Upgrade Rate')} | {h.get('innate_enchants', 'Innate Enchants')} |")
+        lines.append('| --- | --- | --- | --- | --- | --- | --- | --- | --- |')
+        
+        for p in cat_items:
+            st = p['stats']
+            enchs = ', '.join(ench_names.get(e, f'Enchant {e}') for e in p['enchants']) if p['enchants'] else '-'
+            u_rate = f"+{p['rate']:g}" if p['rate'] > 0 else '0'
+            lines.append(f"| {p['name']} | {st['def']} | {st['res']} | {st['atk']} | {st['int']} | {st['dex']} | {st['agi']} | {u_rate} | {enchs} |")
+        lines.append('')
+        
+    return '\n'.join(lines)
+
+
 def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
     os.makedirs(out_dir, exist_ok=True)
     guide_text = load_guide_text()
     snapshot = load_snapshot(side=side)
     sot_data = load_source_of_truth()
+    enchant_sizes = load_enchant_sizes()
     
     # 1. README.md
     readme_path = os.path.join(out_dir, 'README.md')
@@ -609,12 +827,26 @@ def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
     with open(chars_path, 'w', encoding='utf-8') as f:
         f.write(chars_content)
         
+    # 6. enchantments.md
+    ench_path = os.path.join(out_dir, 'enchantments.md')
+    ench_content = build_enchantments_content(guide_text, snapshot, sot_data, enchant_sizes)
+    with open(ench_path, 'w', encoding='utf-8') as f:
+        f.write(ench_content)
+        
+    # 7. equipment.md
+    eq_path = os.path.join(out_dir, 'equipment.md')
+    eq_content = build_equipment_content(guide_text, snapshot, sot_data)
+    with open(eq_path, 'w', encoding='utf-8') as f:
+        f.write(eq_content)
+        
     return {
         'README.md': readme_content,
         'classes.md': classes_content,
         'formulas.md': formulas_content,
         'skills.md': skills_content,
         'characters.md': chars_content,
+        'enchantments.md': ench_content,
+        'equipment.md': eq_content,
     }
 
 
