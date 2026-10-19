@@ -11,7 +11,7 @@ namespace DtEngine
         static readonly int[] DOLL_EFFECTS = { 228, 229, 230, 231, 232, 233 };
         const string EVERY_ROLE = "*";
 
-        enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree, FoesAttack, EnemyNamed }
+        enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree, FoesAttack, EnemyNamed, NoFoeDispels }
         enum Act { Damage, Heal, Revive, Status, Dispel, Doll, Tp, Cure, Ailment, Item, Skill, Defend }
 
         sealed class Rule
@@ -79,6 +79,7 @@ namespace DtEngine
                 case "doll_slot_free": return Cond.DollSlotFree;
                 case "foes_attack": return Cond.FoesAttack;
                 case "enemy_named": return Cond.EnemyNamed;
+                case "no_foe_dispels": return Cond.NoFoeDispels;
             }
             throw new InvalidOperationException("unknown condition " + name + " in role " + r.Str("Role"));
         }
@@ -219,6 +220,16 @@ namespace DtEngine
             return all > 0 && mine >= share * all;
         }
 
+        /// <summary>no_foe_dispels: no living foe has an attack that strips buffs (effect 74): a buff the foes would strip at every blow is
+        /// not kept up against them, as a player stops casting it again.</summary>
+        static bool NoFoeDispels(Battle b, Unit u)
+        {
+            foreach (var t in EnemiesOf(b, u))
+                foreach (int id in t.Attacks)
+                    if (b.Data.Attacks.TryGetValue(id, out var k) && !k.Passive && k.EffId != null && Array.IndexOf(k.EffId, 74) >= 0) return false;
+            return true;
+        }
+
         static double Fraction(string arg, double dflt) => !string.IsNullOrEmpty(arg) ? double.Parse(arg.Trim(), System.Globalization.CultureInfo.InvariantCulture) : dflt;
 
         bool Check(Cond cond, Battle b, Unit u, string a)
@@ -257,6 +268,7 @@ namespace DtEngine
                 case Cond.EnemiesAtLeast: return EnemiesOf(b, u).Length >= PyMath.Int(Fraction(a, 2));
                 case Cond.Boss: return b.Fixed || b.Options.Boss;
                 case Cond.FoesAttack: return FoesAttack(b, u, a);
+                case Cond.NoFoeDispels: return NoFoeDispels(b, u);
                 case Cond.EnemyNamed:
                     // a strategy of a guide for one boss: the rule holds while an enemy of that name stands (names split by |)
                     foreach (var t in EnemiesOf(b, u)) foreach (var name in (a ?? "").Split('|')) if (t.Name == name.Trim()) return true;
