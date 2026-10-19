@@ -37,7 +37,12 @@ class TestGuideGeneration(unittest.TestCase):
         cls.built = build_guide.build_guide(side='vanilla', out_dir=GUIDE_DIR)
 
     def test_files_exist_and_match_disk(self):
-        for filename in ['README.md', 'classes.md', 'formulas.md', 'skills.md', 'characters.md', 'enchantments.md', 'equipment.md']:
+        all_files = [
+            'README.md', 'classes.md', 'formulas.md', 'skills.md', 'characters.md',
+            'enchantments.md', 'equipment.md', 'enemies.md', 'bosses.md', 'summons.md',
+            'mercenaries.md', 'progression.md'
+        ]
+        for filename in all_files:
             filepath = os.path.join(GUIDE_DIR, filename)
             self.assertTrue(os.path.exists(filepath), f"{filename} missing from {GUIDE_DIR}")
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -147,6 +152,7 @@ class TestGuideGeneration(unittest.TestCase):
         self.assertIn('- **Base Class:** Fighter', chars_md)
         self.assertIn('- **Starting Lv:** 41 (179,196 EXP)', chars_md)
         self.assertIn('Defeat Heartless Avenger (St10_0010, Battle 43)', chars_md)
+
     def test_sample_enchantments(self):
         ench_md = self.built['enchantments.md']
         self.assertIn('| 29 | Physical attack UP | +4 | Stacks per piece | +50 |', ench_md)
@@ -163,6 +169,41 @@ class TestGuideGeneration(unittest.TestCase):
         self.assertIn('| Claymore | E+ (2.45x) | 37 | 0 | 0 | 0 | 0 | 0 | +2.78 | Short | Yes | - |', eq_md)
         self.assertIn('| Buckler | 3 | 0 | 0 | 0 | 0 | 0 | +1 | - |', eq_md)
         self.assertIn('| Ring | 1 | 0 | 0 | 0 | 0 | 0 | +0.5 | - |', eq_md)
+
+    def test_sample_enemies(self):
+        enemies_md = self.built['enemies.md']
+        self.assertIn('### Medic (Lv 11)', enemies_md)
+        self.assertIn('| 177 | 41 | 28 | 24 | 28 | 16 | 15 | 90 | 16 |', enemies_md)
+        self.assertIn('Suspicious Supplement', enemies_md)
+        self.assertIn('Gravity Shot', enemies_md)
+
+    def test_sample_bosses(self):
+        bosses_md = self.built['bosses.md']
+        self.assertIn('### Battle 42: Wanton Witch', bosses_md)
+        self.assertIn('GumGumGoo', bosses_md)
+        self.assertIn('Melt Away', bosses_md)
+        self.assertIn('Wait and See', bosses_md)
+
+    def test_sample_summons(self):
+        summons_md = self.built['summons.md']
+        self.assertIn('## Bigfoot (Family 833)', summons_md)
+        self.assertIn('| Form 1 | 7 | 9 | 1.54x | 1.24x | 0.61x | 0.91x | 0.86x | 0.81x | - |', summons_md)
+        self.assertIn('### Bigfoot - Form 1 (Lv 7)', summons_md)
+        self.assertIn('### Bigfoot - Form 2 (Lv 13)', summons_md)
+        self.assertIn('### Bigfoot - Form 3 (Lv 21)', summons_md)
+
+    def test_sample_mercenaries(self):
+        merc_md = self.built['mercenaries.md']
+        self.assertIn('## Michelle (Character 411)', merc_md)
+        self.assertIn('## Euphemia (Character 310)', merc_md)
+        self.assertIn('| 1 | 26 | 400 Gold | 25 battles | 91 | 58 | 18 | 21 | 44 | 35 | 135 |', merc_md)
+
+    def test_sample_progression(self):
+        prog_md = self.built['progression.md']
+        self.assertIn('| 99 | 100,442 | 3,042,158 | +18 | 685 |', prog_md)
+        self.assertIn('| Level 99 | +10 | Level 1 | +50 stats max |', prog_md)
+        self.assertIn('| St00_0010 | Ruined Shrine Cave |', prog_md)
+        self.assertIn('B41: Slapyon (Lv 2); B42: Wanton Witch (Lv 5); B43: Aradia (Lv 60)', prog_md)
 
 
 if __name__ == '__main__':

@@ -7,18 +7,27 @@ are loaded from data_tables/guide_text.xlsx.
 import argparse
 import json
 import os
+import re
 import sys
 
 import openpyxl
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(HERE)
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+
+import enemy_ai
+import enemy_data
+
 SNAPSHOT_PATH = os.path.join(PROJECT, 'build', 'engine_snapshot.json')
 GUIDE_TEXT_PATH = os.path.join(PROJECT, 'data_tables', 'guide_text.xlsx')
 SOT_PATH = os.path.join(PROJECT, 'data_tables', 'vanilla_source_of_truth.xlsx')
+SETUP_PATH = os.path.join(PROJECT, 'data_tables', 'sim_setup.xlsx')
 DEFAULT_OUT_DIR = os.path.join(PROJECT, 'docs', 'guide')
 
 MILESTONE_LEVELS = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
+ATTR_NAMES = {0: 'Weapon', 1: 'Slash', 2: 'Stab', 3: 'Bash', 4: 'Fire', 5: 'Water', 6: 'Wind', 7: 'Earth', 8: 'Lightning', 9: 'Neutral'}
 
 
 def load_guide_text(path=GUIDE_TEXT_PATH):
@@ -107,7 +116,7 @@ def load_guide_text(path=GUIDE_TEXT_PATH):
     }
 
 
-def load_source_of_truth(path=SOT_PATH):
+def load_source_of_truth(path=SOT_PATH, setup_path=SETUP_PATH):
     wb = openpyxl.load_workbook(path, read_only=True)
     unique_skills = {}
     if 'UniqueSkills' in wb.sheetnames:
@@ -138,11 +147,68 @@ def load_source_of_truth(path=SOT_PATH):
                 'rank': r[2],
                 'delay': r[3]
             }
+
+    items = {}
+    if 'Items' in wb.sheetnames:
+        for r in list(wb['Items'].iter_rows(values_only=True))[1:]:
+            if r[1] is not None:
+                items[r[1]] = r[2]
+
+    equipment_names = {}
+    if 'Equipment' in wb.sheetnames:
+        for r in list(wb['Equipment'].iter_rows(values_only=True))[1:]:
+            if r[1] is not None:
+                equipment_names[r[1]] = r[2]
+
+    enchant_names = {eid: d['name'] for eid, d in enchants.items()}
+
+    enemy_attacks = {}
+    if 'EnemyAttacks' in wb.sheetnames:
+        for r in list(wb['EnemyAttacks'].iter_rows(values_only=True))[1:]:
+            sid = r[1]
+            effs = []
+            for k in range(1, 6):
+                c_id = 15 + (k - 1) * 4
+                c_name = 16 + (k - 1) * 4
+                c_val = 17 + (k - 1) * 4
+                if c_id < len(r) and r[c_id] is not None and r[c_name]:
+                    effs.append((r[c_id], r[c_name], r[c_val]))
+            enemy_attacks[sid] = {
+                'name': r[2] or '',
+                'header': r[3] or '',
+                'target': r[6] or '',
+                'attr': r[8] or '',
+                'chant_speed': r[9] or 0,
+                'accuracy': r[10] or 0,
+                'power': r[11] or 0,
+                'turns': r[12] or 0,
+                'speed': r[13] if r[13] is not None else 1.0,
+                'effects': effs,
+                'desc': r[36] if len(r) > 36 and r[36] else ''
+            }
+
+    mercenary_unlocks = {}
+    if os.path.exists(setup_path):
+        wb_setup = openpyxl.load_workbook(setup_path, read_only=True)
+        if 'MercenaryUnlocks' in wb_setup.sheetnames:
+            for r in list(wb_setup['MercenaryUnlocks'].iter_rows(values_only=True))[1:]:
+                flag = r[0]
+                basis = str(r[3] or '')
+                if flag is not None and basis:
+                    clean = re.sub(r'\b0x[0-9a-fA-F]+\b\s*', '', basis).strip()
+                    clean = clean.replace('joined by opcode', 'joined by story event')
+                    mercenary_unlocks[flag] = clean
+
     return {
         'unique_skills': unique_skills,
         'weapon_reqs': weapon_reqs,
         'enchants': enchants,
         'weapon_ranks': weapon_ranks,
+        'items': items,
+        'equipment_names': equipment_names,
+        'enchant_names': enchant_names,
+        'enemy_attacks': enemy_attacks,
+        'mercenary_unlocks': mercenary_unlocks,
     }
 
 
@@ -790,6 +856,558 @@ def build_equipment_content(guide_text, snapshot, sot_data):
     return '\n'.join(lines)
 
 
+def format_effect_summary(effs, power=None):
+    parts = []
+    for eid, name, val in effs:
+        if name:
+            if val not in (None, 0, 1):
+                parts.append(f"{name} ({val})")
+            else:
+                parts.append(name)
+    if not parts and power not in (None, 0):
+        parts.append(f"Power {power}")
+    return '; '.join(parts) if parts else '-'
+
+
+def format_script_markdown(script, attack_names):
+    if not script:
+        return []
+    lines = []
+    
+    def resolve_slots(text):
+        def rep(m):
+            idx = int(m.group(1))
+            if idx < len(attack_names):
+                return f"{attack_names[idx]} (slot {idx})"
+            return m.group(0)
+        return re.sub(r'\bslot (\d+)\b', rep, text)
+
+    opening = script.get('opening', [])
+    if opening:
+        lines.append('**Opening Actions:**')
+        for c in opening:
+            desc = enemy_ai.describe(c)
+            lines.append(f'- {resolve_slots(desc)}')
+
+    sets = script.get('sets', [])
+    if isinstance(sets, dict):
+        sets = [{'set': k, **v} for k, v in sets.items()]
+
+    if sets:
+        lines.append('**Action Sets:**')
+        for s in sets:
+            set_num = s['set']
+            weights = s['weights']
+            active_weights = []
+            for slot_idx, w in enumerate(weights):
+                if w > 0:
+                    att_name = attack_names[slot_idx] if slot_idx < len(attack_names) else f"Slot {slot_idx}"
+                    active_weights.append(f"{att_name} ({w}%)")
+            w_str = ', '.join(active_weights) if active_weights else 'None'
+            lines.append(f'- **Set {set_num}:** {w_str}')
+            for c in s.get('commands', []):
+                desc = enemy_ai.describe(c)
+                lines.append(f'  - *Condition:* {resolve_slots(desc)}')
+    return lines
+
+
+def build_enemies_content(guide_text, snapshot, sot_data):
+    all_enemies = enemy_data.enemies()
+    attacks_dict = {a['id']: a for a in snapshot['attacks']}
+    sot_attacks = sot_data.get('enemy_attacks', {})
+    items_dict = sot_data.get('items', {})
+    targets_dict = guide_text['targets']
+
+    lines = [
+        guide_text['sections']['enemies_title']['title'],
+        "",
+        guide_text['sections']['enemies_title']['text'],
+        ""
+    ]
+
+    by_habitat = {}
+    for e in all_enemies:
+        hab = e.get('habitat') or 'Unknown Habitat'
+        by_habitat.setdefault(hab, []).append(e)
+
+    for hab in sorted(by_habitat.keys()):
+        lines.append(f"## {hab}")
+        lines.append("")
+        elist = sorted(by_habitat[hab], key=lambda x: (x['level'], x['name']))
+        
+        for e in elist:
+            name = e['name']
+            level = e['level']
+            race = e['race_name']
+            lines.append(f"### {name} (Lv {level})")
+            lines.append("")
+            
+            lines.append("| HP | ATK | DEF | INT | RES | DEX | AGI | EXP | Gold |")
+            lines.append("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+            lines.append(f"| {e['hp']:,} | {e['atk']} | {e['def']} | {e['int']} | {e['res']} | {e['dex']} | {e['agi']} | {e['exp']:,} | {e['gold']:,} |")
+            lines.append("")
+            
+            lines.append("| Slash | Stab | Bash | Fire | Water | Wind | Earth | Lightning |")
+            lines.append("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+            lines.append(f"| {e['res_slash']} | {e['res_stab']} | {e['res_bash']} | {e['res_fire']} | {e['res_water']} | {e['res_wind']} | {e['res_earth']} | {e['res_lightning']} |")
+            lines.append("")
+            
+            imm_str = ', '.join(e['immune']) if e['immune'] else 'None'
+            drops_list = []
+            for item_id, ch in e['drops']:
+                iname = items_dict.get(item_id, f"Item {item_id}")
+                drops_list.append(f"{iname} ({ch}%)")
+            drops_str = ', '.join(drops_list) if drops_list else 'None'
+            
+            eq_ch, eq_slots_cnt = e['equipment_drop']
+            eq_drop_str = f"{eq_ch}%" if eq_ch > 0 else 'None'
+            snack_str = items_dict.get(e['snack_item'], '-') if e['snack'] else '-'
+            steal_str = 'Yes' if e['can_steal'] else 'No'
+
+            lines.append(f"- **Race:** {race} | **Stealable:** {steal_str} | **Snack:** {snack_str}")
+            lines.append(f"- **Immunities:** {imm_str}")
+            lines.append(f"- **Item Drops:** {drops_str} | **Equipment Drop:** {eq_drop_str}")
+            lines.append("")
+            
+            if e['attacks']:
+                lines.append("#### Attacks")
+                lines.append("")
+                lines.append("| Attack | Target | Element | Spd | Chant | Power | Effect |")
+                lines.append("| :--- | :--- | :--- | ---: | ---: | ---: | :--- |")
+                for aid in e['attacks']:
+                    a_snap = attacks_dict.get(aid, {})
+                    a_sot = sot_attacks.get(aid, {})
+                    aname = a_sot.get('name') or a_snap.get('name') or f"Attack {aid}"
+                    tgt_code = a_snap.get('target', 0)
+                    tgt_str = a_sot.get('target') or targets_dict.get(tgt_code, str(tgt_code))
+                    attr_code = a_snap.get('attr', 0)
+                    attr_str = a_sot.get('attr') or ATTR_NAMES.get(attr_code, str(attr_code))
+                    spd = a_snap.get('speed', 1.0)
+                    chant = a_snap.get('chant_speed', 0)
+                    chant_str = f"{chant}s" if chant > 0 else '-'
+                    power = a_snap.get('power', 0)
+                    power_str = f"{power}" if power != 0 else '-'
+                    effs = a_sot.get('effects', [])
+                    eff_str = format_effect_summary(effs, power)
+                    lines.append(f"| {aname} | {tgt_str} | {attr_str} | {spd:.2f}x | {chant_str} | {power_str} | {eff_str} |")
+                lines.append("")
+                
+            if e['passives']:
+                lines.append("#### Passives")
+                lines.append("")
+                lines.append("| Passive | Effect |")
+                lines.append("| :--- | :--- |")
+                for pid in e['passives']:
+                    p_sot = sot_attacks.get(pid, {})
+                    pname = p_sot.get('name') or attacks_dict.get(pid, {}).get('name') or f"Passive {pid}"
+                    effs = p_sot.get('effects', [])
+                    eff_str = format_effect_summary(effs)
+                    lines.append(f"| {pname} | {eff_str} |")
+                lines.append("")
+
+    return "\n".join(lines)
+
+
+def build_bosses_content(guide_text, snapshot, sot_data):
+    all_enemies = {e['id']: e for e in enemy_data.enemies()}
+    fixed_battles = snapshot['fixed']
+    attacks_dict = {a['id']: a for a in snapshot['attacks']}
+    sot_attacks = sot_data.get('enemy_attacks', {})
+    items_dict = sot_data.get('items', {})
+    targets_dict = guide_text['targets']
+
+    lines = [
+        guide_text['sections']['bosses_title']['title'],
+        "",
+        guide_text['sections']['bosses_title']['text'],
+        ""
+    ]
+
+    by_floor = {}
+    for b in fixed_battles:
+        by_floor.setdefault(b['floor'], []).append(b)
+
+    for floor in sorted(by_floor.keys()):
+        lines.append(f"## Floor {floor}")
+        lines.append("")
+        
+        battles = sorted(by_floor[floor], key=lambda x: x['number'])
+        for b in battles:
+            b_num = b['number']
+            e_entries = b['enemies']
+            
+            counts = {}
+            for eid, is_front in e_entries:
+                ename = all_enemies.get(eid, {}).get('name', f"Enemy {eid}")
+                row_str = "Front" if is_front else "Back"
+                counts.setdefault((eid, ename), []).append(row_str)
+            
+            battle_title_parts = []
+            for (eid, ename), rows in counts.items():
+                if len(rows) > 1:
+                    battle_title_parts.append(f"{ename} x{len(rows)}")
+                else:
+                    battle_title_parts.append(ename)
+            
+            lines.append(f"### Battle {b_num}: {', '.join(battle_title_parts)}")
+            lines.append("")
+            
+            part_desc = []
+            for (eid, ename), rows in counts.items():
+                front_cnt = rows.count("Front")
+                back_cnt = rows.count("Back")
+                row_parts = []
+                if front_cnt > 0: row_parts.append(f"{front_cnt} Front")
+                if back_cnt > 0: row_parts.append(f"{back_cnt} Back")
+                part_desc.append(f"**{ename}** ({', '.join(row_parts)})")
+            lines.append(f"- **Encounter:** {'; '.join(part_desc)}")
+            lines.append("")
+
+            seen_eids = set()
+            for eid, _ in e_entries:
+                if eid in seen_eids:
+                    continue
+                seen_eids.add(eid)
+                e = all_enemies.get(eid)
+                if not e:
+                    continue
+                
+                name = e['name']
+                level = e['level']
+                race = e['race_name']
+                lines.append(f"#### {name} (Lv {level})")
+                lines.append("")
+
+                lines.append("| HP | ATK | DEF | INT | RES | DEX | AGI | EXP | Gold |")
+                lines.append("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+                lines.append(f"| {e['hp']:,} | {e['atk']} | {e['def']} | {e['int']} | {e['res']} | {e['dex']} | {e['agi']} | {e['exp']:,} | {e['gold']:,} |")
+                lines.append("")
+
+                lines.append("| Slash | Stab | Bash | Fire | Water | Wind | Earth | Lightning |")
+                lines.append("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+                lines.append(f"| {e['res_slash']} | {e['res_stab']} | {e['res_bash']} | {e['res_fire']} | {e['res_water']} | {e['res_wind']} | {e['res_earth']} | {e['res_lightning']} |")
+                lines.append("")
+
+                imm_str = ', '.join(e['immune']) if e['immune'] else 'None'
+                drops_list = []
+                for item_id, ch in e['drops']:
+                    iname = items_dict.get(item_id, f"Item {item_id}")
+                    drops_list.append(f"{iname} ({ch}%)")
+                drops_str = ', '.join(drops_list) if drops_list else 'None'
+                
+                eq_ch, eq_slots_cnt = e['equipment_drop']
+                eq_drop_str = f"{eq_ch}%" if eq_ch > 0 else 'None'
+                snack_str = items_dict.get(e['snack_item'], '-') if e['snack'] else '-'
+                steal_str = 'Yes' if e['can_steal'] else 'No'
+
+                lines.append(f"- **Race:** {race} | **Stealable:** {steal_str} | **Snack:** {snack_str}")
+                lines.append(f"- **Immunities:** {imm_str}")
+                lines.append(f"- **Item Drops:** {drops_str} | **Equipment Drop:** {eq_drop_str}")
+                lines.append("")
+
+                att_names_list = []
+                if e['attacks']:
+                    lines.append("##### Attacks")
+                    lines.append("")
+                    lines.append("| Attack | Target | Element | Spd | Chant | Power | Effect |")
+                    lines.append("| :--- | :--- | :--- | ---: | ---: | ---: | :--- |")
+                    for aid in e['attacks']:
+                        a_snap = attacks_dict.get(aid, {})
+                        a_sot = sot_attacks.get(aid, {})
+                        aname = a_sot.get('name') or a_snap.get('name') or f"Attack {aid}"
+                        att_names_list.append(aname)
+                        tgt_code = a_snap.get('target', 0)
+                        tgt_str = a_sot.get('target') or targets_dict.get(tgt_code, str(tgt_code))
+                        attr_code = a_snap.get('attr', 0)
+                        attr_str = a_sot.get('attr') or ATTR_NAMES.get(attr_code, str(attr_code))
+                        spd = a_snap.get('speed', 1.0)
+                        chant = a_snap.get('chant_speed', 0)
+                        chant_str = f"{chant}s" if chant > 0 else '-'
+                        power = a_snap.get('power', 0)
+                        power_str = f"{power}" if power != 0 else '-'
+                        effs = a_sot.get('effects', [])
+                        eff_str = format_effect_summary(effs, power)
+                        lines.append(f"| {aname} | {tgt_str} | {attr_str} | {spd:.2f}x | {chant_str} | {power_str} | {eff_str} |")
+                    lines.append("")
+
+                if e['passives']:
+                    lines.append("##### Passives")
+                    lines.append("")
+                    lines.append("| Passive | Effect |")
+                    lines.append("| :--- | :--- |")
+                    for pid in e['passives']:
+                        p_sot = sot_attacks.get(pid, {})
+                        pname = p_sot.get('name') or attacks_dict.get(pid, {}).get('name') or f"Passive {pid}"
+                        effs = p_sot.get('effects', [])
+                        eff_str = format_effect_summary(effs)
+                        lines.append(f"| {pname} | {eff_str} |")
+                    lines.append("")
+
+                if e.get('script'):
+                    lines.append("##### AI Behavior")
+                    lines.append("")
+                    script_lines = format_script_markdown(e['script'], att_names_list)
+                    lines.extend(script_lines)
+                    lines.append("")
+
+    return "\n".join(lines)
+
+
+def build_summons_content(guide_text, snapshot, sot_data):
+    summons = snapshot['summons']
+    sealbooks = {s['id']: s for s in snapshot['sealbooks']}
+    enchant_names = sot_data.get('enchant_names', {})
+    attacks_dict = {a['id']: a for a in snapshot['attacks']}
+    sot_attacks = sot_data.get('enemy_attacks', {})
+    targets_dict = guide_text['targets']
+
+    lines = [
+        guide_text['sections']['summons_title']['title'],
+        "",
+        guide_text['sections']['summons_title']['text'],
+        ""
+    ]
+
+    by_family = {}
+    for s in summons:
+        by_family.setdefault(s['family'], []).append(s)
+
+    for fam_id, forms in sorted(by_family.items()):
+        name = forms[0]['name']
+        lines.append(f"## {name} (Family {fam_id})")
+        lines.append("")
+
+        sb = sealbooks.get(fam_id)
+        if sb and sb.get('enchants'):
+            ench_strs = [enchant_names.get(eid, f"Enchantment {eid}") for eid in sb['enchants']]
+            lines.append(f"- **Grand Sealbook Enchantment:** {', '.join(ench_strs)}")
+        else:
+            lines.append("- **Grand Sealbook Enchantment:** None")
+        lines.append("")
+
+        lines.append("| Form | Level | Rank | ATK | DEF | INT | RES | DEX | AGI | Passive |")
+        lines.append("| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |")
+        for k, form in enumerate(forms, 1):
+            f_atk = form['factors'].get('atk', 1.0)
+            f_def = form['factors'].get('def', 1.0)
+            f_int = form['factors'].get('int', 1.0)
+            f_res = form['factors'].get('res', 1.0)
+            f_dex = form['factors'].get('dex', 1.0)
+            f_agi = form['factors'].get('agi', 1.0)
+            pas = form.get('passive')
+            pas_str = sot_attacks.get(pas, {}).get('name') if pas else '-'
+            lines.append(f"| Form {k} | {form['level']} | {form['rank']} | {f_atk:.2f}x | {f_def:.2f}x | {f_int:.2f}x | {f_res:.2f}x | {f_dex:.2f}x | {f_agi:.2f}x | {pas_str} |")
+        lines.append("")
+
+        for k, form in enumerate(forms, 1):
+            f_level = form['level']
+            lines.append(f"### {name} - Form {k} (Lv {f_level})")
+            lines.append("")
+
+            att_names = []
+            if form['attacks']:
+                lines.append("| Attack | Target | Element | Spd | Chant | Power | Effect |")
+                lines.append("| :--- | :--- | :--- | ---: | ---: | ---: | :--- |")
+                for aid in form['attacks']:
+                    a_snap = attacks_dict.get(aid, {})
+                    a_sot = sot_attacks.get(aid, {})
+                    aname = a_sot.get('name') or a_snap.get('name') or f"Attack {aid}"
+                    att_names.append(aname)
+                    tgt_code = a_snap.get('target', 0)
+                    tgt_str = a_sot.get('target') or targets_dict.get(tgt_code, str(tgt_code))
+                    attr_code = a_snap.get('attr', 0)
+                    attr_str = a_sot.get('attr') or ATTR_NAMES.get(attr_code, str(attr_code))
+                    spd = a_snap.get('speed', 1.0)
+                    chant = a_snap.get('chant_speed', 0)
+                    chant_str = f"{chant}s" if chant > 0 else '-'
+                    power = a_snap.get('power', 0)
+                    power_str = f"{power}" if power != 0 else '-'
+                    effs = a_sot.get('effects', [])
+                    eff_str = format_effect_summary(effs, power)
+                    lines.append(f"| {aname} | {tgt_str} | {attr_str} | {spd:.2f}x | {chant_str} | {power_str} | {eff_str} |")
+                lines.append("")
+
+            if form.get('script'):
+                lines.append("#### AI Behavior")
+                lines.append("")
+                script_lines = format_script_markdown(form['script'], att_names)
+                lines.extend(script_lines)
+                lines.append("")
+
+    return "\n".join(lines)
+
+
+def build_mercenaries_content(guide_text, snapshot, sot_data):
+    npcs = [n for n in snapshot['npcs'] if n['character'] not in (300, 301, 302)]
+    unlocks = sot_data.get('mercenary_unlocks', {})
+    attacks_dict = {a['id']: a for a in snapshot['attacks']}
+    sot_attacks = sot_data.get('enemy_attacks', {})
+    targets_dict = guide_text['targets']
+
+    lines = [
+        guide_text['sections']['mercenaries_title']['title'],
+        "",
+        guide_text['sections']['mercenaries_title']['text'],
+        ""
+    ]
+
+    by_char = {}
+    for n in npcs:
+        by_char.setdefault(n['character'], []).append(n)
+
+    for char_id, stages in sorted(by_char.items()):
+        name = stages[0]['name']
+        lines.append(f"## {name} (Character {char_id})")
+        lines.append("")
+
+        init_flag = stages[0]['unlock_flag']
+        basis = unlocks.get(init_flag, f"Unlock Flag {init_flag}")
+        lines.append(f"- **Tavern Availability:** {basis}")
+        lines.append("")
+
+        lines.append("| Stage | Level | Cost | Contract | ATK | DEF | INT | RES | DEX | AGI | Unlock Flag |")
+        lines.append("| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+        for k, st in enumerate(stages, 1):
+            contract_str = f"{st['contract']} battles" if st['contract'] > 0 else 'Permanent'
+            lines.append(f"| {k} | {st['level']} | {st['cost']:,} Gold | {contract_str} | {st['atk']} | {st['def']} | {st['int']} | {st['res']} | {st['dex']} | {st['agi']} | {st['unlock_flag']} |")
+        lines.append("")
+
+        for k, st in enumerate(stages, 1):
+            st_level = st['level']
+            lines.append(f"### Stage {k} (Lv {st_level})")
+            lines.append("")
+
+            att_names = []
+            if st['attacks']:
+                lines.append("#### Attacks")
+                lines.append("")
+                lines.append("| Attack | Target | Element | Spd | Chant | Power | Effect |")
+                lines.append("| :--- | :--- | :--- | ---: | ---: | ---: | :--- |")
+                for aid in st['attacks']:
+                    a_snap = attacks_dict.get(aid, {})
+                    a_sot = sot_attacks.get(aid, {})
+                    aname = a_sot.get('name') or a_snap.get('name') or f"Attack {aid}"
+                    att_names.append(aname)
+                    tgt_code = a_snap.get('target', 0)
+                    tgt_str = a_sot.get('target') or targets_dict.get(tgt_code, str(tgt_code))
+                    attr_code = a_snap.get('attr', 0)
+                    attr_str = a_sot.get('attr') or ATTR_NAMES.get(attr_code, str(attr_code))
+                    spd = a_snap.get('speed', 1.0)
+                    chant = a_snap.get('chant_speed', 0)
+                    chant_str = f"{chant}s" if chant > 0 else '-'
+                    power = a_snap.get('power', 0)
+                    power_str = f"{power}" if power != 0 else '-'
+                    effs = a_sot.get('effects', [])
+                    eff_str = format_effect_summary(effs, power)
+                    lines.append(f"| {aname} | {tgt_str} | {attr_str} | {spd:.2f}x | {chant_str} | {power_str} | {eff_str} |")
+                lines.append("")
+
+            if st['passives']:
+                lines.append("#### Passives")
+                lines.append("")
+                lines.append("| Passive | Effect |")
+                lines.append("| :--- | :--- |")
+                for pid in st['passives']:
+                    p_sot = sot_attacks.get(pid, {})
+                    pname = p_sot.get('name') or attacks_dict.get(pid, {}).get('name') or f"Passive {pid}"
+                    effs = p_sot.get('effects', [])
+                    eff_str = format_effect_summary(effs)
+                    lines.append(f"| {pname} | {eff_str} |")
+                lines.append("")
+
+            if st.get('script'):
+                lines.append("#### AI Behavior")
+                lines.append("")
+                script_lines = format_script_markdown(st['script'], att_names)
+                lines.extend(script_lines)
+                lines.append("")
+
+    return "\n".join(lines)
+
+
+def build_progression_content(guide_text, snapshot, sot_data):
+    exp_curve = snapshot['exp_curve']
+    sp_curve = snapshot['sp_curve']
+    floors = snapshot['floors']
+    fixed_battles = snapshot['fixed']
+    all_enemies = {e['id']: e for e in enemy_data.enemies()}
+
+    lines = [
+        guide_text['sections']['progression_title']['title'],
+        "",
+        guide_text['sections']['progression_title']['text'],
+        "",
+        "## Experience and Skill Point Curves",
+        "",
+        "Level progression from Level 1 to 99, detailing the required experience points to reach each level, cumulative experience thresholds, skill points awarded per level, and total accumulated skill points.",
+        "",
+        "| Level | EXP to Next | Cumulative EXP | SP Gained | Cumulative SP |",
+        "| ---: | ---: | ---: | ---: | ---: |"
+    ]
+
+    cum_exp = 0
+    cum_sp = 0
+    sp_dict = dict(sp_curve)
+
+    for lv, req_exp in exp_curve:
+        cum_exp += req_exp
+        gain_sp = sp_dict.get(lv, 1)
+        cum_sp += gain_sp
+        lines.append(f"| {lv} | {req_exp:,} | {cum_exp:,} | +{gain_sp} | {cum_sp} |")
+
+    lines.append("")
+    lines.append("## Crown Resets")
+    lines.append("")
+    lines.append("A character who reaches Level 30 or higher can undergo a Crown Reset. The character's level returns to Level 1, previously allocated skill points are refunded to be re-earned through leveling, and the character gains permanent bonus stat points. Resets stack additively up to a maximum cap of +50 total bonus stat points.")
+    lines.append("")
+    lines.append("| Reset Level Range | Bonus Stat Points | Reset Level | Cumulative Cap |")
+    lines.append("| :--- | ---: | :--- | :--- |")
+    lines.append("| Level 99 | +10 | Level 1 | +50 stats max |")
+    lines.append("| Level 90–98 | +9 | Level 1 | +50 stats max |")
+    lines.append("| Level 80–89 | +8 | Level 1 | +50 stats max |")
+    lines.append("| Level 70–79 | +7 | Level 1 | +50 stats max |")
+    lines.append("| Level 60–69 | +6 | Level 1 | +50 stats max |")
+    lines.append("| Level 50–59 | +5 | Level 1 | +50 stats max |")
+    lines.append("| Level 40–49 | +4 | Level 1 | +50 stats max |")
+    lines.append("| Level 30–39 | +3 | Level 1 | +50 stats max |")
+    lines.append("")
+
+    lines.append("## Dungeon Floor Level Progression")
+    lines.append("")
+    lines.append("Encounter levels across all dungeon floors in Dungeon Travelers 2-2, including random encounter level ranges and fixed story or postgame boss encounters.")
+    lines.append("")
+    lines.append("| Floor | Dungeon / Habitat | Random Enemy Levels | Boss / Fixed Encounters |")
+    lines.append("| :--- | :--- | :--- | :--- |")
+
+    seen_floors = set()
+    for z in floors:
+        fl_code = z['floor']
+        if fl_code in seen_floors:
+            continue
+        seen_floors.add(fl_code)
+
+        habs = {all_enemies[e]['habitat'] for f in z['formations'] for e, _ in f['enemies'] if e in all_enemies and all_enemies[e].get('habitat')}
+        hab_name = ', '.join(sorted(habs)) if habs else z['dungeon']
+
+        floor_zones = [fz for fz in floors if fz['floor'] == fl_code]
+        r_levels = [all_enemies[e]['level'] for fz in floor_zones for f in fz['formations'] for e, _ in f['enemies'] if e in all_enemies]
+        if r_levels:
+            r_str = f"Lv {min(r_levels)}–{max(r_levels)}"
+        else:
+            r_str = "-"
+
+        f_battles = [b for b in fixed_battles if b['floor'] == fl_code]
+        f_parts = []
+        for b in sorted(f_battles, key=lambda x: x['number']):
+            b_names = [f"{all_enemies[e]['name']} (Lv {all_enemies[e]['level']})" for e, _ in b['enemies'] if e in all_enemies]
+            f_parts.append(f"B{b['number']}: {', '.join(b_names)}")
+        boss_str = '; '.join(f_parts) if f_parts else "-"
+
+        lines.append(f"| {fl_code} | {hab_name} | {r_str} | {boss_str} |")
+
+    return "\n".join(lines)
+
+
 def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
     os.makedirs(out_dir, exist_ok=True)
     guide_text = load_guide_text()
@@ -839,6 +1457,36 @@ def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
     with open(eq_path, 'w', encoding='utf-8') as f:
         f.write(eq_content)
         
+    # 8. enemies.md
+    enemies_path = os.path.join(out_dir, 'enemies.md')
+    enemies_content = build_enemies_content(guide_text, snapshot, sot_data)
+    with open(enemies_path, 'w', encoding='utf-8') as f:
+        f.write(enemies_content)
+        
+    # 9. bosses.md
+    bosses_path = os.path.join(out_dir, 'bosses.md')
+    bosses_content = build_bosses_content(guide_text, snapshot, sot_data)
+    with open(bosses_path, 'w', encoding='utf-8') as f:
+        f.write(bosses_content)
+        
+    # 10. summons.md
+    summons_path = os.path.join(out_dir, 'summons.md')
+    summons_content = build_summons_content(guide_text, snapshot, sot_data)
+    with open(summons_path, 'w', encoding='utf-8') as f:
+        f.write(summons_content)
+        
+    # 11. mercenaries.md
+    merc_path = os.path.join(out_dir, 'mercenaries.md')
+    merc_content = build_mercenaries_content(guide_text, snapshot, sot_data)
+    with open(merc_path, 'w', encoding='utf-8') as f:
+        f.write(merc_content)
+        
+    # 12. progression.md
+    prog_path = os.path.join(out_dir, 'progression.md')
+    prog_content = build_progression_content(guide_text, snapshot, sot_data)
+    with open(prog_path, 'w', encoding='utf-8') as f:
+        f.write(prog_content)
+        
     return {
         'README.md': readme_content,
         'classes.md': classes_content,
@@ -847,6 +1495,11 @@ def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
         'characters.md': chars_content,
         'enchantments.md': ench_content,
         'equipment.md': eq_content,
+        'enemies.md': enemies_content,
+        'bosses.md': bosses_content,
+        'summons.md': summons_content,
+        'mercenaries.md': merc_content,
+        'progression.md': prog_content,
     }
 
 
@@ -865,3 +1518,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
