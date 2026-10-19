@@ -15,6 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(HERE)
 SNAPSHOT_PATH = os.path.join(PROJECT, 'build', 'engine_snapshot.json')
 GUIDE_TEXT_PATH = os.path.join(PROJECT, 'data_tables', 'guide_text.xlsx')
+SOT_PATH = os.path.join(PROJECT, 'data_tables', 'vanilla_source_of_truth.xlsx')
 DEFAULT_OUT_DIR = os.path.join(PROJECT, 'docs', 'guide')
 
 MILESTONE_LEVELS = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99]
@@ -81,6 +82,17 @@ def load_guide_text(path=GUIDE_TEXT_PATH):
                 skill_descriptions[(cat, sid)] = entry
                 skill_descriptions[sname] = entry
             
+    formulas = []
+    if 'Formulas' in wb.sheetnames:
+        for row in wb['Formulas'].iter_rows(values_only=True):
+            if row and row[0] != 'Key':
+                formulas.append({
+                    'key': row[0],
+                    'title': row[1] or '',
+                    'formula': row[2] or '',
+                    'summary': row[3] or ''
+                })
+
     return {
         'sections': sections,
         'glossary': glossary,
@@ -91,7 +103,29 @@ def load_guide_text(path=GUIDE_TEXT_PATH):
         'class_meta': class_meta,
         'class_profiles': class_profiles,
         'skill_descriptions': skill_descriptions,
+        'formulas': formulas,
     }
+
+
+def load_source_of_truth(path=SOT_PATH):
+    wb = openpyxl.load_workbook(path, read_only=True)
+    unique_skills = {}
+    if 'UniqueSkills' in wb.sheetnames:
+        for r in list(wb['UniqueSkills'].iter_rows(values_only=True))[1:]:
+            unique_skills[r[1]] = {
+                'name': r[2],
+                'values': r[4:14],
+                'desc': r[21] or ''
+            }
+    weapon_reqs = {}
+    if 'Skills' in wb.sheetnames:
+        for r in list(wb['Skills'].iter_rows(values_only=True))[1:]:
+            cat, sid = r[0], r[2]
+            w_req = r[10]
+            if w_req:
+                weapon_reqs[(cat, sid)] = w_req
+                weapon_reqs[r[3]] = w_req
+    return {'unique_skills': unique_skills, 'weapon_reqs': weapon_reqs}
 
 
 def load_snapshot(side='vanilla', path=SNAPSHOT_PATH):
@@ -325,10 +359,225 @@ def build_classes_content(guide_text, snapshot):
     return '\n'.join(lines)
 
 
+def build_formulas_content(guide_text, snapshot):
+    sec = guide_text['sections']
+    lines = []
+    
+    lines.append(sec['formulas_title']['title'])
+    lines.append('')
+    lines.append(sec['formulas_title']['text'])
+    lines.append('')
+    
+    for f in guide_text.get('formulas', []):
+        lines.append('---')
+        lines.append('')
+        lines.append(f"## {f['title']}")
+        lines.append('')
+        lines.append('```')
+        lines.append(f['formula'])
+        lines.append('```')
+        lines.append('')
+        lines.append(f['summary'])
+        lines.append('')
+        
+    return '\n'.join(lines)
+
+
+def build_skills_content(guide_text, snapshot, sot_data):
+    sec = guide_text['sections']
+    h = guide_text['headers']
+    lines = []
+    
+    lines.append(sec['skills_title']['title'])
+    lines.append('')
+    lines.append(sec['skills_title']['text'])
+    lines.append('')
+    
+    class_names = dict(snapshot['class_names'])
+    skills_list = snapshot['skills']
+    
+    by_category = {'Technique': [], 'Magic': [], 'Passive': []}
+    for s in skills_list:
+        cat = s['category']
+        by_category.setdefault(cat, []).append(s)
+        
+    category_titles = {
+        'Technique': 'Techniques',
+        'Magic': 'Magic Spells',
+        'Passive': 'Passive Skills'
+    }
+    
+    for cat in ['Technique', 'Magic', 'Passive']:
+        cat_skills = by_category.get(cat, [])
+        if not cat_skills:
+            continue
+            
+        lines.append('---')
+        lines.append('')
+        lines.append(f"## {category_titles.get(cat, cat)}")
+        lines.append('')
+        
+        for s in sorted(cat_skills, key=lambda x: x['name']):
+            s_name = s['name']
+            s_id = s['id']
+            max_lv = s['levels']
+            sp_list = s['sp'][:max_lv] if s['sp'] else []
+            total_sp = sum(sp_list)
+            sp_str = f'{total_sp} SP' if total_sp > 0 else '0 SP'
+            
+            tgt_code = s['target'] if s['target'] is not None else -1
+            tgt_str = guide_text['targets'].get(tgt_code, '-')
+            rng_code = s['range'] if s['range'] is not None else -1
+            rng_str = guide_text['ranges'].get(rng_code, '-')
+            
+            classes_str = ', '.join(class_names[c] for c in s['classes']) if s['classes'] else 'None'
+            
+            lines.append('---')
+            lines.append('')
+            lines.append(f"### {s_name}")
+            lines.append('')
+            lines.append(f"- **{h['category']}:** {cat} | **{h['classes']}:** {classes_str}")
+            
+            prop_parts = [
+                f"**{h['max_lv']}:** {max_lv}",
+                f"**{h['sp_cost']}:** {sp_str}"
+            ]
+            if tgt_code != -1:
+                prop_parts.append(f"**{h['target']}:** {tgt_str}")
+            if rng_code != -1:
+                prop_parts.append(f"**{h['range']}:** {rng_str}")
+            lines.append(f"- {' | '.join(prop_parts)}")
+            
+            w_req = sot_data['weapon_reqs'].get((cat, s_id), sot_data['weapon_reqs'].get(s_name, ''))
+            if w_req:
+                lines.append(f"- **Required Weapon:** {w_req}")
+                
+            lines.append('')
+            
+            desc, scaling = guide_text['skill_descriptions'].get((cat, s_id), guide_text['skill_descriptions'].get(s_name, ('', '')))
+            if desc:
+                lines.append(f"> {desc}")
+                lines.append('')
+                
+            if scaling:
+                for sline in scaling.splitlines():
+                    clean_line = sline.strip()
+                    if clean_line:
+                        lines.append(f"- {clean_line}")
+                lines.append('')
+                
+    return '\n'.join(lines)
+
+
+RECRUITMENT_INFO = {
+    'Siena': 'Prologue starting member (St00_0010)',
+    'Luco': 'Prologue starting member (St00_0010)',
+    'Tsurara': 'Defeat Mad Catter (St01_0010, Battle 43)',
+    'Yuni': 'Defeat Sorrowful Songstress (St02_0070, Battle 41)',
+    'Lizerietta': 'Defeat Countess of Vrachia (St03_0010, Battle 43)',
+    'Irena': 'Join event following Countess of Vrachia (St03_0010)',
+    'Yae': 'Defeat Boozehound Samurai (St99_0000, Battle 41)',
+    'Conette': 'Defeat Oh-So-Hime (St04_0011, Battle 42)',
+    'Mefmera': 'Defeat Warden of the Wall (St99_0000, Battle 42)',
+    'Monica': 'Defeat Agent M (St06_0030, Battle 42)',
+    'Eltricia': 'Defeat True Queen Eltricia (St06_0030, Battle 43)',
+    'Souffle': 'Defeat Trafficker Twinny (St07_0010, Battle 45)',
+    'Grishna': 'Defeat Maerchen Little (St08_0010, Battle 43)',
+    'Lilian': 'Defeat Michelle and Beatrice (St09_0015, Battle 42)',
+    'Fiora': 'Defeat Michelle and Beatrice (St09_0015, Battle 42)',
+    'Ist': 'Defeat Spirit of Mag Mell (St11_0010, Battle 42)',
+    'Alisia': 'Defeat Heartless Avenger (St10_0010, Battle 43)',
+    'Melvy': 'Defeat Queen of Darkness (St12_0040, Battle 41)'
+}
+
+
+def format_unique_value(skill_id, val):
+    if skill_id == 364:  # Positive Trance
+        return str(val)
+    if skill_id == 381:  # Yearning
+        return f"+{val}%"
+    if skill_id == 379:  # Arcane Shield
+        if isinstance(val, (int, float)):
+            return f"{round(val * 100):g}%"
+    if isinstance(val, float):
+        if 0 < abs(val) < 1:
+            return f"{round(val * 100):g}%"
+        return f"{val:g}"
+    return str(val)
+
+
+def build_characters_content(guide_text, snapshot, sot_data):
+    sec = guide_text['sections']
+    h = guide_text['headers']
+    lines = []
+    
+    lines.append(sec['characters_title']['title'])
+    lines.append('')
+    lines.append(sec['characters_title']['text'])
+    lines.append('')
+    
+    class_names = dict(snapshot['class_names'])
+    exp_curve = snapshot['exp_curve']
+    unique_skills = sot_data['unique_skills']
+    
+    def get_start_level(exp):
+        cum = 0
+        matched = 1
+        for lvl, step in exp_curve:
+            if lvl > 1:
+                cum += step
+            if exp >= cum:
+                matched = lvl
+            else:
+                break
+        return matched
+
+    chars = sorted(snapshot['characters'], key=lambda x: x['start_exp'])
+    
+    for c in chars:
+        name = c['name']
+        base_cid = c['base_class']
+        base_cname = class_names.get(base_cid, f'Class {base_cid}')
+        start_exp = c['start_exp']
+        start_lvl = get_start_level(start_exp)
+        join_info = RECRUITMENT_INFO.get(name, '-')
+        
+        uid = c['unique_skill']
+        uinfo = unique_skills.get(uid, {'name': f'Skill {uid}', 'values': [], 'desc': ''})
+        uname = uinfo['name']
+        udesc = uinfo['desc']
+        uvals = uinfo['values']
+        
+        lines.append('---')
+        lines.append('')
+        lines.append(f"### {name}")
+        lines.append('')
+        lines.append(f"- **{h['base_class']}:** {base_cname}")
+        lines.append(f"- **{h['start_level']}:** {start_lvl} ({start_exp:,} EXP)")
+        lines.append(f"- **{h['join_point']}:** {join_info}")
+        lines.append('')
+        
+        lines.append(f"#### {h['unique_skill']}: {uname}")
+        lines.append('')
+        if udesc:
+            lines.append(f"> {udesc}")
+            lines.append('')
+            
+        if uvals:
+            lines.append(f"| {h['rank']} | Lv 1 | Lv 2 | Lv 3 | Lv 4 | Lv 5 | Lv 6 | Lv 7 | Lv 8 | Lv 9 | EX |")
+            lines.append('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |')
+            val_strs = [format_unique_value(uid, v) for v in uvals]
+            lines.append(f"| {h['value']} | {' | '.join(val_strs)} |")
+            lines.append('')
+            
+    return '\n'.join(lines)
+
+
 def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
     os.makedirs(out_dir, exist_ok=True)
     guide_text = load_guide_text()
     snapshot = load_snapshot(side=side)
+    sot_data = load_source_of_truth()
     
     # 1. README.md
     readme_path = os.path.join(out_dir, 'README.md')
@@ -342,9 +591,30 @@ def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
     with open(classes_path, 'w', encoding='utf-8') as f:
         f.write(classes_content)
         
+    # 3. formulas.md
+    formulas_path = os.path.join(out_dir, 'formulas.md')
+    formulas_content = build_formulas_content(guide_text, snapshot)
+    with open(formulas_path, 'w', encoding='utf-8') as f:
+        f.write(formulas_content)
+        
+    # 4. skills.md
+    skills_path = os.path.join(out_dir, 'skills.md')
+    skills_content = build_skills_content(guide_text, snapshot, sot_data)
+    with open(skills_path, 'w', encoding='utf-8') as f:
+        f.write(skills_content)
+        
+    # 5. characters.md
+    chars_path = os.path.join(out_dir, 'characters.md')
+    chars_content = build_characters_content(guide_text, snapshot, sot_data)
+    with open(chars_path, 'w', encoding='utf-8') as f:
+        f.write(chars_content)
+        
     return {
         'README.md': readme_content,
-        'classes.md': classes_content
+        'classes.md': classes_content,
+        'formulas.md': formulas_content,
+        'skills.md': skills_content,
+        'characters.md': chars_content,
     }
 
 

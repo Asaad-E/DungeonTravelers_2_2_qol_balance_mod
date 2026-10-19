@@ -37,7 +37,7 @@ class TestGuideGeneration(unittest.TestCase):
         cls.built = build_guide.build_guide(side='vanilla', out_dir=GUIDE_DIR)
 
     def test_files_exist_and_match_disk(self):
-        for filename in ['README.md', 'classes.md']:
+        for filename in ['README.md', 'classes.md', 'formulas.md', 'skills.md', 'characters.md']:
             filepath = os.path.join(GUIDE_DIR, filename)
             self.assertTrue(os.path.exists(filepath), f"{filename} missing from {GUIDE_DIR}")
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -53,7 +53,7 @@ class TestGuideGeneration(unittest.TestCase):
             self.assertNotIn('c:\\users', lower_content, f"Machine path found in {filename}")
             self.assertNotIn('c:/users', lower_content, f"Machine path found in {filename}")
             # Ensure no raw memory addresses in the player guide
-            self.assertNotIn('0x', content, f"Hexadecimal memory address found in {filename}")
+            self.assertIsNone(re.search(r'\b0x[0-9a-fA-F]+\b', content), f"Hexadecimal memory address found in {filename}")
 
     def test_sample_growth_figures_match_snapshot(self):
         classes_md = self.built['classes.md']
@@ -113,6 +113,44 @@ class TestGuideGeneration(unittest.TestCase):
         self.assertIn('| From Paladin | Shield | Shield | +2% |', classes_md)
         self.assertIn('| From Berserker | Weapon | Axe | +2% |', classes_md)
 
+    def test_sample_formulas(self):
+        formulas_md = self.built['formulas.md']
+        self.assertIn('Base Hit     = 0.885 * (100 + Attacker DEX) / (100 + Target AGI) + Skill Accuracy', formulas_md)
+        self.assertIn('Attack A = Base ATK * (2 + Swing)', formulas_md)
+        self.assertIn('Defence A = Target DEF * 1.35 * (1 + Sum of Modifiers)', formulas_md)
+        self.assertIn('Base Damage    = (Attack B * Damage Multiplier) - Defence A', formulas_md)
+        self.assertIn('Base Rate  = (Attacker DEX * 0.2) / (Attacker DEX + Target AGI) * 100', formulas_md)
+        self.assertIn('Base Speed   = (AGI + 100) / 200', formulas_md)
+        self.assertIn('Damage Rate  = Damage Taken / (Target Max HP * 1.5)', formulas_md)
+        self.assertIn('Total at Lv 99   = 685 SP cumulative', formulas_md)
+        self.assertIn('Bonus Cap      = +50 to all eight base attributes (10 resets at Lv 99)', formulas_md)
+
+    def test_sample_skills_full(self):
+        skills_md = self.built['skills.md']
+        self.assertIn('### Provoke', skills_md)
+        self.assertIn('- **Type:** Technique | **Classes:** Fighter, Mistress', skills_md)
+        self.assertIn('### Raging Smash', skills_md)
+        self.assertIn('- **Required Weapon:** Short-range weapon', skills_md)
+        self.assertIn('### Fireball', skills_md)
+        self.assertIn('- **Type:** Magic | **Classes:** Magic User', skills_md)
+        self.assertIn('### Absolute Attack', skills_md)
+        self.assertIn('- **Type:** Passive | **Classes:** Valkyrie', skills_md)
+
+    def test_sample_characters(self):
+        chars_md = self.built['characters.md']
+        self.assertIn('### Siena', chars_md)
+        self.assertIn('- **Base Class:** Magic User', chars_md)
+        self.assertIn('- **Starting Lv:** 1 (0 EXP)', chars_md)
+        self.assertIn('#### Unique Skill: Arcane Shield', chars_md)
+        self.assertIn('50% | 55% | 60% | 65% | 70% | 75% | 80% | 90% | 100% | 200%', chars_md)
+        self.assertIn('### Alisia', chars_md)
+        self.assertIn('- **Base Class:** Fighter', chars_md)
+        self.assertIn('- **Starting Lv:** 41 (179,196 EXP)', chars_md)
+        self.assertIn('Defeat Heartless Avenger (St10_0010, Battle 43)', chars_md)
+        self.assertIn('#### Unique Skill: Positive Trance', chars_md)
+        self.assertIn('10 | 9 | 8 | 7 | 6 | 5 | 4 | 3 | 2 | 1', chars_md)
+
 
 if __name__ == '__main__':
     unittest.main()
+
