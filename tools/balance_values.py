@@ -21,7 +21,8 @@ A row is one value of one record. Each kind of row has its address here, with th
                   its effect 0x50
     party_skills  PartySkillData: the id of its effect 0x4C (the size of a bonus is the program's, by effect)
     npcs          NPC.pck, NPCData of a guest ally at one stage of her growth (tools/npc_data.py): one of the six
-                  stats from 0x20; NPCAIData: the weights of a set of her script
+                  stats from 0x20, the gold of the hire (cost, 0xAC) or the battles of the contract (contract, 0xB0);
+                  NPCAIData: the weights of a set of her script
     summons       Summon.pck, SummonData of one form of a summon (tools/summon_data.py): one of the six factors of its
                   stats from 0x24; SummonAIData: the weights of a set of its script
     enchantments  EnchantData: the flags word 0x20
@@ -385,13 +386,17 @@ def npc_row(packs, row):
     'AI set <n> weights' (columns Vanilla and New: the weights of the slots, separated by spaces), the weights of a set
     of her NPCAIData script, one byte a slot after the set marker (tools/enemy_ai.py)."""
     nid, field = int(str(row['Record']).split()[0]), str(row['Field'])
-    if field not in npc_data.STATS and not re.fullmatch(r'AI set \d+ weights', field):
+    if field not in npc_data.STATS and field not in ('cost', 'contract') and not re.fullmatch(r'AI set \d+ weights', field):
         raise Refused(f'unknown field {field!r} of a guest ally')
     for name, _ in packs.archive(NPC_PCK).files:
         if struct.unpack_from('<i', packs.entry(NPC_PCK, name, NPC_RECORD), NPC_ID)[0] == nid:
             if field in npc_data.STATS:
                 packs.write(row, (NPC_PCK, name, NPC_RECORD, NPC_STATS + 4 * npc_data.STATS.index(field)), 'i',
                             int(row['New']), vanilla=int(row['Vanilla']))
+                return
+            if field in ('cost', 'contract'):
+                # 0xAC the gold of the hire, 0xB0 the battles won the contract lasts (tools/npc_data.py)
+                packs.write(row, (NPC_PCK, name, NPC_RECORD, _L['NPCData'][field]), 'i', int(row['New']), vanilla=int(row['Vanilla']))
                 return
             number_of_set = int(field.split()[2])
             old, new = ([int(x) for x in str(row[c]).split()] for c in ('Vanilla', 'New'))

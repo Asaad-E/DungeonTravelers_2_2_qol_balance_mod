@@ -751,10 +751,10 @@ namespace DtEngine.Suite
             text.Add("");
             text.Add("The reference party at every boss of the story and the postgame where the bar offers her (not only those of the curve), " + profileRuns + " runs a cell with the recorder, with her and without her; "
                      + "the mean of her cells. Actions: hers per battle, and those of the summon beside her. Damage: her share of the damage of the "
-                     + "party side. Healing: hers in a battle against the party's max HP. Members and summon: their damage per unit of time with her against without her. Wins: the change of the share of fights won. Won fights shorter: the length of the won fights only, at the bosses where both sides won " + minWins + " fights or more. Her actions: the share of each.");
+                     + "party side. Healing: hers in a battle against the party's max HP. Members and summon: their damage per unit of time with her against without her. Wins: the change of the share of fights won. Won fights shorter: the length of the won fights only, at the bosses where both sides won " + minWins + " fights or more. Gold a battle: the price of her stage over the battles won of her contract (boss fights do not count; the mean of her cells). Points per 100 gold: wins plus won fights shorter, in points, for each 100 gold a battle she costs: what she gives for her price when she walks a dungeon. Her actions: the share of each.");
             text.Add("");
-            text.Add("| Mercenary | Cells | Actions | Summon's | Damage | Healing | Members | Summon | Wins | Won fights shorter | Her actions |");
-            text.Add("|---|---|---|---|---|---|---|---|---|---|---|");
+            text.Add("| Mercenary | Cells | Actions | Summon's | Damage | Healing | Members | Summon | Wins | Won fights shorter | Gold a battle | Points per 100 gold | Her actions |");
+            text.Add("|---|---|---|---|---|---|---|---|---|---|---|---|---|");
             foreach (var (name, _) in guests)
             {
                 if (!profiled.TryGetValue(name, out var list) || list.Count == 0) continue;
@@ -762,9 +762,16 @@ namespace DtEngine.Suite
                 var uses = new Dictionary<string, double>();
                 foreach (var (_, p) in list) foreach (var (n, s) in p.Uses) uses[n] = uses.GetValueOrDefault(n) + s / list.Count;
                 string acts = string.Join(", ", uses.OrderByDescending(kv => kv.Value).Take(5).Select(kv => kv.Key + " " + Py.Pct(kv.Value, 0)));
+                // her price a battle at each cell: the stage the bar offers there (MercenaryUnlocks), cost over contract
+                var prices = list.Select(x => UnitFactory.GuestStageAt(c.Data(side), c.Setup, name, x.cid)).Where(st => st != null && st.Contract > 0)
+                                 .Select(st => (double)st.Cost / st.Contract).ToList();
+                double gold = prices.Count > 0 ? prices.Average() : double.NaN;
+                double points = 100 * (Mean(p => p.Wins) + (list.Any(x => x.p.LengthRead) ? list.Where(x => x.p.LengthRead).Average(x => x.p.Length) : 0.0));
+                string goldText = double.IsNaN(gold) ? "-" : Py.F(gold, 0);
+                string perGold = double.IsNaN(gold) || gold <= 0 ? "-" : Py.F(points / (gold / 100.0), 1);
                 text.Add("| " + name + " | " + list.Count + " | " + Py.F(Mean(p => p.Actions), 1) + " | " + Py.F(Mean(p => p.SummonActions), 1) + " | "
                          + Py.Pct(Mean(p => p.DamageShare), 0) + " | " + Py.Pct(Mean(p => p.HealShare), 0) + " | " + Py.Pct(Mean(p => p.Members), 0, true) + " | "
-                         + Py.Pct(Mean(p => p.Summon), 0, true) + " | " + Py.Pct(Mean(p => p.Wins), 1, true) + " | " + (list.Any(x => x.p.LengthRead) ? Py.Pct(list.Where(x => x.p.LengthRead).Average(x => x.p.Length), 1, true) : "-") + " | " + acts + " |");
+                         + Py.Pct(Mean(p => p.Summon), 0, true) + " | " + Py.Pct(Mean(p => p.Wins), 1, true) + " | " + (list.Any(x => x.p.LengthRead) ? Py.Pct(list.Where(x => x.p.LengthRead).Average(x => x.p.Length), 1, true) : "-") + " | " + goldText + " | " + perGold + " | " + acts + " |");
                 var row = (Obj)rows.First(r => ((Obj)r).S("guest") == name);
                 row.Set("profile", Jb.L(list.Select(x => (object)new Obj
                 {
