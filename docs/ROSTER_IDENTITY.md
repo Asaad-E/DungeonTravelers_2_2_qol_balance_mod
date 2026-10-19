@@ -140,12 +140,13 @@ books are listed by the level of their first form (the order the story offers th
 - **Kit:** Attack, Silence Sting, Bunmawashi (multi-target), Icicle Thrust (long, freeze); Take Break 30.
 - **Keep:** proud and physical; silence.
 
-### Death Cataphract (46; class weapon modifier 2% UP)
+### Death Cataphract (46; class weapon modifier 2% UP, attack vs. high lvl enemies UP)
 - **Role:** war machine: protects the party (Circle Protect), sweeps a row, fires a cannon at the back.
 - **Niche:** the tank-support summon of the late story.
 - **Personality:** a calculating machine that refuses hopeless orders (st12: "Probability of victory: 0.00%").
 - **Kit:** Attack, Circle Protect (party DEF up), Clean Sweep (row), Buster Cannon (long); Take Break 25.
-- **Keep:** DEF its best factor, Circle Protect. Its enchantment (+2% of a class weapon modifier) is small.
+- **Keep:** DEF its best factor, Circle Protect. Its own enchantment (+2% of a class weapon modifier) is small; the
+  book carries a second one, Attack vs. high lvl enemies UP, for the bosses above the party's level.
 
 ### Sahohime (48; HP recovers while defending)
 - **Role:** spring goddess at a kotatsu: stuns, fire on a row, fire scroll, Sun Veil for the party.
