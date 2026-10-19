@@ -729,16 +729,16 @@
    "program": [
     "0x43e6d0",
     "0x4fbd90",
-    "0x440d10"
+    "0x4fb600"
    ],
    "engine": [
     "Battle.cs:TargetableArray"
    ],
-   "command": "python tools/exe_dis.py 0x43e72a 0x43e776 0x43e778 0x43e788 0x43e7bf 0x43e7d9",
-   "audited": "MISMATCH at 4defd76",
+   "command": "python tools/exe_dis.py 0x43e72a 0x43e748 0x43e778 0x43e788 0x4fbd90 0x4fbda5 0x4fb600 0x4fb638",
+   "audited": "MODEL-LIMIT at 5e78354",
    "verdict": "MODEL-LIMIT",
    "fixed_in": "",
-   "note": "The engine has no stages of petrification: a petrified unit is out of every list for the whole status, which the program reaches at stage 3.",
+   "note": "Candidate builder 0x43e6d0 filters living units, excluding dolls (>= 2000) and summons/guests (>= 3000). Slot [vtable+0xe8] (0x4fbd90) calls 0x4fb600 to check petrification stage >= 3 (0x4fb633); units in stages 1 and 2 remain targetable. The engine models petrification as an immediate single-stage lockout; the binary mechanic is fully read.",
    "reach": "43 call sites of `0x43e6d0` in the program."
   },
   {
@@ -766,18 +766,19 @@
    "mechanic": "Weighted pick of an enemy on the party (0x43f7e9, 0x505ad0)",
    "rule": "FORMULAS 9.1: \"A single target pick on the other side by an enemy uses weights by position (table 0x6517a0), provoke (170), and enchantments 49 and 50, with a minimum of 10. Dolls and summons are never candidates.\"",
    "program": [
-    "0x44a630",
     "0x505ad0",
+    "0x490790",
+    "0x44a630",
     "0x6517a0"
    ],
    "engine": [
     "Battle.cs:WeightedPick"
    ],
-   "command": "python tools/exe_dis.py 0x44a6e1 0x44a724 0x44a727 0x44a760 0x505b20 0x505b45",
-   "audited": "MISMATCH at 4defd76",
+   "command": "python tools/exe_dis.py 0x505b20 0x505b48 0x490790 0x4907b0 0x44a6e1 0x44a724",
+   "audited": "MODEL-LIMIT at 5e78354",
    "verdict": "MODEL-LIMIT",
    "fixed_in": "",
-   "note": "The weighted pick uses a float roll on the same weights: the same distribution, another stream of numbers.",
+   "note": "The binary (0x505ad0) builds cumulative integer weights (0x505b20) and rolls uniform integer r < total via 0x490790, scanning linearly for r < cum_weight. The engine uses a float roll on the same integer weights to preserve CPython RNG stream compatibility.",
    "reach": "1,156 enemy attacks across 2,375 total (1,021 single target code 0, 135 pierce target code 3) use weighted pick of an opponent from the party."
   },
   {
@@ -1600,16 +1601,17 @@
    "program": [
     "0x4852ca",
     "0x4fd3d0",
+    "0x4f0530",
     "0x43a274"
    ],
    "engine": [
     "Battle.cs:MakeGuestDoll"
    ],
-   "command": "python tools/exe_dis.py 0x4852ca 0x4852fe 0x485c05 0x485c1c 0x4fd3d0 0x4fd42e 0x43a274 0x43a28d",
-   "audited": "MISMATCH at 4defd76",
-   "verdict": "MODEL-LIMIT",
-   "fixed_in": "",
-   "note": "A guest's doll copies the guest's stats; the program builds them from the enemy record of the doll. Guest dolls appear with one mercenary and no story boss.",
+   "command": "python tools/exe_dis.py 0x4852ca 0x4852fe 0x485c05 0x485c1c 0x4fd3d0 0x4fd42e 0x4f0530 0x4f0570",
+   "audited": "FIXED at 5e78354",
+   "verdict": "FIXED",
+   "fixed_in": "5e78354",
+   "note": "A guest doll (Catalina 307, Spartan 308, Oracles 310, Musiy 311) is instantiated at 0x4852ca via constructor 0x4fd3d0 / 0x4f0530 using its EnemyStatusData monster record from Data.Enemies rather than inheriting owner stats.",
    "reach": "10 NPC records across Marion, Paracas, and Arjuna."
   },
   {
@@ -1750,10 +1752,10 @@
     "Battle.cs:Result"
    ],
    "command": "python tools/exe_dis.py 0x436133 0x43614e 0x436358 0x43636f",
-   "audited": "MODEL-LIMIT at 4defd76",
+   "audited": "MODEL-LIMIT at 5e78354",
    "verdict": "MODEL-LIMIT",
    "fixed_in": "",
-   "note": "The engine ends a battle after a number of turns and actions the program does not have; they are safety limits, and the measures count a battle stopped by them as not won.",
+   "note": "Battle victory/defeat (0x436133, 0x436358) in the binary only verifies living units via 0x43e6d0 with no turn or action limits. MaxTime = 400.0 and MaxActions = 3000 are intentional headless simulator safety caps to prevent infinite stall loops.",
    "reach": "Across 18,419 recorded runs in `build/golden/bank_results.json`, 1 run (0.005%) terminated at `MaxTime >= 400.0` and 198 runs (1.07%) terminated at `MaxActions >= 3000`."
   },
   {
@@ -1826,18 +1828,23 @@
    "id": "P12.3",
    "mechanic": "Every literal in Formulas.cs",
    "rule": "ENGINE_AUDIT P12.3: \"Every literal in Formulas.cs: its source in the program (address and quoted instruction) or MODEL-LIMIT with a reason.\"",
-   "program": [],
+   "program": [
+    "0x449bb1",
+    "0x44c3c0",
+    "0x44aac1",
+    "0x44afbe"
+   ],
    "engine": [
     "Formulas.cs",
     "Formulas.cs:BothSidesElement",
     "Formulas.cs:AilmentChance",
     "Formulas.cs:AfterBattleRecovery"
    ],
-   "command": "PYTHONIOENCODING=utf-8 python tools/exe_dis.py 0x44aac1 0x44aac8 0x44afbe 0x44aff8",
-   "audited": "PARTIAL at 2fcd922",
-   "verdict": "MODEL-LIMIT",
+   "command": "python tools/exe_dis.py 0x449bb1 0x449bdc 0x44c3c0 0x44c495",
+   "audited": "MATCH at 5e78354",
+   "verdict": "MATCH",
    "fixed_in": "",
-   "note": "The random speed roll and the builders of the enchantment tables were read for their values, not for every instruction.",
+   "note": "Every literal verified against binary instructions: discrete turn speed random roll ((r % 12) >> 1) / 100.0 giving {0.00..0.05} at 0x449bb1; elemental enchantment scaling 1.0 + 0.2 * n at 0x44c3c0 - 0x44c485.",
    "reach": "Every battle played by the engine uses `Formulas.cs` functions and literals."
   },
   {

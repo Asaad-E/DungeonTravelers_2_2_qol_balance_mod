@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 19 of 25 such pairs on the variant, 22 of 29 in vanilla.**
+**A party without the class reaches the floor at 20 of 26 such pairs on the variant, 22 of 29 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -60,3 +60,4 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 72% |
 | C40 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 60% |
 | C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 72% |
+| C40 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 52% |

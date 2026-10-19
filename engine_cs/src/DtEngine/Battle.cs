@@ -515,7 +515,8 @@ namespace DtEngine
                 {
                     int[] choices = { 113, 115, 116, 114, 117, 118, 74 };
                     int effect = choices[Rng.ChoiceIndex(choices.Length)];
-                    if (effect != 74) ApplyAilment(other, unit, effect, 0.75, null);
+                    if (effect == 74) { if (Roll(0.75)) Dispel(unit); }
+                    else ApplyAilment(other, unit, effect, 0.75, null);
                 }
             }
             bool acted = false;
@@ -2600,7 +2601,42 @@ namespace DtEngine
             var list = new List<Unit>();
             foreach (var u in Units) if (u.Owner == owner && u.Kind == Kind.Doll && u.Alive) list.Add(u);
             foreach (var u in list) RemoveDoll(u);
-            var unit = UnitFactory.BuildDoll(owner, doll, level, Data);
+
+            int eid = doll.Effect switch
+            {
+                231 => 307, // Catalina
+                228 => 308, // Spartan
+                229 => 310, // Oracles
+                233 => 311, // Musiy
+                _ => T.NONE
+            };
+
+            Unit unit;
+            if (eid != T.NONE && Data.Enemies.TryGetValue(eid, out var enemy))
+            {
+                unit = new Unit(doll.Name, owner.Side, enemy.Level, UnitFactory.DOLL_HP, 0, enemy.Stats, enemy.Resist, enemy.Weight, enemy.Swing, enemy.Race, Kind.Doll);
+                unit.Owner = owner;
+                unit.Doll = doll;
+                unit.DollLevel = level;
+                unit.AttackRange = doll.Range == "short" ? T.SHORT : doll.Range == "mid" ? T.MID : doll.Range == "long" ? T.LONG : T.SHORT;
+                unit.Front = owner.Front;
+                unit.Attacks = enemy.Attacks;
+                unit.Script = enemy.Script;
+                unit.ImmuneMask = enemy.ImmuneMask;
+                if (enemy.Passives != null)
+                {
+                    foreach (int attackId in enemy.Passives)
+                    {
+                        var attack = Data.GetAttack(attackId);
+                        if (attack != null)
+                            for (int k = 0; k < attack.EffId.Length; k++) unit.SetPassive(attack.EffId[k], attack.EffValue[k], attack.EffIsInt[k]);
+                    }
+                }
+            }
+            else
+            {
+                unit = UnitFactory.BuildDoll(owner, doll, level, Data);
+            }
             unit.Arrow = false;
             unit.Life = life;
             unit.Position = Units.Count;

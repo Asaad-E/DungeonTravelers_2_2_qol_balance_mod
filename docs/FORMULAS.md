@@ -283,7 +283,7 @@ Factor by gap = level of the member - level of the enemy (`0x450734 - 0x45080d`)
   but not exact.
 * The factor looks at the enemy, not at the rest of the party: a member far below the enemies of a floor gets 1.25
   whoever it travels with. `gamedata/progression.py` holds these rules.
-* **[open]** where the bonus fraction and effect 157 come from (a party skill, a meal).
+* The bonus fraction comes from Bard song *Experience Paean* (`MagicSkillData 214`, effect 218 / `0xda`, values 0.16–0.25 across skill levels 1 to 10), passed via `xmm3` at `0x439380` -> `0x443c30` -> `0x445830`. Effect 157 (`0x9d`) is an unused internal status (Command built at `0x47dd9c`, no skill/item/food provides it; replaced by enchantment 275). **[code]**
 * **Size of the figures.** The largest EXP of one enemy is 600,000. With the largest factor of the Balance variant
   (10) and both doublings a member would receive 24,000,000 from it: above 16,777,216, where a single-precision
   number stops holding every whole number, so the last unit of such an amount may be lost (one part in sixteen
@@ -446,8 +446,7 @@ more `EnemyAttackData` entry (`tools/enemy_data.py`, `tools/npc_data.py`).
   each reset adds 5 when it gives up 98 levels or more, 4 from 89, 3 from 79, 2 from 69, 1 from 59, nothing below,
   and the total stops at 50. It is added to HP and TP as to the other six. The three recipes of the player guide
   (atwiki dt2-2 page 79) come out at exactly 50 with these steps. `gamedata/progression.py` holds the rule.
-* The bonus per stat sits at offsets 0xdc onwards of the character. **[open]** what feeds it. The pieces equipped
-  are added afterwards by `0x4f8270` (section 10.1).
+* The bonus per stat at offsets 0xdc onwards of the character (HP 0xdc, TP 0xe0, ATK 0xe4, DEF 0xe8, INT 0xec, RES 0xf0, DEX 0xf4, AGI 0xf8, plus SP at 0x11c/0x124) is the permanent bonus granted by character sub-events. It is initialized to 0 via memset of 0x44 bytes at `0x4f43ea` (`0x4f4380`) and written by the script event opcode handler at `0x4ce0a0` (called by event interpreter `0x4c7620` at `0x4c9d88`), capped at 50 (`0x32`). The pieces equipped are added afterwards by `0x4f8270` (section 10.1). **[code]**
 
 ### 10.1 Stats of a piece of equipment (six getters from `0x4e12a0`) **[code]**
 
@@ -496,7 +495,7 @@ weight = the delay of the weapon rank the form names                        (ord
   Bigfoot 833, Ghast 913, Cupid 754.
 * Its attacks are records of `EnemyAttackData` and its behaviour a script in the format of the enemies (section 9).
 * A summon therefore scales with the best member of the party in each stat, not with its summoner.
-* **[open]** its HP (set after this function, `[vtable+0x108]`).
+* A grand sealbook summon's HP is set to 1 at constructor `0x4ff960` (`[esi+0x10]=1`, `[esi+0xc]=1`). Slot `0x108` (`0x4f2820`), called at `0x500139`, copies the 6 scaled base stats without altering HP. Summon HP never matters in battle: candidate builder `0x43e6d0` explicitly rejects unit IDs 3000..3999 (`0x43e73b - 0x43e747`), so summons are never targeted by any attack, skill, or item, and never take damage. **[code]**
 
 ### 11.1 Dolls (`0x484150` creates them; `tools/doll_data.py`) **[code]**
 
@@ -523,8 +522,7 @@ stats      = the function of a character                                        
   that removes the doll of an owner (`Battle::CBattleBase::DeletePuppetCommand`, `0x43caf0`).
 * With effect 314 on its owner a doll adds to each of its six stats that fraction of the stats of an enemy the code
   picks (`0x4fdfdc - 0x4fe0fa`).
-* **[open]** which class and level the stat function is fed for a doll (it shares its owner's character number,
-  `0x4fd87c`, so the owner's own figures are the likely answer), and when `DeletePuppetCommand` is called.
+* Doll stat calculation (`0x4f5d60`, slot `0x104`) reads level `[doll+4]` (copied from `[owner+4]` at `0x4fd147`), class `[doll+0xa0]` (copied from `[owner+0xa0]` at `0x4f343e`), and previous class `[doll+0xa4]` (copied from `[owner+0xa4]` at `0x4f344a`). Reset bonus `[doll+0x120]` is forced to 0 (`0x4f3316`) and sub-event bonus `[doll+0xdc]` is zeroed (`0x4f340b`). Slot `[vtable+0x108]` (`0x4f7c00`) invokes stat calculation (`0x4f5d60`), class specialty modifiers (`0x4f7c70`), and equipment stats (`0x4f6530`). `DeletePuppetCommand` (`0x43caf0`) is called at creation `0x43c95b` if count reaches limit (1, or 2 with effect 313 Puppet Master), and inside `DeletePuppetIfDoll` (`0x43f320`) when turns expire (effect 147, `0x438dee`) or on unit death/removal (`0x43b75e`). **[code]**
 
 * **Effect 350** (a unique skill) removes **one** doll of the other side, chosen by an even roll among the dolls
   (units 2000 - 2999); it never touches the summon or a guest (engine audit P10.3, 2026-10-18).
@@ -803,7 +801,7 @@ Read on 2026-10-12 (`measures/qol_fields_reading.md` 5 to 7, checked against the
   (not read), so what Berserk or War Cry gave its owner at that moment stays in its ATK.
 * **Did You Call for Me?**: the second action belongs to the same turn, so the statuses of the unit do not lose a
   turn between the two, and a flag keeps it from firing twice in a row.
-* **Third Eye Wide**: its seventh result, the dispel, removes nothing (`0x47ee6f` jumps over the routine).
+* **Third Eye Wide**: its seventh result, the dispel, removes nothing in the original game (`0x47ee6f` jumps over the routine). In the Balance variant, row X16 of the sheet `ExePatches` NOPs out the jump at `0x47ee73`, restoring the buff-stripping dispel on roll 74 at 75% rate.
 * **Murder License** (enemy passive 1580, effect 319), read on 2026-10-12: at step 12 of each turn of its bearer,
   with no roll, an action is built from the attack linked to the status and aimed at one opponent drawn at random
   (`0x43736a - 0x43743a`), and the machine is sent to run it (`0x437488`, the same exit as the item of Overstock

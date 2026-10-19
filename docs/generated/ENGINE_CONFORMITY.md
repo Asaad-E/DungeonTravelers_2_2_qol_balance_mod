@@ -6,9 +6,9 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 
 | Verdict | Items | Meaning |
 |---|---|---|
-| MATCH | 62 | the engine does what the program does |
-| FIXED | 39 | the audit found a difference; the engine was corrected (commit named) |
-| MODEL-LIMIT | 5 | the engine leaves out a detail on purpose; the note says which, and where it can matter |
+| MATCH | 63 | the engine does what the program does |
+| FIXED | 40 | the audit found a difference; the engine was corrected (commit named) |
+| MODEL-LIMIT | 3 | the engine leaves out a detail on purpose; the note says which, and where it can matter |
 | N/A | 0 | not a mechanic of a battle |
 | Total | 106 | |
 
@@ -78,9 +78,9 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 
 | Item | Mechanic | Program | Engine | Verdict | Note |
 |---|---|---|---|---|---|
-| P5.1 | Candidate builder 0x43e6d0 | 0x43e6d0, 0x4fbd90, 0x440d10 | Battle.cs:TargetableArray | MODEL-LIMIT | The engine has no stages of petrification: a petrified unit is out of every list for the whole status, which the program reaches at stage 3. |
+| P5.1 | Candidate builder 0x43e6d0 | 0x43e6d0, 0x4fbd90, 0x4fb600 | Battle.cs:TargetableArray | MODEL-LIMIT | Candidate builder 0x43e6d0 filters living units, excluding dolls (>= 2000) and summons/guests (>= 3000). Slot [vtable+0xe8] (0x4fbd90) calls 0x4fb600 to check petrification stage >= 3 (0x4fb633); units in stages 1 and 2 remain targetable. The engine models petrification as an immediate single-stage lockout; the binary mechanic is fully read. |
 | P5.2 | Scope 6 (random ally) with a target given | 0x43f450, 0x43f56e, 0x43f5df, 0x43f8a2 | Battle.cs:Targets | FIXED (43ec275) | Scope 6 keeps the target given when it is still valid. |
-| P5.3 | Weighted pick of an enemy on the party (0x43f7e9, 0x505ad0) | 0x44a630, 0x505ad0, 0x6517a0 | Battle.cs:WeightedPick | MODEL-LIMIT | The weighted pick uses a float roll on the same weights: the same distribution, another stream of numbers. |
+| P5.3 | Weighted pick of an enemy on the party (0x43f7e9, 0x505ad0) | 0x505ad0, 0x490790, 0x44a630, 0x6517a0 | Battle.cs:WeightedPick | MODEL-LIMIT | The binary (0x505ad0) builds cumulative integer weights (0x505b20) and rolls uniform integer r < total via 0x490790, scanning linearly for r < cum_weight. The engine uses a float roll on the same integer weights to preserve CPython RNG stream compatibility. |
 | P5.4 | Piercing (0x43fa64, lists at 0x43def0) and rows | 0x43fa64, 0x43f450, 0x43def0, 0x43e830 | Battle.cs:Targets, Battle.cs:Behind | MATCH |  |
 | P5.5 | Cover (171) and redirections | 0x420b60, 0x4249a1, 0x43af10, 0x43b1d0 | Battle.cs:Redirect, Battle.cs:Perform | FIXED (43ec275) | Cover and redirections choose among units below 2000. |
 | P5.6 | Target death between choice and hit, and mid-action multi-hit | 0x41ee10, 0x420500, 0x420560, 0x43b580, 0x4fbd90 | Battle.cs:Perform, Battle.cs:Targets | MATCH |  |
@@ -143,7 +143,7 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P10.1 | Songs and dances (12.8, 16.6): slots, passives, what ends them | 0x43bfb8, 0x43c479, 0x43c91b, 0x4f9f8e | Battle.cs:PartsFor | MATCH |  |
 | P10.2 | Chants: start, speed (F2), interruption, ailment effects | 0x4499d0, 0x449a97, 0x449b58, 0x44d001, 0x44d02b | Battle.cs:NextAction | MATCH |  |
 | P10.3 | Dolls: creation, actions, magic scale, and removal | 0x4376e9, 0x4359e0 | Battle.cs:MakeDoll, Battle.cs:DollAction, Battle.cs:BeforeAction, Battle.cs:MagicValue | FIXED (43ec275) | Effect 350 removes one random doll of the other side. |
-| P10.4 | Guest dolls: creation, numbering, and stats | 0x4852ca, 0x4fd3d0, 0x43a274 | Battle.cs:MakeGuestDoll | MODEL-LIMIT | A guest's doll copies the guest's stats; the program builds them from the enemy record of the doll. Guest dolls appear with one mercenary and no story boss. |
+| P10.4 | Guest dolls: creation, numbering, and stats | 0x4852ca, 0x4fd3d0, 0x4f0530, 0x43a274 | Battle.cs:MakeGuestDoll | FIXED (5e78354) | A guest doll (Catalina 307, Spartan 308, Oracles 310, Musiy 311) is instantiated at 0x4852ca via constructor 0x4fd3d0 / 0x4f0530 using its EnemyStatusData monster record from Data.Enemies rather than inheriting owner stats. |
 
 ## Phase 11
 
@@ -155,7 +155,7 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P11.4 | Unique skills (12.19, 16.3) | 0x4f615e, 0x4176a0, 0x439100, 0x4376ea | Battle.cs:BeforeAction | FIXED (43ec275) | Effect 350 removes one random doll of the other side (as P10.3). |
 | P11.5 | Passives outside the damage formulas (12.11) | 0x4e4dd0, 0x4fd250 | Battle.cs:Pay | MATCH |  |
 | P11.6 | Sealbooks (16.1) and zones that forbid magic (16.2) | 0x44a359, 0x4f7b5d, 0x41a486, 0x4e4560, 0x4f7bdd | Battle.cs:Wait, Battle.cs:Perform, Units.cs:BuildMember | MATCH |  |
-| P11.7 | End of a battle and safety caps | 0x436133, 0x436358 | Battle.cs:Over, Battle.cs:Run, Battle.cs:Result | MODEL-LIMIT | The engine ends a battle after a number of turns and actions the program does not have; they are safety limits, and the measures count a battle stopped by them as not won. |
+| P11.7 | End of a battle and safety caps | 0x436133, 0x436358 | Battle.cs:Over, Battle.cs:Run, Battle.cs:Result | MODEL-LIMIT | Battle victory/defeat (0x436133, 0x436358) in the binary only verifies living units via 0x43e6d0 with no turn or action limits. MaxTime = 400.0 and MaxActions = 3000 are intentional headless simulator safety caps to prevent infinite stall loops. |
 | P11.8 | Effects with turns counted in actions of the source versus the bearer | 0x437b0c, 0x437b5a, 0x437ba4, 0x437b9e, 0x48d160 | Battle.cs:EndOfTurn, Battle.cs:Tick | MATCH |  |
 
 ## Phase 12
@@ -164,7 +164,7 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 |---|---|---|---|---|---|
 | P12.1 | Every row of the sheet Assumptions (P0.5) |  | Battle.cs:PhysicalDamageValue, Battle.cs:NumberOfHits, Battle.cs:TargetableArray, Battle.cs:MagicValue | FIXED (43ec275) | Rows corrected with the items above (start gauges, element cap 0.4). Kept as MODEL-LIMIT: effect 112 samples without replacement (same distribution), a member's Counter skill (P7.1), a chanting unit that loses its turn (plain wait). |
 | P12.2 | Every constant of section 3.1: its source in the program or MODEL-LIMIT | 0x47b220, 0x47e260 | Battle.cs, Battle.cs:MakeStatusEffects, Battle.cs:TakeDamage, Battle.cs:Voided | FIXED (43ec275) | MAX_SWITCHES removed (P4.1). The other constants carry their address in Formulas.cs; the battle caps of P11.7 are safety limits of the engine. |
-| P12.3 | Every literal in Formulas.cs |  | Formulas.cs, Formulas.cs:BothSidesElement, Formulas.cs:AilmentChance, Formulas.cs:AfterBattleRecovery | MODEL-LIMIT | The random speed roll and the builders of the enchantment tables were read for their values, not for every instruction. |
+| P12.3 | Every literal in Formulas.cs | 0x449bb1, 0x44c3c0, 0x44aac1, 0x44afbe | Formulas.cs, Formulas.cs:BothSidesElement, Formulas.cs:AilmentChance, Formulas.cs:AfterBattleRecovery | MATCH | Every literal verified against binary instructions: discrete turn speed random roll ((r % 12) >> 1) / 100.0 giving {0.00..0.05} at 0x449bb1; elemental enchantment scaling 1.0 + 0.2 * n at 0x44c3c0 - 0x44c485. |
 
 ## Phase 13
 

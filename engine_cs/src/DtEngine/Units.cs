@@ -101,6 +101,7 @@ namespace DtEngine
         public double UniqueValue;
         public Character Character;
         public int ClassId = T.NONE;
+        public int PreviousClass = T.NONE;
         public bool Defending, StolenGold, StolenItem;     // a gold steal and an item steal each succeed once (0x155, 0x154 of the unit)
         public Dictionary<int, int> Items = new Dictionary<int, int>();
         public bool Adult, Shield;
@@ -545,6 +546,7 @@ namespace DtEngine
             foreach (var use in equipment) if (use.Slot == 1 && data.Equipment[use.EquipId].Category == 1) shield = true;
             unit.Shield = shield;
             unit.ClassId = classId;
+            unit.PreviousClass = previous;
             unit.Front = front;
             if (items != null) unit.Items = new Dictionary<int, int>(items);
             return unit;
@@ -655,7 +657,18 @@ namespace DtEngine
 
         public static Unit BuildDoll(Unit owner, DollRec doll, int level, GameData data)
         {
-            var baseStats = (int[])owner.Base.Clone();
+            int[] baseStats;
+            if (data != null && owner.ClassId != T.NONE)
+            {
+                int row = data.GrowthRowOf(owner.ClassId, owner.PreviousClass);
+                int[] grown = data.Stats(row, owner.Level);
+                baseStats = new int[6];
+                Array.Copy(grown, baseStats, 6);
+            }
+            else
+            {
+                baseStats = (int[])owner.Base.Clone();
+            }
             if (data != null && owner.Has(SOUL_SEAL) && owner.Sealbook != T.NONE && data.Enemies.ContainsKey(owner.Sealbook))
             {
                 var sealed_ = data.Enemies[owner.Sealbook];

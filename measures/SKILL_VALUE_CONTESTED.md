@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**54 nothing shown; 13 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 80).**
+**50 nothing shown; 14 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 77).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -15,13 +15,13 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Blood Rage | attacker | C38: wins +6%, length -7%, HP left +4 points | nothing shown |
 | Brave | dark lord | P24: wins +2%, length -5%, HP left +4 points | nothing shown |
 | Carrot and Stick | mistress | C30: wins +0%, length +4%, HP left -1 points | serves |
-| Catalina | dolls | P24: wins +13%, length -15%, HP left +14 points | serves |
+| Catalina | dolls | C40: wins +13%, length -21%, HP left +13 points | serves |
 | Circle Heal | healer | C30: wins +0%, length +3%, HP left -1 points | nothing shown |
 | Circle Nurse | healer | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Circle Protect | sage | C30: wins +1%, length +0%, HP left +3 points | nothing shown |
 | Clean | maid | C38: wins -5%, length +3%, HP left -5 points | nothing shown |
 | Cleanse | shooter | C40: wins +3%, length -4%, HP left +2 points | nothing shown |
-| Coffee Break | dolls | C40: wins +23%, length +2%, HP left +24 points | serves |
+| Coffee Break | dolls | C40: wins +25%, length +6%, HP left +25 points | serves |
 | Concentration Prelude | maid | C30: wins +0%, length +4%, HP left +0 points | serves |
 | Cook | maid | C40: wins -2%, length +16%, HP left -2 points | serves |
 | Cover | tank | C30: wins +0%, length +1%, HP left +0 points | nothing shown |
@@ -35,7 +35,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Experience Paean | maid | - | out of the fight: EXP, not the fight |
 | Fire Enchant | sage | P24: wins +0%, length -3%, HP left +1 points | nothing shown |
 | First Aid | maid | C38: wins +0%, length +1%, HP left +0 points | nothing shown |
-| Fleet Foot | dolls | C30: wins +1%, length -5%, HP left +2 points | nothing shown |
+| Fleet Foot | dolls | P24: wins +2%, length -2%, HP left +3 points | nothing shown |
 | Freeze | sage | - | see SKILL_AILMENTS.md |
 | Full Heal | healer | C38: wins +5%, length +1%, HP left +5 points | nothing shown |
 | Gloomy Tango | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
@@ -44,21 +44,18 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Heal | healer | C38: wins -4%, length +3%, HP left -1 points | nothing shown |
 | High Risk, High Return | papillon | P24: wins +0%, length +18%, HP left +4 points | serves |
 | Holy Prayer | sage | C38: wins +0%, length -15%, HP left -2 points | nothing shown |
-| Illusion | dolls | C38: wins +3%, length +3%, HP left +6 points | nothing shown |
+| Illusion | dolls | C38: wins +10%, length -4%, HP left +9 points | serves |
 | Insurance | healer | P24: wins -1%, length +4%, HP left -1 points | nothing shown |
 | Item Steal | treasure hunter | - | out of the fight: drops, not the fight |
 | Last Stand | attacker | P24: wins +4%, length -5%, HP left +5 points | nothing shown |
 | Light Scroll | kunoichi | C30: wins +0%, length -4%, HP left +0 points | nothing shown |
 | Lightning Enchant | sage | P24: wins +0%, length -3%, HP left +1 points | nothing shown |
 | Material Guard | tank | C30: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Materialize | dolls | P24: wins +8%, length -8%, HP left +5 points | nothing shown |
 | Mini Circle Nurse | sage | C38: wins +1%, length +0%, HP left +1 points | nothing shown |
 | Moon Curtain | tank | C30: wins +0%, length +1%, HP left +0 points | nothing shown |
 | Nurse | healer | C38: wins +1%, length +5%, HP left +4 points | nothing shown |
-| Oracles | dolls | P24: wins +2%, length -19%, HP left +1 points | nothing shown |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
 | Parry | tank | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Perdurabo | soul summoner | P24: wins +3%, length -10%, HP left +1 points | nothing shown |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Primevil | etoile | C38: wins +3%, length -6%, HP left -2 points | nothing shown |
 | Protect | tank | C30: wins +0%, length -10%, HP left +0 points | nothing shown |
@@ -78,7 +75,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Spell Guard | tank | C40: wins +0%, length +1%, HP left +0 points | nothing shown |
 | Spiritual Fantasia | maid | P24: wins +1%, length +2%, HP left +0 points | nothing shown |
 | Stab Guard | sage | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Star Dust Arrow | shooter | C38: wins +0%, length -29%, HP left -0 points | nothing shown |
+| Star Dust Arrow | shooter | P24: wins +0%, length -30%, HP left -1 points | nothing shown |
 | Stun | sage | - | see SKILL_AILMENTS.md |
 | Sun Veil | sage | P24: wins +3%, length -0%, HP left +3 points | nothing shown |
 | Terrorize | sage | - | see SKILL_AILMENTS.md |
