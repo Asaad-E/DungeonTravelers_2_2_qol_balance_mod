@@ -4,23 +4,23 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 
 | Party skill | Members | Bonus at every proof | Wins | Fights shorter | HP left |
 |---|---|---|---|---|---|
-| Board Members | 3 | dex +20, agi +20 | +4 | +13% | +5 |
-| Vigor Trio | 3 | atk +32 | +3 | +12% | +1 |
-| Vagabonds | 3 | agi +20 | +2 | +12% | +4 |
-| Eccentrics | 3 | agi +20 | +2 | +12% | +4 |
-| Mission Ongoing | 4 | fire +10, atk +20 | +2 | +9% | +1 |
-| Sales Experience | 4 | wind +20, agi +10 | +2 | +5% | +3 |
+| Board Members | 3 | dex +20, agi +20 | +6 | +15% | +8 |
+| Vigor Trio | 3 | atk +32 | +4 | +14% | +4 |
+| Vagabonds | 3 | agi +20 | +3 | +13% | +5 |
+| Eccentrics | 3 | agi +20 | +3 | +13% | +5 |
+| Mission Ongoing | 4 | fire +10, atk +20 | +2 | +11% | +5 |
+| Sales Experience | 4 | wind +20, agi +10 | +1 | +9% | +2 |
 | NegaPosi | 4 | hp +50, tp +50 | +1 | +5% | +2 |
-| The New Magi | 3 | tp +50, fire +20 | +1 | +4% | +2 |
-| Kindred Spirits | 4 | tp +50, fire +20 | +1 | +5% | +2 |
-| Full of Guts | 4 | hp +100 | +2 | +1% | +2 |
-| Graceful Agers | 4 | lightning +20, hp +50 | +1 | +2% | +1 |
-| Celebrities | 3 | lightning +50 | +1 | +1% | +1 |
-| Dark and Light | 3 | res +20 | +1 | +0% | +1 |
-| Flawless Poise | 3 | water +20, earth +20 | +1 | +0% | +1 |
-| Libra Guard | 3 | def +25 | -1 | +1% | -1 |
-| Beyond Human | 3 | stab +20 | +0 | +1% | +0 |
-| Attentive | 3 | int +20 | -0 | +1% | -1 |
-| Royal Squadron | 4 | bash +10, earth +20 | -0 | +1% | +0 |
-| Natural Klutzes | 2 | bash +20 | +0 | -0% | -0 |
-| Veteran Soldiers | 2 | slash +25 | +0 | -0% | -0 |
+| Kindred Spirits | 4 | tp +50, fire +20 | -1 | +6% | +1 |
+| The New Magi | 3 | tp +50, fire +20 | -0 | +5% | +1 |
+| Attentive | 3 | int +20 | +1 | +2% | +2 |
+| Flawless Poise | 3 | water +20, earth +20 | +1 | +1% | +3 |
+| Dark and Light | 3 | res +20 | +1 | +1% | +1 |
+| Full of Guts | 4 | hp +100 | +1 | +1% | +2 |
+| Celebrities | 3 | lightning +50 | +1 | +0% | +2 |
+| Natural Klutzes | 2 | bash +20 | +0 | -0% | +0 |
+| Royal Squadron | 4 | bash +10, earth +20 | -1 | +1% | -0 |
+| Veteran Soldiers | 2 | slash +25 | +0 | -0% | +0 |
+| Graceful Agers | 4 | lightning +20, hp +50 | -1 | +1% | +1 |
+| Libra Guard | 3 | def +25 | -0 | +0% | +1 |
+| Beyond Human | 3 | stab +20 | +0 | -0% | -0 |

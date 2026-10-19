@@ -13,6 +13,9 @@ To install the mod, refer to the main [README.md](../README.md).
 | [philosophy.md](philosophy.md) | Core design principles, variant separation, and engineering standards. |
 | [FORMULAS.md](FORMULAS.md) | Reverse-engineered combat formulas with decompiled executable offsets. |
 | [CLASS_IDENTITY.md](CLASS_IDENTITY.md) | Intended class roles, niches, and skill toolkits across all progression tiers. |
+| [ROSTER_IDENTITY.md](ROSTER_IDENTITY.md) | The role, niche, personality and kit of every summon of a grand sealbook and every mercenary. |
+| [ENGINE_AUDIT.md](ENGINE_AUDIT.md) | The plan of the audit of the combat engine against the executable. |
+| [generated/ENGINE_CONFORMITY.md](generated/ENGINE_CONFORMITY.md) | Its result: every mechanic, its address, its place in the engine and its verdict (generated, checked). |
 | [SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | Tooltip layout guidelines, screen width limits, and formatting standards. |
 | [SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Rationale behind the simulation engine's optimal AI policy for A/B testing. |
 | [dungeontravelers2-2.md](dungeontravelers2-2.md) | Technical reference for binary container formats, memory layouts, and struct offsets. |

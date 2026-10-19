@@ -113,6 +113,7 @@ All gameplay values, rules, and text strings reside in spreadsheets under `data_
 
 * `balance_changes.xlsx`: Contains every modified value with its original figure and rationale.
 * `FORMULAS.md`: Complete reverse-engineered combat formulas with binary function offsets.
+* `docs/generated/ENGINE_CONFORMITY.md`: the engine held against the program, mechanic by mechanic.
 * `engine_cs/`: C# combat engine used to benchmark encounter outcomes across hundreds of simulated party variations.
 
 The build pipeline enforces strict data consistency: if a tooltip number disagrees with the underlying binary data, the build immediately aborts.
@@ -166,6 +167,20 @@ Measures the impact of class and unique skills across multiple party composition
 ![Mercenaries](docs/generated/charts/mercenaries.png)
 
 Evaluates mercenary companions hired alongside Grand Sealbook summons at their respective progression stages. Compares win rate contributions across multiple encounter sets.
+
+![Mercenaries in detail](docs/generated/charts/mercenaries_detail.png)
+
+How each mercenary plays: her actions, her share of the party's damage and healing, and what she adds to wins and to the length of the won fights. The identity each mercenary and each summon keeps is in [docs/ROSTER_IDENTITY.md](docs/ROSTER_IDENTITY.md).
+
+### Grand Sealbooks
+
+![Grand sealbooks](docs/generated/charts/sealbooks.png)
+
+Each grand sealbook carried from the start against no book, read against the median book at the same bosses, by stretch of the game. Books chosen for the map (encounter rate, traps, chests, food) are judged by their summon only.
+
+### Engine Conformity
+
+The combat engine is checked item by item against the game's executable: [docs/generated/ENGINE_CONFORMITY.md](docs/generated/ENGINE_CONFORMITY.md) lists each mechanic, its address in the program, its place in the engine and its verdict (`python tools/engine_conformity.py`, also run as a test).
 
 ---
 

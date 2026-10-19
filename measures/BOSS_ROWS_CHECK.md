@@ -4,16 +4,16 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 
 | Boss | Rows | The game | The variant | Out of the window | Without its rows | Out of the window | Reading |
 |---|---|---|---|---|---|---|---|
-| C10 | atk x1.04; def x1.04; hp x1.15 | 100% / 8.6 / 78% | 100% / 8.7 / 76% | within | 100% / 7.3 / 77% | within | not needed: within without them |
-| C13 | atk x1.05; def x1.05; hp x1.20 | 100% / 9.1 / 75% | 100% / 9.2 / 75% | within | 100% / 7.8 / 76% | within | not needed: within without them |
-| C19 | def x1.20 | 95% / 8.3 / 59% | 99% / 6.9 / 65% | within | 98% / 6.0 / 67% | time | needed |
-| C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.4 / 95% | 100% / 1.4 / 95% | within | 100% / 1.4 / 96% | pressure | needed |
-| C21 | hp x1.30 | 100% / 16.2 / 66% | 100% / 14.7 / 66% | within | 100% / 9.4 / 67% | time | needed |
-| C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.8 / 64% | 100% / 5.4 / 66% | within | 100% / 4.5 / 67% | time | needed |
-| C28 | hp x1.10 | 90% / 11.9 / 36% | 93% / 10.0 / 41% | within | 94% / 8.9 / 43% | time | needed |
-| C30 | atk x0.92; hp x1.26; int x0.92 | 99% / 36.0 / 51% | 100% / 37.9 / 54% | within | 100% / 23.1 / 56% | time | needed |
-| C31 | hp x1.30 | 100% / 17.7 / 72% | 100% / 16.4 / 73% | within | 100% / 11.8 / 75% | time | needed |
-| C34 | def x1.15; hp x1.15 | 100% / 44.2 / 61% | 100% / 37.5 / 60% | within | 100% / 22.3 / 64% | time | needed |
-| C36 | atk x1.20 | 86% / 16.5 / 1% | 84% / 13.8 / 2% | within | 90% / 12.9 / 2% | within | not needed: within without them |
-| C38 | hp x1.15 | 60% / 16.9 / 27% | 90% / 11.8 / 51% | won, time, lowest_hp | 93% / 10.6 / 52% | won, time, lowest_hp | no better with them |
-| C40 | hp x1.20 | 92% / 30.3 / 34% | 98% / 27.5 / 40% | within | 98% / 21.5 / 43% | time | needed |
+| C10 | atk x1.04; def x1.04; hp x1.15 | 100% / 8.3 / 74% | 100% / 8.2 / 72% | within | 100% / 6.9 / 74% | within | not needed: within without them |
+| C13 | atk x1.05; def x1.05; hp x1.20 | 100% / 9.6 / 72% | 100% / 9.5 / 72% | within | 100% / 8.2 / 73% | within | not needed: within without them |
+| C19 | def x1.20 | 92% / 8.4 / 55% | 95% / 6.8 / 58% | within | 96% / 6.1 / 60% | time | needed |
+| C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.5 / 95% | 100% / 1.4 / 94% | within | 100% / 1.3 / 95% | within | not needed: within without them |
+| C21 | hp x1.30 | 100% / 15.4 / 59% | 100% / 15.2 / 61% | within | 100% / 9.9 / 61% | time | needed |
+| C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.7 / 55% | 100% / 5.5 / 57% | within | 100% / 4.5 / 60% | time | needed |
+| C28 | hp x1.10 | 82% / 11.9 / 28% | 88% / 10.4 / 33% | within | 88% / 9.3 / 34% | within | not needed: within without them |
+| C30 | atk x0.92; hp x1.26; int x0.92 | 100% / 19.1 / 48% | 100% / 19.1 / 52% | within | 100% / 14.5 / 51% | within | not needed: within without them |
+| C31 | hp x1.30 | 100% / 17.0 / 72% | 100% / 16.2 / 72% | within | 100% / 11.9 / 75% | time | needed |
+| C34 | def x1.15; hp x1.15 | 100% / 21.3 / 60% | 100% / 22.1 / 60% | within | 100% / 15.8 / 61% | time | needed |
+| C36 | atk x1.20 | 70% / 18.1 / 0% | 76% / 15.2 / 0% | within | 86% / 14.2 / 0% | won | needed |
+| C38 | hp x1.15 | 90% / 11.7 / 46% | 91% / 10.7 / 51% | within | 96% / 9.2 / 55% | within | not needed: within without them |
+| C40 | hp x1.20 | 84% / 25.4 / 31% | 92% / 27.0 / 37% | within | 94% / 21.1 / 40% | within | not needed: within without them |

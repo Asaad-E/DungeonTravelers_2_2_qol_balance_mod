@@ -95,6 +95,22 @@ namespace DtEngine.Suite
             }
         }
 
+        /// <summary>dtcli crown-trial CIDS RUNS CROWN [side]: the reference party of each checkpoint (C01;P27) with a crown bonus, the
+        /// stand-in of the model for what a player prepares for a postgame fight (it adds to every stat and resistance); the readings of
+        /// the rows of the guide curve marked "preparation gap" (sheet AuditReadings).</summary>
+        public static void CrownTrial(Ctx c, string[] a)
+        {
+            var cids = a[0].Split(';'); int runs = int.Parse(a[1]); int crown = int.Parse(a[2]);
+            string side = a.Length > 3 ? a[3] : "vanilla";
+            foreach (var cid in cids)
+            {
+                var res = c.Run(Jb.Make(c, side, cid, runs: runs, crown: crown, name: "crown|" + cid + "|" + crown));
+                var won = res.Runs.Where(r => r.Won).ToList();
+                Trials.Say(c, cid + " | " + side + " | crown " + crown + " | won " + Py.Pct((double)won.Count / res.Runs.Length, 0) + " | length "
+                           + Py.F(won.Count > 0 ? won.Average(r => r.Time) : 0, 1));
+            }
+        }
+
         /// <summary>dtcli unique-gear-trial [runs]: at every checkpoint from the first that gives a unique piece (sheet UniqueGear) to the
         /// last, the reference party with its unique pieces against the same party in the forged pieces of its plan (chosen enchantments,
         /// sheet EnchantPlan) in their place; the register row S16 (a forged piece beats the unique ones).</summary>
