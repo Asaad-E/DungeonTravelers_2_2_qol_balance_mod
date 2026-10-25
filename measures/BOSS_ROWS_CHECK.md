@@ -11,12 +11,14 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 | C19 | def x1.20 | 92% / 9.1 / 53% | 95% / 7.7 / 57% | within | 97% / 6.8 / 59% | time | needed |
 | C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.5 / 95% | 100% / 1.5 / 94% | within | 100% / 1.3 / 95% | within | not needed: within without them |
 | C21 | hp x1.30 | 100% / 17.3 / 59% | 100% / 16.8 / 60% | within | 100% / 10.5 / 61% | time | needed |
-| C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 7.2 / 55% | 100% / 5.9 / 57% | within | 100% / 4.7 / 61% | time | needed |
+| C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 7.2 / 55% | 100% / 5.9 / 57% | within | 100% / 4.8 / 61% | time | needed |
+| C26 | atk x1.05; hp x1.05 | 96% / 12.3 / 52% | 100% / 9.6 / 60% | within | 100% / 9.6 / 60% | within | not needed: within without them |
+| C27 | atk x1.05; hp x1.05 | 100% / 4.5 / 85% | 100% / 3.7 / 87% | within | 100% / 3.7 / 87% | within | not needed: within without them |
 | C28 | hp x1.10 | 82% / 12.8 / 29% | 87% / 11.4 / 31% | within | 88% / 10.4 / 33% | within | not needed: within without them |
-| C29 | hp x1.30 | 84% / 66.7 / 36% | 68% / 65.5 / 33% | won | 88% / 45.2 / 44% | time | no better with them |
+| C29 | atk x0.90; hp x1.30 | 84% / 66.7 / 36% | 63% / 62.3 / 32% | won | 76% / 52.7 / 39% | within | not needed: within without them |
 | C30 | atk x0.92; hp x1.26; int x0.92 | 100% / 20.6 / 47% | 100% / 21.2 / 50% | within | 100% / 15.8 / 51% | within | not needed: within without them |
-| C31 | atk x1.10; hp x1.15; hp x1.30 | 100% / 18.2 / 72% | 100% / 17.7 / 72% | within | 100% / 12.7 / 75% | time | needed |
-| C32 | atk x1.10; hp x1.15 | 73% / 21.6 / 24% | 90% / 14.5 / 34% | won, time, lowest_hp | 90% / 14.5 / 34% | won, time, lowest_hp | no better with them |
+| C31 | atk x1.05; hp x1.05; hp x1.30 | 100% / 18.2 / 72% | 100% / 17.9 / 72% | within | 100% / 12.7 / 75% | time | needed |
+| C32 | atk x1.05; hp x1.05 | 73% / 21.6 / 24% | 90% / 14.5 / 34% | won, time, lowest_hp | 90% / 14.5 / 34% | won, time, lowest_hp | no better with them |
 | C34 | def x1.15; hp x1.15 | 100% / 23.1 / 59% | 100% / 25.0 / 59% | within | 100% / 17.2 / 62% | time | needed |
 | C35 | hp x1.20 | 88% / 12.2 / 36% | 90% / 13.0 / 36% | within | 92% / 11.1 / 38% | within | not needed: within without them |
 | C36 | atk x1.20 | 64% / 20.0 / 0% | 71% / 17.1 / 0% | within | 84% / 15.9 / 0% | won | needed |
