@@ -38,13 +38,25 @@ RELEASE_DIR = os.path.join(BASE_DIR, 'installer')
 README_NAMES = {'qol': 'README_QoL.txt', 'balance': 'README_Balance.txt'}
 PATCH_SETS = {'balance': 'balance'}                   # variant -> set of the sheet ExePatches its program patch holds
 PATCH_SCRIPT = 'mod_patch.ps1'
+PATCH_SCRIPT_PY = 'mod_patch.py'
 from game_profile import PROFILE                          # noqa: E402
 MOD_DIR = PROFILE['mod_folder']
 PREFIX = PROFILE['package_prefix']
 UNINSTALL = f'Uninstall_{MOD_DIR}.bat'
+UNINSTALL_SH = f'Uninstall_{MOD_DIR}.sh'
 END = chr(13) + chr(10)                               # a .bat wants the line ends of Windows
 LAUNCHER = ('@echo off' + END + 'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0' + MOD_DIR + chr(92)
             + PATCH_SCRIPT + '" {args}' + END + 'pause' + END)
+LAUNCHER_SH = ('#!/usr/bin/env bash\n'
+               'cd "$(dirname "$0")" || exit 1\n'
+               'if command -v python3 >/dev/null 2>&1; then\n'
+               f'    python3 "{MOD_DIR}/mod_patch.py" {{args}}\n'
+               'elif command -v python >/dev/null 2>&1; then\n'
+               f'    python "{MOD_DIR}/mod_patch.py" {{args}}\n'
+               'else\n'
+               '    echo "Error: Python 3 is required to run this installer."\n'
+               'fi\n'
+               'read -p "Press Enter to exit..."\n')
 WINDOW, STEP = 16, 4                                  # a run of the original is looked for by blocks of this size
 COPY, TAKE = 0, 1
 
@@ -176,7 +188,19 @@ def package(variant, out_dir=DIST_DIR, stamp=None):
     with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
         z.writestr(f'Install_{title}.bat', LAUNCHER.format(args=f'install {variant}'))
         z.writestr(UNINSTALL, LAUNCHER.format(args='uninstall'))
+
+        sh_install = zipfile.ZipInfo(f'Install_{title}.sh')
+        sh_install.external_attr = 0o755 << 16
+        z.writestr(sh_install, LAUNCHER_SH.format(args=f'install {variant}'))
+
+        sh_uninstall = zipfile.ZipInfo(UNINSTALL_SH)
+        sh_uninstall.external_attr = 0o755 << 16
+        z.writestr(sh_uninstall, LAUNCHER_SH.format(args='uninstall'))
+
         z.write(os.path.join(RELEASE_DIR, PATCH_SCRIPT), f'{MOD_DIR}/{PATCH_SCRIPT}')
+        patch_py = os.path.join(RELEASE_DIR, PATCH_SCRIPT_PY)
+        if os.path.exists(patch_py):
+            z.write(patch_py, f'{MOD_DIR}/{PATCH_SCRIPT_PY}')
         z.write(readme, f'{MOD_DIR}/README.txt')
         z.writestr(f'{MOD_DIR}/{variant}.txt', chr(10).join(lines) + chr(10))
         z.writestr(f'{MOD_DIR}/{variant}.ops', ops)
