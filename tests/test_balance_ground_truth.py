@@ -416,7 +416,7 @@ class ExePatches(unittest.TestCase):
             first = targets[0][0]
             rows = exe_patch.patches('balance')
             done = exe_patch.install('balance', targets)
-            self.assertEqual([d[2] for d in done], [26] * len(targets))
+            self.assertEqual([d[2] for d in done], [27] * len(targets))
             for label, path, copy in targets:
                 self.assertEqual(exe_patch.sha(copy), exe_patch.sha(vanilla[label]))
                 self.assertEqual(exe_patch.problems(Exe(path), rows, expect='new'), [])

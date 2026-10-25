@@ -323,9 +323,9 @@ def build():
     data.growth = class_data.growth()
     data.class_names = class_data.class_names()
     try:
-        data.class_modifiers = class_modifier_data.class_modifiers(exe) if (exe and exe.data) else {}
+        data.class_modifiers = class_modifier_data.class_modifiers(exe)
     except Exception:
-        data.class_modifiers = {}
+        data.class_modifiers = class_modifier_data.class_modifiers()
     data.characters = character_data.characters()
     data.floors = floor_data.floors()
     data.fixed = floor_data.fixed_battles()

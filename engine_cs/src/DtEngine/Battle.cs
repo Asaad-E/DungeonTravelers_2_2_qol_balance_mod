@@ -1500,8 +1500,8 @@ namespace DtEngine
                 Unit wall = DemonWallOf(target, action.Actor);
                 if (wall != null) amount = Math.Max(0, PyMath.Int(amount + amount * wall.Value(DEMON_WALL)));
                 var actor = action.Actor;
-                if (!action.Magic && actor.HasUnique && actor.UniqueEffect == 440 && actor.Pep > 100)
-                    amount += PyMath.Int(amount * (actor.Pep - 100) / Math.Max(1.0, actor.UniqueValue) / 100.0);
+                if (!action.Magic && actor.HasUnique && actor.UniqueEffect == 440 && actor.Pep > 85)
+                    amount += PyMath.Int(amount * (actor.Pep - 85) / Math.Max(1.0, actor.UniqueValue) / 100.0);
             }
             if (target.St[116] != null && !special) amount = amount * F.SLEEP_NUM / F.SLEEP_DEN;
             if (!special && action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) amount += PyMath.Int(amount * F.AILING_SHARE);
@@ -1594,8 +1594,8 @@ namespace DtEngine
                 if (any) other += min;
             }
             // Positive Trance is an integer step after the cut (0x44ccb2, P6.9 of the audit); the expectation keeps it in the bonus
-            if (expect && unit.HasUnique && unit.UniqueEffect == 440 && unit.Pep > 100)
-                other += (unit.Pep - 100) / Math.Max(1.0, unit.UniqueValue) / 100.0;
+            if (expect && unit.HasUnique && unit.UniqueEffect == 440 && unit.Pep > 85)
+                other += (unit.Pep - 85) / Math.Max(1.0, unit.UniqueValue) / 100.0;
             if (action.Has(136)) other += action.Val(136, 0) * index;
             if (action.Has(DARK_QUEST) || unit.Has(DARK_QUEST))
                 other += First(action, unit, DARK_QUEST) * CountAilments(unit);
