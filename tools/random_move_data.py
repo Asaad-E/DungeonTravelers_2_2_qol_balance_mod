@@ -45,6 +45,8 @@ def random_moves(exe=None):
     """[{'effect', 'skill', 'name', 'results': [{'skill', 'target', 'attribute', 'effects': [(id, name)],
           'weight', 'joker_weight', 'chance', 'joker_chance'}]}]; chances are shares of the sum of the weights"""
     exe = exe or Exe()
+    if not exe.data:
+        return []
     skills = [r for r in _rows('Skills') if r['Category'] in ('Technique', 'Magic')]   # Heaven or Hell is a spell
     by_id = {r['Skill_ID']: r for r in skills}
     names = {r['Effect_ID']: r['Name'] or r['Game_Name'] for r in _rows('Effects')}

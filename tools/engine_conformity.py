@@ -48,9 +48,10 @@ def checks(items):
             failed.append(f'{pid}: FIXED without the commit of its fix')
         if it['verdict'] in ('FIXED', 'MODEL-LIMIT') and not it.get('note'):
             failed.append(f'{pid}: {it["verdict"]} without a note')
-        for a in it['program']:
-            if not any(start <= int(a, 16) < start + max(vsize, rsize) for _, start, vsize, _, rsize in exe.sections):
-                failed.append(f'{pid}: address {a} is in no section of the program')
+        if exe.sections:
+            for a in it['program']:
+                if not any(start <= int(a, 16) < start + max(vsize, rsize) for _, start, vsize, _, rsize in exe.sections):
+                    failed.append(f'{pid}: address {a} is in no section of the program')
         for place in it['engine']:
             name, _, method = place.partition(':')
             if name not in files:

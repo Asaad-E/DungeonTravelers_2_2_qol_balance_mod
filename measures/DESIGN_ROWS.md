@@ -4,7 +4,7 @@ The game as it is. Each section answers the test its row of the register names.
 
 ## J17 Area damage spikes
 
-The reference party at the 40 boss fights of the story, 30 battles each, guards and Cover played as its policy has them. The largest damage one enemy action did to one member, against the max HP of the frailest member: at least once above her whole HP in 20 fights, and in the median battle in 12 (C16, C26, C27, C29, C31, C32, C35, C36, C37, C38, C39, C40). The action may be an area attack or several hits on one member.
+The reference party at the 40 boss fights of the story, 30 battles each, guards and Cover played as its policy has them. The largest damage one enemy action did to one member, against the max HP of the frailest member: at least once above her whole HP in 20 fights, and in the median battle in 14 (C16, C26, C27, C29, C30, C31, C32, C33, C35, C36, C37, C38, C39, C40). The action may be an area attack or several hits on one member.
 
 | Boss | Median largest hit / HP of the frailest | Largest seen | Median / mean HP of the party | Wins |
 |---|---|---|---|---|
@@ -13,30 +13,30 @@ The reference party at the 40 boss fights of the story, 30 battles each, guards 
 | C11 | 80% | 88% | 65% | 100% |
 | C12 | 67% | 96% | 54% | 100% |
 | C13 | 92% | 107% | 76% | 100% |
-| C14 | 93% | 94% | 77% | 100% |
+| C14 | 93% | 95% | 77% | 100% |
 | C16 | 103% | 106% | 83% | 100% |
 | C17 | 84% | 85% | 70% | 100% |
-| C19 | 60% | 90% | 49% | 93% |
+| C19 | 60% | 90% | 49% | 90% |
 | C21 | 75% | 79% | 61% | 100% |
-| C22 | 90% | 160% | 73% | 100% |
+| C22 | 93% | 143% | 75% | 100% |
 | C24 | 76% | 76% | 61% | 100% |
-| C25 | 99% | 138% | 80% | 100% |
-| C26 | 117% | 212% | 95% | 100% |
-| C27 | 115% | 249% | 86% | 100% |
-| C28 | 95% | 217% | 72% | 93% |
-| C29 | 116% | 152% | 87% | 73% |
+| C25 | 94% | 138% | 76% | 100% |
+| C26 | 117% | 203% | 95% | 97% |
+| C27 | 114% | 249% | 86% | 100% |
+| C28 | 89% | 218% | 67% | 83% |
+| C29 | 119% | 153% | 90% | 80% |
 | C29a | 78% | 80% | 59% | 100% |
-| C30 | 99% | 141% | 75% | 100% |
-| C31 | 118% | 156% | 89% | 100% |
-| C32 | 150% | 198% | 113% | 90% |
-| C33 | 99% | 165% | 75% | 100% |
-| C34 | 89% | 120% | 66% | 100% |
-| C35 | 133% | 193% | 99% | 87% |
-| C36 | 168% | 180% | 125% | 90% |
-| C37 | 113% | 167% | 84% | 100% |
-| C38 | 145% | 175% | 107% | 90% |
-| C39 | 154% | 157% | 114% | 80% |
-| C40 | 155% | 178% | 114% | 70% |
+| C30 | 106% | 142% | 80% | 100% |
+| C31 | 121% | 156% | 91% | 100% |
+| C32 | 152% | 198% | 114% | 87% |
+| C33 | 117% | 157% | 88% | 100% |
+| C34 | 83% | 116% | 62% | 100% |
+| C35 | 134% | 193% | 100% | 93% |
+| C36 | 168% | 208% | 125% | 87% |
+| C37 | 126% | 177% | 94% | 97% |
+| C38 | 122% | 175% | 90% | 83% |
+| C39 | 152% | 178% | 113% | 77% |
+| C40 | 141% | 176% | 104% | 77% |
 
 Fights where no hit reached 75% of her HP are left out of the table.
 
@@ -46,10 +46,10 @@ Boss fights that stand on a cell that forbids magic: C29a, P07, P13, P25, P47. S
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
-| Dual-Support | 100% | 45% | 0% | 5% | 0% |
-| Mage-Heavy | 94% | 0% | 0% | 0% | 0% |
-| Juggernaut | 99% | 48% | 0% | 6% | 0% |
-| Juggernaut-Plus | 94% | 25% | 0% | 0% | 0% |
+| Dual-Support | 100% | 31% | 0% | 2% | 0% |
+| Mage-Heavy | 93% | 0% | 0% | 0% | 0% |
+| Juggernaut | 100% | 48% | 1% | 6% | 0% |
+| Juggernaut-Plus | 91% | 19% | 0% | 0% | 0% |
 | Anti-Meta | 0% | 0% | 0% | 0% | 0% |
 | Anti-Meta-Plus | 4% | 0% | 0% | 0% | 0% |
 
@@ -57,10 +57,10 @@ The same party with and without her:
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
-| Meta | 100% | 100% | 3% | 74% | 0% |
-| Meta, an attacker in her place | 100% | 84% | 0% | 26% | 0% |
-| Dual-Support | 100% | 45% | 0% | 5% | 0% |
-| Dual-Support, she in the place of the shooter | 100% | 8% | 3% | 7% | 0% |
+| Meta | 100% | 100% | 3% | 65% | 0% |
+| Meta, an attacker in her place | 99% | 83% | 0% | 29% | 0% |
+| Dual-Support | 100% | 31% | 0% | 2% | 0% |
+| Dual-Support, she in the place of the shooter | 100% | 6% | 1% | 11% | 0% |
 
 ## S14 Harmful map zones
 
@@ -110,10 +110,10 @@ Shop prices: Croissant 90, Danish 450, Egg Sandwich 180, Gateau Au Chocolat 600.
 | South Pole Shaved Ice | 260 | Water Enchant Lv5: 10 turns, 50 steps |
 | Miracle Shake | 620 | Divine Shield Lv5: 4 turns, 20 steps |
 | Raspberry Supreme | 840 | Aim Lv10: 9 turns, 45 steps |
-| 31-Layer Ice Cream | 1000 | Circle Protect Lv5: 8 turns, 40 steps; Accelerator Lv5: 3 turns, 15 steps |
+| 31-Layer Ice Cream | 1000 | Protect Lv5: 9 turns, 45 steps; Accelerator Lv5: 3 turns, 15 steps |
 | Mapo Ramen | 80 | Fire Enchant Lv5: 10 turns, 50 steps |
-| Mega-Meaty Ramen | 380 | Circle Brave Lv5: 8 turns, 40 steps |
-| Ramen Carbonara | 520 | Circle Protect Lv5: 8 turns, 40 steps; Fleet Foot Lv10: 6 turns, 30 steps |
-| Ultimate Champon | 980 | Stab Guard Lv5: 8 turns, 40 steps; Slash Guard Lv5: 8 turns, 40 steps; Bash Guard Lv5: 8 turns, 40 steps |
+| Mega-Meaty Ramen | 380 | Brave Lv5: 9 turns, 45 steps |
+| Ramen Carbonara | 520 | Protect Lv5: 9 turns, 45 steps; Fleet Foot Lv10: 6 turns, 30 steps |
+| Ultimate Champon | 980 | Stab Guard Lv5: 8 turns, 40 steps |
 | Heaven's Ramen | 1280 | Insurance Lv5: 10 turns, 50 steps |
 

@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 20 of 26 such pairs on the variant, 22 of 29 in vanilla.**
+**A party without the class reaches the floor at 20 of 26 such pairs on the variant, 21 of 29 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -18,46 +18,46 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C10 | variant | Bard | 80% | Meta with etoile for diva | 100% |
 | C13 | vanilla | Bard | 50% | Meta with etoile for diva | 100% |
 | C13 | variant | Bard | 50% | Meta with etoile for diva | 100% |
-| C17 | vanilla | Bard | 50% | Meta with etoile for diva | 65% |
-| C17 | variant | Bard | 50% | Meta with etoile for diva | 95% |
+| C17 | vanilla | Bard | 50% | Meta with etoile for diva | 57% |
+| C17 | variant | Bard | 50% | Meta with etoile for diva | 98% |
 | C18 | vanilla | Bard | 20% | Meta with etoile for diva | 100% |
 | C18 | variant | Bard | 20% | Meta with etoile for diva | 100% |
 | C19 | vanilla | Diva | 50% | Meta with etoile for diva | 97% |
 | C19 | variant | Diva | 50% | Meta with etoile for diva | 93% |
-| C21 | vanilla | Diva | 80% | Meta with etoile for diva | 93% |
-| C21 | variant | Diva | 80% | Meta with etoile for diva | 97% |
+| C21 | vanilla | Diva | 80% | Meta with etoile for diva | 97% |
+| C21 | variant | Diva | 80% | Meta with etoile for diva | 98% |
 | C24 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
 | C24 | variant | Diva | 80% | Meta with etoile for diva | 100% |
-| C26 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
+| C26 | vanilla | Diva | 80% | Meta with etoile for diva | 98% |
 | C26 | variant | Diva | 80% | Meta with etoile for diva | 98% |
-| C28 | vanilla | Diva | 50% | Meta with etoile for diva | 55% |
-| C28 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 68% |
-| C28 | variant | Diva | 50% | Meta with etoile for diva | 87% |
-| C29 | vanilla | Diva | 50% | Meta with etoile for diva | 78% |
-| C29 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 85% |
-| C29 | variant | Diva | 50% | Meta with etoile for diva | 65% |
+| C28 | vanilla | Diva | 50% | Meta with etoile for diva | 52% |
+| C28 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 63% |
+| C28 | variant | Diva | 50% | Meta with etoile for diva | 88% |
+| C29 | vanilla | Diva | 50% | Meta with etoile for diva | 72% |
+| C29 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 80% |
+| C29 | variant | Diva | 50% | Meta with etoile for diva | 50% |
 | C30 | vanilla | Diva | 50% | Meta with etoile for diva | 92% |
-| C30 | variant | Diva | 50% | Meta with etoile for diva | 98% |
-| C32 | vanilla | Dark Lord | 80% | Meta with attacker for dark lord | 87% |
-| C32 | vanilla | Diva | 80% | Meta with mistress for diva | 72% **below** |
-| C32 | vanilla | Papillon | 80% | Meta with joker for papillon | 82% |
-| C32 | vanilla | Treasure Hunter | 80% | Meta with shooter for treasure hunter | 87% |
-| C32 | vanilla | Valkyrie | 80% | Meta with attacker for valkyrie | 42% **below** |
-| C32 | variant | Diva | 80% | Meta with etoile for diva | 83% |
-| C32 | variant | Valkyrie | 80% | Mage-Heavy with attacker for tank | 70% **below** |
+| C30 | variant | Diva | 50% | Meta with etoile for diva | 100% |
+| C32 | vanilla | Dark Lord | 80% | Meta with attacker for dark lord | 83% |
+| C32 | vanilla | Diva | 80% | Meta with mistress for diva | 62% **below** |
+| C32 | vanilla | Papillon | 80% | Meta with attacker for papillon | 82% |
+| C32 | vanilla | Treasure Hunter | 80% | Meta with shooter for treasure hunter | 78% **below** |
+| C32 | vanilla | Valkyrie | 80% | Meta with attacker for valkyrie | 37% **below** |
+| C32 | variant | Dark Lord | 80% | Meta with attacker for dark lord | 92% |
+| C32 | variant | Diva | 80% | Meta with mistress for diva | 88% |
+| C32 | variant | Papillon | 80% | Meta with joker for papillon | 87% |
+| C32 | variant | Treasure Hunter | 80% | Meta with shooter for treasure hunter | 83% |
+| C32 | variant | Valkyrie | 80% | Meta with kunoichi for valkyrie | 53% **below** |
 | C34 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
 | C34 | variant | Diva | 80% | Meta with etoile for diva | 100% |
-| C36 | vanilla | Diva | 50% | Meta with mistress for diva | 32% **below** |
-| C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 65% |
-| C36 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 87% |
-| C36 | variant | Diva | 50% | Meta with mistress for diva | 37% **below** |
-| C36 | variant | Papillon | 50% | Meta with joker for papillon | 67% |
-| C36 | variant | Treasure Hunter | 50% | Meta with shooter for treasure hunter | 60% |
-| C36 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 82% |
-| C38 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 100% |
-| C38 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 92% |
-| C38 | variant | Diva | 80% | Meta with etoile for diva | 80% |
-| C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 72% |
-| C40 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 60% |
+| C36 | vanilla | Diva | 50% | Meta with mistress for diva | 20% **below** |
+| C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 57% |
+| C36 | variant | Diva | 50% | Meta with mistress for diva | 17% **below** |
+| C36 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 68% |
+| C38 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 93% |
+| C38 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 93% |
+| C38 | variant | Diva | 80% | Meta with mistress for diva | 82% |
+| C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 63% |
+| C40 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 53% |
 | C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 72% |
-| C40 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 52% |
+| C40 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 63% |

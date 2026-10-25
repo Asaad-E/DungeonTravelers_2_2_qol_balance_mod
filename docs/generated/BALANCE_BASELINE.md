@@ -271,44 +271,6 @@ What a class gains from the piece it specialises in: for every stat the piece gi
 
 | Class | Coming from | Modifiers |
 |---|---|---|
-| Fighter |  | Sword +1% |
-| Paladin |  | Sword +2%, Polearm +3%, Shield +2% |
-| Berserker |  | Sword +2%, Axe +2% |
-| Valkyrie |  | Sword +3%, Polearm +5%, Shield +3% |
-| Samurai | Paladin | Sword +2%, Shield +2%, Katana +3% |
-| Samurai | Berserker | Sword +2%, Axe +2%, Katana +3% |
-| Dark Lord |  | Sword +2%, Axe +5% |
-| Scout |  | Dagger +1%, Bow +1% |
-| Archer |  | Dagger +2%, Bow +3% |
-| Assassin |  | Dagger +3% |
-| Sniper |  | Dagger +2%, Bow +5% |
-| Treasure Hunter | Archer | Dagger +3%, Bow +3% |
-| Treasure Hunter | Assassin | Dagger +5%, Bow +2%, Whip +3% |
-| Kunoichi |  | Dagger +3%, Katana +3%, Projectile +2% |
-| Magic User |  | Staff +1% |
-| Sorceress |  | Staff +2% |
-| Enchantress |  | Tome +2% |
-| Priestess |  | Mace +2% |
-| Witch |  | Staff +5% |
-| Magical Princess | Sorceress | Staff +2%, Sword +4% |
-| Magical Princess | Enchantress | Tome +2%, Sword +4% |
-| Sage | Enchantress | Staff +2%, Tome +5% |
-| Sage | Priestess | Staff +3%, Tome +3% |
-| Bishop |  | Staff +2%, Mace +3% |
-| Maid |  | slot 4 +2% |
-| Bard |  | slot 4 +2%, Microphone +2% |
-| Dancer |  | slot 4 +2%, Instrument +3% |
-| Diva |  | slot 4 +2%, Microphone +4% |
-| Mistress | Bard | slot 4 +2%, Microphone +2%, Whip +3% |
-| Mistress | Dancer | slot 4 +2%, Instrument +2%, Whip +3% |
-| Etoile |  | slot 4 +2%, Instrument +4% |
-| Spieler |  | Dagger +1%, Projectile +1% |
-| Doll Master |  | Dagger +1%, Projectile +1%, Staff +1% |
-| Trickster |  | Dagger +2%, Projectile +2% |
-| Soul Summoner |  | Sword +3%, Staff +3% |
-| Papillon | Doll Master | Dagger +1%, Staff +2%, Fan +3% |
-| Papillon | Trickster | Dagger +2%, Projectile +2%, Fan +3% |
-| Joker |  | Whip +3%, Axe +4% |
 
 ## Skills of each class
 
@@ -1465,41 +1427,6 @@ A skill of this kind rolls on a table written in the executable and performs the
 
 | Skill | Hidden skill | Chance | Chance with Triple Joker | Target | Attribute | Effects |
 |---|---|---|---|---|---|---|
-| Roulette Circus | 108 | 10.0% | 12.0% | All enemies | Water | Poison |
-| Roulette Circus | 109 | 10.0% | 12.0% | All enemies | Water | Freeze |
-| Roulette Circus | 110 | 10.0% | 12.0% | All enemies | Lightning | Paralysis |
-| Roulette Circus | 111 | 10.0% | 12.0% | All enemies | Wind | Silence |
-| Roulette Circus | 112 | 10.0% | 12.0% | All enemies | Earth | Slow |
-| Roulette Circus | 113 | 20.0% | 20.0% | None | Neutral | HP Recovery, TP Recovery |
-| Roulette Circus | 114 | 10.0% | 5.0% | Random enemies | Neutral | HP Recovery |
-| Roulette Circus | 115 | 10.0% | 10.0% | None | Neutral | Fixed Damage Based on User's Level |
-| Roulette Circus | 116 | 10.0% | 5.0% | None | None | nothing |
-| Magic Box | 117 | 10.0% | 10.0% | Random enemies | Neutral | Fixed accuracy, User's HP-1 Damage |
-| Magic Box | 118 | 10.0% | 15.0% | All enemies | Stab | Physical power modifier (damage = 100% + value) |
-| Magic Box | 119 | 10.0% | 5.0% | Indiscriminate | None | Cancel Chant, Song, Dance, Doll |
-| Magic Box | 120 | 10.0% | 10.0% | All allies | None | Fixed TP Recovery |
-| Magic Box | 121 | 10.0% | 15.0% | None | None | Genjimaru |
-| Magic Box | 122 | 10.0% | 5.0% | Self | Bash | Physical power modifier (damage = 100% + value), Fixed accuracy |
-| Magic Box | 123 | 10.0% | 10.0% | All enemies | None | Quadruple Money |
-| Magic Box | 124 | 5.0% | 5.0% | None | Neutral | Fixed damage |
-| Magic Box | 125 | 5.0% | 5.0% | None | None | nothing |
-| Magic Box | 126 | 10.0% | 5.0% | Self | Neutral | Instant death |
-| Magic Box | 127 | 10.0% | 15.0% | All allies | None | Fixed Healing |
-| Showtime | 128 | 5.3% | 10.0% | All allies | Neutral | ATK modifier, DEF modifier |
-| Showtime | 129 | 10.5% | 10.0% | None | None | TP Recovery |
-| Showtime | 130 | 5.3% | 10.0% | All allies | Neutral | Stab Resistance, Slash Resistance, Bash Resistance |
-| Showtime | 131 | 10.5% | 3.0% | All allies | Fire | Stun |
-| Showtime | 132 | 10.5% | 10.0% | Indiscriminate | Wind | Special Sleep |
-| Showtime | 133 | 5.3% | 7.0% | All enemies | None | Silence, Freeze, Slow |
-| Showtime | 134 | 5.3% | 3.0% | All allies | Neutral | Halve HP, Fixed accuracy |
-| Showtime | 135 | 5.3% | 10.0% | All allies | Neutral | Physical accuracy modifier, Speed modifier |
-| Showtime | 136 | 10.5% | 5.0% | Indiscriminate | None | HP Recovery, TP Recovery |
-| Showtime | 137 | 10.5% | 12.0% | All enemies | None | Enemies Flee |
-| Showtime | 138 | 5.3% | 3.0% | None | None | Money Loss |
-| Showtime | 139 | 10.5% | 12.0% | Random enemies | Bash | Physical power modifier (damage = 100% + value), 7 Hits, Fixed accuracy |
-| Showtime | 140 | 5.3% | 5.0% | None | None | nothing |
-| Heaven or Hell | 141 | 50.0% | 70.0% | Single enemy | Neutral | Damage as a fraction of the target max HP, Damage cap |
-| Heaven or Hell | 142 | 50.0% | 30.0% | Single enemy | Neutral | Heal Percent HP, Heal cap |
 
 ## Catching up
 

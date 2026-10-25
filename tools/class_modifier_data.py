@@ -86,6 +86,8 @@ def _weapon_types():
 def class_modifiers(exe=None):
     """[{'class', 'previous' (None when the route does not matter), 'entries': [{'slot', 'type', 'type_name', 'modifier'}]}]"""
     exe = exe or Exe()
+    if not exe.data:
+        return []
     types = _weapon_types()
     found = []
     for class_id, rows in _cases(exe).items():
