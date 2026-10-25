@@ -86,10 +86,25 @@ The window ends with "Done: ..." when all went well.
 
 Uninstall
 ---------
-Run "Uninstall_DT22_Mod.bat". Every file goes back as it was.
+Run "Uninstall_DT22_Mod.bat" (or "./Uninstall_DT22_Mod.sh" on Linux / Steam Deck).
+Every file goes back as it was.
 
-To change from one variant of the mod to the other, unpack the other archive into the same
-folder and run its Install .bat: there is no need to uninstall first.
+Updating to a new version or changing variants
+----------------------------------------------
+If you already have a version of the mod installed:
+
+1. Close the game.
+2. Unpack the new archive into your game folder, allowing it to overwrite existing
+   files when prompted.
+3. Run "Install_Balance.bat" (Windows) or "./Install_Balance.sh" (Linux / Steam Deck).
+
+The installer automatically recognizes the original game copies kept in
+"DT22_Mod\backup", updates the patches against them, and records the new state.
+There is no need to uninstall first when upgrading versions or switching between
+Balance and QoL.
+
+Alternatively, if you prefer a clean reinstall: run "Uninstall_DT22_Mod.bat"
+(or "./Uninstall_DT22_Mod.sh") first, extract the new archive, and run the Install script.
 
 If the game is updated
 ----------------------

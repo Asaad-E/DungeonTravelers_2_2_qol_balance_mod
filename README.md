@@ -63,16 +63,33 @@ The full changelog is available in [installer/README_Balance.txt](installer/READ
 
 ## Installation
 
-Requirements: Windows PC and an unmodified copy of *Dungeon Travelers 2-2* (English PC version).
+Requirements: Windows PC or Linux / Steam Deck and an unmodified copy of *Dungeon Travelers 2-2* (English PC version).
 
 1. Download the archive for your preferred variant from [Releases](../../releases).
 2. Exit the game if it is running.
-3. Extract the contents directly into your game folder (alongside the `.exe` and the `Data/` directory).
-4. Run `Install_Balance.bat` or `Install_QoL.bat`.
+3. Extract the contents directly into your game folder (alongside the .exe and the Data/ directory).
+4. Run Install_Balance.bat or Install_QoL.bat on Windows (or ./Install_Balance.sh / ./Install_QoL.sh on Linux / Steam Deck).
 
-The installer automatically verifies files before applying changes and stores untouched originals in `DT22_Mod\backup`. To restore the unmodded game, run `Uninstall_DT22_Mod.bat`. You can switch between variants at any time by installing the other archive over the existing one.
+The installer automatically verifies files before applying changes and stores untouched originals in DT22_Mod\backup. To restore the unmodded game, run Uninstall_DT22_Mod.bat (or ./Uninstall_DT22_Mod.sh).
 
 Save files are fully compatible and are not altered by either mod variant.
+
+### Updating to a New Version (or Switching Variants)
+
+If you already have an earlier version of the mod (or the other variant) installed:
+
+* **Direct Overwrite (Fastest)**:
+  1. Exit the game.
+  2. Extract the new .zip archive directly into your game folder, choosing **Replace all files** when prompted.
+  3. Run Install_Balance.bat / Install_QoL.bat on Windows (or ./Install_Balance.sh / ./Install_QoL.sh on Linux / Steam Deck).
+  
+  The installer automatically detects the clean vanilla backups stored in DT22_Mod/backup, updates the patches against them, and records the new version state. There is no need to uninstall first when upgrading versions or switching between Balance and QoL.
+
+* **Clean Reinstall (Optional / Troubleshooting)**:
+  1. Exit the game.
+  2. Run Uninstall_DT22_Mod.bat (or ./Uninstall_DT22_Mod.sh) to restore all files to clean vanilla.
+  3. Extract the new .zip archive into your game folder.
+  4. Run the Install script.
 
 ---
 
