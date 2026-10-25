@@ -1,6 +1,6 @@
 ## actives
 
-219 act as their effects say, 16 to read, of 235 active skills.
+222 act as their effects say, 13 to read, of 235 active skills.
 
 | Skill | Effects | Performed by | Result |
 |---|---|---|---|
@@ -82,11 +82,11 @@
 | 78 Absolute Obedience | 26/2, 93/2, 0/4, 117/4, 115/4 | mistress | acts |
 | 79 Danger Shoot | 26/2, 94/2, 0/4, 29/2 | dolls | acts |
 | 80 Coffee Break | 128/4, 66/4 | dolls | acts |
-| 81 Roulette Circus | 152/2 | dolls | not seen: anything |
+| 81 Roulette Circus | 152/2 | dolls | acts |
 | 82 Checkmate | 26/2, 0/4, 119/4 | papillon | acts |
 | 83 Surprise Fist | 26/2, 55/2, 0/4, 118/4 | papillon | acts |
 | 84 High Risk, High Return | 26/5, 28/5 | papillon | acts |
-| 85 Magic Box | 153/2 | papillon | not seen: anything |
+| 85 Magic Box | 153/2 | papillon | acts |
 | 86 Materialize | 84/4 | dolls | not seen: anything |
 | 87 Rose Queen | 26/2, 0/4, 113/4 | dolls | acts |
 | 88 Tinker Squash | 26/2, 0/4, 54/4 | dolls | acts |
@@ -94,7 +94,7 @@
 | 90 Mad Zapper | 26/2, 29/2, 0/4, 122/4 | joker | acts |
 | 91 Life Bringer | 26/2, 0/4, 133/4 | joker | acts |
 | 92 Trump Card | 48/5 | joker | acts |
-| 93 Showtime | 154/2 | joker | not seen: anything |
+| 93 Showtime | 154/2 | joker | acts |
 | 94 Beast Binder | 26/2, 110/2, 99/2, 0/4 | joker | acts |
 | 95 Spartan | 228/4, 146/2, 147/2 | dolls | acts |
 | 96 Oracles | 229/4, 146/2, 147/2 | dolls | acts |

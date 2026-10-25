@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**54 nothing shown; 12 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 79).**
+**55 nothing shown; 12 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 80).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -44,7 +44,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Gold Steal | shooter | - | out of the fight: gold, not the fight |
 | Gravitating Polka | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Heal | healer | C38: wins -4%, length +3%, HP left -1 points | nothing shown |
-| High Risk, High Return | papillon | P24: wins +0%, length +18%, HP left +4 points | serves |
+| High Risk, High Return | papillon | P24: wins +6%, length +26%, HP left +10 points | serves |
 | Holy Prayer | sage | C30: wins +0%, length -18%, HP left +0 points | nothing shown |
 | Insurance | healer | P24: wins -1%, length +4%, HP left -1 points | nothing shown |
 | Item Steal | treasure hunter | - | out of the fight: drops, not the fight |
@@ -82,6 +82,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Stun | sage | - | see SKILL_AILMENTS.md |
 | Sun Veil | sage | P24: wins +4%, length -1%, HP left +4 points | nothing shown |
 | Terrorize | sage | - | see SKILL_AILMENTS.md |
+| Trump Card | joker | C38: wins -1%, length +4%, HP left -1 points | nothing shown |
 | Warm-Up | etoile | C40: wins -1%, length +4%, HP left -2 points | serves |
 | Water Enchant | sage | C38: wins +1%, length -0%, HP left +2 points | nothing shown |
 | Wind Enchant | sage | P24: wins +1%, length -3%, HP left +2 points | nothing shown |

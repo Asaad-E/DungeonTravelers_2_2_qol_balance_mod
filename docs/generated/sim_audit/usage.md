@@ -218,9 +218,9 @@
 | etoile (Ist) | 90 | P24 | Alluring Samba | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Gravitating Polka | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Clean | no rule of the role uses it |
-| joker (Lizerietta) | 62 | C38 | Mad Zapper | dominated: 37% of the best (Danger Shoot) at the start of the fight |
-| joker (Lizerietta) | 62 | C38 | Life Bringer | dominated: 13% of the best (Danger Shoot) at the start of the fight |
-| joker (Lizerietta) | 62 | C38 | Heaven or Hell | dominated: 0% of the best (Danger Shoot) at the start of the fight |
+| joker (Lizerietta) | 62 | C38 | Mad Zapper | dominated: 18% of the best (Heaven or Hell) at the start of the fight |
+| joker (Lizerietta) | 62 | C38 | Life Bringer | dominated: 6% of the best (Heaven or Hell) at the start of the fight |
+| joker (Lizerietta) | 62 | C38 | Heaven or Hell | dominated: 100% of the best (Heaven or Hell) at the start of the fight |
 | joker (Lizerietta) | 90 | P24 | Checkmate | dominated: 71% of the best (Mad Zapper) at the start of the fight |
 | joker (Lizerietta) | 90 | P24 | Mad Zapper | dominated: 100% of the best (Mad Zapper) at the start of the fight |
-| joker (Lizerietta) | 90 | P24 | Heaven or Hell | dominated: 0% of the best (Mad Zapper) at the start of the fight |
+| joker (Lizerietta) | 90 | P24 | Heaven or Hell | dominated: 42% of the best (Mad Zapper) at the start of the fight |

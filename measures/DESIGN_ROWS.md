@@ -110,10 +110,10 @@ Shop prices: Croissant 90, Danish 450, Egg Sandwich 180, Gateau Au Chocolat 600.
 | South Pole Shaved Ice | 260 | Water Enchant Lv5: 10 turns, 50 steps |
 | Miracle Shake | 620 | Divine Shield Lv5: 4 turns, 20 steps |
 | Raspberry Supreme | 840 | Aim Lv10: 9 turns, 45 steps |
-| 31-Layer Ice Cream | 1000 | Protect Lv5: 9 turns, 45 steps; Accelerator Lv5: 3 turns, 15 steps |
+| 31-Layer Ice Cream | 1000 | Circle Protect Lv5: 8 turns, 40 steps; Accelerator Lv5: 3 turns, 15 steps |
 | Mapo Ramen | 80 | Fire Enchant Lv5: 10 turns, 50 steps |
-| Mega-Meaty Ramen | 380 | Brave Lv5: 9 turns, 45 steps |
-| Ramen Carbonara | 520 | Protect Lv5: 9 turns, 45 steps; Fleet Foot Lv10: 6 turns, 30 steps |
-| Ultimate Champon | 980 | Stab Guard Lv5: 8 turns, 40 steps |
+| Mega-Meaty Ramen | 380 | Circle Brave Lv5: 8 turns, 40 steps |
+| Ramen Carbonara | 520 | Circle Protect Lv5: 8 turns, 40 steps; Fleet Foot Lv10: 6 turns, 30 steps |
+| Ultimate Champon | 980 | Stab Guard Lv5: 8 turns, 40 steps; Slash Guard Lv5: 8 turns, 40 steps; Bash Guard Lv5: 8 turns, 40 steps |
 | Heaven's Ramen | 1280 | Insurance Lv5: 10 turns, 50 steps |
 
