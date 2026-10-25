@@ -679,7 +679,10 @@ def build_tutorials(out_dir, path, problems):
                 continue
             text, old_box = row['Text'] or '', row['Original box'] or ''
             lines = text.strip('"').split('\n')
-            if len(lines) > int(limits['max_lines']) or max(len(x) for x in lines) > int(limits['max_width']):
+            max_w = int(limits['max_width'])
+            max_w3 = int(limits.get('max_width_line3', max_w - 5))
+            too_wide = any(len(x) > max_w for x in lines[:2]) or any(len(x) > max_w3 for x in lines[2:])
+            if len(lines) > int(limits['max_lines']) or too_wide:
                 problems.append(f"{label}: {len(lines)} lines, widest {max(len(x) for x in lines)}: over the limits of the sheet Settings")
                 continue
             if '~' in text or out_of_game_words(text, old_box):
