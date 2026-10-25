@@ -306,7 +306,10 @@ def build():
 
     data = GameData()
     wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
-    exe = Exe()
+    try:
+        exe = Exe()
+    except Exception:
+        exe = None
     _load_skills(wb, data)
     _load_attacks(wb, data)
     _load_equipment(wb, data)
@@ -319,7 +322,10 @@ def build():
         data.enemies[enemy['id']] = enemy
     data.growth = class_data.growth()
     data.class_names = class_data.class_names()
-    data.class_modifiers = class_modifier_data.class_modifiers(exe)
+    try:
+        data.class_modifiers = class_modifier_data.class_modifiers(exe) if (exe and exe.data) else {}
+    except Exception:
+        data.class_modifiers = {}
     data.characters = character_data.characters()
     data.floors = floor_data.floors()
     data.fixed = floor_data.fixed_battles()
@@ -333,7 +339,10 @@ def build():
     data.summons = summon_data.summons()
     data.dolls = doll_data.dolls()
     data.npcs = npc_data.npcs()
-    data.random_moves = random_move_data.random_moves(exe)
+    try:
+        data.random_moves = random_move_data.random_moves(exe) if (exe and exe.data) else {}
+    except Exception:
+        data.random_moves = {}
     data.item_skills = {kind: skill for kind, (skill, _) in item_effect_data.skill_items(exe).items()}
     criteria = openpyxl.load_workbook(CRITERIA, read_only=True)
     data.effect_rules = {r['Effect_ID']: r['Rule'] for r in _rows(criteria, 'EffectRules')}

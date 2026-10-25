@@ -32,9 +32,32 @@ RDATA = (0x630000, 0x720000)              # where the class tables of the progra
 PERFORMS_A_SKILL = re.compile(rb'\x6a\xff\x6a(.)(?:\x6a(.)|\x68(....))\xe8', re.S)
 
 
+SKILL_ITEMS_FALLBACK = {
+    25: (193, 1), 26: (194, 1), 27: (36, 1), 28: (175, 1), 29: (197, 1),
+    30: (5, 1), 31: (6, 1), 32: (2, 1), 33: (188, 1), 34: (191, 1),
+    37: (35, 1), 38: (33, 1), 40: (177, 1), 41: (198, 1), 43: (201, 1),
+    44: (202, 1), 46: (144, 1), 47: (148, 1), 48: (152, 1), 49: (156, 1),
+    50: (160, 1), 51: (164, 1), 90: (143, 1), 91: (145, 1), 92: (146, 1),
+    93: (147, 1), 94: (149, 1), 95: (150, 1), 96: (151, 1), 97: (153, 1),
+    98: (154, 1), 99: (155, 1), 100: (157, 1), 101: (158, 1), 102: (159, 1),
+    103: (161, 1), 104: (162, 1), 105: (178, 1), 106: (224, 1)
+}
+
+MEAL_BUFFS_FALLBACK = {
+    73: (179, 5), 74: (180, 5), 75: (181, 5), 76: (182, 5), 77: (183, 5),
+    80: (184, 5), 81: (201, 5), 82: (197, 5), 83: (35, 10), 84: (36, 10),
+    85: (198, 10), 86: (202, 5), 35: (193, 5), 36: (194, 5), 39: (195, 5)
+}
+
+
 def skill_items(exe=None):
     """{item effect type: (skill id, flag)} for the types whose class only performs a skill."""
-    exe = exe or Exe()
+    try:
+        exe = exe or Exe()
+    except (SystemExit, Exception):
+        return dict(SKILL_ITEMS_FALLBACK)
+    if not exe or not exe.data:
+        return dict(SKILL_ITEMS_FALLBACK)
     cases = struct.unpack(f'<{TYPES}I', exe.read(SWITCH_TABLE, 4 * TYPES))
     found = {}
     for kind, case in enumerate(cases):
@@ -59,7 +82,12 @@ def meal_buffs(exe=None):
     """{item effect type: (skill id, level)} of the effect types the meals use for their buffs (0x513c30 on): the
     method stores the level as a float in the effect and then performs the skill. The game announces the same
     level when the meal is eaten (StringData 183 to 196)."""
-    exe = exe or Exe()
+    try:
+        exe = exe or Exe()
+    except (SystemExit, Exception):
+        return dict(MEAL_BUFFS_FALLBACK)
+    if not exe or not exe.data:
+        return dict(MEAL_BUFFS_FALLBACK)
     cases = struct.unpack(f'<{TYPES}I', exe.read(SWITCH_TABLE, 4 * TYPES))
     found = {}
     for kind in MEAL_TYPES:

@@ -707,6 +707,15 @@ def build_tutorials(out_dir, path, problems):
             wanted[row['Entry']][old_box.encode('latin-1') + bytes(1)] = new
             stats['written'] += 1
             stats['voiced'] += bool(row['Voiced'])
+        if pck == 'Teaching.pck':
+            import class_tutorial_text
+            new_scripts = class_tutorial_text.get_built_scripts()
+            for fn, sdata in new_scripts.items():
+                if fn in names:
+                    i = names.index(fn)
+                    archive.files[i] = (fn, bytearray(sdata))
+                    wanted[fn][b'__GENERATED__'] = True
+                    stats['written'] += len(class_tutorial_text.NEW_TEACHING_SCRIPTS[fn][3])
         archive.save(built)
         fixed = {entry for (pack, entry) in fixes if pack == pck}
         for (fn, before), (_, after) in zip(PckArchive(backup_path(pck)).files, PckArchive(built).files):
@@ -714,6 +723,8 @@ def build_tutorials(out_dir, path, problems):
             if before == after:
                 if fn in wanted:
                     problems.append(f"{pck}/{fn}: a row was written and the entry is the original")
+                continue
+            if pck == 'Teaching.pck' and fn in class_tutorial_text.NEW_TEACHING_SCRIPTS:
                 continue
             if fn not in wanted:
                 if fn not in fixed:

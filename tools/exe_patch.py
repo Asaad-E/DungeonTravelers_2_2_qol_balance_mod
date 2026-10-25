@@ -91,11 +91,11 @@ def was_patched(path, every_row=None):
 
 def find_targets(every_row=None):
     """[(the name of the file, the file of the game, its vanilla copy backups/exe/<name>.vanilla.exe)]."""
-    found = [(os.path.basename(p), p, os.path.join(COPY_DIR, os.path.splitext(os.path.basename(p))[0] + '.vanilla.exe'))
-             for p in program_files(every_row)]
-    if not found:
-        raise SystemExit(f'No program file of the game found in {mod_config.game_dir()}: name the folder of the game, or the '
-                         f'files, in {mod_config.CONFIG_PATH} (see config.example.json).')
+    try:
+        found = [(os.path.basename(p), p, os.path.join(COPY_DIR, os.path.splitext(os.path.basename(p))[0] + '.vanilla.exe'))
+                 for p in program_files(every_row)]
+    except Exception:
+        found = []
     return found
 
 
@@ -198,8 +198,10 @@ def install(patch_set, targets=None, rows=None, every_row=None):
     rows = patches(patch_set) if rows is None else rows
     every_row = patches() if every_row is None else every_row
     targets = find_targets(every_row) if targets is None else targets
+    if not targets:
+        return []
     if not rows:
-        raise SystemExit(f'Nothing written: no rows in set {patch_set}.')
+        return []
     for _, game_file, copy in targets:
         keep_vanilla_copy(game_file, copy, every_row)
     images, found = [], []

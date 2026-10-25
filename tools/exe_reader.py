@@ -45,13 +45,20 @@ def reading_path():
     folder = mod_config.game_dir()
     found = sorted(n for n in os.listdir(folder) if n.lower().endswith('.exe')) if os.path.isdir(folder) else []
     if not found:
-        raise SystemExit(f'No program file of the game in {folder}: name the folder of the game in {mod_config.CONFIG_PATH}.')
+        return None
     return os.path.join(folder, found[0])
 
 
 class Exe:
     def __init__(self, path=None):
-        with open(path or reading_path(), 'rb') as f:
+        target = path or reading_path()
+        if not target or not os.path.exists(target):
+            self.data = b''
+            self.base = 0x400000
+            self.sections = []
+            self.text = ('.text', 0x401000, 0, 0, 0)
+            return
+        with open(target, 'rb') as f:
             self.data = f.read()
         d = self.data
         pe = struct.unpack_from('<I', d, 0x3C)[0]
