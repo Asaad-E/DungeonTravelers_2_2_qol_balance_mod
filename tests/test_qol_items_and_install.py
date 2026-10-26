@@ -488,7 +488,7 @@ class Package(unittest.TestCase):
             with zipfile.ZipFile(path) as z:
                 names = set(z.namelist())
                 mod = package_variant.MOD_DIR
-                self.assertEqual(names, {'Install_QoL.bat', package_variant.UNINSTALL, f'{mod}/mod_patch.ps1',
+                self.assertEqual(names, {'Install_QoL.bat', 'Install_QoL.sh', 'Uninstall_DT22_Mod.sh', package_variant.UNINSTALL, f'{mod}/mod_patch.ps1', f'{mod}/mod_patch.py',
                                          f'{mod}/README.txt', f'{mod}/qol.txt', f'{mod}/qol.ops', f'{mod}/qol.dat'})
                 ops, blob = z.read(f'{mod}/qol.ops'), z.read(f'{mod}/qol.dat')
                 lines = [line.split('|') for line in z.read(f'{mod}/qol.txt').decode('utf-8').splitlines()]
