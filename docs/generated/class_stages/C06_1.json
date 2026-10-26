@@ -269,11 +269,11 @@
   },
   "dolls": {
    "won": 1.0,
-   "time_won": 4.6058414796875,
-   "ratio": 1.0342872210127958,
-   "share": 0.10647092555198594,
-   "lowest_hp": 0.8463065580824728,
-   "hp_left": 0.8764342429319564,
+   "time_won": 4.602627364756944,
+   "ratio": 1.0333194052070367,
+   "share": 0.1076561333324992,
+   "lowest_hp": 0.8466639657950634,
+   "hp_left": 0.8761927895883689,
    "class": "Spieler",
    "character": "Lizerietta",
    "level": 9,
@@ -281,27 +281,27 @@
     {
      "party": "reference",
      "won": 1.0,
-     "ratio": 1.1665559101300969
+     "ratio": 1.1729754968178527
     },
     {
      "party": "Meta",
      "won": 1.0,
-     "ratio": 1.0083681759237042
+     "ratio": 1.0020819157042136
     },
     {
      "party": "Dual-Support",
      "won": 1.0,
-     "ratio": 1.0344904384531262
+     "ratio": 1.034556994523936
     },
     {
      "party": "Mage-Heavy",
      "won": 1.0,
-     "ratio": 1.0211161649687006
+     "ratio": 1.0112264077420436
     },
     {
      "party": "Juggernaut-Plus",
      "won": 1.0,
-     "ratio": 1.0036570603512118
+     "ratio": 1.007540040204239
     },
     {
      "party": "Anti-Meta-Plus",
@@ -527,11 +527,11 @@
   },
   "soul summoner": {
    "won": 1.0,
-   "time_won": 4.6058414796875,
-   "ratio": 1.0342872210127958,
-   "share": 0.10647092555198594,
-   "lowest_hp": 0.8463065580824728,
-   "hp_left": 0.8764342429319564,
+   "time_won": 4.602627364756944,
+   "ratio": 1.0333194052070367,
+   "share": 0.1076561333324992,
+   "lowest_hp": 0.8466639657950634,
+   "hp_left": 0.8761927895883689,
    "class": "Spieler",
    "character": "Lizerietta",
    "level": 9,
@@ -539,27 +539,27 @@
     {
      "party": "reference",
      "won": 1.0,
-     "ratio": 1.1665559101300969
+     "ratio": 1.1729754968178527
     },
     {
      "party": "Meta",
      "won": 1.0,
-     "ratio": 1.0083681759237042
+     "ratio": 1.0020819157042136
     },
     {
      "party": "Dual-Support",
      "won": 1.0,
-     "ratio": 1.0344904384531262
+     "ratio": 1.034556994523936
     },
     {
      "party": "Mage-Heavy",
      "won": 1.0,
-     "ratio": 1.0211161649687006
+     "ratio": 1.0112264077420436
     },
     {
      "party": "Juggernaut-Plus",
      "won": 1.0,
-     "ratio": 1.0036570603512118
+     "ratio": 1.007540040204239
     },
     {
      "party": "Anti-Meta-Plus",

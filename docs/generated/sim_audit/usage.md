@@ -1,6 +1,6 @@
 ## usage
 
-220 skills of a plan never used: 95 dominated, 90 no rule of the role uses it, 6 not usable with the weapon of the role, 29 situational.
+221 skills of a plan never used: 95 dominated, 91 no rule of the role uses it, 6 not usable with the weapon of the role, 29 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -82,7 +82,7 @@
 | dolls (Lizerietta) | 90 | P24 | Oracles | no rule of the role uses it |
 | dolls (Lizerietta) | 90 | P24 | Catalina | no rule of the role uses it |
 | dolls (Lizerietta) | 90 | P24 | Coffee Break | situational: a heal (another heal or the songs come first) |
-| dolls (Lizerietta) | 90 | P24 | Danger Shoot | dominated: 8% of the best (Rose Queen) at the start of the fight |
+| dolls (Lizerietta) | 90 | P24 | Danger Shoot | dominated: 13% of the best (Rose Queen) at the start of the fight |
 | diva (Yuni) | 14 | C11 | Self-Sacrifice | situational: a heal (another heal or the songs come first) |
 | diva (Yuni) | 29 | C18 | Self-Sacrifice | situational: a heal (another heal or the songs come first) |
 | diva (Yuni) | 62 | C38 | Self-Sacrifice | situational: a heal (another heal or the songs come first) |
@@ -122,9 +122,10 @@
 | treasure hunter (Souffle) | 90 | P24 | Chain Spike | not usable with the weapon of the role |
 | soul summoner (Lizerietta) | 14 | C11 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
+| soul summoner (Lizerietta) | 62 | C38 | Spartan | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Perdurabo | no rule of the role uses it |
-| soul summoner (Lizerietta) | 62 | C38 | Oracles | no rule of the role uses it |
+| soul summoner (Lizerietta) | 62 | C38 | Musiy | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 62 | C38 | Danger Shoot | dominated: 8% of the best (Soul Eater) at the start of the fight |
 | soul summoner (Lizerietta) | 90 | P24 | Catalina | no rule of the role uses it |

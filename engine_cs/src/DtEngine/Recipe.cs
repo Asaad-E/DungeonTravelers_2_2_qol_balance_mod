@@ -159,7 +159,8 @@ namespace DtEngine
                 pieces = pieces != null ? new Dictionary<string, string>(pieces) : new Dictionary<string, string>();
                 foreach (var kv in t.Pieces) pieces[kv.Key] = kv.Value;
             }
-            int sealbook = t.UniquePieces ? PersonalSealbook(t.Role, chapter, floor) : T.NONE;
+            // the summoner roles carry their sealbook always: Soul Seal feeds its stats to the dolls (the party path at Scenario.cs does the same)
+            int sealbook = t.UniquePieces || t.Role == "soul summoner" || t.Role == "dolls" ? PersonalSealbook(t.Role, chapter, floor) : T.NONE;
             var tested = BuildRoleMember(t.Role, who, t.Level ?? level, gear, t.Crown ?? crown, t.Forge, pieces, Array.Empty<int>(), sealbook,
                                          t.Extra.Count > 0 ? t.Extra : null);
             foreach (var (effect, amount) in t.PassivesAdd) tested.SetPassive(effect, tested.Passive(effect, 0.0) + amount, false);
