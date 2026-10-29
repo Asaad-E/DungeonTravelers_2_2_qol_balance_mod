@@ -28,6 +28,7 @@ namespace DtEngine.Suite
         {
             string role = a[0], name = a[1], cid = a[2]; int runs = int.Parse(a[3]);
             bool sample = a.Length > 4 && a[4] == "sample";
+            bool noUse = a.Length > 4 && a[4] == "nouse";            // the same party without the skill: the counts of "status off" are the plain play
             var data = c.Data("variant");
             var skill = Kit.SkillNamed(data, name);
             (string, string)? rule = skill.Category == "Passive" ? ("ally_down", "revive") : ((string, string)?)null;
@@ -104,7 +105,7 @@ namespace DtEngine.Suite
             };
             try
             {
-                var job = SkillValue.Job(c, role, cid, skill, true, 0, runs, rule: rule);
+                var job = SkillValue.Job(c, role, cid, skill, !noUse, 0, runs, rule: rule);
                 job.Trace = 1;
                 var res = c.Run(job);
                 var won = res.Runs.Where(r => r.Won).ToList();
