@@ -72,6 +72,8 @@ def apply(data, changes):
             elif field == 'weapon codes':
                 _check(row, ', '.join(str(w) for w in skill.weapons))
                 skill.weapons = [int(w) for w in str(new).split(',')]
+            elif field == 'target scope':
+                _check(row, skill.target); skill.target = int(new)
             elif field == 'SP cost':
                 _check(row, skill.sp[level - 1]); skill.sp[level - 1] = new
             elif field.startswith('added effect'):

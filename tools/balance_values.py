@@ -8,8 +8,8 @@ original packs. Step 1 of "build_variant.py balance"; the texts are built on top
 A row is one value of one record. Each kind of row has its address here, with the reader that gives it:
 
     skills        Technique / Magic / PassiveSkillData (tools/extract_vanilla.py SKILL_LAYOUTS): TP cost, SP cost, speed
-                  and chant speed by level, the value of an effect slot by level, the weapon codes, an effect added to
-                  an empty slot
+                  and chant speed by level, the value of an effect slot by level, the weapon codes, the target scope, an
+                  effect added to an empty slot
     enemies       Enemy.pck, EnemyStatusData of the enemy (tools/enemy_data.py): stats, resistances, immunity flags,
                   passive ids, the chance of the equipment drop; EnemyAIData: the weights of a set
     attacks       EnemyAttackData: the value of an effect slot (0x50 + 12 * slot)
@@ -248,6 +248,10 @@ def skill_row(packs, row):
         for k, offset in enumerate((first, second)):
             packs.write(row, (pack, name, None, offset), 'i', new[k] if k < len(new) else -1,
                         vanilla=old[k] if k < len(old) else -1)
+    elif field == 'target scope':
+        if 'target' not in lay:
+            raise Refused(f'a {category} skill has no target scope')
+        packs.write(row, (pack, name, None, lay['target']), 'i', int(row['New']), vanilla=int(row['Vanilla']))
     elif field.startswith('added effect'):
         eid, kind = effect_id(field), int(field.split('kind')[1].strip(' )'))
         values = [float(v) for v in str(row['New']).split(',')]
