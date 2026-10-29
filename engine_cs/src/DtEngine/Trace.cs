@@ -21,6 +21,7 @@ namespace DtEngine
         public static System.Action<Battle, Unit> TurnEndHook;
         public static System.Action<Battle, Unit, int> RestoreHook;
         public static System.Action<Battle, Action, Unit, bool> HitHook;
+        public static System.Action<Battle, Action, Unit, int> DamageHook;
 
         public TextTrace(int level = 1) { this.level = level; }
 
@@ -128,6 +129,7 @@ namespace DtEngine
 
         public void Damage(Battle b, Action a, Unit target, int amount)
         {
+            DamageHook?.Invoke(b, a, target, amount);
             events.Append("D").Append(a.Actor.Position).Append('>').Append(target.Position).Append('=').Append(amount).Append(';');
         }
 
