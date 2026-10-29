@@ -12,6 +12,7 @@ namespace DtEngine.Suite
             public Dictionary<string, double> Damage = new Dictionary<string, double>();
             public Dictionary<string, int> Blows = new Dictionary<string, int>();
             public double RoleAttackDamage; public int RoleAttacks;
+            public double HealGained; public int HealCasts; public double HpLeft;
             public string Weapon = "-"; public double RoleAtk, RoleWeaponAtk, RoleRes, RoleWeaponRes; public int Seen;
         }
 
@@ -27,15 +28,19 @@ namespace DtEngine.Suite
             foreach (bool use in new[] { false, true })
             {
                 var t = new ShareTally(); results[use] = t;
-                Battle current = null;
+                Battle current = null; Action live = null;
                 TextTrace.PerformHook = (b, act) =>
                 {
                     if (b != current) { current = b; t.Battles++; }
+                    live = act.Actor.Kind == Kind.Member && act.Actor.HasRole && act.Actor.Role == role && act.Kind == AKind.Skill ? act : null;
+                    if (live != null) t.HealCasts++;
                     if (act.Actor.Kind == Kind.Member && act.Actor.HasRole && act.Actor.Role == role && t.Seen < 1 && act.Actor.Weapon != null)
                     {
                         t.Seen++; t.Weapon = act.Actor.Weapon.Name; t.RoleAtk = act.Actor.Stat(Unit.ATK); t.RoleWeaponAtk = act.Actor.Weapon.Stats[Unit.ATK]; t.RoleRes = act.Actor.Stat(Unit.RES); t.RoleWeaponRes = act.Actor.Weapon.Stats[Unit.RES];
                     }
                 };
+                TextTrace.RestoreHook = (b, u, g) => { if (live != null) t.HealGained += g; };
+                TextTrace.TurnEndHook = (b, u) => { live = null; };
                 TextTrace.DamageHook = (b, act, target, amount) =>
                 {
                     if (act.Actor.Kind != Kind.Member || target.Side == act.Actor.Side) return;
@@ -61,8 +66,9 @@ namespace DtEngine.Suite
                     var won = res.Runs.Where(r => r.Won).ToList();
                     t.Won = (double)won.Count / res.Runs.Length;
                     t.Time = won.Count > 0 ? Py.Sum(won.Select(r => r.Time)) / won.Count : 0;
+                    t.HpLeft = SkillValue.Figures(res).D("hp_left");
                 }
-                finally { TextTrace.PerformHook = null; TextTrace.DamageHook = null; }
+                finally { TextTrace.PerformHook = null; TextTrace.DamageHook = null; TextTrace.RestoreHook = null; TextTrace.TurnEndHook = null; }
             }
             foreach (bool use in new[] { false, true })
             {
@@ -71,6 +77,7 @@ namespace DtEngine.Suite
                            + " | damage dealt per battle " + Py.F(total / nb, 0));
                 Trials.Say(c, "  " + role + ": weapon " + t.Weapon + " (ATK " + Py.F(t.RoleWeaponAtk, 0) + "), ATK stat of the unit " + Py.F(t.RoleAtk, 0) + " | RES " + Py.F(t.RoleRes, 0) + " (weapon RES " + Py.F(t.RoleWeaponRes, 0) + ")"
                            + " | plain attack " + Py.F(t.RoleAttackDamage / Math.Max(1, t.RoleAttacks), 1) + " per blow, " + Py.F(t.RoleAttacks / nb, 1) + " blows per battle");
+                Trials.Say(c, "  HP restored by the skills of " + role + ": " + Py.F(t.HealGained / nb, 0) + " per battle in " + Py.F(t.HealCasts / nb, 1) + " casts (" + Py.F(t.HealGained / Math.Max(1, t.HealCasts), 1) + " per cast) | HP left of the party " + Py.Pct(t.HpLeft, 1));
                 Trials.Say(c, "  share of the damage by role: " + string.Join(", ", t.Damage.OrderByDescending(kv => kv.Value).Select(kv => kv.Key + " " + Py.Pct(kv.Value / Math.Max(1, total), 1) + " (" + Py.F(kv.Value / nb, 0) + ")")));
             }
         }
