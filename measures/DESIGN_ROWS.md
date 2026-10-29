@@ -48,17 +48,17 @@ Boss fights that stand on a cell that forbids magic: C29a, P07, P13, P25, P47. S
 |---|---|---|---|---|---|
 | Dual-Support | 100% | 46% | 0% | 3% | 0% |
 | Mage-Heavy | 95% | 0% | 0% | 0% | 0% |
-| Juggernaut | 99% | 55% | 0% | 6% | 0% |
-| Juggernaut-Plus | 94% | 29% | 0% | 0% | 0% |
+| Juggernaut | 95% | 60% | 1% | 7% | 0% |
+| Juggernaut-Plus | 93% | 40% | 0% | 0% | 0% |
 | Anti-Meta | 0% | 0% | 0% | 0% | 0% |
-| Anti-Meta-Plus | 4% | 0% | 0% | 0% | 0% |
+| Anti-Meta-Plus | 14% | 0% | 0% | 0% | 0% |
 
 The same party with and without her:
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
 | Meta | 100% | 100% | 3% | 74% | 0% |
-| Meta, an attacker in her place | 100% | 84% | 0% | 27% | 0% |
+| Meta, an attacker in her place | 99% | 91% | 0% | 30% | 0% |
 | Dual-Support | 100% | 46% | 0% | 3% | 0% |
 | Dual-Support, she in the place of the shooter | 100% | 10% | 4% | 13% | 0% |
 

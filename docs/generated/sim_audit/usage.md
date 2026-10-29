@@ -1,6 +1,6 @@
 ## usage
 
-221 skills of a plan never used: 95 dominated, 91 no rule of the role uses it, 6 not usable with the weapon of the role, 29 situational.
+220 skills of a plan never used: 95 dominated, 90 no rule of the role uses it, 6 not usable with the weapon of the role, 29 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -25,10 +25,10 @@
 | attacker (Yae) | 62 | C38 | War Cry | no rule of the role uses it |
 | attacker (Yae) | 62 | C38 | Aura Eliminate | dominated: 29% of the best (Moonlight Purgatory) at the start of the fight |
 | attacker (Yae) | 62 | C38 | Onikagura | dominated: 27% of the best (Moonlight Purgatory) at the start of the fight |
-| attacker (Yae) | 62 | C38 | Armor Penetration | dominated: 44% of the best (Moonlight Purgatory) at the start of the fight |
 | attacker (Yae) | 90 | P24 | War Cry | no rule of the role uses it |
 | attacker (Yae) | 90 | P24 | Raging Smash | dominated: 55% of the best (Moonlight Purgatory) at the start of the fight |
-| attacker (Yae) | 90 | P24 | Armor Penetration | dominated: 38% of the best (Moonlight Purgatory) at the start of the fight |
+| attacker (Yae) | 90 | P24 | Frost Slash | dominated: 55% of the best (Moonlight Purgatory) at the start of the fight |
+| attacker (Yae) | 90 | P24 | Onikagura | dominated: 48% of the best (Moonlight Purgatory) at the start of the fight |
 | maid (Conette) | 62 | C38 | Blissful Chorale | no rule of the role uses it |
 | maid (Conette) | 90 | P24 | Blissful Chorale | no rule of the role uses it |
 | maid (Conette) | 90 | P24 | Concentration Prelude | no rule of the role uses it |
@@ -75,7 +75,6 @@
 | dolls (Lizerietta) | 29 | C18 | Oracles | no rule of the role uses it |
 | dolls (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | dolls (Lizerietta) | 62 | C38 | Oracles | no rule of the role uses it |
-| dolls (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
 | dolls (Lizerietta) | 62 | C38 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | dolls (Lizerietta) | 62 | C38 | Rose Queen | dominated: 21% of the best (Tinker Squash) at the start of the fight |
 | dolls (Lizerietta) | 62 | C38 | Danger Shoot | dominated: 7% of the best (Tinker Squash) at the start of the fight |
