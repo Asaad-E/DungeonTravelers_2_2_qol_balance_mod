@@ -149,7 +149,7 @@ A cell serves: wins +8%, or wins not down that much and won fights 3% shorter or
 | Limit Field | Magic | advanced (dolls) | 205 | 4% | 32% | 2% | C35 boss, Meta (advanced; always / status:190) | +16% / -11% / +9% | niche |
 | Loose Spirit | Technique | advanced (mage) | 205 | 5% | 24% | 0% | C34 boss, Dual-Support (advanced; always / status:27) | +22% / +10% / +19% | niche |
 | Lullaby | Magic | base (maid), intermediate (maid), advanced (maid) | 375 | 23% | 4% | 24% | C01 random, Dual-Support (base; always / ailment:116) | +0% / +28% / +3% | niche |
-| Mace Mastery | Passive | advanced (healer, Mace) | 205 | 1% | 0% | 24% | C31 boss, Anti-Meta-Plus (advanced) | +0% / +1% / +0% | dead |
+| Mace Mastery | Passive | advanced (healer, Mace) | 205 | 3% | 0% | 24% | C27 boss, Anti-Meta-Plus (advanced) | +0% / +2% / +0% | dead |
 | Mad Zapper | Technique | advanced (joker) | 205 | 12% | 0% | 51% | C24 random, Juggernaut-Plus (advanced) | +11% / +9% / +7% | niche |
 | Magic Barrier | Technique | advanced (magical princess) | 205 | 10% | 9% | 46% | C35 boss, Anti-Meta-Plus (advanced; always / status:183) | +33% / +1% / +41% | niche |
 | Magic Box | Technique | intermediate (papillon), advanced (papillon) | 315 | 1% | 0% | 80% | C17 boss, Mage-Heavy (intermediate) | -0% / -8% / -1% | niche |
