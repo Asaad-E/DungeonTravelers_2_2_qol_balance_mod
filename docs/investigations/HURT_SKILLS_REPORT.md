@@ -98,6 +98,17 @@ Hypothesis 3 (SP taken from a better skill) is ruled out: the trial adds the ski
 | + crit 30 points at L10 | turn_at_most:3 | -0.2 | -0.8% | 2 / 3 |
 
   Removes most of the hurt but does not make it positive; a bigger change (what Aim gives) is a design decision.
+* Critical rate is weak in the engine: crit factor 1.25 and the rate is capped at 50, so +30 points are worth at most +7.5% damage.
+  The hit chance of the shooter over 72 bosses is 97.3% on average (14 below 95%): accuracy gains 2.7 points at most.
+* Second fix, a damage multiplier in the slot of Power Charge (191, added to the "other" bonus of the final blow, so it does not
+  overwrite War Cry or Circle Brave), accuracy kept:
+
+| Variant | rule | wins | length | cells hurt / serve |
+|---|---|---|---|---|
+| accuracy + crit 3 - 30 | always | -0.3 | -0.3% | 3 / 5 |
+| accuracy + damage +10% - +30% | always | +0.5 | -7.3% | 0 / 14 |
+| accuracy + crit + damage +10% - +30% | always | +0.8 | -10.2% | 0 / 16 |
+| accuracy + damage +5% - +20% | always | +0.1 | -4.7% | 0 / 8 |
 
 ### Barrage Rondo (206), maid: song slot, small real effect
 
@@ -133,14 +144,14 @@ Hypothesis 3 (SP taken from a better skill) is ruled out: the trial adds the ski
 |---|---|---|
 | Accelerator | all allies, x1.6 (27% - 40%), 8 turns | rows V006 - V015, Y020 |
 | Amplify | all allies | row Y021 |
-| Aim | critical rate added, 3 to 30 points | row Y022 |
+| Aim | damage +10% to +30% added (accuracy kept; the critical rate version is replaced) | row Y022, sheet Policies (shooter) |
 | Catalina | rule `party_hp_below:0.6` for the dolls role | sheet Policies, sim_setup.xlsx |
 | Armor Penetration | rule `turn_at_most:3` for the attacker role | sheet Policies, sim_setup.xlsx |
 | Berserk | no change: the executable is not patched (stacking modifiers could break other fights) | |
 | Barrage Rondo | not applied, see below | |
 
 Skill battery after the build (hurt share of the cells, before > after): Accelerator 50% > 11% (serve 5% > 10%), Amplify 33% > 7%
-(serve 2% > 13%), Aim 26% > 21%, Armor Penetration dead (60% same) > niche (serve 8%, hurt 6%). Berserk 33% > 26% and Barrage Rondo 23% >
+(serve 2% > 13%), Aim 26% > 6% (serve 2% > 13%, the battery plays it with `status:166`), Armor Penetration dead (60% same) > niche (serve 8%, hurt 6%). Berserk 33% > 26% and Barrage Rondo 23% >
 25% are not changed by any row (noise of the scan). Catalina stays at 29% because the battery forces it with its own rule `always`;
 the new rule serves the role in play only. Class stages: 67 of 76 rows within the band, as before; class balance: 14 of 16 classes in the
 band, as before; 197 tests pass.
