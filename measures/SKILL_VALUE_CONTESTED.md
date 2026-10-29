@@ -2,11 +2,10 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**56 nothing shown; 10 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 79).**
+**54 nothing shown; 11 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 78).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
-| Aim | shooter | C40: wins +4%, length -3%, HP left +5 points | nothing shown |
 | Alluring Samba | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Attract | dark lord | C40: wins +8%, length -11%, HP left +9 points | nothing shown |
 | Barrage Rondo | maid | C30: wins +2%, length +1%, HP left +2 points | nothing shown |
@@ -16,12 +15,12 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Blood Rage | attacker | C38: wins +3%, length +0%, HP left +4 points | nothing shown |
 | Brave | dark lord | P24: wins +2%, length -5%, HP left +4 points | nothing shown |
 | Carrot and Stick | mistress | P24: wins +0%, length +1%, HP left +2 points | nothing shown |
-| Catalina | dolls | C40: wins +12%, length -19%, HP left +14 points | nothing shown |
+| Catalina | dolls | C40: wins +6%, length +2%, HP left +7 points | serves |
 | Circle Heal | healer | C30: wins +0%, length +3%, HP left -0 points | nothing shown |
 | Circle Nurse | healer | C30: wins +0%, length -2%, HP left +0 points | nothing shown |
 | Circle Protect | sage | C40: wins +10%, length +2%, HP left +10 points | nothing shown |
 | Clean | maid | C30: wins +2%, length +2%, HP left +3 points | nothing shown |
-| Cleanse | shooter | C40: wins +9%, length -4%, HP left +9 points | nothing shown |
+| Cleanse | shooter | C40: wins +3%, length -7%, HP left +5 points | nothing shown |
 | Coffee Break | dolls | C40: wins +25%, length +1%, HP left +26 points | serves |
 | Concentration Prelude | maid | C30: wins +1%, length +6%, HP left +1 points | serves |
 | Cook | maid | C40: wins -2%, length +17%, HP left -2 points | serves |
@@ -33,7 +32,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Dumbing Mazurka | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Earth Enchant | sage | C30: wins -2%, length +3%, HP left -2 points | nothing shown |
 | Emaciating Hopak | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Evade | shooter | P24: wins +5%, length -8%, HP left -0 points | nothing shown |
+| Evade | shooter | P24: wins +2%, length +1%, HP left +3 points | nothing shown |
 | Experience Paean | maid | - | out of the fight: EXP, not the fight |
 | Fire Enchant | sage | P24: wins +1%, length -4%, HP left +1 points | nothing shown |
 | First Aid | maid | C40: wins +2%, length -1%, HP left +1 points | nothing shown |
@@ -77,7 +76,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Spell Guard | tank | C40: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Spiritual Fantasia | maid | C30: wins +2%, length -1%, HP left +2 points | nothing shown |
 | Stab Guard | sage | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Star Dust Arrow | shooter | P24: wins +2%, length -31%, HP left +1 points | nothing shown |
+| Star Dust Arrow | shooter | C30: wins -1%, length -29%, HP left -1 points | nothing shown |
 | Stun | sage | - | see SKILL_AILMENTS.md |
 | Sun Veil | sage | P24: wins +4%, length -1%, HP left +4 points | nothing shown |
 | Terrorize | sage | - | see SKILL_AILMENTS.md |
