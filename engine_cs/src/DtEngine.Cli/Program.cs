@@ -45,54 +45,6 @@ namespace DtEngine.Cli
             return errors == 0 ? 0 : 1;
         }
 
-        /// <summary>dtcli golden check|record [--root R] [--threads N]: the engine against its own recorded traces. The bank of
-        /// build/golden/ (12,731 jobs: the parity corpus, the fixed battles, the directed cases, 3,000 random cases) is played on its
-        /// frozen snapshot, so a balance change moves nothing and only a change of the engine's code does. check compares the digest of
-        /// every job with bank_digest.txt; record writes that file again, after a change meant to move results (say which in the commit).
-        /// The bank was made once by the parity tools of the removed simulator and cannot be made again; keep that folder.</summary>
-        static int GoldenCommand(string[] args)
-        {
-            string mode = args.Length > 1 && !args[1].StartsWith("--") ? args[1] : "check";
-            if (mode != "check" && mode != "record") { Console.Error.WriteLine("usage: dtcli golden check|record"); return 2; }
-            string golden = Path.Combine(Opt(args, "--root", "."), "build", "golden");
-            string snapshotPath = Path.Combine(golden, "snapshot.json"), jobsPath = Path.Combine(golden, "bank_jobs.json");
-            string reference = Path.Combine(golden, "bank_digest.txt"), fresh = Path.Combine(golden, "bank_digest_new.txt");
-            if (!File.Exists(snapshotPath) || !File.Exists(jobsPath))
-            {
-                Console.WriteLine("no bank in " + golden + ": it was made once and cannot be made again");
-                return 1;
-            }
-            if (mode == "check" && !File.Exists(reference)) { Console.WriteLine("no reference: run \"dtcli golden record\" once"); return 1; }
-            int threads = int.Parse(Opt(args, "--threads", Environment.ProcessorCount.ToString()));
-            var timer = System.Diagnostics.Stopwatch.StartNew();
-            var snap = Snapshot.Load(snapshotPath);
-            var jobs = JobRunner.LoadJobs(jobsPath);
-            foreach (var j in jobs) if (j.Trace == 0) j.Trace = 1;
-            // three directed jobs give the policy rules it does not know and must fail: their digest line says "error"
-            var results = JobRunner.Run(snap, jobs, threads, true);
-            JobRunner.WriteDigests(mode == "record" ? reference : fresh, results);
-            string seconds = timer.Elapsed.TotalSeconds.ToString("0");
-            if (mode == "record")
-            {
-                Console.WriteLine("recorded " + results.Count + " jobs in " + seconds + " s: " + golden);
-                return 0;
-            }
-            var refLines = new List<string>(); foreach (var l in File.ReadAllLines(reference)) if (l.Trim().Length > 0) refLines.Add(l.TrimEnd());
-            var nowLines = new List<string>(); foreach (var l in File.ReadAllLines(fresh)) if (l.Trim().Length > 0) nowLines.Add(l.TrimEnd());
-            var differ = new List<string>();
-            for (int i = 0; i < Math.Min(refLines.Count, nowLines.Count); i++)
-                if (refLines[i] != nowLines[i]) differ.Add(refLines[i].Split(' ')[0]);
-            if (refLines.Count != nowLines.Count) differ.Add(refLines.Count + " jobs recorded, " + nowLines.Count + " now");
-            if (differ.Count > 0)
-            {
-                Console.WriteLine("engine: " + differ.Count + " of " + refLines.Count + " jobs give other traces (" + seconds + " s), first: " +
-                                  string.Join(", ", differ.GetRange(0, Math.Min(5, differ.Count))));
-                return 1;
-            }
-            Console.WriteLine("engine: " + refLines.Count + " jobs, every trace as recorded (" + seconds + " s)");
-            return 0;
-        }
-
         /// <summary>dtcli measure --snapshot S --jobs J --out R [--threads N]: the measures that play battles (expedition, play_checkpoint, check_change, walked_zones).</summary>
         static int MeasureCommand(string[] args)
         {
@@ -245,8 +197,6 @@ namespace DtEngine.Cli
                     return RunCommand(args);
                 case "trace":
                     return TraceCommand(args);
-                case "golden":
-                    return GoldenCommand(args);
                 case "measure":
                     return MeasureCommand(args);
                 case "profile":

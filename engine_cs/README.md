@@ -8,8 +8,7 @@ value of the mod (configuration: `data_tables/measure_config.json`, `data_tables
 It began as a 1-to-1 port of a Python simulator and was proven equal to it, trace line by trace line, on 2026-10-16 (a corpus of
 every checkpoint and fixed battle, 3,000 random cases, a directed case for every skill, enemy, item, enchantment, piece of gear,
 guest and summon, and the measures: 0 differences). That simulator was then removed; the engine is the reference. A change of its
-code is checked against its own recorded traces: `dtcli golden check` (12,731 jobs of `build/golden/` on its frozen snapshot, in
-about 11 s, part of `tools/full_suite.py`); after a change meant to move results, `dtcli golden record` and say so in the commit.
+code is checked by `dotnet test engine_cs` and by the conformity report (`tools/engine_conformity.py`).
 
 | Folder | What it holds |
 |---|---|
@@ -28,7 +27,6 @@ dtcli measure --snapshot build/engine_snapshot.json --jobs measures.json --out r
 dtcli trace --snapshot build/engine_snapshot.json --job job.json --out trace.txt [--level 1|2]
 dtcli profile --snapshot build/engine_snapshot.json --jobs jobs.json [--repeat N]   # time, bytes allocated and by which types, on one thread
 dotnet test engine_cs                                           # the xunit tests
-dtcli golden check | record [--threads N]                       # the engine against its own recorded traces (build/golden/)
 ```
 
 `dtcli` stands for `dotnet engine_cs/src/DtEngine.Cli/bin/Release/net10.0/dtcli.dll`.
@@ -117,7 +115,7 @@ cases (the file is kept in `tests/DtEngine.Tests/golden/`; `dotnet test` reads i
 A job with `record: true` gets, for each battle (`parts[k].record`), the tables of `sim.battle.Recorder` (damage, healing, actions,
 skill uses, TP spent, items used, chants, performances broken, turns lost, denied, delayed, largest hit, deaths, kills) with the units
 that name them (position, name, kind, side, role, owner, level); `result['record']` is that of the first battle, as in `sim.scenario.play`.
-The trace carries one line `C ...` after the `E` line of each battle, so the recorded traces of `dtcli golden` cover the recorder.
+The trace carries one line `C ...` after the `E` line of each battle, so a trace shows the recorder.
 
 ## Party recipe, enemies and more fields of a job
 
