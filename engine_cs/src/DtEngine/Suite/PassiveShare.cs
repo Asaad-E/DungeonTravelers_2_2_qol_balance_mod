@@ -12,7 +12,7 @@ namespace DtEngine.Suite
             public Dictionary<string, double> Damage = new Dictionary<string, double>();
             public Dictionary<string, int> Blows = new Dictionary<string, int>();
             public double RoleAttackDamage; public int RoleAttacks;
-            public string Weapon = "-"; public double RoleAtk, RoleWeaponAtk; public int Seen;
+            public string Weapon = "-"; public double RoleAtk, RoleWeaponAtk, RoleRes, RoleWeaponRes; public int Seen;
         }
 
         /// <summary>dtcli passive-share ROLE SKILL BOSS RUNS: plays the one-skill-trial cell without and with the skill under a trace and
@@ -33,7 +33,7 @@ namespace DtEngine.Suite
                     if (b != current) { current = b; t.Battles++; }
                     if (act.Actor.Kind == Kind.Member && act.Actor.HasRole && act.Actor.Role == role && t.Seen < 1 && act.Actor.Weapon != null)
                     {
-                        t.Seen++; t.Weapon = act.Actor.Weapon.Name; t.RoleAtk = act.Actor.Stat(Unit.ATK); t.RoleWeaponAtk = act.Actor.Weapon.Stats[Unit.ATK];
+                        t.Seen++; t.Weapon = act.Actor.Weapon.Name; t.RoleAtk = act.Actor.Stat(Unit.ATK); t.RoleWeaponAtk = act.Actor.Weapon.Stats[Unit.ATK]; t.RoleRes = act.Actor.Stat(Unit.RES); t.RoleWeaponRes = act.Actor.Weapon.Stats[Unit.RES];
                     }
                 };
                 TextTrace.DamageHook = (b, act, target, amount) =>
@@ -69,7 +69,7 @@ namespace DtEngine.Suite
                 var t = results[use]; double nb = Math.Max(1, t.Battles); double total = t.Damage.Values.Sum();
                 Trials.Say(c, name + (use ? " WITH" : " WITHOUT") + " (" + role + ") " + cid + ", " + runs + " battles: won " + Py.Pct(t.Won, 1) + " | length of won " + Py.F(t.Time, 1)
                            + " | damage dealt per battle " + Py.F(total / nb, 0));
-                Trials.Say(c, "  " + role + ": weapon " + t.Weapon + " (ATK " + Py.F(t.RoleWeaponAtk, 0) + "), ATK stat of the unit " + Py.F(t.RoleAtk, 0)
+                Trials.Say(c, "  " + role + ": weapon " + t.Weapon + " (ATK " + Py.F(t.RoleWeaponAtk, 0) + "), ATK stat of the unit " + Py.F(t.RoleAtk, 0) + " | RES " + Py.F(t.RoleRes, 0) + " (weapon RES " + Py.F(t.RoleWeaponRes, 0) + ")"
                            + " | plain attack " + Py.F(t.RoleAttackDamage / Math.Max(1, t.RoleAttacks), 1) + " per blow, " + Py.F(t.RoleAttacks / nb, 1) + " blows per battle");
                 Trials.Say(c, "  share of the damage by role: " + string.Join(", ", t.Damage.OrderByDescending(kv => kv.Value).Select(kv => kv.Key + " " + Py.Pct(kv.Value / Math.Max(1, total), 1) + " (" + Py.F(kv.Value / nb, 0) + ")")));
             }
