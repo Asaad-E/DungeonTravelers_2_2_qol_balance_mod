@@ -28,6 +28,8 @@ namespace DtEngine.Suite
             { "lize-ideas", TrialsB.LizeIdeas },
             { "mercenary-trial", TrialsB.MercenaryTrial },
             { "one-skill-trial", TrialsB.OneSkillTrial },
+            { "skill-trace", TrialsB.SkillTrace },
+            { "skill-rule-trial", TrialsB.SkillRuleTrial },
             { "tp-items-trial", TrialsB.TpItemsTrial },
             { "worth-with-weapon", TrialsB.WorthWithWeapon },
             { "rows-trial", TrialsC.RowsTrial },

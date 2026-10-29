@@ -16,6 +16,11 @@ namespace DtEngine
         readonly int level;
         int turn;
         public int Run, BattleIndex;
+        /// <summary>Observers for investigations (dtcli skill-trace); null in every other use.</summary>
+        public static System.Action<Battle, Action> PerformHook;
+        public static System.Action<Battle, Unit> TurnEndHook;
+        public static System.Action<Battle, Unit, int> RestoreHook;
+        public static System.Action<Battle, Action, Unit, bool> HitHook;
 
         public TextTrace(int level = 1) { this.level = level; }
 
@@ -90,6 +95,7 @@ namespace DtEngine
 
         public void TurnEnd(Battle b, Unit u)
         {
+            TurnEndHook?.Invoke(b, u);
             FlushRng(b);
             turn++;
             var sb = new StringBuilder();
@@ -109,12 +115,14 @@ namespace DtEngine
 
         public void Perform(Battle b, Action a)
         {
+            PerformHook?.Invoke(b, a);
             events.Append("A").Append(a.Actor.Position).Append(':').Append(a.Kind.ToString().ToLowerInvariant()).Append(':').Append(a.SourceName ?? "-")
                   .Append(":L").Append(a.Level).Append(';');
         }
 
         public void Hit(Battle b, Action a, Unit target, bool landed)
         {
+            HitHook?.Invoke(b, a, target, landed);
             events.Append("H").Append(a.Actor.Position).Append('>').Append(target.Position).Append('=').Append(landed ? 1 : 0).Append(';');
         }
 
@@ -125,6 +133,7 @@ namespace DtEngine
 
         public void Restore(Battle b, Unit u, int gained)
         {
+            RestoreHook?.Invoke(b, u, gained);
             events.Append("R").Append(u.Position).Append('+').Append(gained).Append(';');
         }
 
