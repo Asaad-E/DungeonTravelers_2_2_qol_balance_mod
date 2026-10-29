@@ -30,6 +30,7 @@ namespace DtEngine.Suite
             { "one-skill-trial", TrialsB.OneSkillTrial },
             { "skill-trace", TrialsB.SkillTrace },
             { "passive-share", TrialsB.PassiveShare },
+            { "passive-blows", TrialsB.PassiveBlows },
             { "skill-rule-trial", TrialsB.SkillRuleTrial },
             { "tp-items-trial", TrialsB.TpItemsTrial },
             { "worth-with-weapon", TrialsB.WorthWithWeapon },

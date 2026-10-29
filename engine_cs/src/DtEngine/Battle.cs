@@ -42,6 +42,7 @@ namespace DtEngine
         void Damage(Battle b, Action a, Unit target, int amount);
         void Restore(Battle b, Unit u, int gained);
         void LoseHp(Battle b, Unit u, int amount);
+        void Counter(Battle b, Unit unit, Unit attacker);
     }
 
     public sealed class BattleResult
@@ -2530,6 +2531,7 @@ namespace DtEngine
             if (unit.Alive && attacker.Alive)
             {
                 if (unit == attacker) return;
+                Trace?.Counter(this, unit, attacker);
                 var saved = damageByTarget;              // the counter keeps a record of its own hits
                 damageByTarget = null;
                 // an enemy counters with its first attack (P7.1 of the audit); a member with a plain attack (the skill its status
