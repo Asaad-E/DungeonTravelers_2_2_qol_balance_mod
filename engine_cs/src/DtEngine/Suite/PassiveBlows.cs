@@ -8,7 +8,7 @@ namespace DtEngine.Suite
     {
         sealed class BlowTally
         {
-            public int Battles, Aimed, AimedLongPhysical, Counters, WithBlow;
+            public int Battles, Aimed, AimedLongPhysical, AimedMidPhysical, AimedShortPhysical, Counters, WithBlow;
             public double Damage, Won, Time;
         }
 
@@ -40,6 +40,8 @@ namespace DtEngine.Suite
                         if (!mine(target) || act.Actor.Side == target.Side) return;
                         t.Aimed++;
                         if (act.Physical && act.Reach == T.LONG) t.AimedLongPhysical++;
+                        if (act.Physical && act.Reach == T.MID) t.AimedMidPhysical++;
+                        if (act.Physical && act.Reach == T.SHORT) t.AimedShortPhysical++;
                     };
                     TextTrace.CounterHook = (b, unit, attacker) => { if (mine(unit)) t.Counters++; };
                     TextTrace.DamageHook = (b, act, target, amount) =>
@@ -68,19 +70,19 @@ namespace DtEngine.Suite
                     finally { TextTrace.PerformHook = null; TextTrace.HitHook = null; TextTrace.CounterHook = null; TextTrace.DamageHook = null; }
                 }
                 var x = res[false]; var y = res[true]; double nb = Math.Max(1, y.Battles), nx = Math.Max(1, x.Battles);
-                Trials.Say(c, cid + " | aimed " + Py.F(x.Aimed / nx, 1) + " | physical long " + Py.F(y.AimedLongPhysical / nb, 2) + " | extra answers " + Py.F(y.Counters / nb - x.Counters / nx, 2)
+                Trials.Say(c, cid + " | aimed " + Py.F(x.Aimed / nx, 1) + " | physical long " + Py.F(y.AimedLongPhysical / nb, 2) + " mid " + Py.F(y.AimedMidPhysical / nb, 2) + " short " + Py.F(y.AimedShortPhysical / nb, 2) + " | extra answers " + Py.F(y.Counters / nb - x.Counters / nx, 2)
                            + " | damage " + Py.F(x.Damage / nx, 0) + " > " + Py.F(y.Damage / nb, 0) + " | wins " + Py.Pct(x.Won, 1) + " > " + Py.Pct(y.Won, 1) + " | length " + Py.F(x.Time, 1) + " > " + Py.F(y.Time, 1));
                 foreach (bool use in new[] { false, true })
                 {
                     var s = total[use]; var t = res[use];
-                    s.Battles += t.Battles; s.Aimed += t.Aimed; s.AimedLongPhysical += t.AimedLongPhysical; s.Counters += t.Counters;
+                    s.Battles += t.Battles; s.Aimed += t.Aimed; s.AimedLongPhysical += t.AimedLongPhysical; s.AimedMidPhysical += t.AimedMidPhysical; s.AimedShortPhysical += t.AimedShortPhysical; s.Counters += t.Counters;
                     s.Damage += t.Damage; s.Won += t.Won; s.Time += t.Time;
                     if (t.AimedLongPhysical > 0) s.WithBlow++;
                 }
             }
             int n = Math.Max(1, bosses.Count); var f = total[false]; var w = total[true];
             Trials.Say(c, "all " + bosses.Count + " bosses: blows aimed per battle " + Py.F(f.Aimed / (double)Math.Max(1, f.Battles), 1) + ", physical long range " + Py.F(w.AimedLongPhysical / (double)Math.Max(1, w.Battles), 2)
-                       + " (" + Py.Pct(w.AimedLongPhysical / (double)Math.Max(1, w.Aimed), 1) + " of them); bosses where one is aimed at her: " + w.WithBlow + " of " + bosses.Count
+                       + " (" + Py.Pct(w.AimedLongPhysical / (double)Math.Max(1, w.Aimed), 1) + " of them), physical mid " + Py.F(w.AimedMidPhysical / (double)Math.Max(1, w.Battles), 2) + " (" + Py.Pct(w.AimedMidPhysical / (double)Math.Max(1, w.Aimed), 1) + "), physical short " + Py.F(w.AimedShortPhysical / (double)Math.Max(1, w.Battles), 2) + " (" + Py.Pct(w.AimedShortPhysical / (double)Math.Max(1, w.Aimed), 1) + "); bosses where one is aimed at her: " + w.WithBlow + " of " + bosses.Count
                        + "; extra answers per battle " + Py.F(w.Counters / (double)Math.Max(1, w.Battles) - f.Counters / (double)Math.Max(1, f.Battles), 2) + "; damage taken per battle " + Py.F(f.Damage / (double)Math.Max(1, f.Battles), 0) + " > " + Py.F(w.Damage / (double)Math.Max(1, w.Battles), 0)
                        + "; mean wins " + Py.Pct(f.Won / n, 1) + " > " + Py.Pct(w.Won / n, 1) + "; mean length " + Py.F(f.Time / n, 2) + " > " + Py.F(w.Time / n, 2));
         }
