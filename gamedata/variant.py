@@ -82,7 +82,7 @@ def apply(data, changes):
                 eid, kind = int(field.split()[2]), int(field.split('kind')[1].strip(' )'))
                 if any(e == eid for e, _, _ in skill.effects) or len(skill.effects) >= 5:
                     raise ValueError(f'{row["ID"]}: {record} has no empty slot for effect {eid}')
-                skill.effects.append((eid, kind, [float(v) for v in str(new).split(',')]))
+                skill.effects.append((eid, kind, [float(v) for v in str(new).split(',')][:skill.levels]))
             elif 'effect' in field:
                 eid = _effect_id(field)
                 values = next(v for e, _, v in skill.effects if e == eid)
