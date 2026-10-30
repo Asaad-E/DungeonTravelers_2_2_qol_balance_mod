@@ -14,7 +14,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Blissful Chorale | maid | C30: wins +2%, length +9%, HP left +2 points | serves |
 | Blood Rage | attacker | C38: wins +3%, length +0%, HP left +4 points | nothing shown |
 | Brave | dark lord | P24: wins +2%, length -5%, HP left +4 points | nothing shown |
-| Carrot and Stick | mistress | P24: wins +0%, length +1%, HP left +2 points | nothing shown |
+| Carrot and Stick | mistress | P24: wins +2%, length -2%, HP left +2 points | nothing shown |
 | Catalina | dolls | C40: wins +6%, length +2%, HP left +7 points | serves |
 | Circle Heal | healer | C30: wins +0%, length +3%, HP left -0 points | nothing shown |
 | Circle Nurse | healer | C30: wins +0%, length -2%, HP left +0 points | nothing shown |
