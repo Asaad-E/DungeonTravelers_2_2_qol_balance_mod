@@ -789,16 +789,20 @@ namespace DtEngine
                         }
                         action.Target = best;
                     }
-                    else if (effect == 162 && unit.St[170] != null && lacking.Contains(unit))
-                        // a defence buff of a unit that draws the blows (Provoke up) goes on herself: she is the one hit
+                    else if (effect == 162 && unit.St[170] != null)
+                    {
+                        // a defence buff of a unit that draws the blows (Provoke up) goes on herself, the one hit, and on nobody else:
+                        // the buff raises the DEF of the target by a share, so it is worth the turn on the highest DEF only
+                        if (!lacking.Contains(unit)) continue;
                         action.Target = unit;
+                    }
                     else
                     {
                         Unit best = null; int bk = 0;
                         foreach (var m in lacking)
                         {
                             // 168 (a speed buff such as Accelerator): the ally who hits hardest, by her higher of ATK and INT
-                            int k = effect == 161 ? m.Stat(Unit.ATK) : effect == 162 ? -m.Stat(Unit.DEF) : (effect == 27 || effect == 173) ? m.Stat(Unit.INT)
+                            int k = effect == 161 ? m.Stat(Unit.ATK) : effect == 162 ? m.Stat(Unit.DEF) : (effect == 27 || effect == 173) ? m.Stat(Unit.INT)
                                   : effect == 168 ? Math.Max(m.Stat(Unit.ATK), m.Stat(Unit.INT)) : 0;
                             if (best == null || k > bk) { best = m; bk = k; }
                         }
