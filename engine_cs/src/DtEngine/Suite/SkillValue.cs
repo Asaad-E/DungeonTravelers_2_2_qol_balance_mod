@@ -75,7 +75,7 @@ namespace DtEngine.Suite
         static object Plus(object order) => order is long l ? (object)(l + 1) : Py.Num(order) + 1;
 
         /// <summary>The job of the engine that plays one cell: the reference party with the member of the role, with or without the skill and its rule.</summary>
-        public static JobSpec Job(Ctx c, string role, string cid, Skill skill, bool use, int chain, int runs, string name = null, string setupName = null, (string cond, string act)? rule = null)
+        public static JobSpec Job(Ctx c, string role, string cid, Skill skill, bool use, int chain, int runs, string name = null, string setupName = null, (string cond, string act)? rule = null, bool record = false)
         {
             var cp = c.Checkpoint(cid);
             var sc = c.Sc("variant");
@@ -96,7 +96,7 @@ namespace DtEngine.Suite
                 { "tested", Jb.L(new Obj { { "role", role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true },
                                            { "extra_skills", Jb.Dict(extra.Select(kv => new KeyValuePair<string, object>(kv.Key.ToString(), (long)kv.Value))) } }) },
             };
-            return Jb.Make(c, "variant", cid, runs: runs, crown: 0, recipe: recipe, enemies: enemies, policyRows: rows, setupName: setupName,
+            return Jb.Make(c, "variant", cid, runs: runs, crown: 0, record: record, recipe: recipe, enemies: enemies, policyRows: rows, setupName: setupName,
                            name: name ?? (skill.Name + "|" + role + "|" + cid + "|" + (use ? 1 : 0) + "|" + chain));
         }
 
