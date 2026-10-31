@@ -24,7 +24,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Coffee Break | dolls | C40: wins +25%, length +1%, HP left +26 points | serves |
 | Concentration Prelude | maid | C30: wins +1%, length +6%, HP left +1 points | serves |
 | Cook | maid | C40: wins -2%, length +17%, HP left -2 points | serves |
-| Cover | tank | C40: wins +1%, length -4%, HP left +1 points | nothing shown |
+| Cover | tank | C40: wins +2%, length -4%, HP left +2 points | nothing shown |
 | Death | sage | - | see SKILL_AILMENTS.md |
 | Defender | tank | C40: wins +3%, length -4%, HP left +4 points | nothing shown |
 | Dispel | sage | C30: wins +0%, length -29%, HP left +1 points | nothing shown |
@@ -54,7 +54,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Mini Circle Nurse | sage | C38: wins +1%, length +1%, HP left +1 points | nothing shown |
 | Nurse | healer | C40: wins +1%, length +3%, HP left +1 points | nothing shown |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
-| Parry | tank | C40: wins +1%, length -7%, HP left +2 points | nothing shown |
+| Parry | tank | C40: wins +1%, length -8%, HP left +2 points | nothing shown |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Primevil | etoile | C38: wins +3%, length -5%, HP left -3 points | nothing shown |
 | Protect | tank | P24: wins +4%, length +1%, HP left +7 points | nothing shown |
