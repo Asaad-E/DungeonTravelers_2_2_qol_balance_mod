@@ -4,6 +4,8 @@ builds it, for a trial that takes some rows out (rows_trial) or puts old rows ba
 extra file that `dtcli <command> --extra <file>` loads next to the snapshot (the format of engine_cs/README.md, "Bridge").
 
     python tools/engine_sides.py rows P031,P032              build/engine_extra_rows.json: the side 'rows|without' (the variant without those rows)
+    python tools/engine_sides.py groups [table ...]          build/engine_extra_groups.json: the sides 'rows|without|<table>', the variant without the
+                                                             rows of one table of the sheet Changes (all the tables when none is given)
     python tools/engine_sides.py ablation [case ...]         build/engine_extra_ablation.json: for each case of measures/curve_ablation.py the sides
                                                              'ablation|<case>|vanilla' and 'ablation|<case>|variant' (all the cases when none is given)
 """
@@ -47,6 +49,18 @@ def rows(ids):
     return write('rows', {'rows|without': side_of(rows_without(ids))})
 
 
+def groups(tables):
+    """One side for each table of the sheet Changes: the variant without the rows of that table ('rows|without|<table>')."""
+    from gamedata import variant
+    all_rows = variant.rows()
+    names = tables or sorted({str(r['Table']) for r in all_rows})
+    sides = {}
+    for name in names:
+        ids = [str(r['ID']) for r in all_rows if str(r['Table']) == name]
+        sides[f'rows|without|{name}'] = side_of(rows_without(ids))
+    return write('groups', sides)
+
+
 def ablation(cases):
     import curve_ablation
     sides = {}
@@ -59,7 +73,12 @@ def ablation(cases):
 
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    if len(sys.argv) < 2 or sys.argv[1] not in ('rows', 'ablation'):
+    if len(sys.argv) < 2 or sys.argv[1] not in ('rows', 'ablation', 'groups'):
         raise SystemExit(__doc__)
-    done = rows(sys.argv[2].split(',')) if sys.argv[1] == 'rows' else ablation(sys.argv[2:])
+    if sys.argv[1] == 'rows':
+        done = rows(sys.argv[2].split(','))
+    elif sys.argv[1] == 'groups':
+        done = groups(sys.argv[2:])
+    else:
+        done = ablation(sys.argv[2:])
     print(os.path.relpath(done, PROJECT), os.path.getsize(done), 'bytes')
