@@ -63,7 +63,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Reading Requiem | maid | C30: wins +2%, length +3%, HP left +2 points | nothing shown |
 | Replenishing Carol | maid | C40: wins +24%, length -1%, HP left +25 points | serves |
 | Resurrect | healer | P24: wins +5%, length +0%, HP left +7 points | serves |
-| Sacred Hymn | maid | C30: wins +2%, length -1%, HP left +2 points | nothing shown |
+| Sacred Hymn | maid | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Self-Sacrifice | maid | C40: wins -3%, length +4%, HP left -2 points | serves |
 | Shadow Clone | kunoichi | P24: wins +3%, length -5%, HP left +2 points | nothing shown |
 | Shadow Sew | kunoichi | - | see SKILL_AILMENTS.md |
