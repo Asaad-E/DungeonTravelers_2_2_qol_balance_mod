@@ -203,6 +203,13 @@
     ],
     "condition": "party_hp_below:0.6",
     "action": "skill:Catalina"
+   },
+   {
+    "effects": [
+     213
+    ],
+    "condition": "foes_cast:0.3",
+    "action": "status:213"
    }
   ],
   "dolls": {
