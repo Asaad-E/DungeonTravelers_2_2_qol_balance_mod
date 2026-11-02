@@ -178,6 +178,7 @@ namespace DtEngine.Suite
                     + Py.F(slow, 2) + "; a support or tank is weak when its wins in the contested fights fall " + Py.Pct(weak, 0) + " below the median. Kinds of class: sheet ClassKinds; a role whose path ends in a support or tank class is one at every stage.", "",
             };
             var rowsOut = new List<string>();
+            var limits = new HashSet<string>(M.Rows(c, "class_limits").Select(r => r.S("Role")));
             foreach (var st in M.Stages(c))
             {
                 var cids = Checkpoints(st);
@@ -256,13 +257,15 @@ namespace DtEngine.Suite
                         verdict = value != null && value.Value < -weak ? "weak" : "within";
                         measure = value != null ? "wins " + Py.Pct(value.Value, 0, true) + " on the median" : "no contested fight";
                     }
+                    if (verdict != "within" && limits.Contains(role)) verdict = "known limit";
                     rowsOut.Add(verdict);
                     text.Add("| " + role + " | " + Py.Str(cls) + " | " + kind + " | " + string.Join(" | ", cells) + " | " + measure + " | " + verdict + " |");
                 }
                 text.Add("");
             }
-            int bad = rowsOut.Count(v => v != "within");
-            text.Insert(4, "**" + (rowsOut.Count - bad) + " of " + rowsOut.Count + " role and stage rows within the band, " + bad + " slow or weak.**");
+            int known = rowsOut.Count(v => v == "known limit");
+            int bad = rowsOut.Count(v => v != "within" && v != "known limit");
+            text.Insert(4, "**" + (rowsOut.Count - bad - known) + " of " + rowsOut.Count + " role and stage rows within the band, " + bad + " slow or weak" + (known > 0 ? ", " + known + " known limits (sheet ClassLimits)" : "") + ".**");
             text.Insert(5, "");
             c.WriteText(c.Path("docs", "generated", "CLASS_STAGES.md"), M.Lines(text), false);
         }

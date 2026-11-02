@@ -227,6 +227,7 @@ def measure_inputs(setup, vanilla, variant):
     config = measure_config()
     out = {
         'class_stages': rows_json(sheet_rows(setup_mod.SETUP, 'ClassStages', filled=True)),
+        'class_limits': rows_json(sheet_rows(setup_mod.SETUP, 'ClassLimits', filled=True)),
         'class_kinds': {r[0]: r[1] for r in (list(x.values()) for x in sheet_rows(setup_mod.SETUP, 'ClassKinds', filled=True))},
         'guide_sheet': rows_json(sheet_rows(setup_mod.SETUP, 'GuideDifficulty', filled=True)),
         'guide_difficulty': dict(setup.guide_difficulty),
