@@ -205,6 +205,17 @@
     "action": "skill:Catalina"
    }
   ],
+  "dolls": {
+   "effects": [
+    228,
+    229,
+    230,
+    231,
+    232,
+    233
+   ],
+   "condition": "doll_slot_free"
+  },
   "attacking": [
    0,
    1,

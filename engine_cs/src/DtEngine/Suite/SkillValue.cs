@@ -23,6 +23,13 @@ namespace DtEngine.Suite
                 var ids = new HashSet<int>(rule.A("effects").Select(x => (int)Py.Num(x)));
                 if (effects.Any(e => ids.Contains(e.Id))) return (rule.S("condition"), rule.S("action"));
             }
+            // a doll is not a status of her owner: she is summoned where the owner has no doll standing, as the policy of the dolls does
+            var dolls = c.In("skill_value").Has("dolls") ? c.In("skill_value").O("dolls") : null;
+            if (dolls != null)
+            {
+                var ids = new HashSet<int>(dolls.A("effects").Select(x => (int)Py.Num(x)));
+                if (effects.Any(e => ids.Contains(e.Id))) return (dolls.S("condition"), "doll:" + skill.Name);
+            }
             var ailment = effects.FirstOrDefault(e => IsAilment(e.Id) && e.Kind != 2);
             if (ailment != null) return ("always", "ailment:" + ailment.Id);
             var status = effects.FirstOrDefault(e => (e.Kind == 4 || e.Kind == 5) && !IsAilment(e.Id));
@@ -113,6 +120,9 @@ namespace DtEngine.Suite
                 // beforeStatus: a status skill goes before the statuses the role keeps up (a performer keeps one dance or song up)
                 if (beforeStatus && act.StartsWith("status:"))
                     foreach (var r in mine) if (r.Str("Action").StartsWith("status:")) { cut = r.Get("Order"); break; }
+                // a doll goes before the doll the role summons by default: the one tested takes the slot, the default one is the "without"
+                if (act.StartsWith("doll:"))
+                    foreach (var r in mine) if (r.Str("Action").StartsWith("doll")) { cut = r.Get("Order"); break; }
                 if (cut == null)
                 {
                     object top = 0L;

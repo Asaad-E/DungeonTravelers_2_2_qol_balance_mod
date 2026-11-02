@@ -21,12 +21,12 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 | C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.5 / 95% | 100% / 1.4 / 94% | within | 100% / 1.3 / 95% | within | not needed: within without them |
 | C21 | hp x1.30 | 100% / 15.4 / 59% | 100% / 15.4 / 61% | within | 100% / 10.0 / 61% | time | needed |
 | C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.7 / 55% | 100% / 5.6 / 57% | within | 100% / 4.6 / 60% | time | needed |
-| C26 | atk x1.05; hp x1.05 | 98% / 11.4 / 54% | 100% / 9.1 / 62% | within | 100% / 9.1 / 62% | within | not needed: within without them |
-| C27 | atk x1.05; hp x1.05 | 100% / 4.3 / 85% | 100% / 3.5 / 87% | within | 100% / 3.5 / 87% | within | not needed: within without them |
+| C26 | hp x1.05 | 98% / 11.4 / 54% | 100% / 9.1 / 62% | within | 100% / 9.1 / 62% | within | not needed: within without them |
+| C27 | hp x1.05 | 100% / 4.3 / 85% | 100% / 3.5 / 87% | within | 100% / 3.5 / 87% | within | not needed: within without them |
 | C28 | hp x1.10 | 84% / 11.9 / 28% | 88% / 10.5 / 33% | within | 88% / 9.3 / 34% | within | not needed: within without them |
-| C29 | atk x0.90; hp x1.30 | 89% / 60.6 / 40% | 70% / 54.7 / 35% | won | 88% / 48.1 / 44% | within | not needed: within without them |
+| C29 | atk x0.90; hp x1.30 | 89% / 60.6 / 40% | 71% / 56.8 / 35% | won | 88% / 48.9 / 43% | within | not needed: within without them |
 | C30 | atk x0.92; hp x1.26; int x0.92 | 100% / 18.8 / 48% | 100% / 19.7 / 52% | within | 100% / 14.9 / 51% | within | not needed: within without them |
-| C31 | atk x1.05; hp x1.05; hp x1.30 | 100% / 16.9 / 72% | 100% / 16.6 / 73% | within | 100% / 12.0 / 75% | time | needed |
+| C31 | hp x1.05; hp x1.30 | 100% / 16.9 / 72% | 100% / 16.5 / 73% | within | 100% / 12.0 / 75% | time | needed |
 | C32 | atk x1.05; hp x1.05 | 80% / 19.0 / 27% | 91% / 13.1 / 35% | won, time | 91% / 13.1 / 35% | won, time | no better with them |
 | C34 | def x1.15; hp x1.15 | 100% / 21.0 / 60% | 100% / 22.4 / 59% | within | 100% / 16.1 / 61% | within | not needed: within without them |
 | C35 | hp x1.20 | 88% / 11.7 / 36% | 86% / 12.2 / 36% | within | 92% / 10.0 / 41% | within | not needed: within without them |

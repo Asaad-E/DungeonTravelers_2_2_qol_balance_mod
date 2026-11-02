@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**53 nothing shown; 11 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 77).**
+**52 nothing shown; 12 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 77).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -55,6 +55,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Nurse | healer | C40: wins +1%, length +3%, HP left +1 points | nothing shown |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
 | Parry | tank | C40: wins +1%, length -8%, HP left +2 points | nothing shown |
+| Perdurabo | soul summoner | C30: wins +2%, length -1%, HP left +4 points | serves |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Primevil | etoile | C38: wins +3%, length -5%, HP left -3 points | nothing shown |
 | Protect | tank | P24: wins +4%, length +1%, HP left +7 points | nothing shown |
@@ -71,7 +72,6 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Sleep | sage | - | see SKILL_AILMENTS.md |
 | Slow | healer | - | see SKILL_AILMENTS.md |
 | Sorcerous Ballad | maid | C30: wins +2%, length -1%, HP left +2 points | nothing shown |
-| Spartan | dolls | C30: wins +0%, length -12%, HP left -0 points | nothing shown |
 | Spell Guard | tank | C30: wins +0%, length +2%, HP left -0 points | nothing shown |
 | Spiritual Fantasia | maid | C30: wins +2%, length -1%, HP left +2 points | nothing shown |
 | Stab Guard | sage | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
