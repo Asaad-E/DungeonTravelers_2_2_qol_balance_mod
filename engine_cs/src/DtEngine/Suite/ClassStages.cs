@@ -60,7 +60,7 @@ namespace DtEngine.Suite
 
         /// <summary>The role in a party of BatteryParties: in the place of the same role, else of the last member of the same kind and line (an attacker
         /// for an attacker, a support of the Maid line for one), else of the last attacker, else of the last member.</summary>
-        static JobSpec BatteryJob(Ctx c, string cid, string role, string party, int runs)
+        public static JobSpec BatteryJob(Ctx c, string cid, string role, string party, int runs, bool attackerSeat = false)
         {
             var cp = c.Checkpoint(cid);
             var sc = c.Sc("variant");
@@ -75,6 +75,8 @@ namespace DtEngine.Suite
             // a support or tank of another line takes the place of an attacker: the party keeps the supports it has
             if (slot < 0) slot = roles.FindLastIndex(r => Kind(r) == "attacker");
             if (slot < 0) slot = roles.Count - 1;
+            // attackerSeat: the role takes the place of the last attacker even when the party has a member of her own kind (the supports stay)
+            if (attackerSeat && Kind(role) != "attacker") { int s = roles.FindLastIndex(r => Kind(r) == "attacker"); if (s >= 0) slot = s; }
             roles[slot] = role;
             var recipe = new Obj
             {
