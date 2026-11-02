@@ -46,7 +46,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Holy Prayer | sage | C30: wins +0%, length -18%, HP left +0 points | nothing shown |
 | Insurance | healer | P24: wins -1%, length +4%, HP left -1 points | nothing shown |
 | Item Steal | treasure hunter | - | out of the fight: drops, not the fight |
-| Last Stand | attacker | C38: wins +3%, length -4%, HP left +2 points | nothing shown |
+| Last Stand | attacker | P24: wins +5%, length -0%, HP left +3 points | nothing shown |
 | Light Scroll | kunoichi | C30: wins +0%, length -5%, HP left +0 points | nothing shown |
 | Lightning Enchant | sage | P24: wins +1%, length -3%, HP left +1 points | nothing shown |
 | Material Guard | tank | C40: wins +4%, length -1%, HP left +4 points | nothing shown |

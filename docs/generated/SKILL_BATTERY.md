@@ -138,7 +138,7 @@ A cell serves: wins +8%, or wins not down that much and won fights 3% shorter or
 | Katana Mastery | Passive | advanced (attacker), advanced (kunoichi) | 410 | 9% | 0% | 25% | C34 boss, Mage-Heavy (advanced) | +39% / +29% / +37% | niche |
 | Knock Down | Passive | advanced (mistress) | 205 | 11% | 1% | 8% | C33 boss, Mage-Heavy (advanced) | +7% / -3% / +10% | niche |
 | Lance Mastery | Passive | base (tank), intermediate (tank), advanced (tank) | 375 | 13% | 0% | 4% | C29a boss, Mage-Heavy (advanced) | +0% / +13% / +3% | niche |
-| Last Stand | Technique | advanced (attacker) | 205 | 2% | 19% | 0% | C22 random, Dual-Support (advanced; always / status:31) | +1% / -8% / -0% | dead |
+| Last Stand | Technique | advanced (attacker) | 205 | 2% | 16% | 0% | C38 random, Mage-Heavy (advanced; always / status:31) | -0% / -5% / +0% | dead |
 | Life Bring | Magic | advanced (dark lord) | 205 | 4% | 1% | 32% | C22 random, Dual-Support (advanced) | -0% / +4% / -1% | niche |
 | Life Bringer | Technique | advanced (joker) | 205 | 9% | 0% | 9% | C29a boss, Dual-Support (advanced) | +0% / +9% / +1% | niche |
 | Light Scroll | Magic | advanced (kunoichi) | 205 | 2% | 35% | 2% | C24 random, Mage-Heavy (advanced; always / status:166) | +3% / -3% / +4% | niche |
