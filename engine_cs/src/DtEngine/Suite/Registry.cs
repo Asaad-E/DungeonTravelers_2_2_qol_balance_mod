@@ -33,7 +33,7 @@ namespace DtEngine.Suite
             { "passive-blows", TrialsB.PassiveBlows },
             { "skill-rule-trial", TrialsB.SkillRuleTrial },
             { "chant-break-trial", TrialsB.ChantBreakTrial },
-            { "doll-trial", TrialsB.DollTrial }, { "seat-trial", TrialsB.SeatTrial },
+            { "doll-trial", TrialsB.DollTrial }, { "seat-trial", TrialsB.SeatTrial }, { "postgame-hp", TrialsB.PostgameHp },
             { "tp-items-trial", TrialsB.TpItemsTrial },
             { "worth-with-weapon", TrialsB.WorthWithWeapon },
             { "rows-trial", TrialsC.RowsTrial },
