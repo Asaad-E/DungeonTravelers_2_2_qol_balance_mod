@@ -744,14 +744,12 @@ namespace DtEngine
                 else if (effect == 215)
                 {
                     double bonus = s.HasData ? s.Data : 0.0;
-                    foreach (var ally in AlliesArray(unit)) Restore(ally, PyMath.Int(s.Value * (1 + 10 * bonus)));
+                    Restore(unit, PyMath.Int(s.Value * (1 + 10 * bonus)));
                 }
-                else if (effect == 216)
+                else if (effect == 216 && unit.Side == Unit.PARTY)
                 {
                     double bonus = s.HasData ? s.Data : 0.0;
-                    var allies = AlliesArray(unit);
-                    var ally = allies[Rng.ChoiceIndex(allies.Length)];
-                    ally.Tp = Math.Min(ally.MaxTp, ally.Tp + PyMath.Int(s.Value + 100 * bonus));
+                    unit.Tp = Math.Min(unit.MaxTp, unit.Tp + PyMath.Int(s.Value + 100 * bonus));
                 }
                 else if (effect == 113 && unit.St[116] == null)
                 {

@@ -4,23 +4,23 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 
 | Party skill | Members | Bonus at every proof | Wins | Fights shorter | HP left |
 |---|---|---|---|---|---|
-| Board Members | 3 | dex +20, agi +20 | +9 | +15% | +11 |
-| Vagabonds | 3 | agi +20 | +9 | +14% | +10 |
-| Eccentrics | 3 | agi +20 | +9 | +14% | +10 |
-| Vigor Trio | 3 | atk +32 | +6 | +15% | +8 |
-| Mission Ongoing | 4 | fire +10, atk +20 | +8 | +12% | +11 |
-| Sales Experience | 4 | wind +20, agi +10 | +6 | +11% | +9 |
-| NegaPosi | 4 | hp +50, tp +50 | +4 | +5% | +5 |
-| Kindred Spirits | 4 | tp +50, fire +20 | +2 | +6% | +4 |
-| Attentive | 3 | int +20 | +4 | +3% | +6 |
-| The New Magi | 3 | tp +50, fire +20 | +2 | +5% | +3 |
-| Full of Guts | 4 | hp +100 | +3 | +1% | +4 |
-| Graceful Agers | 4 | lightning +20, hp +50 | +1 | +2% | +2 |
-| Celebrities | 3 | lightning +50 | +2 | +1% | +2 |
-| Flawless Poise | 3 | water +20, earth +20 | +1 | +1% | +2 |
-| Royal Squadron | 4 | bash +10, earth +20 | +1 | +1% | +1 |
-| Dark and Light | 3 | res +20 | +0 | +1% | +1 |
-| Beyond Human | 3 | stab +20 | +1 | +0% | +1 |
+| Board Members | 3 | dex +20, agi +20 | +13 | +13% | +11 |
+| Vigor Trio | 3 | atk +32 | +11 | +14% | +7 |
+| Vagabonds | 3 | agi +20 | +11 | +12% | +10 |
+| Eccentrics | 3 | agi +20 | +11 | +12% | +10 |
+| Mission Ongoing | 4 | fire +10, atk +20 | +5 | +13% | +4 |
+| Sales Experience | 4 | wind +20, agi +10 | +12 | +6% | +9 |
+| NegaPosi | 4 | hp +50, tp +50 | +8 | +7% | +8 |
+| Kindred Spirits | 4 | tp +50, fire +20 | +3 | +7% | +4 |
+| The New Magi | 3 | tp +50, fire +20 | +4 | +6% | +4 |
+| Full of Guts | 4 | hp +100 | +4 | +2% | +4 |
+| Graceful Agers | 4 | lightning +20, hp +50 | +2 | +2% | +2 |
+| Celebrities | 3 | lightning +50 | +2 | +2% | +1 |
+| Dark and Light | 3 | res +20 | +1 | +1% | +1 |
+| Flawless Poise | 3 | water +20, earth +20 | +2 | +0% | +0 |
+| Beyond Human | 3 | stab +20 | +3 | -2% | +1 |
 | Libra Guard | 3 | def +25 | -0 | +1% | +0 |
-| Natural Klutzes | 2 | bash +20 | +0 | -0% | -0 |
-| Veteran Soldiers | 2 | slash +25 | +0 | -0% | +0 |
+| Veteran Soldiers | 2 | slash +25 | -0 | +0% | -0 |
+| Royal Squadron | 4 | bash +10, earth +20 | -0 | -0% | -1 |
+| Natural Klutzes | 2 | bash +20 | -1 | +0% | -1 |
+| Attentive | 3 | int +20 | +0 | -1% | -1 |
