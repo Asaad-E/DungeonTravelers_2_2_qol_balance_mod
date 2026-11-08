@@ -662,7 +662,13 @@ namespace DtEngine
                     foreach (var m in hurt) if (target == null || m.HpRatio < target.HpRatio) target = m;
                     restored = Math.Min(target.MaxHp - target.Hp, ExpectedHeal(battle, action, target));
                     if (target.HpRatio < 0.25) restored *= 1.3;
-                    if (action.Has(104) && target.HpRatio < 0.35 && (target.MaxHp - target.Hp) > 600) restored *= 2.5;
+                    if (action.Has(104) && target.HpRatio < 0.4)
+                    {
+                        int critical = 0;
+                        foreach (var m in hurt) if (m.HpRatio < 0.4) critical++;
+                        if (critical <= 2 && (target.MaxHp - target.Hp) >= target.MaxHp * 0.35)
+                            restored *= 2.5;
+                    }
                 }
                 else if (code == T.ALLIES || code == T.ALLY_ROW || code == T.SELF)
                 {
@@ -1082,6 +1088,12 @@ namespace DtEngine
                 {
                     var action = new Action(unit, AKind.Skill, skill, level);
                     if (action.TargetCode == T.SINGLE || action.TargetCode == T.PIERCE) action.Target = BestSingleTarget(battle, unit, action);
+                    else if (action.TargetCode == T.ALLY)
+                    {
+                        Unit best = null;
+                        foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && (best == null || m.HpRatio < best.HpRatio)) best = m;
+                        action.Target = best;
+                    }
                     return action;
                 }
             }

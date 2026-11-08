@@ -136,6 +136,8 @@ namespace DtEngine.Suite
                 // a doll goes before the doll the role summons by default: the one tested takes the slot, the default one is the "without"
                 if (act.StartsWith("doll:"))
                     foreach (var r in mine) if (r.Str("Action").StartsWith("doll")) { cut = r.Get("Order"); break; }
+                if (act.StartsWith("heal:"))
+                    foreach (var r in mine) if (r.Str("Action").StartsWith("heal")) { cut = r.Get("Order"); break; }
                 if (cut == null)
                 {
                     object top = 0L;

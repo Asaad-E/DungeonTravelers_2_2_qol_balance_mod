@@ -58,10 +58,10 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C36 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 28% **below** |
 | C36 | vanilla | Valkyrie | 50% | Dual-Support with attacker for tank | 62% |
 | C38 | vanilla | Bishop | 80% | Dual-Support with sage for healer | 85% |
-| C38 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 90% |
-| C38 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 85% |
+| C38 | vanilla | Diva | 80% | Dual-Support with etoile for diva | 87% |
+| C38 | vanilla | Valkyrie | 80% | Dual-Support with attacker for tank | 83% |
 | C38 | variant | Diva | 80% | Meta with etoile for diva | 80% |
 | C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 88% |
 | C40 | vanilla | Valkyrie | 50% | Dual-Support with attacker for tank | 62% |
-| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 87% |
-| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 60% |
+| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 70% |
+| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 62% |
