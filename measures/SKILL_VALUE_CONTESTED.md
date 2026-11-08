@@ -2,30 +2,30 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**40 nothing shown; 23 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 76).**
+**39 nothing shown; 23 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 75).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
 | Accelerator | magical princess | C38: wins +1%, length +17%, HP left +7 points | serves |
 | Alluring Samba | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Attract | dark lord | C40: wins +9%, length -8%, HP left +11 points | nothing shown |
-| Bash Guard | sage | C40: wins -4%, length +1%, HP left -5 points | nothing shown |
+| Bash Guard | sage | C40: wins +0%, length +2%, HP left -0 points | nothing shown |
 | Berserk | attacker | P24: wins -6%, length +2%, HP left -4 points | nothing shown |
 | Blissful Chorale | maid | C30: wins +0%, length +15%, HP left +4 points | serves |
 | Blood Rage | attacker | C30: wins +2%, length -8%, HP left +3 points | nothing shown |
 | Brave | dark lord | C30: wins +0%, length -14%, HP left +2 points | nothing shown |
 | Catalina | dolls | C40: wins +9%, length -2%, HP left +9 points | nothing shown |
-| Circle Heal | healer | C38: wins +1%, length -3%, HP left +2 points | nothing shown |
+| Circle Heal | healer | P24: wins +2%, length +1%, HP left +3 points | nothing shown |
 | Circle Protect | sage | P24: wins +10%, length -3%, HP left +11 points | serves |
-| Clean | maid | C30: wins +0%, length -0%, HP left +4 points | serves |
+| Clean | maid | C40: wins +1%, length +7%, HP left +2 points | serves |
 | Cleanse | shooter | C30: wins -2%, length +0%, HP left -3 points | nothing shown |
 | Coffee Break | dolls | P24: wins +17%, length +4%, HP left +17 points | serves |
 | Cook | maid | C40: wins +1%, length +26%, HP left +4 points | serves |
-| Cover | tank | P24: wins +1%, length +1%, HP left -1 points | nothing shown |
+| Cover | tank | C38: wins +0%, length -2%, HP left +1 points | nothing shown |
 | Death | sage | - | see SKILL_AILMENTS.md |
-| Defender | tank | P24: wins +2%, length +1%, HP left +3 points | nothing shown |
+| Defender | tank | C38: wins -1%, length -2%, HP left +1 points | nothing shown |
 | Dispel | sage | P24: wins +2%, length +9%, HP left +6 points | serves |
-| Divine Shield | healer | P24: wins +2%, length +3%, HP left +6 points | nothing shown |
+| Divine Shield | healer | P24: wins +1%, length +3%, HP left +0 points | nothing shown |
 | Dumbing Mazurka | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Earth Enchant | sage | C30: wins +0%, length +3%, HP left -1 points | nothing shown |
 | Emaciating Hopak | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
@@ -36,11 +36,10 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | First Aid | maid | C40: wins +14%, length -2%, HP left +14 points | serves |
 | Fleet Foot | dolls | P24: wins +6%, length -15%, HP left +3 points | nothing shown |
 | Freeze | sage | - | see SKILL_AILMENTS.md |
-| Full Heal | healer | C40: wins +0%, length +0%, HP left -0 points | nothing shown |
 | Gloomy Tango | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Gold Steal | shooter | - | out of the fight: gold, not the fight |
 | Gravitating Polka | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Heal | healer | C40: wins -2%, length +6%, HP left -2 points | serves |
+| Heal | healer | C38: wins +1%, length +7%, HP left +3 points | serves |
 | High Risk, High Return | papillon | P24: wins +27%, length +24%, HP left +25 points | serves |
 | Holy Prayer | sage | P24: wins +1%, length +2%, HP left +1 points | nothing shown |
 | Illusion | dolls | P24: wins +15%, length -6%, HP left +17 points | serves |
@@ -50,20 +49,20 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Lightning Enchant | sage | C38: wins +1%, length +2%, HP left +1 points | nothing shown |
 | Lightning March | maid | C30: wins +0%, length +1%, HP left +3 points | nothing shown |
 | Limit Field | dolls | P24: wins +32%, length -21%, HP left +30 points | serves |
-| Material Guard | tank | C40: wins -2%, length -1%, HP left +2 points | nothing shown |
-| Materialize | dolls | P24: wins +18%, length -7%, HP left +17 points | serves |
+| Material Guard | tank | C40: wins -1%, length -1%, HP left +2 points | nothing shown |
+| Materialize | dolls | P24: wins +12%, length -13%, HP left +5 points | nothing shown |
 | Mini Circle Nurse | sage | C38: wins +7%, length +1%, HP left +8 points | serves |
-| Moon Curtain | tank | C38: wins +0%, length -1%, HP left +2 points | nothing shown |
-| Nurse | healer | C40: wins +7%, length +2%, HP left +5 points | nothing shown |
+| Moon Curtain | tank | C38: wins +1%, length -1%, HP left +3 points | serves |
+| Nurse | healer | C38: wins +6%, length -3%, HP left +7 points | nothing shown |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
-| Parry | tank | P24: wins +2%, length -0%, HP left +4 points | nothing shown |
+| Parry | tank | P24: wins +2%, length +1%, HP left +2 points | nothing shown |
 | Perdurabo | soul summoner | C30: wins +0%, length -5%, HP left +3 points | nothing shown |
 | Petrify | sage | - | see SKILL_AILMENTS.md |
 | Primevil | etoile | P24: wins +9%, length +5%, HP left +11 points | serves |
-| Provoke | tank | C38: wins +0%, length +3%, HP left +5 points | serves |
+| Provoke | tank | C40: wins +11%, length +1%, HP left +7 points | serves |
 | Reading Requiem | maid | C30: wins +0%, length +2%, HP left +5 points | serves |
 | Replenishing Carol | maid | C40: wins +13%, length -3%, HP left +11 points | serves |
-| Resurrect | healer | P24: wins +10%, length +0%, HP left +10 points | serves |
+| Resurrect | healer | P24: wins +12%, length +2%, HP left +12 points | serves |
 | Sacred Hymn | maid | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Self-Sacrifice | maid | C40: wins +5%, length +7%, HP left +5 points | serves |
 | Shadow Clone | kunoichi | C30: wins +1%, length -10%, HP left +2 points | nothing shown |

@@ -400,7 +400,9 @@ namespace DtEngine.Suite
                         if (variants && !skill.IsPassive)
                         {
                             string act = rule.HasValue ? rule.Value.act : "skill:" + skill.Name;
-                            foreach (var cond in conditions)
+                            var allConds = new List<string>(conditions);
+                            if (rule.HasValue && !allConds.Contains(rule.Value.cond)) allConds.Add(rule.Value.cond);
+                            foreach (var cond in allConds)
                                 entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = (cond, act) });
                         }
                         else entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = rule });

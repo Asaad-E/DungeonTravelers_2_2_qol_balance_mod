@@ -658,6 +658,7 @@ namespace DtEngine
                     foreach (var m in hurt) if (target == null || m.HpRatio < target.HpRatio) target = m;
                     restored = Math.Min(target.MaxHp - target.Hp, ExpectedHeal(battle, action, target));
                     if (target.HpRatio < 0.25) restored *= 1.3;
+                    if (action.Has(104) && target.HpRatio < 0.35 && (target.MaxHp - target.Hp) > 600) restored *= 2.5;
                 }
                 else if (code == T.ALLIES || code == T.ALLY_ROW || code == T.SELF)
                 {
@@ -824,8 +825,25 @@ namespace DtEngine
                     }
                     return action;
                 }
+                if (code == T.ALLY_ROW)
+                {
+                    Unit frontTarget = null;
+                    int frontMembers = 0, frontLacking = 0;
+                    foreach (var m in battle.AlliesArray(unit))
+                    {
+                        if (m.Kind == Kind.Member && m.Front)
+                        {
+                            frontMembers++;
+                            if (frontTarget == null) frontTarget = m;
+                            if (Lacks(m, effect, action)) frontLacking++;
+                        }
+                    }
+                    if (frontMembers == 0 || frontLacking == 0) continue;
+                    action.Target = frontTarget;
+                    return action;
+                }
                 // EVERYONE (Limit Field): a status on every unit of the field, kept up as a party buff is
-                if (code == T.ALLIES || code == T.ALLY_ROW || code == T.EVERYONE)
+                if (code == T.ALLIES || code == T.EVERYONE)
                 {
                     int members = 0, lackingN = 0;
                     foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member) { members++; if (Lacks(m, effect, action)) lackingN++; }
@@ -838,6 +856,7 @@ namespace DtEngine
                     var foes = new List<Unit>();
                     foreach (var t in EnemiesOf(battle, unit))
                     {
+                        if (effect == 84 && (!t.Snack || t.Hp >= PyMath.Int(t.MaxHp * 0.5))) continue;
                         bool lacks = t.St[effect] == null || (effect == 170 && !ProvokedByUnit(t, unit));
                         if (lacks && !battle.VisiblyVoided(action, t)) foes.Add(t);
                     }

@@ -1,6 +1,6 @@
 ## usage
 
-204 skills of a plan never used: 101 dominated, 70 no rule of the role uses it, 4 not usable with the weapon of the role, 29 situational.
+203 skills of a plan never used: 101 dominated, 70 no rule of the role uses it, 4 not usable with the weapon of the role, 28 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -50,7 +50,6 @@
 | healer (Irena) | 90 | P24 | Thunder Chain | dominated: 1% of the best (Shine Curse) at the start of the fight |
 | healer (Irena) | 90 | P24 | Air Turbulence | dominated: 1% of the best (Shine Curse) at the start of the fight |
 | healer (Irena) | 90 | P24 | Stone Shower | dominated: 1% of the best (Shine Curse) at the start of the fight |
-| healer (Irena) | 90 | P24 | Full Heal | situational: a revive |
 | healer (Irena) | 90 | P24 | Circle Nurse | situational: a cure |
 | mage (Melvy) | 29 | C18 | Fire Blast | dominated: 22% of the best (Fireball) at the start of the fight |
 | mage (Melvy) | 29 | C18 | Ice Storm | dominated: 25% of the best (Fireball) at the start of the fight |

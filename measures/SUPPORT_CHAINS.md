@@ -32,10 +32,10 @@ Balance variant. 8 random battles of the floor of each checkpoint in a row, HP a
 
 | Role | Class | Kind | C22 | C30 | C34 | C40 | HP left against the control | TP left against the control |
 |---|---|---|---|---|---|---|---|---|
-| tank | Valkyrie | tank | 100% / 98% / 14% | 100% / 98% / 20% | 98% / 92% / 22% | 68% / 94% / 22% | +2 | -4 |
+| tank | Valkyrie | tank | 100% / 98% / 14% | 100% / 98% / 19% | 98% / 92% / 22% | 68% / 94% / 22% | +2 | -4 |
 | attacker | Samurai | control | 100% / 97% / 14% | 100% / 94% / 22% | 92% / 89% / 25% | 80% / 96% / 31% | +0 | +0 |
 | maid | Diva | support | 100% / 99% / 30% | 100% / 98% / 35% | 98% / 91% / 43% | 78% / 95% / 46% | +1 | +15 |
-| healer | Bishop | support | 100% / 99% / 14% | 98% / 97% / 32% | 100% / 96% / 33% | 75% / 98% / 26% | +3 | +3 |
+| healer | Bishop | support | 100% / 99% / 14% | 98% / 97% / 32% | 100% / 96% / 34% | 78% / 97% / 27% | +3 | +4 |
 | diva | Diva | support | 100% / 98% / 29% | 100% / 98% / 37% | 98% / 93% / 50% | 78% / 95% / 54% | +2 | +19 |
 | valkyrie | Valkyrie | tank | 100% / 98% / 24% | 100% / 96% / 33% | 98% / 88% / 34% | 85% / 95% / 35% | +0 | +8 |
 | sage | Sage | support | 100% / 99% / 13% | 100% / 97% / 49% | 100% / 95% / 51% | 90% / 99% / 52% | +3 | +18 |
@@ -48,7 +48,7 @@ Balance variant. 8 random battles of the floor of each checkpoint in a row, HP a
 | tank | Valkyrie | tank | 95% / 97% / 45% | 100% / 97% / 80% | 100% / 99% / 89% | 88% / 91% / 65% | +2 | -5 |
 | attacker | Samurai | control | 100% / 91% / 53% | 100% / 97% / 85% | 100% / 100% / 91% | 85% / 90% / 71% | +0 | +0 |
 | maid | Diva | support | 85% / 94% / 60% | 95% / 98% / 89% | 100% / 100% / 93% | 90% / 91% / 81% | +1 | +6 |
-| healer | Bishop | support | 95% / 94% / 46% | 98% / 98% / 84% | 100% / 100% / 91% | 92% / 96% / 70% | +2 | -2 |
+| healer | Bishop | support | 95% / 94% / 46% | 98% / 98% / 83% | 100% / 100% / 91% | 92% / 95% / 72% | +2 | -2 |
 | diva | Diva | support | 95% / 95% / 73% | 95% / 97% / 91% | 100% / 100% / 93% | 95% / 90% / 83% | +1 | +10 |
 | valkyrie | Valkyrie | tank | 95% / 96% / 44% | 98% / 97% / 84% | 100% / 100% / 92% | 88% / 87% / 69% | +0 | -3 |
 | sage | Sage | support | 98% / 99% / 60% | 100% / 97% / 87% | 100% / 100% / 91% | 88% / 96% / 78% | +3 | +4 |
