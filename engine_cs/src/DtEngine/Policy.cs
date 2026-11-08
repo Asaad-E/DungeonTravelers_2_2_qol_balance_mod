@@ -422,7 +422,11 @@ namespace DtEngine
                 double w = joker ? r.JokerWeight : r.Weight;
                 weight += w;
                 if (skill != null && r.Effects.Length > 0)
-                    total += w * DamageValue(battle, new Action(action.Actor, AKind.Skill, skill, action.Level), out _);
+                {
+                    double dmg = DamageValue(battle, new Action(action.Actor, AKind.Skill, skill, action.Level), out _);
+                    if (dmg > 0) total += w * dmg;
+                    else total += w * Math.Max(25.0, action.Actor.Stat(Unit.ATK) * 0.8);
+                }
             }
             return weight != 0 ? total / weight : 0.0;
         }

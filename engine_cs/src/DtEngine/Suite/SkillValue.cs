@@ -20,8 +20,16 @@ namespace DtEngine.Suite
             foreach (var r in c.In("skill_value").A("rules"))
             {
                 var rule = (Obj)r;
-                var ids = new HashSet<int>(rule.A("effects").Select(x => (int)Py.Num(x)));
-                if (effects.Any(e => ids.Contains(e.Id))) return (rule.S("condition"), rule.S("action"));
+                if (rule.Has("skills"))
+                {
+                    var names = new HashSet<string>(rule.A("skills").Select(x => x.ToString()));
+                    if (names.Contains(skill.Name)) return (rule.S("condition"), rule.S("action"));
+                }
+                if (rule.Has("effects"))
+                {
+                    var ids = new HashSet<int>(rule.A("effects").Select(x => (int)Py.Num(x)));
+                    if (effects.Any(e => ids.Contains(e.Id))) return (rule.S("condition"), rule.S("action"));
+                }
             }
             // a doll is not a status of her owner: she is summoned where the owner has no doll standing, as the policy of the dolls does
             var dolls = c.In("skill_value").Has("dolls") ? c.In("skill_value").O("dolls") : null;

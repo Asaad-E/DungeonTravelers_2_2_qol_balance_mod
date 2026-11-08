@@ -140,6 +140,20 @@
  "skill_value": {
   "rules": [
    {
+    "skills": [
+     "Clean"
+    ],
+    "condition": "boss",
+    "action": "status:168"
+   },
+   {
+    "skills": [
+     "Full Heal"
+    ],
+    "condition": "ally_hp_below:0.35",
+    "action": "heal:0.35"
+   },
+   {
     "effects": [
      184
     ],
@@ -179,7 +193,6 @@
     "effects": [
      103,
      9,
-     104,
      128,
      131,
      132,

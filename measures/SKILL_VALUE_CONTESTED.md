@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**39 nothing shown; 23 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 75).**
+**40 nothing shown; 22 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 75).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -39,7 +39,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Gloomy Tango | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Gold Steal | shooter | - | out of the fight: gold, not the fight |
 | Gravitating Polka | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
-| Heal | healer | C38: wins +1%, length +7%, HP left +3 points | serves |
+| Heal | healer | C38: wins +1%, length +5%, HP left +3 points | nothing shown |
 | High Risk, High Return | papillon | P24: wins +27%, length +24%, HP left +25 points | serves |
 | Holy Prayer | sage | P24: wins +1%, length +2%, HP left +1 points | nothing shown |
 | Illusion | dolls | P24: wins +15%, length -6%, HP left +17 points | serves |
@@ -53,7 +53,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Materialize | dolls | P24: wins +12%, length -13%, HP left +5 points | nothing shown |
 | Mini Circle Nurse | sage | C38: wins +7%, length +1%, HP left +8 points | serves |
 | Moon Curtain | tank | C38: wins +1%, length -1%, HP left +3 points | serves |
-| Nurse | healer | C38: wins +6%, length -3%, HP left +7 points | nothing shown |
+| Nurse | healer | C38: wins +6%, length -3%, HP left +6 points | nothing shown |
 | Paralyze | sage | - | see SKILL_AILMENTS.md |
 | Parry | tank | P24: wins +2%, length +1%, HP left +2 points | nothing shown |
 | Perdurabo | soul summoner | C30: wins +0%, length -5%, HP left +3 points | nothing shown |

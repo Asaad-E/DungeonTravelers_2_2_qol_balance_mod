@@ -49,7 +49,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C30 | variant | Diva | 50% | Meta with etoile for diva | 100% |
 | C32 | variant | Dark Lord | 80% | Meta with attacker for dark lord | 90% |
 | C32 | variant | Diva | 80% | Meta with etoile for diva | 88% |
-| C32 | variant | Papillon | 80% | Meta with joker for papillon | 82% |
+| C32 | variant | Papillon | 80% | Meta with joker for papillon | 83% |
 | C32 | variant | Treasure Hunter | 80% | Meta with kunoichi for treasure hunter | 78% **below** |
 | C32 | variant | Valkyrie | 80% | Meta with kunoichi for valkyrie | 43% **below** |
 | C34 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
@@ -63,5 +63,5 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C38 | variant | Diva | 80% | Meta with etoile for diva | 80% |
 | C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 88% |
 | C40 | vanilla | Valkyrie | 50% | Dual-Support with attacker for tank | 62% |
-| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 85% |
-| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 58% |
+| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 87% |
+| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 60% |
