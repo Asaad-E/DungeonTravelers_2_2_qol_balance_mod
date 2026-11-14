@@ -76,10 +76,13 @@ def built_data(built_dir=BUILT_DIR, source=SOURCE):
     """The tables a change can touch, loaded from the built folder as gamedata/data.py loads the originals."""
     data = sim_data.GameData()
     wb = openpyxl.load_workbook(source, read_only=True)
-    sim_data._load_skills(wb, data)
-    sim_data._load_attacks(wb, data)
-    sim_data._load_equipment(wb, data)
-    sim_data._load_misc(wb, data)
+    try:
+        sim_data._load_skills(wb, data)
+        sim_data._load_attacks(wb, data)
+        sim_data._load_equipment(wb, data)
+        sim_data._load_misc(wb, data)
+    finally:
+        wb.close()
     for enemy in enemy_data.enemies(os.path.join(built_dir, 'Enemy', 'Enemy.pck')):
         data.enemies[enemy['id']] = enemy
     data.npcs = npc_data.npcs(os.path.join(built_dir, 'NPC', 'NPC.pck'))

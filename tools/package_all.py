@@ -29,12 +29,19 @@ def main():
         if run('build_variant.py', variant, '--no-install'):
             print(f'[FAIL] the {variant} variant did not build: no archive was written or removed')
             return 1
+    import datetime
+    from package_variant import PREFIX
     old = [n for n in sorted(os.listdir(DIST_DIR)) if n.lower().endswith('.zip')] if os.path.isdir(DIST_DIR) else []
-    for name in old:
-        os.remove(os.path.join(DIST_DIR, name))
+    stamp_before = datetime.date.today().isoformat()
     for variant in VARIANTS:
         if run('package_variant.py', variant):
+            print(f'[FAIL] packaging {variant} failed; previous archives in {DIST_DIR} were kept')
             return 1
+    stamp_after = datetime.date.today().isoformat()
+    keep = {f'{PREFIX}_{v}_{s}.zip'.lower() for v in VARIANTS for s in (stamp_before, stamp_after)}
+    for name in old:
+        if name.lower() not in keep:
+            os.remove(os.path.join(DIST_DIR, name))
     print(f'{len(old)} older archive(s) removed from {DIST_DIR}; it holds:')
     for name in sorted(os.listdir(DIST_DIR)):
         print(f'    {name}  ({os.path.getsize(os.path.join(DIST_DIR, name)):,} bytes)')

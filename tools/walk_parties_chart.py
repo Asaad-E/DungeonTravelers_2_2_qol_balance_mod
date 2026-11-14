@@ -72,7 +72,8 @@ def chart(data, party, windows):
 
 
 def main():
-    data = json.load(open(SOURCE, encoding='utf-8'))
+    with open(SOURCE, encoding='utf-8') as f:
+        data = json.load(f)
     s = suite_charts.settings()
     windows = {'won': float(s['check_won_window']), 'lowest_hp': float(s['check_lowest_hp_window'])}
     os.makedirs(OUT, exist_ok=True)

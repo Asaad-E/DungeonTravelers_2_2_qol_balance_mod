@@ -217,6 +217,11 @@ namespace DtEngine
 
         /// <summary>Objects the policy uses to examine the options of a decision one after the other (it makes the action it chooses afresh).</summary>
         public readonly Action ScratchAction = new Action(null, AKind.Attack);
+        public readonly List<Unit> PolicyScratch = new List<Unit>(8);
+        readonly List<Unit> redirectScratch = new List<Unit>(8);
+        readonly List<Unit> delayOrderScratch = new List<Unit>(16);
+        readonly int[] statusScratch = new int[GameData.MaxEffect];
+        readonly int[] dispelRemoveScratch = new int[GameData.MaxEffect];
         public Skill[] CandidateSkills = new Skill[32];
         public int[] CandidateLevels = new int[32];
 
@@ -236,13 +241,13 @@ namespace DtEngine
         // The arrays are never changed once made, so a caller that holds one while the battle goes on keeps the list as it was.
         readonly Roster roster = new Roster();
         int cacheVersion = -1;
-        Unit[] sideAlive0, sideAlive1, sideAll0, sideAll1, targetable0, targetable1;
+        Unit[] sideAlive0, sideAlive1, sideAll0, sideAll1, targetable0, targetable1, ownSideAll0, ownSideAll1;
 
         void Refresh()
         {
             if (cacheVersion == roster.Version) return;
             cacheVersion = roster.Version;
-            sideAlive0 = sideAlive1 = sideAll0 = sideAll1 = targetable0 = targetable1 = null;
+            sideAlive0 = sideAlive1 = sideAll0 = sideAll1 = targetable0 = targetable1 = ownSideAll0 = ownSideAll1 = null;
         }
 
         Unit[] Build(int side, bool aliveOnly)
@@ -285,9 +290,17 @@ namespace DtEngine
         /// <summary>The candidates of a side with the test of life left out: its units below 2000, alive or fallen.</summary>
         Unit[] OwnSideAll(int side)
         {
-            var r = new List<Unit>();
-            foreach (var u in SideArray(side, false)) if (u.Kind != Kind.Doll && u.Kind != Kind.Summon && u.Kind != Kind.Npc) r.Add(u);
-            return r.ToArray();
+            Refresh();
+            var cached = side == 0 ? ownSideAll0 : ownSideAll1;
+            if (cached != null) return cached;
+            var all = SideArray(side, false);
+            int n = 0;
+            foreach (var u in all) if (u.Kind != Kind.Doll && u.Kind != Kind.Summon && u.Kind != Kind.Npc) n++;
+            var r = new Unit[n];
+            int k = 0;
+            foreach (var u in all) if (u.Kind != Kind.Doll && u.Kind != Kind.Summon && u.Kind != Kind.Npc) r[k++] = u;
+            if (side == 0) ownSideAll0 = r; else ownSideAll1 = r;
+            return r;
         }
 
         void AddUnit(Unit unit)
@@ -1286,12 +1299,22 @@ namespace DtEngine
             AfterHit(action, target, dealt);
         }
 
+        static int[] SnapshotStatuses(Unit u, int[] scratch, out int count)
+        {
+            count = u.StCount;
+            if (count == 0) return Array.Empty<int>();
+            var buf = count <= scratch.Length ? scratch : new int[count];
+            for (int i = 0; i < count; i++) buf[i] = u.StatusAt(i);
+            return buf;
+        }
+
         Unit Redirect(Action action, Unit target)
         {
             int c = action.TargetCode;
             if (c == T.SINGLE || c == T.RANDOM)
             {
-                var covers = new List<Unit>();
+                redirectScratch.Clear();
+                var covers = redirectScratch;
                 // only units below 2000 can cover (P5.5 of the audit): never a doll, the summon or a guest
                 foreach (var u in TargetableArray(target.Side)) if (u != target && u.St[171] != null && u.Alive) covers.Add(u);
                 if (covers.Count > 0)
@@ -2061,11 +2084,10 @@ namespace DtEngine
             foreach (var d in dolls) RemoveDoll(d);
             foreach (var ally in Units)
             {
-                int n = ally.StCount;
-                if (n == 0) continue;
-                var effects = ally.StatusOrder();
-                foreach (int e in effects)
+                var effects = SnapshotStatuses(ally, statusScratch, out int count);
+                for (int i = 0; i < count; i++)
                 {
+                    int e = effects[i];
                     var s = ally.St[e];
                     if (s != null && s.Source == unit && s.Kind == Status.SongKind) ally.PopStatus(e);
                 }
@@ -2139,9 +2161,10 @@ namespace DtEngine
                     for (int k = 0; k < n; k++) target.PopStatus(CURE_ORDER[k]);
                     if (PyMath.Int(value) == CURE_ALL)
                     {
-                        var list = target.StatusOrder();
-                        foreach (int e in list)
+                        var list = SnapshotStatuses(target, statusScratch, out int sc);
+                        for (int k = 0; k < sc; k++)
                         {
+                            int e = list[k];
                             var s = target.St[e];
                             if (s != null && s.Source != null && s.Source.Side != target.Side) target.PopStatus(e);
                         }
@@ -2300,9 +2323,10 @@ namespace DtEngine
                     own.RemoveAt(0);
                     foreach (var u in Units)
                     {
-                        var effects = u.StatusOrder();
-                        foreach (int e in effects)
+                        var effects = SnapshotStatuses(u, statusScratch, out int sc);
+                        for (int k = 0; k < sc; k++)
                         {
+                            int e = effects[k];
                             var s = u.St[e];
                             if (s != null && s.Source == singer && s.Skill == old) u.PopStatus(e);
                         }
@@ -2396,15 +2420,15 @@ namespace DtEngine
                 var names = pass == 0 ? unit.Song : unit.Dance;
                 foreach (var other in Units)
                 {
-                    if (other.StCount == 0) continue;
-                    var effects = other.StatusOrder();
-                    foreach (int e in effects)
+                    var effects = SnapshotStatuses(other, statusScratch, out int sc);
+                    for (int k = 0; k < sc; k++)
                     {
+                        int e = effects[k];
                         var s = other.St[e];
                         if (s != null && s.Source == unit && s.Kind == Status.SongKind && s.Skill != null && names.Contains(s.Skill)) other.PopStatus(e);
                     }
                 }
-                if (pass == 0) unit.Song = new List<string>(); else unit.Dance = new List<string>();
+                names.Clear();
             }
             if (doll)
             {
@@ -2418,7 +2442,8 @@ namespace DtEngine
         void Delay(Unit target)
         {
             if (!target.Alive) return;
-            var order = new List<Unit>();
+            delayOrderScratch.Clear();
+            var order = delayOrderScratch;
             foreach (var u in Units) if (u.Alive) order.Add(u);
             InsertionSortByTime(order);
             int k = order.IndexOf(target);
@@ -2444,11 +2469,16 @@ namespace DtEngine
 
         void Dispel(Unit target)
         {
-            var effects = target.StatusOrder();
-            var remove = new List<int>();
-            foreach (int e in effects)
-                if (DispelAlways[e] || (DispelIfRaised[e] && target.St[e].Value >= 0)) remove.Add(e);
-            foreach (int e in remove) target.PopStatus(e);
+            var effects = SnapshotStatuses(target, statusScratch, out int sc);
+            if (sc == 0) return;
+            var remove = sc <= dispelRemoveScratch.Length ? dispelRemoveScratch : new int[sc];
+            int rn = 0;
+            for (int k = 0; k < sc; k++)
+            {
+                int e = effects[k];
+                if (DispelAlways[e] || (DispelIfRaised[e] && target.St[e].Value >= 0)) remove[rn++] = e;
+            }
+            for (int k = 0; k < rn; k++) target.PopStatus(remove[k]);
         }
 
         void Healed(Unit unit, int gained)

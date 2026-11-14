@@ -195,6 +195,7 @@ namespace DtEngine
         /// <summary>The effects of the statuses, in order (a copy: list(unit.statuses)).</summary>
         public int[] StatusOrder()
         {
+            if (StCount == 0) return Array.Empty<int>();
             var r = new int[StCount];
             Array.Copy(stOrder, r, StCount);
             return r;

@@ -185,26 +185,36 @@ def package(variant, out_dir=DIST_DIR, stamp=None):
     stamp = stamp or datetime.date.today().isoformat()
     path = os.path.join(out_dir, f'{PREFIX}_{variant}_{stamp}.zip')
     title = {'qol': 'QoL', 'balance': 'Balance'}[variant]
-    with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
-        z.writestr(f'Install_{title}.bat', LAUNCHER.format(args=f'install {variant}'))
-        z.writestr(UNINSTALL, LAUNCHER.format(args='uninstall'))
+    tmp_path = path + '.tmp'
+    try:
+        with zipfile.ZipFile(tmp_path, 'w', zipfile.ZIP_DEFLATED) as z:
+            z.writestr(f'Install_{title}.bat', LAUNCHER.format(args=f'install {variant}'))
+            z.writestr(UNINSTALL, LAUNCHER.format(args='uninstall'))
 
-        sh_install = zipfile.ZipInfo(f'Install_{title}.sh')
-        sh_install.external_attr = 0o755 << 16
-        z.writestr(sh_install, LAUNCHER_SH.format(args=f'install {variant}'))
+            sh_install = zipfile.ZipInfo(f'Install_{title}.sh')
+            sh_install.external_attr = 0o755 << 16
+            z.writestr(sh_install, LAUNCHER_SH.format(args=f'install {variant}'))
 
-        sh_uninstall = zipfile.ZipInfo(UNINSTALL_SH)
-        sh_uninstall.external_attr = 0o755 << 16
-        z.writestr(sh_uninstall, LAUNCHER_SH.format(args='uninstall'))
+            sh_uninstall = zipfile.ZipInfo(UNINSTALL_SH)
+            sh_uninstall.external_attr = 0o755 << 16
+            z.writestr(sh_uninstall, LAUNCHER_SH.format(args='uninstall'))
 
-        z.write(os.path.join(RELEASE_DIR, PATCH_SCRIPT), f'{MOD_DIR}/{PATCH_SCRIPT}')
-        patch_py = os.path.join(RELEASE_DIR, PATCH_SCRIPT_PY)
-        if os.path.exists(patch_py):
-            z.write(patch_py, f'{MOD_DIR}/{PATCH_SCRIPT_PY}')
-        z.write(readme, f'{MOD_DIR}/README.txt')
-        z.writestr(f'{MOD_DIR}/{variant}.txt', chr(10).join(lines) + chr(10))
-        z.writestr(f'{MOD_DIR}/{variant}.ops', ops)
-        z.writestr(f'{MOD_DIR}/{variant}.dat', blob)
+            z.write(os.path.join(RELEASE_DIR, PATCH_SCRIPT), f'{MOD_DIR}/{PATCH_SCRIPT}')
+            patch_py = os.path.join(RELEASE_DIR, PATCH_SCRIPT_PY)
+            if os.path.exists(patch_py):
+                z.write(patch_py, f'{MOD_DIR}/{PATCH_SCRIPT_PY}')
+            z.write(readme, f'{MOD_DIR}/README.txt')
+            z.writestr(f'{MOD_DIR}/{variant}.txt', chr(10).join(lines) + chr(10))
+            z.writestr(f'{MOD_DIR}/{variant}.ops', ops)
+            z.writestr(f'{MOD_DIR}/{variant}.dat', blob)
+        os.replace(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+        raise
     return path, files, problems
 
 

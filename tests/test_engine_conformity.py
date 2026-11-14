@@ -12,7 +12,8 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 class EngineConformity(unittest.TestCase):
     def test_every_item_passes(self):
         import engine_conformity
-        data = json.load(open(engine_conformity.TABLE, encoding='utf-8'))
+        with open(engine_conformity.TABLE, encoding='utf-8') as f:
+            data = json.load(f)
         try:
             failed = engine_conformity.checks(data['items'])
         except (FileNotFoundError, OSError) as e:          # no program file on this machine

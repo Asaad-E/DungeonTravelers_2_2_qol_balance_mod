@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**38 nothing shown; 25 serves; 10 see SKILL_AILMENTS.md; 3 out of the fight (of 76).**
+**39 nothing shown; 25 serves; 10 see SKILL_AILMENTS.md; 2 out of the fight (of 76).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -44,12 +44,12 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | High Risk, High Return | papillon | P24: wins +27%, length +24%, HP left +25 points | serves |
 | Holy Prayer | sage | P24: wins +1%, length +2%, HP left +1 points | nothing shown |
 | Illusion | dolls | P24: wins +15%, length -6%, HP left +17 points | serves |
-| Item Steal | treasure hunter | - | out of the fight: drops, not the fight |
 | Last Stand | attacker | P24: wins -1%, length +5%, HP left +1 points | nothing shown |
 | Light Scroll | kunoichi | C30: wins +0%, length -3%, HP left -2 points | nothing shown |
 | Lightning Enchant | sage | C38: wins +1%, length +2%, HP left +1 points | nothing shown |
 | Lightning March | maid | C30: wins +0%, length +1%, HP left +3 points | nothing shown |
 | Limit Field | dolls | P24: wins +32%, length -21%, HP left +30 points | serves |
+| Loose Spirit | mage | C38: wins +9%, length +8%, HP left +8 points | nothing shown |
 | Material Guard | tank | C40: wins -1%, length -1%, HP left +2 points | nothing shown |
 | Materialize | dolls | P24: wins +12%, length -13%, HP left +5 points | nothing shown |
 | Mini Circle Nurse | sage | C38: wins +7%, length +1%, HP left +8 points | serves |

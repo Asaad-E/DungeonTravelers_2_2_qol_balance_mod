@@ -1,6 +1,6 @@
 ## usage
 
-203 skills of a plan never used: 101 dominated, 70 no rule of the role uses it, 4 not usable with the weapon of the role, 28 situational.
+208 skills of a plan never used: 104 dominated, 71 no rule of the role uses it, 6 not usable with the weapon of the role, 27 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -14,7 +14,6 @@
 | tank (Alisia) | 62 | C38 | Circle Heal | situational: a heal (another heal or the songs come first) |
 | tank (Alisia) | 62 | C38 | War Cry | no rule of the role uses it |
 | tank (Alisia) | 90 | P24 | Cover | no rule of the role uses it |
-| tank (Alisia) | 90 | P24 | Heal | situational: a heal (another heal or the songs come first) |
 | tank (Alisia) | 90 | P24 | Ether Strike | dominated: 100% of the best (Ether Strike) at the start of the fight |
 | tank (Alisia) | 90 | P24 | Daedalus Attack | dominated: 89% of the best (Ether Strike) at the start of the fight |
 | tank (Alisia) | 90 | P24 | Circle Heal | situational: a heal (another heal or the songs come first) |
@@ -51,6 +50,8 @@
 | healer (Irena) | 90 | P24 | Air Turbulence | dominated: 1% of the best (Shine Curse) at the start of the fight |
 | healer (Irena) | 90 | P24 | Stone Shower | dominated: 1% of the best (Shine Curse) at the start of the fight |
 | healer (Irena) | 90 | P24 | Circle Nurse | situational: a cure |
+| mage (Melvy) | 29 | C18 | Thunderbolt | dominated: 52% of the best (Fireball) at the start of the fight |
+| mage (Melvy) | 29 | C18 | Ice Edge | dominated: 41% of the best (Fireball) at the start of the fight |
 | mage (Melvy) | 29 | C18 | Fire Blast | dominated: 22% of the best (Fireball) at the start of the fight |
 | mage (Melvy) | 29 | C18 | Ice Storm | dominated: 25% of the best (Fireball) at the start of the fight |
 | mage (Melvy) | 62 | C38 | Inferno | dominated: 18% of the best (Fireball) at the start of the fight |
@@ -95,13 +96,13 @@
 | diva (Yuni) | 90 | P24 | Blissful Chorale | no rule of the role uses it |
 | dark lord (Yae) | 14 | C11 | War Cry | no rule of the role uses it |
 | dark lord (Yae) | 29 | C18 | War Cry | no rule of the role uses it |
-| dark lord (Yae) | 29 | C18 | Geo Break | dominated: 93% of the best (Frost Slash) at the start of the fight |
+| dark lord (Yae) | 29 | C18 | Raging Smash | dominated: 68% of the best (Frost Slash) at the start of the fight |
 | dark lord (Yae) | 62 | C38 | War Cry | no rule of the role uses it |
 | dark lord (Yae) | 62 | C38 | Geo Break | dominated: 43% of the best (Frost Slash) at the start of the fight |
-| dark lord (Yae) | 62 | C38 | Raging Smash | dominated: 41% of the best (Frost Slash) at the start of the fight |
 | dark lord (Yae) | 62 | C38 | Megaton Press | dominated: 54% of the best (Frost Slash) at the start of the fight |
 | dark lord (Yae) | 62 | C38 | Aura Eliminate | dominated: 24% of the best (Frost Slash) at the start of the fight |
 | dark lord (Yae) | 90 | P24 | War Cry | no rule of the role uses it |
+| dark lord (Yae) | 90 | P24 | Frost Slash | dominated: 57% of the best (Geo Break) at the start of the fight |
 | dark lord (Yae) | 90 | P24 | Raging Smash | dominated: 21% of the best (Geo Break) at the start of the fight |
 | dark lord (Yae) | 90 | P24 | Megaton Press | dominated: 49% of the best (Geo Break) at the start of the fight |
 | papillon (Lizerietta) | 29 | C18 | High Risk, High Return | no rule of the role uses it |
@@ -120,9 +121,11 @@
 | valkyrie (Alisia) | 90 | P24 | Protect | no rule of the role uses it |
 | valkyrie (Alisia) | 90 | P24 | Moon Curtain | no rule of the role uses it |
 | valkyrie (Alisia) | 90 | P24 | Material Guard | no rule of the role uses it |
+| treasure hunter (Souffle) | 29 | C18 | Sharp Stab | dominated: 74% of the best (Sleep Sting) at the start of the fight |
 | treasure hunter (Souffle) | 62 | C38 | Chain Spike | not usable with the weapon of the role |
 | treasure hunter (Souffle) | 90 | P24 | Chain Spike | not usable with the weapon of the role |
 | soul summoner (Lizerietta) | 14 | C11 | Coffee Break | situational: a heal (another heal or the songs come first) |
+| soul summoner (Lizerietta) | 29 | C18 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 62 | C38 | Spartan | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
@@ -134,7 +137,6 @@
 | soul summoner (Lizerietta) | 90 | P24 | Musiy | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Oracles | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Coffee Break | situational: a heal (another heal or the songs come first) |
-| magical princess (Melvy) | 29 | C18 | Ice Edge | dominated: 28% of the best (Fireball) at the start of the fight |
 | magical princess (Melvy) | 29 | C18 | Fire Blast | dominated: 14% of the best (Fireball) at the start of the fight |
 | magical princess (Melvy) | 62 | C38 | Magical Slash | dominated: 50% of the best (Magical Spark) at the start of the fight |
 | magical princess (Melvy) | 62 | C38 | Accelerator | no rule of the role uses it |
@@ -174,14 +176,16 @@
 | kunoichi (Tsurara) | 62 | C38 | Light Scroll | no rule of the role uses it |
 | kunoichi (Tsurara) | 62 | C38 | Shadow Sew | no rule of the role uses it |
 | kunoichi (Tsurara) | 62 | C38 | Evade | no rule of the role uses it |
+| kunoichi (Tsurara) | 62 | C38 | Sharp Stab | not usable with the weapon of the role |
 | kunoichi (Tsurara) | 90 | P24 | Stun Sting | dominated: 75% of the best (Ninja Piledriver) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Phoenix | not usable with the weapon of the role |
 | kunoichi (Tsurara) | 90 | P24 | Fire Scroll | dominated: 49% of the best (Ninja Piledriver) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Lightning Scroll | dominated: 45% of the best (Ninja Piledriver) at the start of the fight |
-| kunoichi (Tsurara) | 90 | P24 | Water Scroll | dominated: 32% of the best (Ninja Piledriver) at the start of the fight |
+| kunoichi (Tsurara) | 90 | P24 | Water Scroll | dominated: 27% of the best (Ninja Piledriver) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Wind Scroll | dominated: 24% of the best (Ninja Piledriver) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Light Scroll | no rule of the role uses it |
 | kunoichi (Tsurara) | 90 | P24 | Evade | no rule of the role uses it |
+| kunoichi (Tsurara) | 90 | P24 | Sharp Stab | not usable with the weapon of the role |
 | mistress (Conette) | 62 | C38 | Hard Whipping | dominated: 60% of the best (Enticing Love) at the start of the fight |
 | mistress (Conette) | 62 | C38 | Carrot and Stick | situational: a heal (another heal or the songs come first) |
 | mistress (Conette) | 90 | P24 | Carrot and Stick | situational: a heal (another heal or the songs come first) |
@@ -206,4 +210,5 @@
 | joker (Lizerietta) | 62 | C38 | Life Bringer | dominated: 6% of the best (Heaven or Hell) at the start of the fight |
 | joker (Lizerietta) | 90 | P24 | Checkmate | dominated: 71% of the best (Mad Zapper) at the start of the fight |
 | joker (Lizerietta) | 90 | P24 | Mad Zapper | dominated: 100% of the best (Mad Zapper) at the start of the fight |
+| joker (Lizerietta) | 90 | P24 | Life Bringer | dominated: 19% of the best (Mad Zapper) at the start of the fight |
 | joker (Lizerietta) | 90 | P24 | Heaven or Hell | dominated: 49% of the best (Mad Zapper) at the start of the fight |

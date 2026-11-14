@@ -32,9 +32,13 @@ TABLES = {152: (0x64f8c0, 0x64f930, 9),
 
 
 def _rows(sheet):
-    it = openpyxl.load_workbook(WORKBOOK, read_only=True)[sheet].iter_rows(values_only=True)
-    header = next(it)
-    return [dict(zip(header, r)) for r in it]
+    wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
+    try:
+        it = wb[sheet].iter_rows(values_only=True)
+        header = next(it)
+        return [dict(zip(header, r)) for r in it]
+    finally:
+        wb.close()
 
 
 def _table(exe, address, entries):

@@ -205,9 +205,13 @@ class LevelTable(unittest.TestCase):
     def test_exp_needed_grows_with_every_level(self):
         """Lever L11: the level-up code walks LvExpSkptData level by level (0x448560)."""
         import openpyxl
-        ws = openpyxl.load_workbook(os.path.join(_paths.PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx'),
-                                    read_only=True)['ExpCurve']
-        rows = list(ws.iter_rows(values_only=True))
+        wb = openpyxl.load_workbook(os.path.join(_paths.PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx'),
+                                    read_only=True)
+        try:
+            ws = wb['ExpCurve']
+            rows = list(ws.iter_rows(values_only=True))
+        finally:
+            wb.close()
         level, needed = rows[0].index('Level'), rows[0].index('Req_EXP')
         table = sorted((r[level], r[needed]) for r in rows[1:])
         self.assertEqual([lv for lv, _ in table], list(range(table[0][0], table[0][0] + len(table))))

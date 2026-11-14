@@ -210,7 +210,11 @@ TRUTH = os.path.join(PROJECT, 'data_tables', 'vanilla_source_of_truth.xlsx')
 def sheet_rows(path, name, filled=False):
     """The rows of a sheet as dictionaries by its header; filled: only those whose first cell holds something."""
     import openpyxl
-    rows = list(openpyxl.load_workbook(path, read_only=True)[name].iter_rows(values_only=True))
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        rows = list(wb[name].iter_rows(values_only=True))
+    finally:
+        wb.close()
     return [dict(zip(rows[0], r)) for r in rows[1:] if r[0] or not filled]
 
 

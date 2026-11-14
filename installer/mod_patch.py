@@ -168,17 +168,27 @@ def main(script_dir=None):
         if moved:
             stop_with(moved + UPDATED_MSG)
 
+        staged = []
         try:
             for rel in kept:
                 dest = os.path.join(root, rel)
-                os.makedirs(os.path.dirname(dest), exist_ok=True)
+                stage = dest + '.dt22new'
+                staged.append(stage)
                 with open(os.path.join(backup, rel), 'rb') as sf:
-                    with open(dest, 'wb') as df:
-                        df.write(sf.read())
+                    write_file_safe(stage, sf.read())
+            for rel in kept:
+                dest = os.path.join(root, rel)
+                os.replace(dest + '.dt22new', dest)
             undo_pokes(root, written)
             if os.path.exists(poke_file):
                 os.remove(poke_file)
         except Exception as e:
+            for stage in staged:
+                if os.path.exists(stage):
+                    try:
+                        os.remove(stage)
+                    except OSError:
+                        pass
             stop_with([f"A file could not be written: {e}", "Close the game and run this again."])
 
         if os.path.exists(backup):
@@ -368,42 +378,42 @@ def main(script_dir=None):
 
     # 3. Write
     staged_suffix = '.dt22new'
+    extra_staged = []
     try:
         for w in writes:
             if w['source'] is not None:
                 copy_path = os.path.join(backup, w['rel'])
                 write_file_safe(copy_path + staged_suffix, w['source'])
-                if os.path.exists(copy_path):
-                    os.remove(copy_path)
-                os.rename(copy_path + staged_suffix, copy_path)
+                os.replace(copy_path + staged_suffix, copy_path)
             target = os.path.join(root, w['rel'])
             write_file_safe(target + staged_suffix, w['bytes'])
 
         for w in writes:
             target = os.path.join(root, w['rel'])
-            if os.path.exists(target):
-                os.remove(target)
-            os.rename(target + staged_suffix, target)
+            os.replace(target + staged_suffix, target)
 
-        with open(state_file, 'w', encoding='utf-8') as sf:
+        with open(state_file + staged_suffix, 'w', encoding='utf-8') as sf:
             for w in writes:
                 sf.write(f"{w['rel']}|{get_sha(w['bytes'])}\n")
+        os.replace(state_file + staged_suffix, state_file)
 
         # Pokes write
         record = sorted(set(k['line'] for k in known) | set(p['line'] for p in pokes))
         if record:
-            with open(poke_file, 'w', encoding='utf-8') as pf:
+            with open(poke_file + staged_suffix, 'w', encoding='utf-8') as pf:
                 for line in record:
                     pf.write(line + '\n')
+            os.replace(poke_file + staged_suffix, poke_file)
 
         undo_pokes(root, known)
         for k in pokes:
             put_at(os.path.join(root, k['rel']), k['offset'], k['new'])
 
         if pokes:
-            with open(poke_file, 'w', encoding='utf-8') as pf:
+            with open(poke_file + staged_suffix, 'w', encoding='utf-8') as pf:
                 for k in pokes:
                     pf.write(k['line'] + '\n')
+            os.replace(poke_file + staged_suffix, poke_file)
         elif os.path.exists(poke_file):
             os.remove(poke_file)
 
@@ -412,15 +422,18 @@ def main(script_dir=None):
             if rel.lower() not in named:
                 src = os.path.join(backup, rel)
                 dst = os.path.join(root, rel)
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                stage = dst + staged_suffix
+                extra_staged.append(stage)
                 with open(src, 'rb') as sf:
-                    with open(dst, 'wb') as df:
-                        df.write(sf.read())
+                    write_file_safe(stage, sf.read())
+                os.replace(stage, dst)
                 back_count += 1
 
     except Exception as e:
-        for w in writes:
-            left = os.path.join(root, w['rel']) + staged_suffix
+        cleanup = [os.path.join(root, w['rel']) + staged_suffix for w in writes]
+        cleanup += [os.path.join(backup, w['rel']) + staged_suffix for w in writes if w['source'] is not None]
+        cleanup += [state_file + staged_suffix, poke_file + staged_suffix] + extra_staged
+        for left in cleanup:
             if os.path.exists(left):
                 try:
                     os.remove(left)

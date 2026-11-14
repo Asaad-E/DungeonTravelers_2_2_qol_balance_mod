@@ -24,9 +24,13 @@ NOT_A_FIGURE = re.compile('20[0-9]{2}-[0-9]{2}-[0-9]{2}|[A-Z][0-9]{2,3}')      #
 
 
 def criticisms(path=CRITERIA):
-    it = openpyxl.load_workbook(path, read_only=True)['Criticisms'].iter_rows(values_only=True)
-    header = next(it)
-    return [dict(zip(header, r)) for r in it if r and r[0] is not None]
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        it = wb['Criticisms'].iter_rows(values_only=True)
+        header = next(it)
+        return [dict(zip(header, r)) for r in it if r and r[0] is not None]
+    finally:
+        wb.close()
 
 
 def no_figure(row):

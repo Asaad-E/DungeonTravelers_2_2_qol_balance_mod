@@ -102,9 +102,13 @@ class Refused(Exception):
 
 
 def live_rows(path=CHANGES):
-    it = openpyxl.load_workbook(path, read_only=True)['Changes'].iter_rows(values_only=True)
-    header = next(it)
-    return [row for row in (dict(zip(header, r)) for r in it if r and r[0] is not None) if row['State'] in LIVE]
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        it = wb['Changes'].iter_rows(values_only=True)
+        header = next(it)
+        return [row for row in (dict(zip(header, r)) for r in it if r and r[0] is not None) if row['State'] in LIVE]
+    finally:
+        wb.close()
 
 
 def same(a, b):

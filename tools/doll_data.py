@@ -42,10 +42,13 @@ LEVELS = [f'Lv{k}' for k in range(1, 11)]
 
 
 def _rows(sheet):
-    ws = openpyxl.load_workbook(WORKBOOK, read_only=True)[sheet]
-    it = ws.iter_rows(values_only=True)
-    header = next(it)
-    return [dict(zip(header, r)) for r in it]
+    wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
+    try:
+        it = wb[sheet].iter_rows(values_only=True)
+        header = next(it)
+        return [dict(zip(header, r)) for r in it]
+    finally:
+        wb.close()
 
 
 def dolls():

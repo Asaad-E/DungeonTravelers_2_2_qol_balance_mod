@@ -56,8 +56,12 @@ def name_limit(row):
 def load_previous_mod():
     if not os.path.exists(PREVIOUS_PATH):
         return {}
-    ws = openpyxl.load_workbook(PREVIOUS_PATH, read_only=True)['Enchants']
-    return {r[0]: r[4] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]}
+    wb = openpyxl.load_workbook(PREVIOUS_PATH, read_only=True)
+    try:
+        ws = wb['Enchants']
+        return {r[0]: r[4] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]}
+    finally:
+        wb.close()
 
 
 def load_edited():

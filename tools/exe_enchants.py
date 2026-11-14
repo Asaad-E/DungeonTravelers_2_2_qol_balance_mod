@@ -97,10 +97,14 @@ def reads(exe):
 
 
 def workbook_rows(name, sheet):
-    ws = openpyxl.load_workbook(os.path.join(TABLES_DIR, name), read_only=True)[sheet]
-    rows = ws.iter_rows(values_only=True)
-    header = next(rows)
-    return [dict(zip(header, r)) for r in rows]
+    wb = openpyxl.load_workbook(os.path.join(TABLES_DIR, name), read_only=True)
+    try:
+        ws = wb[sheet]
+        rows = ws.iter_rows(values_only=True)
+        header = next(rows)
+        return [dict(zip(header, r)) for r in rows]
+    finally:
+        wb.close()
 
 
 def product(scale):

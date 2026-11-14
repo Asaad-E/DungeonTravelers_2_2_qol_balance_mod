@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DtEngine.Suite
@@ -77,6 +78,8 @@ namespace DtEngine.Suite
             var seconds = new Dictionary<string, double>();
             var failures = new Dictionary<string, string>();
             var chosenNames = chosen.Select(m => m.Name).ToHashSet();
+            // Bound concurrent measures after their dependencies resolve so DAG edges never block behind the semaphore
+            var measureGate = new SemaphoreSlim(Math.Max(1, Math.Min(4, threads)));
             foreach (var m in chosen)
             {
                 var deps = m.After.Where(chosenNames.Contains).Select(n => tasks[n]).ToArray();
@@ -84,6 +87,7 @@ namespace DtEngine.Suite
                 tasks[m.Name] = Task.Run(async () =>
                 {
                     await Task.WhenAll(deps.Select(d => d.ContinueWith(_ => { })));
+                    await measureGate.WaitAsync();
                     var own = Stopwatch.StartNew();
                     try
                     {
@@ -93,6 +97,10 @@ namespace DtEngine.Suite
                     catch (Exception ex)
                     {
                         lock (failures) failures[def.Name] = ex.GetType().Name + ": " + ex.Message + "\n" + ex.StackTrace;
+                    }
+                    finally
+                    {
+                        measureGate.Release();
                     }
                     lock (seconds) seconds[def.Name] = own.Elapsed.TotalSeconds;
                 });

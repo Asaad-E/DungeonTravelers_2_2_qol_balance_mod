@@ -33,8 +33,12 @@ SLOTS = {0x10: 'level', 0x24: 'HP', 0x28: 'max HP', 0x2c: 'value', 0x34: 'stat',
 
 
 def names(sheet, key, value, book='vanilla_source_of_truth.xlsx'):
-    ws = openpyxl.load_workbook(os.path.join(TABLES_DIR, book), read_only=True)[sheet]
-    rows = list(ws.iter_rows(values_only=True))
+    wb = openpyxl.load_workbook(os.path.join(TABLES_DIR, book), read_only=True)
+    try:
+        ws = wb[sheet]
+        rows = list(ws.iter_rows(values_only=True))
+    finally:
+        wb.close()
     k, v = rows[0].index(key), rows[0].index(value)
     return {r[k]: r[v] for r in rows[1:] if r[k] is not None}
 

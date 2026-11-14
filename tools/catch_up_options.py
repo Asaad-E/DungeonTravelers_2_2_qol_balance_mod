@@ -37,10 +37,14 @@ FLOAT_EXACT = 2 ** 24                  # above this a 32-bit float no longer hol
 
 
 def rows_of(name, sheet):
-    ws = openpyxl.load_workbook(os.path.join(TABLES_DIR, name), read_only=True)[sheet]
-    it = ws.iter_rows(values_only=True)
-    header = next(it)
-    return [dict(zip(header, r)) for r in it if r and r[0] is not None]
+    wb = openpyxl.load_workbook(os.path.join(TABLES_DIR, name), read_only=True)
+    try:
+        ws = wb[sheet]
+        it = ws.iter_rows(values_only=True)
+        header = next(it)
+        return [dict(zip(header, r)) for r in it if r and r[0] is not None]
+    finally:
+        wb.close()
 
 
 def numbers(text):

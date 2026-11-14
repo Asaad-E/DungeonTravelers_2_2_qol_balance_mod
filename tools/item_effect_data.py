@@ -100,7 +100,11 @@ def meal_buffs(exe=None):
                            int(struct.unpack('<f', level.group(1))[0]))
     # The three party buffs (Brave, Protect, Sun Veil) perform their skill with no level given: the program then
     # asks the skill table how many levels the skill has and uses the last one (0x50b0ea, 0x56c690).
-    levels = {r[2]: r[4] for r in openpyxl.load_workbook(WORKBOOK, read_only=True)['Skills'].iter_rows(min_row=2, values_only=True)}
+    wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
+    try:
+        levels = {r[2]: r[4] for r in wb['Skills'].iter_rows(min_row=2, values_only=True)}
+    finally:
+        wb.close()
     for kind in MAX_LEVEL_TYPES:
         stores = [struct.unpack('<I', m.group(1))[0] for m in re.finditer(rb'\xc7[\x00-\x07](....)', exe.read(cases[kind], 0x4c), re.S)]
         vtables = [v for v in stores if RDATA[0] <= v < RDATA[1]]
@@ -117,8 +121,12 @@ MAX_LEVEL_TYPES = (35, 36, 39)
 
 
 def skill_names():
-    rows = openpyxl.load_workbook(WORKBOOK, read_only=True)['Skills'].iter_rows(min_row=2, values_only=True)
-    return {r[2]: r[3] for r in rows}
+    wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
+    try:
+        rows = wb['Skills'].iter_rows(min_row=2, values_only=True)
+        return {r[2]: r[3] for r in rows}
+    finally:
+        wb.close()
 
 
 def main():

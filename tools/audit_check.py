@@ -29,7 +29,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from exe_reader import Exe          # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RULES = json.load(open(os.path.join(ROOT, 'data_tables', 'audit_rules.json'), encoding='utf-8'))
+with open(os.path.join(ROOT, 'data_tables', 'audit_rules.json'), encoding='utf-8') as f:
+    RULES = json.load(f)
 PROGRAM_LINE = re.compile(r'^\s*([0-9a-f]{8})\s{2,}(\S.*?)\s*$')
 ENGINE_REF = re.compile(r'(engine_cs/[\w/.\-]+\.cs):(\d+)')
 ITEM = re.compile(r'^### (P\d+\.\d+)\b(.*)$')
@@ -89,8 +90,11 @@ def check_item(item_id, text, files):
             path, line_no = ref[-1]
             full = os.path.join(ROOT, path)
             if path not in files:
-                files[path] = [ln.strip() for ln in open(full, encoding='utf-8').read().splitlines()] \
-                    if os.path.exists(full) else None
+                if os.path.exists(full):
+                    with open(full, encoding='utf-8') as f:
+                        files[path] = [ln.strip() for ln in f.read().splitlines()]
+                else:
+                    files[path] = None
             source = files[path]
             if source is None:
                 errors.append(f'{path}: no such file')
@@ -147,8 +151,9 @@ def check_item(item_id, text, files):
 
 def main(args):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    plan_ids = [m.group(1) for ln in open(os.path.join(ROOT, RULES['plan']), encoding='utf-8')
-                for m in [PLAN_ID.match(ln)] if m]
+    with open(os.path.join(ROOT, RULES['plan']), encoding='utf-8') as f:
+        plan_ids = [m.group(1) for ln in f
+                    for m in [PLAN_ID.match(ln)] if m]
     # --agent X: the agent X of a parallel run (rules: agents); its items are those of its file, its IDs those of its phases
     agent = None
     if '--agent' in args:
@@ -165,7 +170,9 @@ def main(args):
         if not os.path.exists(path):
             continue
         current, buf = None, []
-        for ln in open(path, encoding='utf-8').read().splitlines():
+        with open(path, encoding='utf-8') as f:
+            file_lines = f.read().splitlines()
+        for ln in file_lines:
             m = ITEM.match(ln)
             if m:
                 if current:

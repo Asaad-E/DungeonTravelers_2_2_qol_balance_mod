@@ -9,6 +9,10 @@ namespace DtEngine
     {
         static readonly int[] HEAL_EFFECTS = { 103, 104, 128, 132 };
         static readonly int[] DOLL_EFFECTS = { 228, 229, 230, 231, 232, 233 };
+        static readonly int[] ITEM_HEAL_KINDS = { 0, 3 };
+        static readonly int[] ITEM_TP_KINDS = { 1 };
+        static readonly int[] ITEM_REVIVE_KINDS = { 8 };
+        static readonly int[] ITEM_CURE_KINDS = { Battle.ITEM_CURE_ALL, Battle.ITEM_CURE_ONE };
         const string EVERY_ROLE = "*";
 
         enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree, FoesAttack, FoesCast, EnemyNamed, NoFoeDispels }
@@ -646,14 +650,17 @@ namespace DtEngine
         Action ActHeal(Battle battle, Unit unit, string arg)
         {
             double threshold = Fraction(arg, 0.6);
-            var hurt = new List<Unit>();
+            var hurt = battle.PolicyScratch;
+            hurt.Clear();
             foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && m.HpRatio < threshold) hurt.Add(m);
             if (hurt.Count == 0) return null;
-            Action best = null; double bestScore = 0.0;
+            Skill bestSkill = null; int bestLevel = 0; Unit bestTarget = null; double bestScore = 0.0;
+            var scratch = battle.ScratchAction;
             foreach (var (skill, level) in Options(battle, unit))
             {
                 if (!GivesAny(skill, HEAL_EFFECTS)) continue;
-                var action = new Action(unit, AKind.Skill, skill, level);
+                scratch.Reset(unit, AKind.Skill, skill, level);
+                var action = scratch;
                 Unit target; double restored;
                 int code = action.TargetCode;
                 if (code == T.ALLY)
@@ -672,13 +679,20 @@ namespace DtEngine
                 }
                 else if (code == T.ALLIES || code == T.ALLY_ROW || code == T.SELF)
                 {
-                    Unit[] group = code != T.SELF ? battle.AlliesArray(unit) : new[] { unit };
                     target = null;
                     var sum = new PySum();
-                    foreach (var m in group)
+                    if (code == T.SELF)
                     {
-                        if (m.Kind != Kind.Member) continue;
-                        sum.AddFloat(Math.Min(m.MaxHp - m.Hp, ExpectedHeal(battle, action, m)) * (m.HpRatio < 0.25 ? 1.3 : 1.0));
+                        if (unit.Kind == Kind.Member)
+                            sum.AddFloat(Math.Min(unit.MaxHp - unit.Hp, ExpectedHeal(battle, action, unit)) * (unit.HpRatio < 0.25 ? 1.3 : 1.0));
+                    }
+                    else
+                    {
+                        foreach (var m in battle.AlliesArray(unit))
+                        {
+                            if (m.Kind != Kind.Member) continue;
+                            sum.AddFloat(Math.Min(m.MaxHp - m.Hp, ExpectedHeal(battle, action, m)) * (m.HpRatio < 0.25 ? 1.3 : 1.0));
+                        }
                     }
                     restored = sum.Result;
                 }
@@ -686,12 +700,13 @@ namespace DtEngine
                 double score = restored / TimeOf(battle, action) / TpPenalty(unit, action);
                 if (score > bestScore)
                 {
-                    best = action; bestScore = score;
-                    best.Target = target;
+                    bestSkill = skill; bestLevel = level; bestScore = score;
+                    bestTarget = target;
                 }
             }
-            if (best == null && unit.Items.Count > 0) return ActItem(battle, unit, "heal", null);
-            return best;
+            if (bestSkill != null) return new Action(unit, AKind.Skill, bestSkill, bestLevel, bestTarget);
+            if (unit.Items.Count > 0) return ActItem(battle, unit, "heal", null);
+            return null;
         }
 
         Action ActRevive(Battle battle, Unit unit)
@@ -710,10 +725,10 @@ namespace DtEngine
             int[] kinds;
             switch (arg)
             {
-                case "heal": kinds = new[] { 0, 3 }; break;
-                case "tp": kinds = new[] { 1 }; break;
-                case "revive": kinds = new[] { 8 }; break;
-                case "cure": kinds = new[] { Battle.ITEM_CURE_ALL, Battle.ITEM_CURE_ONE }; break;
+                case "heal": kinds = ITEM_HEAL_KINDS; break;
+                case "tp": kinds = ITEM_TP_KINDS; break;
+                case "revive": kinds = ITEM_REVIVE_KINDS; break;
+                case "cure": kinds = ITEM_CURE_KINDS; break;
                 default: kinds = Array.Empty<int>(); break;
             }
             int hurt = 0;
@@ -801,7 +816,8 @@ namespace DtEngine
                 }
                 if (code == T.ALLY)
                 {
-                    var lacking = new List<Unit>();
+                    var lacking = battle.PolicyScratch;
+                    lacking.Clear();
                     foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && Lacks(m, effect, action)) lacking.Add(m);
                     if (lacking.Count == 0) continue;
                     if (effect == 171)
@@ -863,7 +879,8 @@ namespace DtEngine
                 }
                 if (code == T.SINGLE || code == T.ALL || code == T.ROW)
                 {
-                    var foes = new List<Unit>();
+                    var foes = battle.PolicyScratch;
+                    foes.Clear();
                     foreach (var t in EnemiesOf(battle, unit))
                     {
                         if (effect == 84 && (!t.Snack || t.Hp >= PyMath.Int(t.MaxHp * 0.5))) continue;
@@ -980,13 +997,16 @@ namespace DtEngine
 
         Action ActDispel(Battle battle, Unit unit)
         {
-            var buffed = new List<Unit>();
+            var buffed = battle.PolicyScratch;
+            buffed.Clear();
             foreach (var t in EnemiesOf(battle, unit)) if (Battle.Dispellable(t)) buffed.Add(t);
             if (buffed.Count == 0) return null;
+            var scratch = battle.ScratchAction;
             foreach (var (skill, level) in Options(battle, unit))
             {
                 if (!Gives(skill, 74)) continue;
-                var action = new Action(unit, AKind.Skill, skill, level);
+                scratch.Reset(unit, AKind.Skill, skill, level);
+                var action = scratch;
                 Unit best = null; int b0 = 0, b1 = 0, b2 = 0, b3 = 0;
                 foreach (var t in buffed)
                 {
@@ -999,10 +1019,7 @@ namespace DtEngine
                     if (greater) { best = t; b0 = k0; b1 = k1; b2 = k2; b3 = k3; }
                 }
                 if (best != null)
-                {
-                    action.Target = best;
-                    return action;
-                }
+                    return new Action(unit, AKind.Skill, skill, level, best);
             }
             return null;
         }

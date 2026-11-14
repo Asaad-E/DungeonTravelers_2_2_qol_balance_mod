@@ -43,17 +43,21 @@ LINE_END = chr(10)
 
 def patches(patch_set=None):
     """[{'id', 'set', 'lever', 'va', 'old', 'new', 'float_before', 'float_after', 'meaning'}] of the sheet."""
-    rows = openpyxl.load_workbook(WORKBOOK, read_only=True)['ExePatches'].iter_rows(values_only=True)
-    header = next(rows)
-    found = []
-    for r in rows:
-        d = dict(zip(header, r))
-        if not d.get('VA') or (patch_set and d['Set'] != patch_set):
-            continue
-        found.append({'id': d['ID'], 'set': d['Set'], 'lever': d['Lever'], 'va': int(d['VA'], 16),
-                      'old': bytes.fromhex(d['Old_Hex']), 'new': bytes.fromhex(d['New_Hex']),
-                      'float_before': d['Float_Before'], 'float_after': d['Float_After'], 'meaning': d['Meaning']})
-    return found
+    wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
+    try:
+        rows = wb['ExePatches'].iter_rows(values_only=True)
+        header = next(rows)
+        found = []
+        for r in rows:
+            d = dict(zip(header, r))
+            if not d.get('VA') or (patch_set and d['Set'] != patch_set):
+                continue
+            found.append({'id': d['ID'], 'set': d['Set'], 'lever': d['Lever'], 'va': int(d['VA'], 16),
+                          'old': bytes.fromhex(d['Old_Hex']), 'new': bytes.fromhex(d['New_Hex']),
+                          'float_before': d['Float_Before'], 'float_after': d['Float_After'], 'meaning': d['Meaning']})
+        return found
+    finally:
+        wb.close()
 
 
 def is_program(path, every_row=None):

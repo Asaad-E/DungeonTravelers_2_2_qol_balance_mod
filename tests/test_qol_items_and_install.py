@@ -506,3 +506,59 @@ class Package(unittest.TestCase):
                 self.assertEqual((after, int(size)), (package_variant.sha(built), len(built)))
                 self.assertNotIn(built, blob)                                       # the file itself is not shipped
             self.assertLess(len(blob), sum(len(built) for _, _, built, _ in files) // 2)
+
+    def test_package_all_keeps_existing_zips_when_packaging_fails(self):
+        from unittest import mock
+        import datetime
+        import package_all
+        import package_variant
+        with tempfile.TemporaryDirectory() as dist:
+            stale = os.path.join(dist, 'DT22_balance_2000-01-01.zip')
+            with open(stale, 'wb') as f:
+                f.write(b'old-zip')
+            with mock.patch.object(package_all, 'DIST_DIR', dist), \
+                 mock.patch.object(package_all, 'run', side_effect=[0, 0, 0, 1]):
+                rc = package_all.main()
+            self.assertEqual(rc, 1)
+            self.assertTrue(os.path.exists(stale))
+
+            today = datetime.date.today().isoformat()
+            fresh = {f'{package_variant.PREFIX}_{v}_{today}.zip': b'new' for v in package_all.VARIANTS}
+            def fake_run(script, *args):
+                if script == 'package_variant.py':
+                    v = args[0]
+                    name = f'{package_variant.PREFIX}_{v}_{today}.zip'
+                    with open(os.path.join(dist, name), 'wb') as zf:
+                        zf.write(fresh[name])
+                return 0
+            with mock.patch.object(package_all, 'DIST_DIR', dist), \
+                 mock.patch.object(package_all, 'run', side_effect=fake_run):
+                rc = package_all.main()
+            self.assertEqual(rc, 0)
+            self.assertFalse(os.path.exists(stale))
+            for name in fresh:
+                self.assertTrue(os.path.exists(os.path.join(dist, name)))
+
+
+class InstallProgramExitCode(unittest.TestCase):
+    def test_main_returns_nonzero_when_floors_are_refused(self):
+        from unittest import mock
+        import io
+        import contextlib
+        import sys
+        import exe_patch
+        import floor_patch
+        import install_variant
+        with tempfile.TemporaryDirectory() as build_dir:
+            os.makedirs(os.path.join(build_dir, 'balance'))
+            with mock.patch.object(install_variant, 'BUILD_DIR', build_dir), \
+                 mock.patch.object(install_variant, 'install', return_value=([], 0, [], '')), \
+                 mock.patch.object(exe_patch, 'patches', return_value=[]), \
+                 mock.patch.object(exe_patch, 'restore', return_value=[]), \
+                 mock.patch.object(floor_patch, 'apply', side_effect=floor_patch.Refused('hash mismatch')), \
+                 mock.patch.object(sys, 'argv', ['install_variant.py', 'balance']):
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    rc = install_variant.main()
+            self.assertEqual(rc, 1)
+            self.assertIn('Floors: REFUSED', buf.getvalue())

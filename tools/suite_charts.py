@@ -42,8 +42,12 @@ OUT_OF_BAND = 'tab:red'
 
 
 def settings():
-    ws = openpyxl.load_workbook(os.path.join(PROJECT, 'data_tables', 'sim_setup.xlsx'), read_only=True)['Settings']
-    return {r[0]: r[1] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]}
+    wb = openpyxl.load_workbook(os.path.join(PROJECT, 'data_tables', 'sim_setup.xlsx'), read_only=True)
+    try:
+        ws = wb['Settings']
+        return {r[0]: r[1] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]}
+    finally:
+        wb.close()
 
 
 def table(lines, header_start):
@@ -84,7 +88,8 @@ def pad(ax, values, low=None, high=None, share=0.15):
 
 
 def class_balance(z):
-    lines = open(os.path.join(GENERATED, 'CLASS_BALANCE.md'), encoding='utf-8').read().splitlines()
+    with open(os.path.join(GENERATED, 'CLASS_BALANCE.md'), encoding='utf-8') as f:
+        lines = f.read().splitlines()
     band = {r[0]: r for r in table(lines, '| Class | Wins | Deviations')}
     scan = {r[0]: r for r in table(lines, '| Class | Cells')}
     classes = sorted(band, key=lambda c: -num(band[c][1]))
@@ -133,7 +138,8 @@ def class_balance(z):
 
 
 def class_stages(slow, weak):
-    lines = open(os.path.join(GENERATED, 'CLASS_STAGES.md'), encoding='utf-8').read().splitlines()
+    with open(os.path.join(GENERATED, 'CLASS_STAGES.md'), encoding='utf-8') as f:
+        lines = f.read().splitlines()
     stages, cur = [], None
     for line in lines:
         m = re.match(r'## (\w+) \((.*)\)', line)
@@ -235,7 +241,8 @@ def save(fig, name):
 
 
 def lines_of(name):
-    return open(os.path.join(GENERATED, name), encoding='utf-8').read().splitlines()
+    with open(os.path.join(GENERATED, name), encoding='utf-8') as f:
+        return f.read().splitlines()
 
 
 def difficulty_curve():
@@ -429,8 +436,12 @@ def skills():
 
 
 def checkpoint_order():
-    ws = openpyxl.load_workbook(os.path.join(PROJECT, 'data_tables', 'sim_setup.xlsx'), read_only=True)['Checkpoints']
-    return [r[0] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]]
+    wb = openpyxl.load_workbook(os.path.join(PROJECT, 'data_tables', 'sim_setup.xlsx'), read_only=True)
+    try:
+        ws = wb['Checkpoints']
+        return [r[0] for r in ws.iter_rows(min_row=2, values_only=True) if r[0]]
+    finally:
+        wb.close()
 
 
 ROLE_COLOURS = {'damage': 'tab:red', 'healing': 'tab:green', 'boost to the party': 'tab:blue'}
@@ -440,7 +451,8 @@ def mercenary_profiles():
     part = os.path.join(GENERATED, 'mercenary_battery', 'part_1.json')
     if not os.path.exists(part):
         return {}
-    return {r['guest']: r.get('profile') or [] for r in json.load(open(part, encoding='utf-8')) if r.get('profile')}
+    with open(part, encoding='utf-8') as f:
+        return {r['guest']: r.get('profile') or [] for r in json.load(f) if r.get('profile')}
 
 
 def mercenaries():
@@ -449,7 +461,8 @@ def mercenaries():
     profiles = mercenary_profiles()
     if not profiles:
         return None
-    cfg = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['skill_battery']
+    with open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8') as f:
+        cfg = json.load(f)['skill_battery']
     low, high = cfg['mercenary_band']
     exempt = set(cfg['mercenary_band_exempt'])
 
@@ -523,8 +536,10 @@ def sealbooks():
     part = os.path.join(GENERATED, 'sealbook_battery', 'part_1.json')
     if not os.path.exists(part):
         return None
-    rows = json.load(open(part, encoding='utf-8'))
-    cfg = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['skill_battery']
+    with open(part, encoding='utf-8') as f:
+        rows = json.load(f)
+    with open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8') as f:
+        cfg = json.load(f)['skill_battery']
     order = checkpoint_order()
     starts = [(name, order.index(first)) for name, first in cfg['sealbook_stretches']]
 
@@ -594,7 +609,11 @@ def mercenaries_detail():
     lines = lines_of('MERCENARY_BATTERY.md')
     rows = sorted(table(lines, '| Mercenary |'), key=lambda r: num(r[4]))
     part = os.path.join(GENERATED, 'mercenary_battery', 'part_1.json')
-    profiles = {r['guest']: r.get('profile') or [] for r in json.load(open(part, encoding='utf-8'))} if os.path.exists(part) else {}
+    if os.path.exists(part):
+        with open(part, encoding='utf-8') as f:
+            profiles = {r['guest']: r.get('profile') or [] for r in json.load(f)}
+    else:
+        profiles = {}
     fig = plt.figure(figsize=(22, 0.42 * len(rows) * 2 + 6))
     grid = fig.add_gridspec(2, 2, width_ratios=[1, 1], height_ratios=[1, 1.05])
     axes = [fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1]), fig.add_subplot(grid[1, :])]
@@ -638,7 +657,8 @@ def mercenaries_detail():
     ax.grid(axis='x', alpha=0.3)
     # who leads at each boss: won fights shorter with her, by checkpoint; the best of each column ringed; a triangle where she
     # changes the share of wins by the threshold of the scan or more
-    wins_step = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['skill_battery']['wins']
+    with open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8') as f:
+        wins_step = json.load(f)['skill_battery']['wins']
     ax = axes[2]
     order = checkpoint_order()
     cids = sorted({p['checkpoint'] for ps in profiles.values() for p in ps}, key=order.index)
@@ -690,7 +710,8 @@ def mercenaries_detail():
 def main():
     os.makedirs(OUT, exist_ok=True)
     s = settings()
-    z = json.load(open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8'))['class_search']['band']['z']
+    with open(os.path.join(PROJECT, 'data_tables', 'measure_config.json'), encoding='utf-8') as f:
+        z = json.load(f)['class_search']['band']['z']
     charts = [lambda: class_balance(z), lambda: class_stages(float(s['class_slow_ratio']), float(s['class_weak_wins'])),
               difficulty_curve, random_battles, party_battery, skills, mercenaries, mercenaries_detail, sealbooks]
     for chart in charts:

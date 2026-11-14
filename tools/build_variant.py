@@ -156,12 +156,16 @@ def load_skill_names(overrides):
     """{(category, entry): name} of the skills the workbook of a variant names again."""
     if not os.path.exists(overrides):
         return {}
-    rows = openpyxl.load_workbook(overrides, read_only=True)['Skills'].iter_rows(values_only=True)
-    head = next(rows)
-    if 'Balance_Name' not in head:
-        return {}
-    return {(r[head.index('Category')], r[head.index('Filename')]): r[head.index('Balance_Name')]
-            for r in rows if r and r[0] and r[head.index('Balance_Name')]}
+    wb = openpyxl.load_workbook(overrides, read_only=True)
+    try:
+        rows = wb['Skills'].iter_rows(values_only=True)
+        head = next(rows)
+        if 'Balance_Name' not in head:
+            return {}
+        return {(r[head.index('Category')], r[head.index('Filename')]): r[head.index('Balance_Name')]
+                for r in rows if r and r[0] and r[head.index('Balance_Name')]}
+    finally:
+        wb.close()
 
 
 def load_skill_text(path):
@@ -194,26 +198,30 @@ def apply_enchant_overrides(table, path, problems):
     must name the QoL name it replaces, and the rows of the program patch it states must be in the sheet ExePatches
     under the set of the variant. Returns how many."""
     import exe_patch
-    rows = openpyxl.load_workbook(path, read_only=True)['Enchants'].iter_rows(values_only=True)
-    head = next(rows)
-    patch_ids = {p['id'] for p in exe_patch.patches('balance')}
-    done = 0
-    for r in rows:
-        d = dict(zip(head, r))
-        if not d.get('Filename'):
-            continue
-        row = table.get(d['Filename'])
-        if row is None or row['name'] != d['QoL_Name']:
-            problems.append(f"{os.path.basename(path)}: {d['Filename']} does not replace the name the QoL table holds")
-            continue
-        first, _, last = [x.strip() for x in str(d['Depends_On']).partition('-')]
-        if first not in patch_ids or (last and last not in patch_ids):
-            problems.append(f"{os.path.basename(path)}: {d['Filename']} states rows {d['Depends_On']}, which the set "
-                            f"balance of ExePatches does not hold")
-            continue
-        row['name'], row['edited'] = d['Balance_Name'], True
-        done += 1
-    return done
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        rows = wb['Enchants'].iter_rows(values_only=True)
+        head = next(rows)
+        patch_ids = {p['id'] for p in exe_patch.patches('balance')}
+        done = 0
+        for r in rows:
+            d = dict(zip(head, r))
+            if not d.get('Filename'):
+                continue
+            row = table.get(d['Filename'])
+            if row is None or row['name'] != d['QoL_Name']:
+                problems.append(f"{os.path.basename(path)}: {d['Filename']} does not replace the name the QoL table holds")
+                continue
+            first, _, last = [x.strip() for x in str(d['Depends_On']).partition('-')]
+            if first not in patch_ids or (last and last not in patch_ids):
+                problems.append(f"{os.path.basename(path)}: {d['Filename']} states rows {d['Depends_On']}, which the set "
+                                f"balance of ExePatches does not hold")
+                continue
+            row['name'], row['edited'] = d['Balance_Name'], True
+            done += 1
+        return done
+    finally:
+        wb.close()
 
 
 def load_item_text(path):
@@ -655,10 +663,13 @@ def build_tutorials(out_dir, path, problems):
     change length. The result is read back: only the entries of the rows (and of the sheet ScriptFixes) differ from
     the originals, and in them only the boxes of the rows; every byte between the strings is the original."""
     wb = openpyxl.load_workbook(path, read_only=True)
-    limits = {r[0]: r[1] for r in wb['Settings'].iter_rows(min_row=2, values_only=True) if r and r[0]}
-    it = wb['Tutorials'].iter_rows(values_only=True)
-    head = next(it)
-    rows = [dict(zip(head, r)) for r in it if r and r[0]]
+    try:
+        limits = {r[0]: r[1] for r in wb['Settings'].iter_rows(min_row=2, values_only=True) if r and r[0]}
+        it = wb['Tutorials'].iter_rows(values_only=True)
+        head = next(it)
+        rows = [dict(zip(head, r)) for r in it if r and r[0]]
+    finally:
+        wb.close()
     script_dir = os.path.join(os.path.dirname(out_dir), 'Script')
     os.makedirs(script_dir, exist_ok=True)
     fixes = collections.defaultdict(list)
@@ -767,9 +778,13 @@ def verify_changes_are_shown(built_table, source_table, overrides, problems):
     from extract_vanilla import WEAPON_NAMES
 
     def load(path):
-        it = openpyxl.load_workbook(path, read_only=True)['Skills'].iter_rows(values_only=True)
-        head = next(it)
-        return {(r[head.index('Category')], r[head.index('Filename')]): dict(zip(head, r)) for r in it if r and r[0]}
+        wb = openpyxl.load_workbook(path, read_only=True)
+        try:
+            it = wb['Skills'].iter_rows(values_only=True)
+            head = next(it)
+            return {(r[head.index('Category')], r[head.index('Filename')]): dict(zip(head, r)) for r in it if r and r[0]}
+        finally:
+            wb.close()
 
     built, source = load(built_table), load(source_table)
     worded = set(load(overrides)) if os.path.exists(overrides) else set()
@@ -856,8 +871,9 @@ def verify_skills(out_dir, table, variant, problems):
                     problems.append(f"{label}: {len(lines)} lines")
                 added = lines[len(row['vanilla_desc'].split('\n')):] if category == 'Unique' else lvup.split('\n')
                 for line in added:
-                    if len(line) > SKILL_LINE:
-                        problems.append(f"{label}: line of {len(line)} chars")
+                    unpadded = ' | '.join(part.strip() for part in line.split('|')) if '|' in line else line
+                    if len(line) > SKILL_LINE or len(unpadded) > MAX_LINE:
+                        problems.append(f"{label}: line of {len(line)} chars ({len(unpadded)} unpadded)")
                 if '~' in desc + lvup:
                     problems.append(f"{label}: contains tilde")
                 found, verified, loose = check_skill_text(category, new, '\n'.join(added))
@@ -996,10 +1012,14 @@ def apply_skill_text_overrides(target, overrides):
     edited by hand. An empty cell keeps what the generator wrote from the built values. Returns how many."""
     if not os.path.exists(overrides):
         return 0
-    rows = openpyxl.load_workbook(overrides, read_only=True)['Skills'].iter_rows(values_only=True)
-    head = next(rows)
-    wanted = {(r[head.index('Category')], r[head.index('Filename')]): (r[head.index('Balance_Desc')], r[head.index('Balance_LvUp')])
-              for r in rows if r and r[0]}
+    wb_ro = openpyxl.load_workbook(overrides, read_only=True)
+    try:
+        rows = wb_ro['Skills'].iter_rows(values_only=True)
+        head = next(rows)
+        wanted = {(r[head.index('Category')], r[head.index('Filename')]): (r[head.index('Balance_Desc')], r[head.index('Balance_LvUp')])
+                  for r in rows if r and r[0]}
+    finally:
+        wb_ro.close()
     wb = openpyxl.load_workbook(target)
     ws = wb['Skills']
     col = {c.value: k for k, c in enumerate(ws[1])}
@@ -1268,9 +1288,10 @@ def main():
                                                   os.path.join(TABLES_DIR, 'balance_skill_text.xlsx'), problems)
                 print(f"    {looked} rows and boxes looked at: every effect or weapon a row adds is worded, and no table "
                       f"the QoL box showed is missing from the box of the variant")
+            source_kind = 'built variant' if variant.get('values') else 'original'
             print(f"[3] Verified {counts['entries']} skill entries read back from disk:")
-            print(f"    numeric data identical to the original in all of them")
-            print(f"    {counts['modified']} modified boxes within {MAX_BOX_LINES} lines / {MAX_LINE} chars")
+            print(f"    numeric data identical to the {source_kind} in all of them")
+            print(f"    {counts['modified']} modified boxes within {MAX_BOX_LINES} lines / {MAX_LINE} unpadded chars ({SKILL_LINE} padded)")
             print(f"    {counts['numbers']} figures in the text checked against the built binary")
             print(f"    {counts['words']} damage words, chances and values in line 1 checked against the built binary")
             if untraced:

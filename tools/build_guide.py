@@ -32,75 +32,77 @@ ATTR_NAMES = {0: 'Weapon', 1: 'Slash', 2: 'Stab', 3: 'Bash', 4: 'Fire', 5: 'Wate
 
 def load_guide_text(path=GUIDE_TEXT_PATH):
     wb = openpyxl.load_workbook(path, read_only=True)
-    
-    sections = {}
-    for row in wb['Sections'].iter_rows(values_only=True):
-        if row and row[0] != 'Key':
-            sections[row[0]] = {'title': row[1] or '', 'text': row[2] or ''}
-            
-    glossary = []
-    for row in wb['Glossary'].iter_rows(values_only=True):
-        if row and row[0] != 'Term':
-            glossary.append((row[0], row[1]))
-            
-    headers = {}
-    for row in wb['Headers'].iter_rows(values_only=True):
-        if row and row[0] != 'Key':
-            headers[row[0]] = row[1]
-            
-    targets = {}
-    for row in wb['Targets'].iter_rows(values_only=True):
-        if row and row[0] != 'Code':
-            targets[row[0]] = row[1]
-            
-    ranges = {}
-    for row in wb['Ranges'].iter_rows(values_only=True):
-        if row and row[0] != 'Code':
-            ranges[row[0]] = row[1]
-            
-    equiptypes = {}
-    for row in wb['EquipTypes'].iter_rows(values_only=True):
-        if row and row[0] != 'Category_Code':
-            cat = row[0]
-            t = row[1]
-            equiptypes[(cat, t)] = row[2]
-            
-    class_meta = {}
-    for row in wb['ClassMetadata'].iter_rows(values_only=True):
-        if row and row[0] != 'Class_ID':
-            class_meta[row[0]] = {
-                'line': row[1],
-                'tier': row[2],
-                'route_from': row[3] or ''
-            }
-
-    class_profiles = {}
-    if 'ClassProfiles' in wb.sheetnames:
-        for row in wb['ClassProfiles'].iter_rows(values_only=True):
-            if row and row[0] != 'Class_ID':
-                class_profiles[row[0]] = row[2] or ''
-
-    skill_descriptions = {}
-    if 'SkillDescriptions' in wb.sheetnames:
-        for row in wb['SkillDescriptions'].iter_rows(values_only=True):
-            if row and row[0] != 'Category':
-                cat, sid, sname = row[0], row[1], row[2]
-                sdesc = row[3] or ''
-                scaling = row[4] or '' if len(row) > 4 else ''
-                entry = (sdesc, scaling)
-                skill_descriptions[(cat, sid)] = entry
-                skill_descriptions[sname] = entry
-            
-    formulas = []
-    if 'Formulas' in wb.sheetnames:
-        for row in wb['Formulas'].iter_rows(values_only=True):
+    try:
+        sections = {}
+        for row in wb['Sections'].iter_rows(values_only=True):
             if row and row[0] != 'Key':
-                formulas.append({
-                    'key': row[0],
-                    'title': row[1] or '',
-                    'formula': row[2] or '',
-                    'summary': row[3] or ''
-                })
+                sections[row[0]] = {'title': row[1] or '', 'text': row[2] or ''}
+                
+        glossary = []
+        for row in wb['Glossary'].iter_rows(values_only=True):
+            if row and row[0] != 'Term':
+                glossary.append((row[0], row[1]))
+                
+        headers = {}
+        for row in wb['Headers'].iter_rows(values_only=True):
+            if row and row[0] != 'Key':
+                headers[row[0]] = row[1]
+                
+        targets = {}
+        for row in wb['Targets'].iter_rows(values_only=True):
+            if row and row[0] != 'Code':
+                targets[row[0]] = row[1]
+                
+        ranges = {}
+        for row in wb['Ranges'].iter_rows(values_only=True):
+            if row and row[0] != 'Code':
+                ranges[row[0]] = row[1]
+                
+        equiptypes = {}
+        for row in wb['EquipTypes'].iter_rows(values_only=True):
+            if row and row[0] != 'Category_Code':
+                cat = row[0]
+                t = row[1]
+                equiptypes[(cat, t)] = row[2]
+                
+        class_meta = {}
+        for row in wb['ClassMetadata'].iter_rows(values_only=True):
+            if row and row[0] != 'Class_ID':
+                class_meta[row[0]] = {
+                    'line': row[1],
+                    'tier': row[2],
+                    'route_from': row[3] or ''
+                }
+
+        class_profiles = {}
+        if 'ClassProfiles' in wb.sheetnames:
+            for row in wb['ClassProfiles'].iter_rows(values_only=True):
+                if row and row[0] != 'Class_ID':
+                    class_profiles[row[0]] = row[2] or ''
+
+        skill_descriptions = {}
+        if 'SkillDescriptions' in wb.sheetnames:
+            for row in wb['SkillDescriptions'].iter_rows(values_only=True):
+                if row and row[0] != 'Category':
+                    cat, sid, sname = row[0], row[1], row[2]
+                    sdesc = row[3] or ''
+                    scaling = row[4] or '' if len(row) > 4 else ''
+                    entry = (sdesc, scaling)
+                    skill_descriptions[(cat, sid)] = entry
+                    skill_descriptions[sname] = entry
+                
+        formulas = []
+        if 'Formulas' in wb.sheetnames:
+            for row in wb['Formulas'].iter_rows(values_only=True):
+                if row and row[0] != 'Key':
+                    formulas.append({
+                        'key': row[0],
+                        'title': row[1] or '',
+                        'formula': row[2] or '',
+                        'summary': row[3] or ''
+                    })
+    finally:
+        wb.close()
 
     return {
         'sections': sections,
@@ -118,86 +120,92 @@ def load_guide_text(path=GUIDE_TEXT_PATH):
 
 def load_source_of_truth(path=SOT_PATH, setup_path=SETUP_PATH):
     wb = openpyxl.load_workbook(path, read_only=True)
-    unique_skills = {}
-    if 'UniqueSkills' in wb.sheetnames:
-        for r in list(wb['UniqueSkills'].iter_rows(values_only=True))[1:]:
-            unique_skills[r[1]] = {
-                'name': r[2],
-                'values': r[4:14],
-                'desc': r[21] or ''
-            }
-    weapon_reqs = {}
-    if 'Skills' in wb.sheetnames:
-        for r in list(wb['Skills'].iter_rows(values_only=True))[1:]:
-            cat, sid = r[0], r[2]
-            w_req = r[10]
-            if w_req:
-                weapon_reqs[(cat, sid)] = w_req
-    enchants = {}
-    if 'Enchants' in wb.sheetnames:
-        for r in list(wb['Enchants'].iter_rows(values_only=True))[1:]:
-            enchants[r[1]] = {
-                'name': r[2],
-                'stacks': bool((r[5] or 0) & 1)
-            }
-    weapon_ranks = {}
-    if 'WeaponRanks' in wb.sheetnames:
-        for r in list(wb['WeaponRanks'].iter_rows(values_only=True))[1:]:
-            weapon_ranks[r[1]] = {
-                'rank': r[2],
-                'delay': r[3]
-            }
+    try:
+        unique_skills = {}
+        if 'UniqueSkills' in wb.sheetnames:
+            for r in list(wb['UniqueSkills'].iter_rows(values_only=True))[1:]:
+                unique_skills[r[1]] = {
+                    'name': r[2],
+                    'values': r[4:14],
+                    'desc': r[21] or ''
+                }
+        weapon_reqs = {}
+        if 'Skills' in wb.sheetnames:
+            for r in list(wb['Skills'].iter_rows(values_only=True))[1:]:
+                cat, sid = r[0], r[2]
+                w_req = r[10]
+                if w_req:
+                    weapon_reqs[(cat, sid)] = w_req
+        enchants = {}
+        if 'Enchants' in wb.sheetnames:
+            for r in list(wb['Enchants'].iter_rows(values_only=True))[1:]:
+                enchants[r[1]] = {
+                    'name': r[2],
+                    'stacks': bool((r[5] or 0) & 1)
+                }
+        weapon_ranks = {}
+        if 'WeaponRanks' in wb.sheetnames:
+            for r in list(wb['WeaponRanks'].iter_rows(values_only=True))[1:]:
+                weapon_ranks[r[1]] = {
+                    'rank': r[2],
+                    'delay': r[3]
+                }
 
-    items = {}
-    if 'Items' in wb.sheetnames:
-        for r in list(wb['Items'].iter_rows(values_only=True))[1:]:
-            if r[1] is not None:
-                items[r[1]] = r[2]
+        items = {}
+        if 'Items' in wb.sheetnames:
+            for r in list(wb['Items'].iter_rows(values_only=True))[1:]:
+                if r[1] is not None:
+                    items[r[1]] = r[2]
 
-    equipment_names = {}
-    if 'Equipment' in wb.sheetnames:
-        for r in list(wb['Equipment'].iter_rows(values_only=True))[1:]:
-            if r[1] is not None:
-                equipment_names[r[1]] = r[2]
+        equipment_names = {}
+        if 'Equipment' in wb.sheetnames:
+            for r in list(wb['Equipment'].iter_rows(values_only=True))[1:]:
+                if r[1] is not None:
+                    equipment_names[r[1]] = r[2]
 
-    enchant_names = {eid: d['name'] for eid, d in enchants.items()}
+        enchant_names = {eid: d['name'] for eid, d in enchants.items()}
 
-    enemy_attacks = {}
-    if 'EnemyAttacks' in wb.sheetnames:
-        for r in list(wb['EnemyAttacks'].iter_rows(values_only=True))[1:]:
-            sid = r[1]
-            effs = []
-            for k in range(1, 6):
-                c_id = 15 + (k - 1) * 4
-                c_name = 16 + (k - 1) * 4
-                c_val = 17 + (k - 1) * 4
-                if c_id < len(r) and r[c_id] is not None and r[c_name]:
-                    effs.append((r[c_id], r[c_name], r[c_val]))
-            enemy_attacks[sid] = {
-                'name': r[2] or '',
-                'header': r[3] or '',
-                'target': r[6] or '',
-                'attr': r[8] or '',
-                'chant_speed': r[9] or 0,
-                'accuracy': r[10] or 0,
-                'power': r[11] or 0,
-                'turns': r[12] or 0,
-                'speed': r[13] if r[13] is not None else 1.0,
-                'effects': effs,
-                'desc': r[36] if len(r) > 36 and r[36] else ''
-            }
+        enemy_attacks = {}
+        if 'EnemyAttacks' in wb.sheetnames:
+            for r in list(wb['EnemyAttacks'].iter_rows(values_only=True))[1:]:
+                sid = r[1]
+                effs = []
+                for k in range(1, 6):
+                    c_id = 15 + (k - 1) * 4
+                    c_name = 16 + (k - 1) * 4
+                    c_val = 17 + (k - 1) * 4
+                    if c_id < len(r) and r[c_id] is not None and r[c_name]:
+                        effs.append((r[c_id], r[c_name], r[c_val]))
+                enemy_attacks[sid] = {
+                    'name': r[2] or '',
+                    'header': r[3] or '',
+                    'target': r[6] or '',
+                    'attr': r[8] or '',
+                    'chant_speed': r[9] or 0,
+                    'accuracy': r[10] or 0,
+                    'power': r[11] or 0,
+                    'turns': r[12] or 0,
+                    'speed': r[13] if r[13] is not None else 1.0,
+                    'effects': effs,
+                    'desc': r[36] if len(r) > 36 and r[36] else ''
+                }
+    finally:
+        wb.close()
 
     mercenary_unlocks = {}
     if os.path.exists(setup_path):
         wb_setup = openpyxl.load_workbook(setup_path, read_only=True)
-        if 'MercenaryUnlocks' in wb_setup.sheetnames:
-            for r in list(wb_setup['MercenaryUnlocks'].iter_rows(values_only=True))[1:]:
-                flag = r[0]
-                basis = str(r[3] or '')
-                if flag is not None and basis:
-                    clean = re.sub(r'\b0x[0-9a-fA-F]+\b\s*', '', basis).strip()
-                    clean = clean.replace('joined by opcode', 'joined by story event')
-                    mercenary_unlocks[flag] = clean
+        try:
+            if 'MercenaryUnlocks' in wb_setup.sheetnames:
+                for r in list(wb_setup['MercenaryUnlocks'].iter_rows(values_only=True))[1:]:
+                    flag = r[0]
+                    basis = str(r[3] or '')
+                    if flag is not None and basis:
+                        clean = re.sub(r'\b0x[0-9a-fA-F]+\b\s*', '', basis).strip()
+                        clean = clean.replace('joined by opcode', 'joined by story event')
+                        mercenary_unlocks[flag] = clean
+        finally:
+            wb_setup.close()
 
     return {
         'unique_skills': unique_skills,

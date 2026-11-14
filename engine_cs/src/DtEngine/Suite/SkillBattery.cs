@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DtEngine.Suite
 {
@@ -54,6 +56,27 @@ namespace DtEngine.Suite
             return true;
         }
 
+        /// <summary>Threshold verdict for one paired battery cell: a fighting cell that already hurts
+        /// (slower won fights without gaining HP, or lower win rate) cannot count as serving via secondary gains like TP.</summary>
+        public static void EvaluateVerdict(bool same, double wins, double length, double hp, double tp, double alive,
+                                           double winsT, double lengthT, double hpT, double tpT, double aliveT,
+                                           double seW, double seL, double seH, double seT, double seA,
+                                           double w, double l, double h, double tpGain, double aliveGain, double z,
+                                           out bool serves, out bool hurts, out bool unclear, out double score)
+        {
+            bool winsUp = wins >= winsT, winsDown = wins <= -winsT;
+            bool tpAllowed = length > -lengthT && wins > -winsT && hp > -hpT;
+            hurts = !same && (winsDown || (!winsUp && length <= -lengthT && hp <= 0));
+            serves = !same && !hurts && (winsUp || (!winsDown && (length >= lengthT || hp >= hpT || (tpAllowed && tp >= tpT) || alive >= aliveT)));
+            // not shown to serve, but some figure could still reach its threshold within z standard errors: the cell is not settled
+            unclear = !same && !serves && !hurts && (wins + z * seW >= w || (!double.IsNaN(seL) && length + z * seL >= l)
+                           || hp + z * seH >= h || (tpAllowed && tp + z * seT >= tpGain) || alive + z * seA >= aliveGain);
+            double lengthRatio = double.IsInfinity(lengthT) ? 0.0 : length / lengthT;
+            double tpRatio = tpAllowed ? tp / tpT : double.NegativeInfinity;
+            score = (winsDown || hurts) ? double.NegativeInfinity
+                  : Math.Max(wins / winsT, Math.Max(lengthRatio, Math.Max(hp / hpT, Math.Max(tpRatio, alive / aliveT))));
+        }
+
         /// <summary>The verdict of a cell. Every difference counts only above max(threshold of the configuration, z paired standard errors)
         /// (configuration "statistics"); the length is compared on the runs both sides won, and only when there are at least min_wins of them.</summary>
         static void Judge(Cell cell, Obj cfg, double z, int minWins)
@@ -84,14 +107,10 @@ namespace DtEngine.Suite
                 }
             }
             cell.Same = SameRuns(cell.Without, cell.With);
-            bool winsUp = cell.Wins >= winsT, winsDown = cell.Wins <= -winsT;
-            cell.Serves = !cell.Same && (winsUp || (!winsDown && (cell.Length >= lengthT || cell.Hp >= hpT || cell.Tp >= tpT || cell.Alive >= aliveT)));
-            cell.Hurts = !cell.Same && (winsDown || (!winsUp && cell.Length <= -lengthT && cell.Hp <= 0));
-            // not shown to serve, but some figure could still reach its threshold within z standard errors: the cell is not settled
-            cell.Unclear = !cell.Same && !cell.Serves && (cell.Wins + z * seW >= w || (!double.IsNaN(seL) && cell.Length + z * seL >= l)
-                           || cell.Hp + z * seH >= h || cell.Tp + z * seT >= tpGain || cell.Alive + z * seA >= aliveGain);
-            cell.Score = winsDown ? double.NegativeInfinity
-                       : new[] { cell.Wins / winsT, double.IsInfinity(lengthT) ? 0.0 : cell.Length / lengthT, cell.Hp / hpT, cell.Tp / tpT, cell.Alive / aliveT }.Max();
+            EvaluateVerdict(cell.Same, cell.Wins, cell.Length, cell.Hp, cell.Tp, cell.Alive,
+                            winsT, lengthT, hpT, tpT, aliveT, seW, seL, seH, seT, seA,
+                            w, l, h, tpGain, aliveGain, z,
+                            out cell.Serves, out cell.Hurts, out cell.Unclear, out cell.Score);
         }
 
         /// <summary>The stages of the configuration ({name, low, high, columns}) that a level falls in.</summary>
@@ -116,7 +135,7 @@ namespace DtEngine.Suite
             return null;
         }
 
-        static JobSpec Job(Ctx c, Cell cell, bool use, int runs, bool record = false)
+        static JobSpec Job(Ctx c, string side, Cell cell, bool use, int runs, bool record = false)
         {
             var e = cell.Entry;
             var sc = c.Sc("variant");
@@ -172,23 +191,33 @@ namespace DtEngine.Suite
         static string BookSetup(Ctx c, int book)
         {
             string key = "book|" + book;
-            if (setups.TryGetValue(key, out var name)) return name;
-            var rows = new List<Row>();
-            if (book != T.NONE)
+            var cache = ctxSetups.GetOrCreateValue(c);
+            if (cache.Map.TryGetValue(key, out var name)) return name;
+            lock (cache.Gate)
             {
-                var row = new Row();
-                row.Cells["From checkpoint"] = c.Setup.Checkpoints[0].Str("ID"); row.Cells["Sealbook"] = (long)book;
-                row.Cells["Name"] = ""; row.Cells["Source"] = "";
-                rows.Add(row);
+                if (cache.Map.TryGetValue(key, out name)) return name;
+                var rows = new List<Row>();
+                if (book != T.NONE)
+                {
+                    var row = new Row();
+                    row.Cells["From checkpoint"] = c.Setup.Checkpoints[0].Str("ID"); row.Cells["Sealbook"] = (long)book;
+                    row.Cells["Name"] = ""; row.Cells["Source"] = "";
+                    rows.Add(row);
+                }
+                name = c.AddSetup(Kit.WithGrandSealbooks(c.Setup, rows));
+                cache.Map[key] = name;
+                return name;
             }
-            name = c.AddSetup(Kit.WithGrandSealbooks(c.Setup, rows));
-            setups[key] = name;
-            return name;
         }
 
-        /// <summary>The cells played in batches and judged at once; the runs are let go, only the figures stay.</summary>
-        static readonly Dictionary<string, string> setups = new Dictionary<string, string>();
-        static string side = "variant";     // the side the jobs play: the variant, or a copy of it with trial changes to skills
+        sealed class SetupCache
+        {
+            public readonly ConcurrentDictionary<string, string> Map = new ConcurrentDictionary<string, string>();
+            public readonly object Gate = new object();
+        }
+
+        /// <summary>Cached setup overrides per Ctx, safe for concurrent suite measures.</summary>
+        static readonly ConditionalWeakTable<Ctx, SetupCache> ctxSetups = new ConditionalWeakTable<Ctx, SetupCache>();
 
         /// <summary>"Power Charge:e191*1.2;Accelerator:turns+1;Shadow Clone:tp*0.8;Prism Dawn:speed*1.2": a copy of the variant with the values
         /// of skills changed (e&lt;id&gt; scales the values of an effect, an int stays an int; tp scales the TP cost; turns adds to the turns; speed
@@ -292,21 +321,26 @@ namespace DtEngine.Suite
         static string SetupWithRule(Ctx c, string role, string cond, string act, int chain)
         {
             string key = role + "|" + cond + "|" + act + "|" + (chain > 0);
-            if (setups.TryGetValue(key, out var name)) return name;
-            // a role whose own rows already use the action keeps them (an added row before her statuses would undo her order)
-            if (c.Setup.Policies.Any(r => r.Str("Role") == role && r.Str("Action") == act)) { setups[key] = null; return null; }
-            var rows = SkillValue.RowsWithRule(c, role, cond, act, chain, true).Select(o =>
+            var cache = ctxSetups.GetOrCreateValue(c);
+            if (cache.Map.TryGetValue(key, out var name)) return name;
+            lock (cache.Gate)
             {
-                using (var doc = System.Text.Json.JsonDocument.Parse(PyJson.Dump(o))) return Snapshot.ToRow(doc.RootElement.Clone());
-            }).ToList();
-            name = c.AddSetup(c.Setup.WithPolicies(rows));
-            setups[key] = name;
-            return name;
+                if (cache.Map.TryGetValue(key, out name)) return name;
+                // a role whose own rows already use the action keeps them (an added row before her statuses would undo her order)
+                if (c.Setup.Policies.Any(r => r.Str("Role") == role && r.Str("Action") == act)) { cache.Map[key] = null; return null; }
+                var rows = SkillValue.RowsWithRule(c, role, cond, act, chain, true).Select(o =>
+                {
+                    using (var doc = System.Text.Json.JsonDocument.Parse(PyJson.Dump(o))) return Snapshot.ToRow(doc.RootElement.Clone());
+                }).ToList();
+                name = c.AddSetup(c.Setup.WithPolicies(rows));
+                cache.Map[key] = name;
+                return name;
+            }
         }
 
         /// <summary>The confirmed cells of an entry none of which serves while some is not settled (Cell.Unclear), played again at the
         /// runs of settle_runs: a small effect is then shown, or shown under every threshold, instead of being called dead on noise.</summary>
-        static void Settle<K>(Ctx c, Dictionary<K, List<Cell>> again, int batch, Obj cfg)
+        static void Settle<K>(Ctx c, string side, Dictionary<K, List<Cell>> again, int batch, Obj cfg)
         {
             int runs = (int)Py.Num(cfg.Get("settle_runs"));
             var redo = new List<Cell>();
@@ -323,17 +357,17 @@ namespace DtEngine.Suite
                     }
             }
             if (redo.Count == 0) return;
-            Play(c, redo, runs, batch, cfg);
+            Play(c, side, redo, runs, batch, cfg);
             for (int k = 0; k < redo.Count; k++) again[at[k].key][at[k].i] = redo[k];
         }
 
-        static void Play(Ctx c, List<Cell> cells, int runs, int batch, Obj cfg)
+        static void Play(Ctx c, string side, List<Cell> cells, int runs, int batch, Obj cfg)
         {
             for (int start = 0; start < cells.Count; start += batch)
             {
                 var part = cells.Skip(start).Take(batch).ToList();
                 var jobs = new List<JobSpec>();
-                foreach (var cell in part) { jobs.Add(Job(c, cell, false, runs)); jobs.Add(Job(c, cell, true, runs)); }
+                foreach (var cell in part) { jobs.Add(Job(c, side, cell, false, runs)); jobs.Add(Job(c, side, cell, true, runs)); }
                 var done = c.Run(jobs);
                 for (int k = 0; k < part.Count; k++)
                 {
@@ -358,9 +392,12 @@ namespace DtEngine.Suite
             int confirmRuns = args.Length > 2 ? int.Parse(args[2]) : (int)Py.Num(cfg.Get("confirm_runs"));
             bool variants = args.Length > 3 && args[3] == "variants";
             string trial = args.Length > 4 ? args[4] : "";
-            side = "variant";
+            string side = "variant";
             if (trial.Length > 0) side = c.AddSide(WithTrial(c.Data("variant"), trial));
             var conditions = variants ? cfg.A("rule_variants").Select(x => (string)x).ToList() : null;
+            var healPairs = variants && cfg.Has("heal_variants")
+                ? cfg.A("heal_variants").Select(x => (string)x).Select(s => { int bar = s.IndexOf('|'); return (cond: s.Substring(0, bar).Trim(), act: s.Substring(bar + 1).Trim()); }).ToList()
+                : new List<(string cond, string act)>();
             var categories = new HashSet<string>(cfg.A("categories").Select(x => (string)x));
             var outEffects = new HashSet<int>(cfg.A("out_of_fight_effects").Select(x => (int)Py.Num(x)));
             var nonDamage = new HashSet<int>(SkillValue.Candidates(c, data).Select(s => s.Id));
@@ -400,10 +437,20 @@ namespace DtEngine.Suite
                         if (variants && !skill.IsPassive)
                         {
                             string act = rule.HasValue ? rule.Value.act : "skill:" + skill.Name;
-                            var allConds = new List<string>(conditions);
-                            if (rule.HasValue && !allConds.Contains(rule.Value.cond)) allConds.Add(rule.Value.cond);
-                            foreach (var cond in allConds)
-                                entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = (cond, act) });
+                            if (act.StartsWith("heal:") && healPairs.Count > 0)
+                            {
+                                var pairs = new List<(string cond, string act)>(healPairs);
+                                if (rule.HasValue && !pairs.Contains(rule.Value)) pairs.Add(rule.Value);
+                                foreach (var p in pairs)
+                                    entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = p });
+                            }
+                            else
+                            {
+                                var allConds = new List<string>(conditions);
+                                if (rule.HasValue && !allConds.Contains(rule.Value.cond)) allConds.Add(rule.Value.cond);
+                                foreach (var cond in allConds)
+                                    entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = (cond, act) });
+                            }
                         }
                         else entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = rule });
                     }
@@ -427,7 +474,7 @@ namespace DtEngine.Suite
                             cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "walk_boss", Chain = (int)Py.Num(cfg.Get("walk")) });
                     }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, cells, scanRuns, batch, cfg);
+            Play(c, side, cells, scanRuns, batch, cfg);
 
             // the best cells of each skill, played again at more runs; the best of them is the one the verdict reads
             var bySkill = cells.GroupBy(x => x.Entry.Skill.Id).ToDictionary(g => g.Key, g => g.ToList());
@@ -441,8 +488,8 @@ namespace DtEngine.Suite
                 again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
                 confirm.AddRange(again[kv.Key]);
             }
-            Play(c, confirm, confirmRuns, batch, cfg);
-            Settle(c, again, batch, cfg);
+            Play(c, side, confirm, confirmRuns, batch, cfg);
+            Settle(c, side, again, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             double good = cfg.D("good_share");
@@ -462,8 +509,9 @@ namespace DtEngine.Suite
                 else if ((double)hurts / n >= good) verdict = "hurts";
                 else verdict = "dead";
                 counts[verdict] = counts.GetValueOrDefault(verdict) + 1;
+                bool variedActs = all.Where(x => x.Entry.Rule.HasValue).Select(x => x.Entry.Rule.Value.act).Distinct().Count() > 1;
                 string stagesPlayed = string.Join(", ", all.Select(x => x.Entry.Stage + " (" + x.Entry.Role + (x.Entry.Weapon != null ? ", " + x.Entry.Weapon : "") + ")").Distinct())
-                                      + (variants ? "; rules: " + string.Join(", ", all.Where(x => x.Entry.Rule.HasValue).Select(x => x.Entry.Rule.Value.cond).Distinct()) : "");
+                                      + (variants ? "; rules: " + string.Join(", ", all.Where(x => x.Entry.Rule.HasValue).Select(x => variedActs ? x.Entry.Rule.Value.cond + " / " + x.Entry.Rule.Value.act : x.Entry.Rule.Value.cond).Distinct()) : "");
                 string where = top == null ? "-" : top.Cid + " " + top.Context + ", " + top.Party + " (" + top.Entry.Stage
                                + (top.Entry.Rule.HasValue ? "; " + top.Entry.Rule.Value.cond + " / " + top.Entry.Rule.Value.act : "") + ")";
                 string figs = top == null ? "-" : Py.Pct(top.Wins, 0, true) + " / " + Py.Pct(top.Length, 0, true) + " / " + Py.Pct(top.Hp, 0, true);
@@ -514,6 +562,7 @@ namespace DtEngine.Suite
                                                             + string.Join(", ", outOfFight.Select(s => s.Name)) + "." });
             if (noRole.Count > 0) text.AddRange(new[] { "", "No role plays a class that learns: " + string.Join(", ", noRole.Select(s => s.Name)) + "." });
             if (variants) text.Insert(2, "**Variants:** every active under each condition of rule_variants (" + string.Join(", ", conditions)
+                                         + (healPairs.Count > 0 ? "; heals under heal_variants: " + string.Join(", ", healPairs.Select(p => p.cond + " / " + p.act)) : "")
                                          + "), a damage skill forced by skill:Name, and a third context, walk_boss: " + Py.Num(cfg.Get("walk"))
                                          + " random battles of the floor and then the boss, nothing healed between them; the verdict reads the best cell of all of them.");
             if (variants) text.Insert(3, "");
@@ -626,7 +675,7 @@ namespace DtEngine.Suite
             // [names|*] [trial]: only these mercenaries, on a copy of the variant with the trial values (the report is then _TRIAL)
             var onlyGuests = args.Length > 2 && args[2] != "*" ? new HashSet<string>(args[2].Split(',').Select(x => x.Trim())) : null;
             string trial = args.Length > 3 ? args[3] : "";
-            side = "variant";
+            string side = "variant";
             if (trial.Length > 0) side = c.AddSide(WithTrial(c.Data("variant"), trial));
             var levels = sc.ReferenceLevels();
             var cids = DifficultyCurve.Checkpoints(c).Where(levels.ContainsKey).ToList();
@@ -649,7 +698,7 @@ namespace DtEngine.Suite
                     }
             }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, cells, scanRuns, batch, cfg);
+            Play(c, side, cells, scanRuns, batch, cfg);
             var byGuest = cells.GroupBy(x => x.Entry.Guest).ToDictionary(g => g.Key, g => g.ToList());
             int keep = (int)Py.Num(cfg.Get("confirm_cells"));
             var again = new Dictionary<string, List<Cell>>();
@@ -658,8 +707,8 @@ namespace DtEngine.Suite
                 var tops = kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).Take(keep).ToList();
                 if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
             }
-            Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
-            Settle(c, again, batch, cfg);
+            Play(c, side, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
+            Settle(c, side, again, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             // how each one plays: the reference party at every boss of the story and the postgame where the bar offers her (not only the
@@ -684,7 +733,7 @@ namespace DtEngine.Suite
             {
                 var part = toProfile.Skip(start).Take(profileBatch).ToList();
                 var jobs = new List<JobSpec>();
-                foreach (var cell in part) { jobs.Add(Job(c, cell, false, profileRuns, true)); jobs.Add(Job(c, cell, true, profileRuns, true)); }
+                foreach (var cell in part) { jobs.Add(Job(c, side, cell, false, profileRuns, true)); jobs.Add(Job(c, side, cell, true, profileRuns, true)); }
                 var done = c.Run(jobs);
                 for (int k = 0; k < part.Count; k++)
                 {
@@ -818,7 +867,7 @@ namespace DtEngine.Suite
             var sc = c.Sc("variant");
             int runs = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get("sealbook_runs"));
             var only = args.Length > 1 && args[1] != "*" ? new HashSet<int>(args[1].Split(',').Select(x => int.Parse(x.Trim()))) : null;
-            side = "variant";
+            string side = "variant";
             var levels = sc.ReferenceLevels();
             var cids = DifficultyCurve.Checkpoints(c).Where(levels.ContainsKey).ToList();
             var parties = new List<string> { "Reference" };
@@ -837,7 +886,7 @@ namespace DtEngine.Suite
                         cells.Add(new Cell { Entry = e, Cid = cid, Party = party, Context = "boss", Chain = 0 });
             }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, cells, runs, batch, cfg);
+            Play(c, side, cells, runs, batch, cfg);
             var rows = new List<object>();
             var lines = new List<string>();
             foreach (var (book, name, first) in books)
@@ -903,7 +952,7 @@ namespace DtEngine.Suite
             var sc = c.Sc("variant");
             int scanRuns = args.Length > 0 ? int.Parse(args[0]) : (int)Py.Num(cfg.Get("scan_runs"));
             int confirmRuns = args.Length > 1 ? int.Parse(args[1]) : (int)Py.Num(cfg.Get("confirm_runs"));
-            side = "variant";
+            string side = "variant";
             var names = c.In("unique_skills").O("skills");
             var levels = sc.ReferenceLevels();
             var story = c.Setup.Checkpoints.Select(r => r.Str("ID")).Where(id => id.StartsWith((string)cfg.Get("story_prefix")) && levels.ContainsKey(id)).ToList();
@@ -931,7 +980,7 @@ namespace DtEngine.Suite
                             cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "random", Chain = chain });
                     }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, cells, scanRuns, batch, cfg);
+            Play(c, side, cells, scanRuns, batch, cfg);
             var byGirl = cells.GroupBy(x => x.Entry.Girl).ToDictionary(g => g.Key, g => g.ToList());
             int keep = (int)Py.Num(cfg.Get("confirm_cells"));
             var again = new Dictionary<string, List<Cell>>();
@@ -940,8 +989,8 @@ namespace DtEngine.Suite
                 var tops = kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).Take(keep).ToList();
                 if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
             }
-            Play(c, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
-            Settle(c, again, batch, cfg);
+            Play(c, side, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
+            Settle(c, side, again, batch, cfg);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             double good = cfg.D("good_share");

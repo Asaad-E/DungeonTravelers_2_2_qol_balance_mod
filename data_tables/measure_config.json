@@ -932,6 +932,14 @@
    "party_hp_below:0.6",
    "enemies_at_least:3"
   ],
+  "heal_variants": [
+   "ally_hp_below:0.5|heal:0.5",
+   "ally_hp_below:0.6|heal:0.6",
+   "ally_hp_below:0.75|heal:0.75",
+   "party_hp_below:0.6|heal:0.6",
+   "boss|heal:0.7",
+   "always|heal:0.85"
+  ],
   "out_of_fight_effects": [
    267,
    268,
@@ -1048,12 +1056,12 @@
   },
   "presets": {
    "balance": {
-    "about": "the checklist of the suite (dtcli suite, class-balance): every boss of the final classes, a sample, no confirmation",
+    "about": "the checklist of the suite (dtcli suite, class-balance): every boss of the final classes, a sample, outlier parties confirmed at 200 runs",
     "stage": "final",
     "context": "boss",
     "sample": "400",
     "scan": "10",
-    "confirm": "0",
+    "confirm": "200",
     "out": "balance",
     "report": "docs/generated/CLASS_BALANCE.md"
    },

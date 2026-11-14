@@ -91,8 +91,18 @@ def install(variant, game_dir=GAME_DIR, backup_dir=BACKUP_DIR, build_dir=BUILD_D
         saved = os.path.join(saved_dir, *key.split('/'))
         os.makedirs(os.path.dirname(saved), exist_ok=True)
         shutil.copy2(path, saved)
-        with open(path, 'wb') as f:
-            f.write(data)
+        stage = path + '.dt22new'
+        try:
+            with open(stage, 'wb') as f:
+                f.write(data)
+            os.replace(stage, path)
+        except Exception:
+            if os.path.exists(stage):
+                try:
+                    os.remove(stage)
+                except OSError:
+                    pass
+            raise
         changes.append((key, source))
     problems.extend(verify(variant, game_dir, backup_dir, build_dir))
     return changes, kept, problems, saved_dir
@@ -153,9 +163,11 @@ def main():
         return 1
     result = install(sys.argv[1])
     report(sys.argv[1], *result)
-    for line in install_program(sys.argv[1]):
+    program_lines = install_program(sys.argv[1])
+    for line in program_lines:
         print(line)
-    return 1 if result[2] else 0
+    refused = any('Floors: REFUSED' in line for line in program_lines)
+    return 1 if result[2] or refused else 0
 
 
 if __name__ == '__main__':

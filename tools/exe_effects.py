@@ -166,10 +166,13 @@ def main():
     exe = Exe()
     md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
     wb = openpyxl.load_workbook(os.path.join(TABLES_DIR, 'vanilla_source_of_truth.xlsx'), read_only=True)
-    rows = list(wb['Effects'].iter_rows(values_only=True))
-    header = rows[0]
-    effects = [dict(zip(header, r)) for r in rows[1:]]
-    unique_rows = list(wb['UniqueSkills'].iter_rows(values_only=True))        # a unique skill names its effect in one field
+    try:
+        rows = list(wb['Effects'].iter_rows(values_only=True))
+        header = rows[0]
+        effects = [dict(zip(header, r)) for r in rows[1:]]
+        unique_rows = list(wb['UniqueSkills'].iter_rows(values_only=True))        # a unique skill names its effect in one field
+    finally:
+        wb.close()
     for unique in (dict(zip(unique_rows[0], r)) for r in unique_rows[1:]):
         known = next((e for e in effects if e['Effect_ID'] == unique[UNIQUE_EFFECT_FIELD]), None)
         if known:
@@ -180,7 +183,11 @@ def main():
                             'Status': 'Unique skill', 'Skill_Uses': 1, 'EnemyAttack_Uses': 0, 'Used_By': unique['Name']})
     ids = {e['Effect_ID'] for e in effects}
     classes = command_classes(exe, md)
-    rules = [r for r in openpyxl.load_workbook(os.path.join(TABLES_DIR, 'balance_criteria.xlsx'), read_only=True)['EffectRules'].iter_rows(min_row=2, values_only=True) if r and r[0] is not None]
+    wb_rules = openpyxl.load_workbook(os.path.join(TABLES_DIR, 'balance_criteria.xlsx'), read_only=True)
+    try:
+        rules = [r for r in wb_rules['EffectRules'].iter_rows(min_row=2, values_only=True) if r and r[0] is not None]
+    finally:
+        wb_rules.close()
     notes = {r[0]: r[1] for r in rules}
     texts = {r[0]: r[2] for r in rules}
     partly = {r[0] for r in rules if len(r) > 4 and r[4] == 'partly'}

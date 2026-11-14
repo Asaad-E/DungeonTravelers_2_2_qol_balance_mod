@@ -120,9 +120,13 @@ class BalanceTutorials(unittest.TestCase):
         cls.out_dir = os.path.join(cls.folder, 'Data', 'ENG', 'Parameter')
         os.makedirs(cls.out_dir)
         cls.workbook = os.path.join(_paths.TABLES_DIR, 'balance_tutorial_text.xlsx')
-        it = openpyxl.load_workbook(cls.workbook, read_only=True)['Tutorials'].iter_rows(values_only=True)
-        head = next(it)
-        cls.rows = [dict(zip(head, r)) for r in it if r and r[0]]
+        wb = openpyxl.load_workbook(cls.workbook, read_only=True)
+        try:
+            it = wb['Tutorials'].iter_rows(values_only=True)
+            head = next(it)
+            cls.rows = [dict(zip(head, r)) for r in it if r and r[0]]
+        finally:
+            wb.close()
         cls.problems = []
         cls.stats, cls.packs = build_variant.build_tutorials(cls.out_dir, cls.workbook, cls.problems)
 
@@ -167,8 +171,11 @@ class BalanceTutorials(unittest.TestCase):
 
     def test_no_box_passes_the_limits_of_its_workbook(self):
         import openpyxl
-        limits = {r[0]: r[1] for r in openpyxl.load_workbook(self.workbook, read_only=True)['Settings']
-                  .iter_rows(min_row=2, values_only=True)}
+        wb = openpyxl.load_workbook(self.workbook, read_only=True)
+        try:
+            limits = {r[0]: r[1] for r in wb['Settings'].iter_rows(min_row=2, values_only=True)}
+        finally:
+            wb.close()
         for row in self.rows:
             if row['State'] == 'checked':
                 lines = row['Text'].strip('"').split('\n')
@@ -227,6 +234,38 @@ class BalanceSteal(unittest.TestCase):
             self.assertEqual(int(row['New'], 16) ^ enemy['flags'], 1 << enemy_data.STEAL_BIT)
         wrong = dict(rows[0], New=hex(int(rows[0]['New'], 16) ^ 1 << 13))
         self.assertEqual(len(balance_values.apply([wrong])[2]), 1)
+
+
+class SkillLineLengthVerification(unittest.TestCase):
+    def test_verify_skills_enforces_unpadded_max_line_limit(self):
+        import shutil
+        import _paths
+        import build_variant as bv
+        from pck_handler import PckArchive, SkillHelper
+
+        table = bv.load_skill_text(os.path.join(_paths.TABLES_DIR, 'qol_skill_text.xlsx'))
+        with tempfile.TemporaryDirectory() as tmp:
+            for _, (pck, _, _) in bv.SKILL_PCKS.items():
+                shutil.copyfile(os.path.join(bv.BACKUP_DIR, pck), os.path.join(tmp, pck))
+
+            pck_path = os.path.join(tmp, 'PassiveSkillData.pck')
+            archive = PckArchive(pck_path)
+            target_idx = next(i for i, (fn, _) in enumerate(archive.files) if table[('Passive', fn)]['lvup'])
+            fn, b = archive.files[target_idx]
+            desc = table[('Passive', fn)]['desc']
+
+            def run_case(lvup):
+                table[('Passive', fn)]['lvup'] = lvup
+                archive.files[target_idx] = (fn, SkillHelper.write_skill(b, 'Passive', desc, lvup))
+                archive.save(pck_path)
+                problems = []
+                bv.verify_skills(tmp, table, bv.VARIANTS['qol'], problems)
+                return [p for p in problems if 'line of ' in p]
+
+            self.assertEqual(run_case('a' * 41 + '   |   ' + 'b' * 41), [])
+            bad = run_case('a' * 40 + ' | ' + 'b' * 44)
+            self.assertEqual(len(bad), 1, bad)
+            self.assertIn('line of 87 chars (87 unpadded)', bad[0])
 
 
 class BalanceValueFormats(unittest.TestCase):

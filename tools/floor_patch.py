@@ -46,10 +46,14 @@ class Refused(Exception):
 
 
 def rows(path=CHANGES):
-    it = openpyxl.load_workbook(path, read_only=True)['Changes'].iter_rows(values_only=True)
-    header = next(it)
-    found = [dict(zip(header, r)) for r in it if r and r[0] is not None]
-    return [r for r in found if r['Table'] == TABLE and r['State'] in LIVE]
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        it = wb['Changes'].iter_rows(values_only=True)
+        header = next(it)
+        found = [dict(zip(header, r)) for r in it if r and r[0] is not None]
+        return [r for r in found if r['Table'] == TABLE and r['State'] in LIVE]
+    finally:
+        wb.close()
 
 
 def entry_offsets(data):

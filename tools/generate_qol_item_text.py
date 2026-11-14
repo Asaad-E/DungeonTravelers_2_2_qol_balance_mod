@@ -82,11 +82,14 @@ def build_rows():
     previous = {}
     if os.path.exists(PREVIOUS_PATH):
         wb = openpyxl.load_workbook(PREVIOUS_PATH, read_only=True)
-        ws = wb[wb.sheetnames[0]]
-        header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
-        if 'Filename' in header and 'Modded_Desc' in header:
-            f, d = header.index('Filename'), header.index('Modded_Desc')
-            previous = {r[f]: r[d] for r in ws.iter_rows(min_row=2, values_only=True) if r[f]}
+        try:
+            ws = wb[wb.sheetnames[0]]
+            header = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+            if 'Filename' in header and 'Modded_Desc' in header:
+                f, d = header.index('Filename'), header.index('Modded_Desc')
+                previous = {r[f]: r[d] for r in ws.iter_rows(min_row=2, values_only=True) if r[f]}
+        finally:
+            wb.close()
     rows, stats = [], collections.Counter()
     for fn, b in PckArchive(BACKUP_PATH).files:
         item = ItemHelper.read_item(b)

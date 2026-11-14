@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace DtEngine.Suite
 {
@@ -20,10 +21,13 @@ namespace DtEngine.Suite
         readonly ConcurrentDictionary<string, Scenario> scenarios = new ConcurrentDictionary<string, Scenario>();   // measures run side by side and add to it
         public readonly ConcurrentDictionary<string, double> Seconds = new ConcurrentDictionary<string, double>();
         readonly object console = new object();
+        // Limit overlapping Parallel.ForEach job batches across concurrent suite measures to prevent threadpool oversubscription
+        readonly SemaphoreSlim jobGate;
 
         public Ctx(Snapshot snap, string root, int threads, Obj inputs)
         {
             Snap = snap; Root = root; Threads = Math.Max(1, threads); Inputs = inputs;
+            jobGate = new SemaphoreSlim(Math.Max(1, Math.Min(2, (Threads + 3) / 4)));
             foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
         }
 
@@ -63,7 +67,10 @@ namespace DtEngine.Suite
         /// <summary>The jobs played, in order (the runs of a job in parallel with the others).</summary>
         public List<JobResult> Run(List<JobSpec> jobs)
         {
-            var results = JobRunner.Run(Snap, jobs, Threads, false, scenarios);
+            List<JobResult> results;
+            jobGate.Wait();
+            try { results = JobRunner.Run(Snap, jobs, Threads, false, scenarios); }
+            finally { jobGate.Release(); }
             foreach (var r in results) if (r.Error != null) throw new InvalidOperationException("job " + r.Spec.Id + ": " + r.Error);
             return results;
         }
@@ -71,7 +78,12 @@ namespace DtEngine.Suite
         public JobResult Run(JobSpec job) => Run(new List<JobSpec> { job })[0];
 
         /// <summary>The jobs played; a job that fails keeps its error in the result (the others are played all the same).</summary>
-        public List<JobResult> RunLoose(List<JobSpec> jobs) => JobRunner.Run(Snap, jobs, Threads, false, scenarios);
+        public List<JobResult> RunLoose(List<JobSpec> jobs)
+        {
+            jobGate.Wait();
+            try { return JobRunner.Run(Snap, jobs, Threads, false, scenarios); }
+            finally { jobGate.Release(); }
+        }
 
         /// <summary>The k-th of n slices of a list, as `items[(k - 1) * len(items) // n: k * len(items) // n]`.</summary>
         public static List<T> Slice<T>(List<T> items, int k, int n) => items.Skip((k - 1) * items.Count / n).Take(k * items.Count / n - (k - 1) * items.Count / n).ToList();
@@ -79,7 +91,11 @@ namespace DtEngine.Suite
         /// <summary>Measure jobs of the engine (play_checkpoint, check_change, expedition, walked_zones, skill_scores, probe): the answers, in order.</summary>
         public List<Obj> Measure(List<Obj> jobs)
         {
-            var texts = Measures.RunJobs(Snap, jobs.Select(j => JsonDocument.Parse(PyJson.Dump(j)).RootElement).ToList(), Threads, scenarios);
+            var rawJobs = jobs.Select(j => JsonDocument.Parse(PyJson.Dump(j)).RootElement).ToList();
+            byte[][] texts;
+            jobGate.Wait();
+            try { texts = Measures.RunJobs(Snap, rawJobs, Threads, scenarios); }
+            finally { jobGate.Release(); }
             var answers = new List<Obj>();
             foreach (var bytes in texts)
             {

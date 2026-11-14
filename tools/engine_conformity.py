@@ -59,7 +59,11 @@ def checks(items):
                 continue
             if method:
                 if name not in texts:
-                    texts[name] = '\n'.join(open(p, encoding='utf-8').read() for p in files[name])
+                    parts = []
+                    for p in files[name]:
+                        with open(p, encoding='utf-8') as f:
+                            parts.append(f.read())
+                    texts[name] = '\n'.join(parts)
                 if not re.search(r'\b' + re.escape(method) + r'\s*(<[^>]*>)?\(', texts[name]):
                     failed.append(f'{pid}: {name} defines no {method}')
     return failed
@@ -98,7 +102,8 @@ def write(data):
 
 
 def main():
-    data = json.load(open(TABLE, encoding='utf-8'))
+    with open(TABLE, encoding='utf-8') as f:
+        data = json.load(f)
     failed = checks(data['items'])
     if '--check' not in sys.argv:
         write(data)

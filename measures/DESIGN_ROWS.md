@@ -4,39 +4,39 @@ The game as it is. Each section answers the test its row of the register names.
 
 ## J17 Area damage spikes
 
-The reference party at the 40 boss fights of the story, 30 battles each, guards and Cover played as its policy has them. The largest damage one enemy action did to one member, against the max HP of the frailest member: at least once above her whole HP in 19 fights, and in the median battle in 13 (C16, C25, C26, C27, C29, C31, C32, C35, C36, C37, C38, C39, C40). The action may be an area attack or several hits on one member.
+The reference party at the 40 boss fights of the story, 30 battles each, guards and Cover played as its policy has them. The largest damage one enemy action did to one member, against the max HP of the frailest member: at least once above her whole HP in 19 fights, and in the median battle in 12 (C16, C26, C27, C29, C31, C32, C35, C36, C37, C38, C39, C40). The action may be an area attack or several hits on one member.
 
 | Boss | Median largest hit / HP of the frailest | Largest seen | Median / mean HP of the party | Wins |
 |---|---|---|---|---|
 | C05 | 51% | 78% | 36% | 100% |
-| C09 | 38% | 83% | 30% | 100% |
-| C11 | 80% | 85% | 65% | 100% |
-| C12 | 69% | 92% | 56% | 100% |
+| C09 | 20% | 79% | 16% | 100% |
+| C11 | 80% | 87% | 65% | 100% |
+| C12 | 65% | 98% | 52% | 100% |
 | C13 | 92% | 107% | 76% | 100% |
-| C14 | 92% | 97% | 76% | 100% |
+| C14 | 93% | 97% | 77% | 100% |
 | C16 | 103% | 106% | 83% | 100% |
-| C17 | 84% | 85% | 70% | 100% |
-| C19 | 60% | 89% | 49% | 93% |
-| C21 | 75% | 79% | 61% | 93% |
-| C22 | 93% | 143% | 75% | 100% |
-| C24 | 76% | 76% | 61% | 100% |
-| C25 | 103% | 141% | 83% | 100% |
-| C26 | 119% | 210% | 96% | 93% |
+| C17 | 85% | 96% | 71% | 93% |
+| C19 | 60% | 90% | 49% | 90% |
+| C21 | 75% | 79% | 61% | 100% |
+| C22 | 95% | 167% | 77% | 100% |
+| C24 | 76% | 80% | 61% | 100% |
+| C25 | 94% | 161% | 76% | 100% |
+| C26 | 118% | 228% | 95% | 97% |
 | C27 | 104% | 249% | 78% | 100% |
-| C28 | 96% | 217% | 72% | 73% |
-| C29 | 111% | 150% | 84% | 43% |
+| C28 | 93% | 188% | 70% | 83% |
+| C29 | 114% | 153% | 86% | 27% |
 | C29a | 77% | 80% | 58% | 100% |
-| C30 | 100% | 135% | 75% | 100% |
-| C31 | 116% | 155% | 88% | 100% |
-| C32 | 150% | 196% | 113% | 63% |
-| C33 | 97% | 166% | 73% | 97% |
-| C34 | 93% | 108% | 69% | 100% |
-| C35 | 134% | 193% | 100% | 83% |
-| C36 | 168% | 220% | 125% | 40% |
-| C37 | 114% | 163% | 84% | 100% |
-| C38 | 144% | 175% | 106% | 77% |
-| C39 | 152% | 157% | 112% | 67% |
-| C40 | 148% | 197% | 109% | 70% |
+| C30 | 97% | 124% | 73% | 100% |
+| C31 | 115% | 156% | 87% | 100% |
+| C32 | 151% | 196% | 114% | 73% |
+| C33 | 98% | 166% | 74% | 97% |
+| C34 | 91% | 108% | 68% | 100% |
+| C35 | 134% | 193% | 100% | 80% |
+| C36 | 168% | 201% | 125% | 27% |
+| C37 | 112% | 163% | 83% | 97% |
+| C38 | 122% | 175% | 90% | 83% |
+| C39 | 152% | 157% | 112% | 63% |
+| C40 | 146% | 197% | 108% | 70% |
 
 Fights where no hit reached 75% of her HP are left out of the table.
 
@@ -57,10 +57,10 @@ The same party with and without her:
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
-| Meta | 100% | 97% | 1% | 71% | 0% |
+| Meta | 100% | 97% | 1% | 76% | 0% |
 | Meta, an attacker in her place | 99% | 91% | 0% | 29% | 0% |
 | Dual-Support | 100% | 36% | 0% | 5% | 0% |
-| Dual-Support, she in the place of the shooter | 100% | 7% | 3% | 5% | 0% |
+| Dual-Support, she in the place of the shooter | 100% | 5% | 3% | 6% | 0% |
 
 ## S14 Harmful map zones
 

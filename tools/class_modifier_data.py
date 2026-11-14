@@ -72,15 +72,18 @@ def _cases(exe):
 
 
 def _weapon_types():
-    ws = openpyxl.load_workbook(WORKBOOK, read_only=True)['Equipment']
-    it = ws.iter_rows(values_only=True)
-    header = next(it)
-    names = {}
-    for r in it:
-        d = dict(zip(header, r))
-        if d['Category_Code'] == 0 and d['Unidentified_Name']:
-            names.setdefault(d['Type_Code'], d['Unidentified_Name'].replace('??? ', ''))
-    return names
+    wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
+    try:
+        it = wb['Equipment'].iter_rows(values_only=True)
+        header = next(it)
+        names = {}
+        for r in it:
+            d = dict(zip(header, r))
+            if d['Category_Code'] == 0 and d['Unidentified_Name']:
+                names.setdefault(d['Type_Code'], d['Unidentified_Name'].replace('??? ', ''))
+        return names
+    finally:
+        wb.close()
 
 
 STATIC_CLASS_MODIFIERS = [   {'class': 0, 'entries': [{'modifier': 0.01, 'slot': 0, 'type': 0, 'type_name': 'Sword'}], 'previous': None},

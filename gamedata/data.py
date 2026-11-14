@@ -307,13 +307,16 @@ def build():
     data = GameData()
     wb = openpyxl.load_workbook(WORKBOOK, read_only=True)
     try:
-        exe = Exe()
-    except Exception:
-        exe = None
-    _load_skills(wb, data)
-    _load_attacks(wb, data)
-    _load_equipment(wb, data)
-    _load_misc(wb, data)
+        try:
+            exe = Exe()
+        except Exception:
+            exe = None
+        _load_skills(wb, data)
+        _load_attacks(wb, data)
+        _load_equipment(wb, data)
+        _load_misc(wb, data)
+    finally:
+        wb.close()
     for enemy in enemy_data.enemies():
         try:
             enemy['script'] = enemy_ai.decode(enemy['ai']) if enemy['ai'] else None
@@ -345,7 +348,10 @@ def build():
         data.random_moves = {}
     data.item_skills = {kind: skill for kind, (skill, _) in item_effect_data.skill_items(exe).items()}
     criteria = openpyxl.load_workbook(CRITERIA, read_only=True)
-    data.effect_rules = {r['Effect_ID']: r['Rule'] for r in _rows(criteria, 'EffectRules')}
+    try:
+        data.effect_rules = {r['Effect_ID']: r['Rule'] for r in _rows(criteria, 'EffectRules')}
+    finally:
+        criteria.close()
     return data
 
 

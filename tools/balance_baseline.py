@@ -44,10 +44,14 @@ PHYSICAL = enemy_data.RESISTANCES[:3]
 
 
 def rows_of(path, sheet):
-    ws = openpyxl.load_workbook(path, read_only=True)[sheet]
-    it = ws.iter_rows(values_only=True)
-    header = next(it)
-    return [dict(zip(header, r)) for r in it]
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        ws = wb[sheet]
+        it = ws.iter_rows(values_only=True)
+        header = next(it)
+        return [dict(zip(header, r)) for r in it]
+    finally:
+        wb.close()
 
 
 def table(headers, rows):
