@@ -131,7 +131,7 @@ namespace DtEngine.Suite
                     int eff = int.Parse(act.Substring(7));
                     bool perf = Battle.IsSong(eff) || Battle.IsDance(eff);
                     if (perf || (role != "maid" && role != "diva" && role != "etoile" && role != "mistress"))
-                        foreach (var r in mine) if (r.Str("Action").StartsWith("status:")) { cut = r.Get("Order"); break; }
+                        foreach (var r in mine) if (r.Str("Action").StartsWith("status:") || r.Str("Action").StartsWith("ailment:")) { cut = r.Get("Order"); break; }
                 }
                 // a doll goes before the doll the role summons by default: the one tested takes the slot, the default one is the "without"
                 if (act.StartsWith("doll:"))

@@ -10,7 +10,7 @@ This guide covers the development workflow, project architecture, and verificati
 * **Balance Variant**: Implemented, verified, and playtested. Adjustments address issues cataloged in `data_tables/balance_criteria.xlsx` (sheet `Criticisms`). Further balance adjustments and fixes are welcome.
 
 ### Known Design Boundaries & Outliers
-* In `docs/generated/CLASS_STAGES.md`, 67 of 76 class roles sit cleanly within target variance bands. Early Scout, Assassin, and Treasure Hunter are intentionally paced around exploration utility, while Diva (win rate) and Witch (clearing speed) remain distinct specialist outliers by design.
+* In `docs/generated/CLASS_STAGES.md`, 74 of 76 role and stage rows sit within target variance bands (`0 slow or weak`), with 2 known limits (`dolls` ending as a Papillon hybrid and `etoile` seated in Diva's sustain slot, tracked in `ClassLimits` of `sim_setup.xlsx`).
 * The Maid archetype remains the party's primary TP sustain engine, preserving the game's core resource-management loop.
 * Extreme deep-postgame encounters are kept outside the scope of main story rebalancing.
 

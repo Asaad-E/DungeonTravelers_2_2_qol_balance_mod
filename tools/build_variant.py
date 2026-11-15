@@ -120,7 +120,8 @@ VARIANTS = {
                 'numeric_changes_allowed': False, 'values': True,
                 'regenerated': ('skill_text', 'enemy_attack_text', 'item_text', 'party_skill_text'),
                 'tutorial_text': 'balance_tutorial_text.xlsx',
-                'enchant_overrides': 'balance_enchant_text.xlsx'},
+                'enchant_overrides': 'balance_enchant_text.xlsx',
+                'class_overrides': 'balance_class_text.xlsx'},
 }
 VALUE_ONLY_PCKS = (('LvExpSkptData.pck', 'Parameter'), ('EquipmentData.pck', 'Parameter'), ('ClassLevelData.pck', 'Parameter'),
                    ('SealScrollData.pck', 'Parameter'), ('QuestData.pck', 'Parameter'),
@@ -221,6 +222,35 @@ def apply_enchant_overrides(table, path, problems):
                                 f"balance of ExePatches does not hold")
                 continue
             row['name'], row['edited'] = d['Balance_Name'], True
+            done += 1
+        return done
+    finally:
+        wb.close()
+
+def apply_class_overrides(table, path, problems):
+    """Class description overrides from data_tables/balance_class_text.xlsx. Each row checks the QoL description
+    it replaces and that its Depends_On change IDs are active in balance_changes.xlsx."""
+    import balance_values
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        rows = wb['Classes'].iter_rows(values_only=True)
+        head = next(rows)
+        live_ids = {str(r['ID']) for r in balance_values.live_rows()}
+        done = 0
+        for r in rows:
+            d = dict(zip(head, r))
+            if not d.get('Filename'):
+                continue
+            row = table.get(d['Filename'])
+            if row is None or row['desc'] != d['QoL_Desc']:
+                problems.append(f"{os.path.basename(path)}: {d['Filename']} does not replace the description the QoL table holds")
+                continue
+            deps = [x.strip() for x in str(d.get('Depends_On') or '').split(',') if x.strip()]
+            missing = [x for x in deps if x not in live_ids]
+            if missing:
+                problems.append(f"{os.path.basename(path)}: {d['Filename']} depends on inactive change(s) {', '.join(missing)}")
+                continue
+            row['desc'] = d['Balance_Desc']
             done += 1
         return done
     finally:
@@ -705,6 +735,21 @@ def build_tutorials(out_dir, path, problems):
             stats['voiced'] += bool(row['Voiced'])
         if pck == 'Teaching.pck':
             import class_tutorial_text
+            max_w = int(limits['max_width'])
+            max_w3 = int(limits.get('max_width_line3', max_w - 5))
+            for gfn, ginfo in class_tutorial_text.NEW_TEACHING_SCRIPTS.items():
+                for b_idx, box in enumerate(ginfo[3]):
+                    blines = box.split('\n')
+                    too_wide = any(len(x) > max_w for x in blines[:2]) or any(len(x) > max_w3 for x in blines[2:])
+                    if len(blines) > int(limits['max_lines']) or too_wide:
+                        problems.append(f"{pck}/{gfn}[{b_idx}]: {len(blines)} lines, widest {max(len(x) for x in blines)}: over the limits of the sheet Settings")
+                    bad_words = out_of_game_words(box, '')
+                    if '~' in box or bad_words:
+                        problems.append(f"{pck}/{gfn}[{b_idx}]: a tilde, or a word that speaks from outside the game: {bad_words}")
+                    try:
+                        box.encode('latin-1')
+                    except UnicodeEncodeError:
+                        problems.append(f"{pck}/{gfn}[{b_idx}]: a character the game font does not hold")
             new_scripts = class_tutorial_text.get_built_scripts()
             for fn, sdata in new_scripts.items():
                 if fn in names:
@@ -1251,6 +1296,9 @@ def main():
         stats = build_joint_skills(out_dir, joint, problems)
         print(f"    Built {JOINT_PCK}: {stats['rewritten']} sentences with their stored values, {stats['kept']} kept byte-identical")
         classes = load_class_text(class_path)
+        if variant.get('class_overrides'):
+            rewritten = apply_class_overrides(classes, os.path.join(TABLES_DIR, variant['class_overrides']), problems)
+            print(f"    {rewritten} class description(s) worded for the variant ({variant['class_overrides']})")
         stats = build_classes(out_dir, classes, problems)
         print(f"    Built {CLASS_PCK}: {stats['rewritten']} descriptions with role/weapon notes, {stats['kept']} kept byte-identical")
         voiced = check_game_voice([

@@ -1,118 +1,98 @@
-Dungeon Travelers 2-2 (PC, English) - Balance mod
-=================================================
+Dungeon Travelers 2-2 - Balance + QoL Mod
+==========================================
 
-What it is
-----------
-A mod that changes values of the game so that every class, weapon and skill is worth using, and
-that tells you, as the QoL mod does, what the game really does. It answers the complaints of the
-Japanese community and of the English guide of the game, one by one.
+This package contains the full Balance + QoL Mod for Dungeon Travelers 2-2
+(English PC Release). It includes all Quality of Life text clarity updates plus
+rebalanced progression, classes, skills, items, enemies, bosses, summons,
+mercenaries, zones, and executable fixes.
 
-What changes
-------------
-* Catching up: a member below the level of the enemies gains much more EXP, so a character who
-  joins late or stayed in the base is back with the party in a few battles. The Crown costs far
-  fewer battles.
-* Classes that lagged behind (the Doll Master line, the Kunoichi, the Mistress, the Magical
-  Princess, the Treasure Hunter, the Trickster) hit harder or pay less TP.
-* Skills nobody used (chance skills, drains, single buffs, several support skills) are worth
-  their TP.
-* Whips, daggers, guns and plain attacks are stronger; two-handed weapons a little weaker.
-* Ailments and debuffs land more often and weigh more; most story bosses can be poisoned, slowed
-  or silenced. No boss can be locked out of its turns.
-* Heal and Circle Heal also cure poison.
-* Common enemies of the last dungeons resist physical damage a little less.
-* Quests pay more gold. Seven rare drops fall a little more often, and four strong common enemies
-  can be robbed.
-* The bosses the stronger party made too easy hold more HP, the last boss of the story among them;
-  the Queen of Darkness also defends better, and Demon God Fried hits harder instead.
-* The unique skills of the girls that did little do more (Third Eye Wide, Arcane Shield, Alter
-  Fate, Tranquil Song). Lizerietta has a new one, No Miracles Needed: she may hold on with 1 HP
-  when a hit would fell her.
-* Concentrate works: the game left it without effect.
-* A fruit gives a fifth more TP, so a party without a Maid can go on with a full bag.
-* The dances of the Etoile weigh more; the party skill Eccentrics gives AGI; Natalia, the
-  mercenary, heals more.
-* Every level from 31 to 70 gives one more skill point.
-* Provoke draws more attacks as it is raised; Magic Barrier cuts more magic damage; First Grid
-  comes up more often; the Kunoichi may use her Stings and Phoenix with a dagger or a projectile,
-  and her Barrage strikes twice more often (30% at its first level, 50% at its last).
-* Three grand sealbooks of the postgame (Melek Taus, Genbu, Murasaki Shikibu) carry a second
-  enchantment. One postgame superboss no longer opens with a spell that can fell the party.
-* The party buffs of the Enchantress and the Sage (Circle Brave, Circle Protect, Sun Veil) are
-  larger and, with Accelerator, chanted much faster; Sun Veil also costs less TP. Accelerator gives
-  up to 25% more speed for five turns, and Prism Dawn hits harder. Ecstasy gives twice as much.
-* The Stab, Slash and Bash Guard of the Sage guard much more against their kind of blow and cost
-  less TP.
-* Power Charge makes the next blow stronger than before (its box shows the real multiple), the
-  Shadow Clone of the Kunoichi lasts a turn longer, and the Oracles doll hits much harder.
-* The Magical Princess stays transformed longer and Magical Change gives more; Magical Spark costs
-  less TP and hits harder; Illusion (also of the Papillon) costs half the TP and is chanted
-  faster. The Soul Summoner grows more AGI, TP and HP, and her Soul Eater costs less and hits
-  harder.
-* The Witch grows less INT, and the five first spells of the Magic User hit a little less at their
-  higher levels: her strong spells are now her best tools.
-* The Etoile: Debilitating Salsa takes less of a strong boss's HP and Fascinating Waltz lowers a
-  little less, while Dumbing Mazurka and Emaciating Hopak lower more.
-* The Mistress's Absolute Obedience hits harder and its ailments land more often; the Diva's
-  Panic Voice costs less TP; the Berserker's Blood Rage costs half the TP and lasts longer; the
-  Samurai's Mind's Eye counters more often; the Papillon's Tinker Squash costs less TP.
-* The Bathroom Slippers, the reward of quest rank 3, give Double EXP in the place of their
-  physical defense.
-* The wandering blacksmith shows up more often in every dungeon.
-* The buff of a meal lasts more than twice as many steps, enough to carry it into a few battles.
-  So does any buff or lowered stat a girl walks out of a battle with; poison and the other
-  ailments wear off as before.
-
-Every skill, item and enchantment shows its new figures in the game.
-
-Install
--------
-This archive holds no file of the game: only the differences, and a script that applies them to
-your own copy.
-
-1. Close the game. It must be the original game, with no other mod installed.
-2. Unpack this archive into the folder of the game: the one that holds the game's .exe and its
-   folder "Data". You now have there "Install_Balance.bat", "Uninstall_DT22_Mod.bat" and a folder
-   "DT22_Mod".
-3. Run "Install_Balance.bat" (double click).
-
-It checks every file it is about to change, keeps a copy of each original in "DT22_Mod\backup",
-and then changes them. In the large files of the dungeons it changes a few bytes in place and
-keeps the list of them instead of a copy. It also changes 20 bytes of the program (the EXP by level gap,
-the Crown, the chance of Arcane Shield, the passive Concentrate and how long a buff lasts
-while you walk) in every .exe of the
-folder that is the game. If a file is not the original one it says which and changes nothing.
-The window ends with "Done: ..." when all went well.
-
-Uninstall
----------
-Run "Uninstall_DT22_Mod.bat" (or "./Uninstall_DT22_Mod.sh" on Linux / Steam Deck).
-Every file goes back as it was.
-
-Updating to a new version or changing variants
-----------------------------------------------
-If you already have a version of the mod installed:
-
-1. Close the game.
-2. Unpack the new archive into your game folder, allowing it to overwrite existing
-   files when prompted.
-3. Run "Install_Balance.bat" (Windows) or "./Install_Balance.sh" (Linux / Steam Deck).
-
-The installer automatically recognizes the original game copies kept in
-"DT22_Mod\backup", updates the patches against them, and records the new state.
-There is no need to uninstall first when upgrading versions or switching between
-Balance and QoL.
-
-Alternatively, if you prefer a clean reinstall: run "Uninstall_DT22_Mod.bat"
-(or "./Uninstall_DT22_Mod.sh") first, extract the new archive, and run the Install script.
-
-If the game is updated
+INSTALLATION (Windows)
 ----------------------
-An update or a repair of the game puts its own files back over the mod. The Install and Uninstall
-.bat notice it and change nothing, since the copies in "DT22_Mod\backup" then belong to the older
-game. Delete the folder "DT22_Mod\backup" and the file "DT22_Mod\installed.txt", have the launcher
-check the files of the game, and run the Install .bat again.
+1. Extract ALL contents of this archive directly into your game folder (the
+   folder containing `DT22_en.exe`, `DT22_en_unwrapped.exe`, and `Data/`):
+   - `Install_Balance.bat`
+   - `Uninstall_DT22_Mod.bat`
+   - `DT22_Mod/`
+   When extracting an updated archive over an older mod install, allow it to
+   overwrite existing files in the game root and `DT22_Mod/`.
+2. Double-click `Install_Balance.bat`.
+   - Backups of every touched original file are saved automatically under
+     `DT22_Mod\backup\` before any file is modified.
+   - If another variant (QoL or an earlier Balance build) is already installed,
+     the installer restores from `DT22_Mod\backup\` and applies the new files
+     cleanly.
+   - Note: Because this package ships binary diffs only (zero copyrighted game
+     assets), every touched game file must match a clean original copy (or have
+     an intact original in `DT22_Mod\backup\`).
 
-Saves
------
-Saves are not touched and stay compatible both ways.
+INSTALLATION (Linux / Steam Deck / macOS via Proton/Wine)
+---------------------------------------------------------
+1. Extract all files into the game folder (`chmod +x Install_Balance.sh Uninstall_DT22_Mod.sh`
+   if needed; requires `python3`).
+2. Run `./Install_Balance.sh`.
+
+UNINSTALLATION
+--------------
+- Double-click `Uninstall_DT22_Mod.bat` (or run `./Uninstall_DT22_Mod.sh`) to
+  restore all original `.pck` archives, dungeon floor files, and executables
+  from `DT22_Mod\backup\`.
+
+WHAT THIS MOD CHANGES
+---------------------
+In total, the Balance build applies 3,586 tuned data entries across 15 game
+tables (3,674 fields in 16 parameter/entity `.pck` archives and 166 zone
+weights across 20 dungeon floor `.pck` files) plus 17 executable patches
+(46 bytes) in both `DT22_en.exe` and `DT22_en_unwrapped.exe`:
+
+1. Quality of Life Text & Teaching Guides (Included)
+   - Accurate in-game descriptions for skills, items, enchantments, food,
+     enemy attacks, party skills, joint skills, weapon ranks, and classes,
+     regenerated directly from the Balance binary values (no mismatched stats
+     or missing changes).
+   - Updated in-game Battle & Class Tutorials (`Teaching.pck` and `Lesson.pck`).
+
+2. Executable Fixes & Progression Tweaks (17 patches / 46 bytes)
+   - Catch-up EXP multipliers (without EXP piece: 1.15x / 3x / 5x / 10x;
+     with Enchant 270 piece: 1.5x / 4x / 6x / 10x), plus branch fix enabling the
+     20+ level gap tier without an EXP piece.
+   - Level Reset / Crown points: +1 SP point on the top 4 tiers (5->6, 4->5,
+     3->4, and 2->3).
+   - Arcane Shield: trigger roll increased from 15% to 25%.
+   - Chant interruption bugfix: applies Concentrate multiplicatively instead of
+     additively (`addss -> mulss`), matching its formula for all units.
+   - Map buff/status tick duration: 5 -> 12 steps per turn outside battle
+     (meals and field buffs last ~2.4x longer while exploring).
+   - Third Eye Wide bugfix: fixes broken jump blocking buff dispel.
+   - Positive Trance (Alisia): Pep threshold lowered from 100 to 85.
+
+3. Classes, Skills, Unique Skills & Party Skills
+   - 152 class skills tuned across Magic (61), Passive (20), and Technique (71)
+     skills (elemental spells and chant times, Guard spells, Sun Veil, First Grid,
+     Graceful Rose, Spartan, dances, stances, ninja skills, summons, etc.).
+   - 7 unique skills tuned: Third Eye Wide, Sugar Coma, Alter Fate, Wreathed in
+     Glory, Tranquil Song, Arcane Shield, and Usurper of Souls reworked into
+     No Miracles Needed.
+   - Party skill Eccentrics switched from DEX to AGI bonus.
+   - Class stat growth adjusted for Sniper, Witch, and Soul Summoner, plus an
+     adjusted overall SP curve (`LvExpSkptData.pck`).
+
+4. Equipment, Sealbooks, Enchantments & Items
+   - Weapon & armor tuning across 11 pieces: Tantou (`1.3 -> 2.6` upgrade rate),
+     Whip (`1.44 -> 2`), Ougi (`16 -> 24` base ATK), Dagger (`14 -> 20` base ATK),
+     Bathroom Slippers secondary enchant updated, Kite Shield and Fluted Armor
+     class usability bitmask expanded (`0x3f -> 0x2003f`), and top-end heavy
+     weapons tuned (`Heavy Axe`, `Heavy Lance`, `Claymore`, `Tachi`).
+   - 4 Grand Sealbooks upgraded with secondary enchantments: Melek Taus, Genbu,
+     Murasaki Shikibu, and Death Cataphract.
+   - `All stats` (+1/+3/+6/+9/+12) stacking flags enabled (`428 -> 429`).
+   - TP recovery fruits boosted (+20%: Magical Fruit 30, Fairy Apple 60,
+     Golden Apple 120).
+
+5. Enemies, Bosses, Summons, Mercenaries, Zones & Quests
+   - 389 enemy records tuned (HP, ATK, DEF, INT, RES, AGI, DEX, resistances,
+     72 immunity flag updates, 77 passive skill updates, AI/steal adjustments)
+     plus 6 enemy attack skill records and 23 summon records.
+   - 84 mercenary / guest ally records rebalanced, with earlier contracts for
+     Neya, Azmaria, and Miranda and lower hiring costs for Three Fates and Marion.
+   - 41 quests grant ~20% more gold.
+   - 166 dungeon zones across 20 floor packs have Blacksmith encounter chance x1.5.

@@ -964,7 +964,20 @@
    "11": "Ougi",
    "12": "Megaphone",
    "13": "Charumera"
-  }
+  },
+  "variant_checkpoints": [
+   "P04",
+   "P08",
+   "P11",
+   "P18",
+   "P28",
+   "P36",
+   "P43",
+   "P44",
+   "P45",
+   "P52",
+   "P54"
+  ]
  },
  "support_battery": {
   "about": "dtcli support-battery: each support and tank class of a stage (sheet ClassKinds) in the last place of each BatteryParties party against the control role there, at every story boss of the stage, on a walk of random battles and on the walk followed by the boss.",

@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using DtEngine;
 using DtEngine.Suite;
 using Xunit;
 
@@ -73,6 +78,57 @@ namespace DtEngine.Tests
             Assert.False(serves);
             Assert.False(unclear);
             Assert.True(score < 1.0);
+        }
+
+        static string Root()
+        {
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "CONTRIBUTING.md"))) dir = dir.Parent;
+            if (dir == null) throw new InvalidOperationException("the repository root was not found");
+            return dir.FullName;
+        }
+
+        [Fact]
+        public void RowsWithRule_BeforeStatusPlacesStatusBeforeAilmentForSage()
+        {
+            var root = Root();
+            var snap = Snapshot.Load(Path.Combine(root, "build", "engine_snapshot.json"));
+            var ctx = new Ctx(snap, root, 1, snap.MeasureInputs);
+
+            var rows = SkillValue.RowsWithRule(ctx, "sage", "always", "status:186", 4, beforeStatus: true)
+                .Cast<Obj>()
+                .Where(r => Py.Str(r.Get("Role")) == "sage")
+                .OrderBy(r => Py.Num(r.Get("Order")))
+                .Select(r => Py.Str(r.Get("Action")))
+                .ToList();
+
+            int statusIdx = rows.IndexOf("status:186");
+            int ailmentIdx = rows.FindIndex(a => a.StartsWith("ailment:"));
+            Assert.True(statusIdx >= 0);
+            Assert.True(ailmentIdx > statusIdx, "beforeStatus should place status: ahead of sage's ailment: rows");
+        }
+
+        [Fact]
+        public void BatteryJob_UnderfilledBaseCheckpointsGiveEqualPartySizeAcrossAllRoles()
+        {
+            var root = Root();
+            var snap = Snapshot.Load(Path.Combine(root, "build", "engine_snapshot.json"));
+            var ctx = new Ctx(snap, root, 1, snap.MeasureInputs);
+            var sc = ctx.Sc("variant");
+
+            foreach (var (cid, expectedSize) in new[] { ("C03", 3), ("C05", 3), ("C06", 4) })
+            {
+                foreach (var b in ctx.Setup.Battery)
+                {
+                    foreach (var role in new[] { "shooter", "papillon", "soul summoner", "treasure hunter", "tank" })
+                    {
+                        var job = ClassStages.BatteryJob(ctx, cid, role, b.name, 1);
+                        var names = new List<string>();
+                        var party = sc.RecipeParty(job, job.Recipe, names);
+                        Assert.Equal(expectedSize, party.Count(u => u.Kind == Kind.Member));
+                    }
+                }
+            }
         }
     }
 }

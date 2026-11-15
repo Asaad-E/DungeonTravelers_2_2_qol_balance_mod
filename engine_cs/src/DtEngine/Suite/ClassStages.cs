@@ -68,21 +68,44 @@ namespace DtEngine.Suite
             int level = sc.ReferenceLevels()[cid].level;
             string Kind(string r) => KindOf(c, r, data.ClassName(sc.ClassPath(c.Setup.Roles[r], level).Item1));
             var roles = c.Setup.Battery.First(b => b.name == party).roles.ToList();
+            int size = c.Setup.HasSetting("party_size") ? c.Setup.SettingInt("party_size") : 5;
+            var baseParty = sc.ReferenceParty(roles, cp.Str("Chapter"), level, sc.CheckpointGear(cid), 0, cp.Str("Floor"))
+                              .Where(u => u.Kind == DtEngine.Kind.Member).ToList();
             string Line(string r) => c.Setup.Roles[r].Str("Base class");
-            int slot = roles.IndexOf(role);
-            if (slot < 0) slot = roles.FindLastIndex(r => Kind(r) == Kind(role) && Line(r) == Line(role));
-            if (slot < 0 && Kind(role) == "attacker") slot = roles.FindLastIndex(r => Kind(r) == "attacker");
-            // a support or tank of another line takes the place of an attacker: the party keeps the supports it has
-            if (slot < 0) slot = roles.FindLastIndex(r => Kind(r) == "attacker");
-            if (slot < 0) slot = roles.Count - 1;
-            // attackerSeat: the role takes the place of the last attacker even when the party has a member of her own kind (the supports stay)
-            if (attackerSeat && Kind(role) != "attacker") { int s = roles.FindLastIndex(r => Kind(r) == "attacker"); if (s >= 0) slot = s; }
-            roles[slot] = role;
-            var recipe = new Obj
+            Obj recipe;
+            if (baseParty.Count < size)
             {
-                { "place", "replace_role" }, { "items", "first_kept" },
-                { "tested", Jb.L(new Obj { { "role", role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) } }) },
-            };
+                // Before fifth chapter, BatteryParties have empty slots; replace an actually filled member so all roles fight with equal party size.
+                string RoleOf(Unit u) => u.HasRole ? u.Role : "";
+                int evict = baseParty.FindIndex(u => RoleOf(u) == role);
+                if (evict < 0) evict = baseParty.FindLastIndex(u => RoleOf(u) != "" && Kind(RoleOf(u)) == Kind(role) && Line(RoleOf(u)) == Line(role));
+                if (evict < 0 && Kind(role) == "attacker") evict = baseParty.FindLastIndex(u => RoleOf(u) != "" && Kind(RoleOf(u)) == "attacker");
+                if (evict < 0) evict = baseParty.FindLastIndex(u => RoleOf(u) != "" && Kind(RoleOf(u)) == "attacker");
+                if (evict < 0) evict = baseParty.Count - 1;
+                if (attackerSeat && Kind(role) != "attacker") { int s = baseParty.FindLastIndex(u => RoleOf(u) != "" && Kind(RoleOf(u)) == "attacker"); if (s >= 0) evict = s; }
+                recipe = new Obj
+                {
+                    { "place", "append" }, { "items", "first_kept" }, { "name_not", baseParty[evict].Name },
+                    { "tested", Jb.L(new Obj { { "role", role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) } }) },
+                };
+            }
+            else
+            {
+                int slot = roles.IndexOf(role);
+                if (slot < 0) slot = roles.FindLastIndex(r => Kind(r) == Kind(role) && Line(r) == Line(role));
+                if (slot < 0 && Kind(role) == "attacker") slot = roles.FindLastIndex(r => Kind(r) == "attacker");
+                // a support or tank of another line takes the place of an attacker: the party keeps the supports it has
+                if (slot < 0) slot = roles.FindLastIndex(r => Kind(r) == "attacker");
+                if (slot < 0) slot = roles.Count - 1;
+                // attackerSeat: the role takes the place of the last attacker even when the party has a member of her own kind (the supports stay)
+                if (attackerSeat && Kind(role) != "attacker") { int s = roles.FindLastIndex(r => Kind(r) == "attacker"); if (s >= 0) slot = s; }
+                roles[slot] = role;
+                recipe = new Obj
+                {
+                    { "place", "replace_role" }, { "items", "first_kept" },
+                    { "tested", Jb.L(new Obj { { "role", role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) } }) },
+                };
+            }
             return Jb.Make(c, "variant", cid, roles: roles, runs: runs, crown: 0, record: true, recipe: recipe, name: cid + "|" + party + "|" + role);
         }
 

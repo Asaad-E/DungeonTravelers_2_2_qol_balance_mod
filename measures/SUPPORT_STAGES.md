@@ -6,23 +6,23 @@ Balance variant, 60 battles a cell. Each role in the last place of the reference
 
 | Role | Class | Kind | C03 | C05 | C06 | Wins | Lowest HP against the median | Length against the median |
 |---|---|---|---|---|---|---|---|---|
-| maid | Maid | support | 84% / 86% / 4.2 | 55% / 68% / 5.8 | 77% / 80% / 6.1 | 100% | -1 | 1.00 |
-| healer | Magic User | support | 84% / 90% / 4.3 | 66% / 81% / 5.8 | 84% / 90% / 6.1 | 100% | +5 | 1.01 |
-| diva | Maid | support | 85% / 86% / 4.2 | 56% / 73% / 5.8 | 78% / 81% / 6.1 | 100% | -1 | 1.00 |
-| sage | Magic User | support | 87% / 90% / 3.0 | 66% / 75% / 4.5 | 84% / 87% / 4.0 | 100% | +6 | 0.72 |
-| mistress | Maid | support | 80% / 83% / 4.3 | 56% / 71% / 5.9 | 76% / 81% / 6.1 | 100% | -3 | 1.01 |
-| etoile | Maid | support | 81% / 83% / 4.0 | 60% / 68% / 5.5 | 77% / 83% / 5.8 | 100% | -1 | 0.95 |
+| maid | Maid | support | 86% / 87% / 4.0 | 56% / 66% / 5.6 | 78% / 81% / 5.8 | 100% | -1 | 1.00 |
+| healer | Magic User | support | 84% / 91% / 4.0 | 67% / 82% / 5.7 | 84% / 91% / 5.8 | 100% | +4 | 1.00 |
+| diva | Maid | support | 86% / 87% / 4.0 | 57% / 71% / 5.6 | 78% / 81% / 5.8 | 100% | -1 | 1.00 |
+| sage | Magic User | support | 87% / 89% / 2.9 | 67% / 74% / 4.4 | 84% / 87% / 3.9 | 100% | +5 | 0.73 |
+| mistress | Maid | support | 82% / 84% / 4.0 | 56% / 71% / 5.7 | 76% / 80% / 5.8 | 100% | -3 | 1.01 |
+| etoile | Maid | support | 82% / 84% / 3.8 | 63% / 71% / 5.3 | 78% / 82% / 5.5 | 100% | -0 | 0.95 |
 
 ## intermediate (C10, C13, C18)
 
 | Role | Class | Kind | C10 | C13 | C18 | Wins | Lowest HP against the median | Length against the median |
 |---|---|---|---|---|---|---|---|---|
-| tank | Paladin | tank | 72% / 99% / 7.7 | 62% / 91% / 8.3 | 81% / 95% / 8.8 | 100% | +1 | 0.91 |
-| maid | Bard | support | 71% / 99% / 9.2 | 66% / 95% / 9.4 | 71% / 93% / 10.0 | 100% | -1 | 1.04 |
-| healer | Priestess | support | 72% / 99% / 8.0 | 69% / 94% / 8.7 | 73% / 94% / 8.8 | 100% | +1 | 0.93 |
-| diva | Bard | support | 70% / 99% / 9.3 | 67% / 95% / 9.4 | 71% / 94% / 10.2 | 100% | -1 | 1.05 |
-| valkyrie | Paladin | tank | 72% / 99% / 7.2 | 65% / 93% / 6.1 | 75% / 95% / 7.4 | 100% | +0 | 0.76 |
-| sage | Enchantress | support | 71% / 99% / 9.1 | 65% / 93% / 8.6 | 77% / 96% / 8.1 | 100% | +0 | 0.94 |
-| mistress | Bard | support | 71% / 99% / 9.3 | 66% / 95% / 9.4 | 69% / 95% / 10.2 | 100% | -2 | 1.06 |
-| etoile | Dancer | support | 74% / 99% / 9.2 | 67% / 93% / 9.1 | 81% / 98% / 9.9 | 100% | +4 | 1.03 |
+| tank | Paladin | tank | 73% / 99% / 7.1 | 63% / 91% / 7.8 | 82% / 96% / 10.5 | 100% | +2 | 0.92 |
+| maid | Bard | support | 72% / 98% / 8.5 | 65% / 93% / 8.5 | 71% / 95% / 11.6 | 100% | -1 | 1.04 |
+| healer | Priestess | support | 73% / 99% / 7.2 | 69% / 95% / 8.0 | 70% / 93% / 10.7 | 100% | +1 | 0.94 |
+| diva | Bard | support | 72% / 98% / 8.6 | 65% / 94% / 8.5 | 70% / 93% / 11.5 | 100% | -1 | 1.03 |
+| valkyrie | Paladin | tank | 72% / 99% / 6.7 | 66% / 93% / 5.7 | 75% / 94% / 8.4 | 100% | +1 | 0.76 |
+| sage | Enchantress | support | 72% / 99% / 8.4 | 65% / 92% / 7.8 | 74% / 95% / 9.3 | 100% | +0 | 0.93 |
+| mistress | Bard | support | 69% / 99% / 8.6 | 66% / 94% / 8.7 | 68% / 93% / 12.0 | 100% | -2 | 1.06 |
+| etoile | Dancer | support | 75% / 99% / 8.4 | 66% / 95% / 8.3 | 82% / 97% / 11.3 | 100% | +4 | 1.02 |
 

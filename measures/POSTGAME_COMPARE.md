@@ -6,31 +6,31 @@ Crown: the least bonus at which the vanilla party reaches the floor (the prepara
 
 | Boss | Class | Crown | Wins, vanilla > variant | Length, vanilla > variant | Lowest HP |
 |---|---|---|---|---|---|
-| P01 Aradia (1st fight) | easy | 0 | 100% > 100% | 5.6 > 5.7 | 80% > 83% |
+| P01 Aradia (1st fight) | easy | 0 | 100% > 100% | 5.6 > 5.5 | 80% > 82% |
 | P02 Iktomi | easy | 0 | 95% > 100% | 10.5 > 7.8 | 35% > 42% |
-| P03 Aradia (2nd fight) | normal | 40 | 70% > 78% | 70.8 > 46.2 | 30% > 37% |
-| P04 Sukuna-Hikona | easy | 10 | 100% > 98% | 7.9 > 5.7 | 40% > 48% |
-| P05 Euthys | normal | 20 | 57% > 85% | 19.6 > 14.7 | 20% > 34% |
+| P03 Aradia (2nd fight) | normal | 40 | 70% > 85% | 70.8 > 39.6 | 30% > 42% |
+| P04 Sukuna-Hikona | easy | 10 | 100% > 98% | 7.9 > 5.6 | 40% > 48% |
+| P05 Euthys | normal | 20 | 57% > 88% | 19.6 > 14.0 | 20% > 37% |
 | P06 Overdue | hard | 0 | 52% > 55% | 14.6 > 10.8 | 23% > 28% |
 | P07 Royal Villa, three bosses | easy | 0 | 92% > 100% | 8.8 > 8.1 | 30% > 35% |
-| P08 Qitian Dasheng | easy | 0 | 100% > 100% | 9.5 > 5.5 | 78% > 80% |
+| P08 Qitian Dasheng | easy | 0 | 100% > 100% | 9.5 > 8.5 | 78% > 78% |
 | P09 Azathoth | normal | 10 | 55% > 52% | 8.3 > 7.0 | 13% > 12% |
 | P10 Kuchinawa | normal | 30 | 57% > 72% | 5.4 > 4.8 | 17% > 24% |
-| P11 Aradia (3rd fight) | normal | 10 | 98% > 88% | 5.4 > 4.4 | 37% > 35% |
+| P11 Aradia (3rd fight) | normal | 10 | 98% > 88% | 5.4 > 4.4 | 37% > 34% |
 | P12 Genbu | normal | 30 | 70% > 82% | 12.8 > 10.9 | 23% > 32% |
 | P13 Nuwa | normal | 30 | 90% > 95% | 3.2 > 2.6 | 31% > 38% |
 | P14 Murasaki Shikibu | normal | 0 | 98% > 100% | 10.1 > 8.2 | 35% > 39% |
-| P15 Aradia (4th fight) | normal | 30 | 82% > 92% | 14.0 > 12.0 | 25% > 30% |
+| P15 Aradia (4th fight) | normal | 30 | 82% > 92% | 14.0 > 11.9 | 25% > 30% |
 | P16 Aradia (5th fight) | normal | 0 | 100% > 100% | 5.1 > 4.5 | 47% > 48% |
 | P17 Last Judgment | normal | 0 | 70% > 62% | 8.9 > 7.6 | 30% > 29% |
 | P18 Aradia (6th fight) | normal | 0 | 100% > 100% | 4.3 > 4.0 | 58% > 56% |
 | P19 Three goddesses | hard | 0 | 20% > 35% | 8.8 > 7.1 | 6% > 10% |
-| P20 Crom Cruach (weakened superboss) | hard | 0 | 32% > 62% | 11.3 > 9.6 | 13% > 25% |
+| P20 Crom Cruach (weakened superboss) | hard | 0 | 32% > 62% | 11.3 > 9.3 | 13% > 26% |
 | P21 Ria the Farsighted | easy | 0 | 98% > 95% | 5.6 > 5.1 | 43% > 47% |
-| P22 Chika the Impenetrable | hard | 50 | 32% > 28% | 8.8 > 10.7 | 6% > 5% |
+| P22 Chika the Impenetrable | hard | 50 | 32% > 30% | 8.8 > 10.4 | 6% > 5% |
 | P23 Samael (Dreamscape) | normal | 20 | 72% > 85% | 4.6 > 4.1 | 24% > 31% |
-| P24 Aradia (7th fight) | normal | 0 | 70% > 85% | 5.9 > 5.2 | 32% > 40% |
-| P25 Mil the Overlord | easy | 10 | 95% > 100% | 3.3 > 2.8 | 42% > 49% |
+| P24 Aradia (7th fight) | normal | 0 | 70% > 65% | 5.9 > 6.1 | 32% > 28% |
+| P25 Mil the Overlord | easy | 10 | 95% > 100% | 3.3 > 2.7 | 42% > 48% |
 | P26 Lina the Statuesque | easy | 0 | 100% > 95% | 4.3 > 3.4 | 51% > 54% |
 | P27 Melek Taus (Gruneworth) | normal | 50 | 55% > 80% | 1.8 > 1.5 | 13% > 20% |
 | P28 Hell's Angel | normal | 10 | 52% > 78% | 2.3 > 2.2 | 21% > 30% |
@@ -40,18 +40,18 @@ Crown: the least bonus at which the vanilla party reaches the floor (the prepara
 | P32 Aradia (8th fight), First Sealbook afterword | hard | 40 | 30% > 42% | 2.1 > 2.0 | 8% > 10% |
 | P33 Final boss after the 8th Aradia (Panagia, then Radiant Being) | normal | 50 (floor not reached) | 25% > 68% | 6.5 > 5.4 | 9% > 21% |
 | P34 Casino VIP, 1st (Tama the Red) | hard | 30 | 25% > 62% | 3.5 > 3.5 | 8% > 23% |
-| P35 Casino VIP, 2nd (Riko the Reclusive) | hard | 20 | 20% > 12% | 20.2 > 18.2 | 5% > 3% |
+| P35 Casino VIP, 2nd (Riko the Reclusive) | hard | 20 | 20% > 12% | 20.2 > 16.7 | 5% > 2% |
 | P36 Casino VIP, 3rd (Rai the Sweltering) | hard | 30 | 22% > 25% | 4.5 > 4.5 | 4% > 6% |
 | P37 Casino VIP, 4th (Mor the Drunken) | hard | 0 | 20% > 38% | 5.8 > 4.8 | 5% > 11% |
 | P38 Casino VIP, 5th (Gam the Wise) | hard | 0 | 50% > 70% | 6.3 > 4.9 | 8% > 18% |
 | P39 Casino VIP, 6th (Ruu the Woodsy) | hard | 40 | 22% > 12% | 9.7 > 7.3 | 8% > 5% |
-| P40 Casino VIP, 7th (five bosses with Mandra Prince and Princess) | hard | 40 | 25% > 40% | 8.1 > 7.7 | 11% > 19% |
+| P40 Casino VIP, 7th (five bosses with Mandra Prince and Princess) | hard | 40 | 25% > 38% | 8.1 > 7.7 | 11% > 19% |
 | P41 Wandering Brigade (Citlalinicue) | normal | 50 (floor not reached) | 0% > 0% | - > - | 0% > 0% |
 | P42 Wandering Brigade (Marduk) | hard | 50 (floor not reached) | 0% > 0% | - > - | 0% > 0% |
 | P43 Wandering Brigade (Arjuna) | normal | 10 | 55% > 55% | 12.9 > 12.9 | 23% > 21% |
 | P44 Wandering Brigade (Yoshitsune) | normal | 20 | 60% > 75% | 2.5 > 2.3 | 23% > 32% |
 | P45 Four Therian Kings (Zouchou Kuma) | hard | 30 | 32% > 25% | 11.4 > 11.6 | 9% > 6% |
-| P46 Four Therian Kings (Jikoku Peggin) | hard | 10 | 32% > 48% | 6.1 > 5.2 | 9% > 16% |
+| P46 Four Therian Kings (Jikoku Peggin) | hard | 10 | 32% > 50% | 6.1 > 5.2 | 9% > 17% |
 | P47 Four Therian Kings (Koumoku Mary) | hard | 50 | 22% > 22% | 8.3 > 7.4 | 5% > 5% |
 | P48 Four Therian Kings (Bishamon Peggy) | hard | 40 | 25% > 42% | 6.0 > 5.2 | 9% > 17% |
 | P49 Hell's Hole superboss (Crom Cruach, two fights) | hard | 50 (floor not reached) | 0% > 0% | - > - | 0% > 0% |
@@ -60,4 +60,4 @@ Crown: the least bonus at which the vanilla party reaches the floor (the prepara
 | P52 First Sealbook afterword (Bearerophon) | hard | 10 | 42% > 60% | 2.0 > 2.0 | 20% > 21% |
 | P53 First Sealbook afterword (Magical Mary) | hard | 0 | 68% > 82% | 2.5 > 2.3 | 23% > 34% |
 | P54 First Sealbook afterword (Beard Master) | hard | 0 | 28% > 55% | 3.1 > 2.5 | 9% > 18% |
-| P55 First Sealbook afterword (Mul the Mechanical) | hard | 0 | 100% > 100% | 6.6 > 6.2 | 63% > 64% |
+| P55 First Sealbook afterword (Mul the Mechanical) | hard | 0 | 100% > 100% | 6.6 > 6.3 | 63% > 64% |

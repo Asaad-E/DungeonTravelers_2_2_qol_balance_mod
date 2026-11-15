@@ -30,9 +30,9 @@ EDITED_CLASSES = {
     ),
     # 3: Valkyrie
     'ClassData_03.bin': (
-        "They have no superior when it comes to short-range fortitude. Wielding spears\n"
-        "and swords, these war angels guard the front line with Circle Protection, shielding\n"
-        "the entire party from physical assaults while executing swift counterattacks."
+        "They have no superior when it comes to short-range fortitude. Wielding spears,\n"
+        "swords, and shields, these war angels shield the party with Material Guard and\n"
+        "Spell Guard while punishing foes with heavy lance strikes and counterattacks."
     ),
     # 9: Sniper
     'ClassData_09.bin': (
@@ -49,8 +49,8 @@ EDITED_CLASSES = {
     # 23: Diva
     'ClassData_23.bin': (
         "Support class specializing in skills that boost the abilities of their comrades. With\n"
-        "vocals that rattle the cosmos, their continuous songs replenish party TP, boost ATK,\n"
-        "and accelerate chanting without consuming active turns once begun."
+        "vocals that rattle the cosmos, their continuous songs restore TP, raise crits and\n"
+        "speed, and accelerate chanting without consuming active turns once begun."
     ),
     # 24: Mistress (Alternativa A)
     'ClassData_24.bin': (

@@ -68,24 +68,26 @@ LESSON_08_BOXES = [
 
 LESSON_12_BOXES = [
     "Poison drains 5% Max HP each turn (cannot drop below 1 HP).\nFreeze disables all physical techniques, dances, and dolls.\nBoth of these crippling conditions belong to Water.",
-    "Silence prevents the use of all magic and song skills.\nSleep cancels actions, drops evasion, and increases damage\nfrom physical hits by 1.5x. Both belong to Wind.",
+    "Silence prevents the use of all magic and song skills.\nSleep cancels actions, drops evasion, and increases damage\ntaken from any attack by 1.5x. Both belong to Wind.",
     "Paralysis causes a 30% chance to lose actions (Lightning).\nSlow cuts turn speed in half (Earth). Progressing stones\nhalve AGI and must be cured before turning solid.",
-    "Stun (Fire) pushes the victim's turn to round end.\nAilments wear off in time or cure with Nurse and Cleanse.\n100 resistance grants full elemental immunity."
+    "Stun (Fire) resets turn gauge and cancels chants or dances.\nAilments wear off in time or cure with Nurse and Cleanse.\n100 resistance blocks ailments and halves matching hits."
 ]
 
 LESSON_13_BOXES = [
-    "At Level 15, basic classes promote to Intermediate roles.\nThese 11 classes define your mid-game battle strategy.\nChoose wisely to balance party survival and burst.",
+    ("At Level 15, basic classes promote to Intermediate roles.\n"
+     "These 11 classes shape your advancing battle strategy.\n"
+     "Choose wisely to balance party survival and offense."),
     "Paladin: Frontline protector wielding heavy armor and shield.\nGuards frail allies from lethal hits and cuts damage taken.\nEssential when boss hits threaten backline mages.",
     "Berserker: Savage warrior wielding giant axes and blades.\nTrades defense for fury, shattering armor with huge hits.\nShreds high-DEF foes before they outlast your team.",
-    "Sorceress: Pure offensive spellcaster of destructive magic.\nUnleashes tier-2 elemental nukes that obliterate mob rows.\nThe go-to class when you need pure magic burst.",
+    "Sorceress: Pure offensive spellcaster of destructive magic.\nUnleashes wide elemental spells that sweep entire enemy rows.\nA focused specialist when you need decisive magical burst.",
     "Enchantress: Versatile battle-mage of buffs and utility.\nGrants party speed with Accelerator and elemental covers.\nBrings crucial tactical control to hard encounters.",
     "Priestess: Divine restorative healer wielding holy wands.\nRestores party HP with Heal, cures ailments, and revives.\nYour foundational insurance in deep labyrinths.",
     "Archer: Dedicated marksman striking from safe back rows.\nFires full-power arrows ignoring row penalties with crits.\nGreat for safely picking off high-threat foes.",
-    "Assassin: Lethal skirmisher striking from shadows.\nSpecializes in fatal sneak attacks, poison, and silence.\nShuts down dangerous enemies before they can act.",
+    "Assassin: Lethal skirmisher striking from the shadows.\nSpecializes in critical strikes, sleep, silence, and stun.\nShuts down dangerous enemies before they can act.",
     "Bard: Musical supporter whose songs bolster the party.\nSings passive auras that replenish TP and boost stats.\nSustains allies continuously without turn cost.",
     "Dancer: Rhythmic debuffer whose dances cripple foes.\nDrains enemy attack power, slows turn gauges, and defense.\nTurns grueling boss fights heavily in your favor.",
     "Trickster: Evasive gambler slinging cards and sudden hexes.\nDodges heavy blows while spreading chaos and confusion.\nAn agile disturber that keeps enemies off balance.",
-    "Doll Master: Puppet commander crafting battle dolls.\nSummons autonomous doll allies to attack and defend.\nGrants extra actions every round without TP cost."
+    "Doll Master: Puppet commander crafting battle dolls.\nSummons autonomous doll allies to attack and defend.\nOnce summoned, dolls act on their own turns without TP cost."
 ]
 
 LESSON_23_BOXES = [
@@ -95,23 +97,23 @@ LESSON_23_BOXES = [
 ]
 
 LESSON_24_BOXES = [
-    "At Level 30, characters unlock their Advanced classes.\nThese 16 roles wield game-changing master skills,\nforming the backbone needed to conquer the depths.",
-    "Valkyrie: The ultimate frontline bastion with holy spears.\nDainger Guard automatically intercepts fatal blows to allies.\nAllows you to run fragile mages in complete safety.",
+    "At Level 30, characters unlock their Advanced classes.\nThese 16 roles wield decisive master techniques and spells,\nforming the backbone needed to conquer the depths.",
+    "Valkyrie: Frontline bastion wielding spears, swords, shields.\nMaterial Guard and Spell Guard shield allies from heavy blows.\nPairs sturdy defenses with fierce lance strikes and heals.",
     "Dark Lord: Ruthless vanguard titan trading health for fury.\nSacrifices HP and defense to unleash blood group sweeps.\nBrings massive burst and sustain to your frontline.",
     "Samurai: Deadly counter-striker wielding sharp katanas.\nStances let her parry incoming attacks and strike back.\nDevastating against multi-attacking physical bosses.",
-    "Witch: Pinnacle of destructive single and multi magic.\nCasts tier-3 elemental spells that incinerate defenses.\nThe premier choice for wiping rooms and boss HP.",
+    "Witch: Dedicated arcanist of devastating elemental sorcery.\nChannels supreme all-target and single-target spells.\nExcels at exploiting elemental weaknesses with burst power.",
     "Magical Princess: Hybrid battle-mage with instant blades.\nTransforms to an empowered form, ignoring cast chants.\nBypasses mage fragility with heavy hybrid output.",
     "Sage: Tactical spellmaster controlling battle tempo.\nAccelerator speeds party casting while barriers shield.\nUnrivaled utility ensuring your team moves first.",
     "Bishop: Divine beacon of recovery and resurrection.\nCircle Heal, Circle Nurse, and Holy Light restore all.\nGuarantees full recovery even after lethal rounds.",
-    "Sniper: Precision marksman firing ballistic shots.\nUnmissable long-range snipes shatter enemy defenses.\nDeletes high-evasion and high-armor targets fast.",
-    "Treasure Hunter: Agile dungeoneer maximizing profits.\nGuarantees rare monster drops with fast dagger flurries.\nDisarms traps effortlessly and speeds up looting.",
+    "Sniper: Precision marksman striking cleanly from afar.\nWields bows and firearms for guided, armor-piercing shots.\nSupports allies with Warning Shot and bow covering fire.",
+    "Treasure Hunter: Agile explorer built to maximize spoils.\nCombines Treasure Hunt, Item Steal, and Trap Search utility.\nStrikes reliably with quick dagger, whip, and ranged skills.",
     "Kunoichi: Shadow warrior wielding lethal illusions.\nShadow clones absorb hits while dual-wielding strikes.\nIncredible burst damage paired with top survival.",
-    "Diva: Potent party buffs and massive sonic TP disruption.\nSupercharges party stats while devastating enemy TP.\nDisrupts enemy chants and keeps your team peaked.",
+    "Diva: Master vocalist whose continuous songs empower allies.\nSongs raise crits, speed, magic hit, chant speed, and hits.\nUses Self Session to sing while acting freely each turn.",
     "Mistress: Ruthless dominator wielding whips and commands.\nInflicts crippling debuffs, forcing foes to obedience.\nPunishes afflicted foes with amplified execution.",
-    "Etoile: Supreme prima ballerina who dominates the tempo.\nDebilitating dances cripple enemy turn gauges and stats.\nThe single best counter against hyper-fast bosses.",
-    "Joker: High-stakes executioner with sudden death.\nDeals explosive critical damage scaling with gambles.\nCan vaporize boss health bars in a single hand.",
-    "Soul Summoner: Spiritual conduit calling monster souls.\nSummons formidable sealbook spirits with boss skills.\nActs as an extra party member absorbing attacks.",
-    "Papillon: Whimsical skirmisher sweeping fields with fans.\nPiercing sweeps hit full rows, bypassing enemy armor.\nOne of the fastest room-clearers in the entire game."
+    "Etoile: Supreme ballerina who commands battle tempo.\nDances sap foe speed, resistance, and HP with On Stage.\nSacrifices herself with Primevil to revive fallen allies.",
+    "Joker: Reckless destroyer trading safety for burst power.\nTrump Card converts DEF to ATK; Mad Zapper pierces rows.\nWields whips, axes, and unpredictable gambles in combat.",
+    "Soul Summoner: Master puppeteer commanding supreme dolls.\nDouble Puppet fields two dolls empowered by Soul Seal.\nUnleashes Mercidarian, Perdurabo, Musiy, and Soul Eater.",
+    "Papillon: Agile hand-fan fighter sweeping wide fields.\nRose Queen poisons all foes while Tinker Squash delays.\nEvades blows with Illusion and turns foes into food."
 ]
 
 NEW_TEACHING_SCRIPTS = {

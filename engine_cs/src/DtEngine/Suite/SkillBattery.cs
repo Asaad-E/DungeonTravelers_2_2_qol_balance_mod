@@ -402,7 +402,10 @@ namespace DtEngine.Suite
             var outEffects = new HashSet<int>(cfg.A("out_of_fight_effects").Select(x => (int)Py.Num(x)));
             var nonDamage = new HashSet<int>(SkillValue.Candidates(c, data).Select(s => s.Id));
             var levels = sc.ReferenceLevels();
-            var story = c.Setup.Checkpoints.Select(r => r.Str("ID")).Where(id => id.StartsWith((string)cfg.Get("story_prefix")) && levels.ContainsKey(id)).ToList();
+            var extra = variants && cfg.Has("variant_checkpoints")
+                ? new HashSet<string>(cfg.A("variant_checkpoints").Select(x => (string)x))
+                : new HashSet<string>();
+            var story = c.Setup.Checkpoints.Select(r => r.Str("ID")).Where(id => (id.StartsWith((string)cfg.Get("story_prefix")) || extra.Contains(id)) && levels.ContainsKey(id)).ToList();
             var stages = cfg.A("stages").Cast<Obj>().ToList();
             var cidsOf = stages.ToDictionary(s => s.S("name"), s => story.Where(id => StageOf(cfg, levels[id].level)?.S("name") == s.S("name")).ToList());
 
@@ -564,7 +567,9 @@ namespace DtEngine.Suite
             if (variants) text.Insert(2, "**Variants:** every active under each condition of rule_variants (" + string.Join(", ", conditions)
                                          + (healPairs.Count > 0 ? "; heals under heal_variants: " + string.Join(", ", healPairs.Select(p => p.cond + " / " + p.act)) : "")
                                          + "), a damage skill forced by skill:Name, and a third context, walk_boss: " + Py.Num(cfg.Get("walk"))
-                                         + " random battles of the floor and then the boss, nothing healed between them; the verdict reads the best cell of all of them.");
+                                         + " random battles of the floor and then the boss, nothing healed between them"
+                                         + (extra.Count > 0 ? "; checkpoints include postgame variant_checkpoints (" + string.Join(", ", extra.OrderBy(x => x)) + ")" : "")
+                                         + "; the verdict reads the best cell of all of them.");
             if (variants) text.Insert(3, "");
             if (trial.Length > 0) { text.Insert(2, "**Trial:** the variant with " + trial + " (not built; to try a value)."); text.Insert(3, ""); }
             c.WriteText(c.Path("docs", "generated", tag.ToUpperInvariant() + ".md"), M.Lines(text), false);

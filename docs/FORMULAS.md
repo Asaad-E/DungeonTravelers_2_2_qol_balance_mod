@@ -73,7 +73,7 @@ final    = damage C * (1 + other bonuses)
 * **Resistance** **[message]**: `(100 - resistance * 0.5) * 0.01`. Each point of resistance removes half a percent; 100 halves the damage; a negative resistance adds.
 * **Race bonus** (`0x44bfe3 - 0x44c2cb`): enchantments against a kind of enemy add 0.30, 0.15 or 0.60 per piece according to their tier; effects 87 and 88 are read here.
 * **Defending** halves the damage (`0x44c576`).
-* Changes of the final value, each with its message: Warning Shot, a guaranteed minimum, wide magic guard, Demon Wall (only when the attacker is an enemy of race 5, 7 or 8, P6.9 of the engine audit), then Positive Trance (`int(damage * (Pep - 100) / value / 100)` added to the damage after the cut when Pep is above 100, `0x44ccce`; blows only, the spell function has no such step), sleep, a bonus against enemies with an ailment (0.15 per piece of an enchantment, `0x44cd83`), double damage against the Magic User line, fixed damage, damage only to the living.
+* Changes of the final value, each with its message: Warning Shot, a guaranteed minimum, wide magic guard, Demon Wall (only when the attacker is an enemy of race 5, 7 or 8, P6.9 of the engine audit), then Positive Trance (`int(damage * (Pep - 100) / value / 100)` added to the damage after the cut when Pep is above 100 in the original executable — lowered to above 85 in the Balance variant via row X17 of `ExePatches`, `0x44ccd2` — `0x44ccce`; blows only, the spell function has no such step), sleep, a bonus against enemies with an ailment (0.15 per piece of an enchantment, `0x44cd83`), double damage against the Magic User line, fixed damage, damage only to the living.
 * **Range** (`0x44a7d0`, `_GetAttackRangeRevision`) **[code]**: the distance is 0 when attacker and target are both in the front row, 1 when one of them is in the back row, 2 when both are (`0x44a7a0`). A short-range attack does full damage at distance 0, 0.75 at 1 and 0.5 at 2; a mid-range attack does 0.75 at distance 2 and full damage otherwise; long range and no range always do full damage. The lesson of the game states exactly this.
 * **Zones** (`0x44fbb0`): see 2.5. A zone multiplies attack A, before defence is subtracted; this is why a zone that doubles attack more than doubles damage.
 * The critical multiplier (1.25, `0x44f599 - 0x44f5b2`) and the guaranteed minimum (3, or 1 - 2 on a critical, `0x44cb12 - 0x44cb4e`) are read in section 4.
@@ -830,7 +830,7 @@ What reads it:
 * **Joint skills** (`0x56e676`): a joint skill can be used only when every participant has at least its "Pep needed"
   (`JoinSkillData 0x28`); using it takes its "Pep spent" (`0x2C`) from each (`0x5097f6`), halved by a piece of
   enchantment 266. This confirms by code the two fields the QoL work had named by comparison with the wiki.
-* **Positive Trance** (2.4): damage gains `(Pep - 100) / value / 100` of itself when Pep is above 100.
+* **Positive Trance** (2.4): damage gains `(Pep - 100) / value / 100` of itself when Pep is above 100 (`0x44ccd2`; lowered to `Pep - 85` above 85 in the Balance variant, `ExePatches` X17).
 * The mood shown on screen (thresholds 85, 90, 110, 115 at `0x4bea80`).
 
 What changes it: each character has **21 amounts** in her `PlayerStatusData.bin` (`0x3C`), one per event, and the
