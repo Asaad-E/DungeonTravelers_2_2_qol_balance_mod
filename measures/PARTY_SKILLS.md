@@ -4,23 +4,23 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 
 | Party skill | Members | Bonus at every proof | Wins | Fights shorter | HP left |
 |---|---|---|---|---|---|
-| Board Members | 3 | dex +20, agi +20 | +14 | +13% | +10 |
-| Vigor Trio | 3 | atk +32 | +12 | +15% | +7 |
-| Vagabonds | 3 | agi +20 | +11 | +13% | +7 |
-| Eccentrics | 3 | agi +20 | +11 | +13% | +7 |
-| Mission Ongoing | 4 | fire +10, atk +20 | +6 | +14% | +6 |
-| NegaPosi | 4 | hp +50, tp +50 | +10 | +7% | +8 |
-| Sales Experience | 4 | wind +20, agi +10 | +12 | +5% | +7 |
-| Kindred Spirits | 4 | tp +50, fire +20 | +6 | +6% | +4 |
-| The New Magi | 3 | tp +50, fire +20 | +6 | +5% | +4 |
-| Full of Guts | 4 | hp +100 | +8 | +1% | +6 |
-| Graceful Agers | 4 | lightning +20, hp +50 | +7 | -0% | +4 |
+| Vigor Trio | 3 | atk +32 | +10 | +18% | +6 |
+| Board Members | 3 | dex +20, agi +20 | +10 | +14% | +8 |
+| Vagabonds | 3 | agi +20 | +9 | +12% | +4 |
+| Eccentrics | 3 | agi +20 | +9 | +12% | +4 |
+| Mission Ongoing | 4 | fire +10, atk +20 | +5 | +14% | +4 |
+| NegaPosi | 4 | hp +50, tp +50 | +8 | +6% | +6 |
+| Sales Experience | 4 | wind +20, agi +10 | +6 | +6% | +2 |
+| Kindred Spirits | 4 | tp +50, fire +20 | +6 | +6% | +3 |
+| The New Magi | 3 | tp +50, fire +20 | +6 | +6% | +4 |
+| Full of Guts | 4 | hp +100 | +8 | +1% | +5 |
+| Graceful Agers | 4 | lightning +20, hp +50 | +6 | -1% | +3 |
+| Attentive | 3 | int +20 | +4 | -0% | -0 |
 | Celebrities | 3 | lightning +50 | +2 | +1% | +1 |
-| Attentive | 3 | int +20 | +4 | -1% | +0 |
 | Dark and Light | 3 | res +20 | +2 | +0% | +2 |
+| Libra Guard | 3 | def +25 | +2 | -0% | +1 |
 | Natural Klutzes | 2 | bash +20 | +2 | -0% | +1 |
 | Royal Squadron | 4 | bash +10, earth +20 | +1 | -0% | +0 |
-| Beyond Human | 3 | stab +20 | +2 | -1% | +1 |
+| Beyond Human | 3 | stab +20 | +1 | -0% | -0 |
 | Veteran Soldiers | 2 | slash +25 | +0 | +0% | +0 |
-| Libra Guard | 3 | def +25 | +2 | -1% | +1 |
 | Flawless Poise | 3 | water +20, earth +20 | -1 | +1% | -1 |

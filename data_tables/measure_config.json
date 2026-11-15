@@ -879,7 +879,7 @@
    0.04,
    0.08
   ],
-  "sealbook_runs": 60,
+  "sealbook_runs": 400,
   "sealbook_stretches": [
    [
     "early story",
@@ -916,7 +916,7 @@
    "Three Fates",
    "Peggy & Beard"
   ],
-  "confirm_cells": 5,
+  "confirm_cells": 15,
   "batch": 2000,
   "wins": 0.08,
   "length": 0.03,

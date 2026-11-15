@@ -14,13 +14,13 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 | C11 | atk x1.04; atk x1.05; atk x1.06 | 100% / 10.0 / 64% | 100% / 9.6 / 64% | within | 100% / 9.6 / 64% | within | not needed: within without them |
 | C13 | atk x1.04; atk x1.05; atk x1.06; def x1.05; hp x1.20 | 100% / 9.0 / 69% | 100% / 8.5 / 69% | within | 100% / 7.3 / 70% | within | not needed: within without them |
 | C14 | atk x1.08; hp x1.20; int x1.06; int x1.07; int x1.08; int x1.09 | 100% / 12.2 / 62% | 100% / 11.3 / 62% | within | 100% / 9.2 / 63% | within | not needed: within without them |
-| C15 | hp x1.30 | 99% / 14.7 / 44% | 100% / 15.0 / 44% | within | 100% / 11.4 / 46% | within | not needed: within without them |
+| C15 | hp x1.30 | 99% / 14.7 / 44% | 100% / 13.7 / 44% | within | 100% / 10.3 / 47% | time | needed |
 | C16 | def x1.04; def x1.05; def x1.06 | 100% / 5.4 / 82% | 100% / 4.0 / 82% | time | 100% / 4.0 / 82% | time | no better with them |
-| C17 | def x1.04; def x1.05; def x1.06 | 96% / 34.1 / 42% | 99% / 29.4 / 47% | within | 99% / 29.4 / 47% | within | not needed: within without them |
+| C17 | def x1.04; def x1.05; def x1.06 | 96% / 34.1 / 42% | 98% / 31.8 / 45% | within | 98% / 31.8 / 45% | within | not needed: within without them |
 | C19 | def x1.04; def x1.05; def x1.06; def x1.20 | 94% / 8.5 / 52% | 94% / 7.5 / 55% | within | 95% / 6.7 / 57% | within | not needed: within without them |
 | C20 | atk x1.08; hp x1.20; int x1.08 | 100% / 1.5 / 94% | 100% / 1.4 / 93% | within | 100% / 1.4 / 95% | within | not needed: within without them |
 | C21 | hp x1.30 | 100% / 16.7 / 50% | 99% / 19.2 / 50% | within | 100% / 11.5 / 52% | time | needed |
-| C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.8 / 54% | 100% / 5.9 / 56% | within | 100% / 4.8 / 60% | time | needed |
+| C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.8 / 54% | 100% / 5.9 / 56% | within | 100% / 4.8 / 59% | time | needed |
 | C26 | hp x1.05 | 96% / 11.7 / 48% | 100% / 9.4 / 56% | within | 100% / 9.4 / 56% | within | not needed: within without them |
 | C27 | hp x1.05 | 100% / 4.4 / 84% | 100% / 3.5 / 86% | within | 100% / 3.5 / 86% | within | not needed: within without them |
 | C28 | hp x1.10 | 76% / 12.7 / 23% | 82% / 11.2 / 27% | within | 88% / 10.4 / 29% | won | needed |

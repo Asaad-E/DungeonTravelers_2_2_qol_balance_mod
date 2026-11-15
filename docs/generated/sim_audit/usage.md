@@ -1,6 +1,6 @@
 ## usage
 
-208 skills of a plan never used: 104 dominated, 71 no rule of the role uses it, 6 not usable with the weapon of the role, 27 situational.
+206 skills of a plan never used: 103 dominated, 70 no rule of the role uses it, 6 not usable with the weapon of the role, 27 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -127,11 +127,9 @@
 | soul summoner (Lizerietta) | 14 | C11 | Coffee Break | situational: a heal (another heal or the songs come first) |
 | soul summoner (Lizerietta) | 29 | C18 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 29 | C18 | Coffee Break | situational: a heal (another heal or the songs come first) |
-| soul summoner (Lizerietta) | 62 | C38 | Spartan | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Perdurabo | no rule of the role uses it |
 | soul summoner (Lizerietta) | 62 | C38 | Coffee Break | situational: a heal (another heal or the songs come first) |
-| soul summoner (Lizerietta) | 62 | C38 | Danger Shoot | dominated: 8% of the best (Soul Eater) at the start of the fight |
 | soul summoner (Lizerietta) | 90 | P24 | Catalina | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Perdurabo | no rule of the role uses it |
 | soul summoner (Lizerietta) | 90 | P24 | Musiy | no rule of the role uses it |

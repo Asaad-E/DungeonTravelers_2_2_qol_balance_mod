@@ -6,11 +6,11 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 
 | Verdict | Items | Meaning |
 |---|---|---|
-| MATCH | 63 | the engine does what the program does |
+| MATCH | 64 | the engine does what the program does |
 | FIXED | 40 | the audit found a difference; the engine was corrected (commit named) |
 | MODEL-LIMIT | 3 | the engine leaves out a detail on purpose; the note says which, and where it can matter |
 | N/A | 0 | not a mechanic of a battle |
-| Total | 106 | |
+| Total | 107 | |
 
 ## Phase 0
 
@@ -197,3 +197,9 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P15.5 | Enchantments 144 - 149 and 296: recovery every turn | 0x437bb5, 0x437d7a | Battle.cs:EnchantRecovery | FIXED (d8fd32b) | HP 4% (min 4), 2% (min 2), 8% (min 10) a piece, all on 4 in 100 with 296; TP 4, 2, 6 a piece; after the statuses. |
 | P15.6 | Enchantment 194: all TP after a battle | 0x43d904 | Scenario.cs:RecoverAfterBattle | FIXED (d8fd32b) | As 193 for HP. |
 | P15.7 | Enchantment 293: rank of the unique skill | 0x4f716e | Units.cs:BuildMember | FIXED (d8fd32b) | +1 rank when the rank is 1 to 8. |
+
+## Phase 16
+
+| Item | Mechanic | Program | Engine | Verdict | Note |
+|---|---|---|---|---|---|
+| P16.1 | Puppet uniqueness across the party and active doll cap | 0x43c790, 0x43c862, 0x43f210, 0x43a1a0 | Battle.cs:MakeDoll, Battle.cs:MakeGuestDoll, Policy.cs:ActDoll | MATCH | Non-arrow puppets remove any active same-effect doll anywhere on owner.Side before enforcing the owner's 1/2 cap; total active dolls are capped at 12; Policy.ActDoll skips dolls already active on unit.Side. |
