@@ -26,11 +26,15 @@ HEADERS = ['Filename', 'Meal', 'Flavour_Line', 'Vanilla_Effect', 'QoL_Effect', '
 def load_edited():
     if not os.path.exists(OUTPUT_PATH):
         return {}
-    ws = openpyxl.load_workbook(OUTPUT_PATH)['Meals']
-    header = [c.value for c in ws[1]]
-    fn, text, edited = header.index('Filename'), header.index('QoL_Effect'), header.index('Edited')
-    return {r[fn]: r[text] or '' for r in ws.iter_rows(min_row=2, values_only=True)
-            if str(r[edited] or '').strip().lower() == 'yes'}
+    wb = openpyxl.load_workbook(OUTPUT_PATH, read_only=True)
+    try:
+        rows = wb['Meals'].iter_rows(min_row=1, values_only=True)
+        header = list(next(rows, ()))
+        fn, text, edited = header.index('Filename'), header.index('QoL_Effect'), header.index('Edited')
+        return {r[fn]: r[text] or '' for r in rows
+                if str(r[edited] or '').strip().lower() == 'yes'}
+    finally:
+        wb.close()
 
 
 def main():

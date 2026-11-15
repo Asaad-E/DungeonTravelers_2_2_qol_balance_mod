@@ -64,17 +64,20 @@ def propose(b, desc, name=''):
 def load_column(path, sheet, key, value, only_edited=False):
     if not os.path.exists(path):
         return {}
-    wb = openpyxl.load_workbook(path)
-    if sheet not in wb.sheetnames:
-        return {}
-    ws = wb[sheet]
-    header = [c.value for c in ws[1]]
-    if key not in header or value not in header:
-        return {}
-    k, v = header.index(key), header.index(value)
-    e = header.index('Edited') if only_edited else None
-    return {r[k]: r[v] for r in ws.iter_rows(min_row=2, values_only=True)
-            if r[k] and (e is None or str(r[e] or '').strip().lower() == 'yes')}
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        if sheet not in wb.sheetnames:
+            return {}
+        rows = wb[sheet].iter_rows(min_row=1, values_only=True)
+        header = list(next(rows, ()))
+        if key not in header or value not in header:
+            return {}
+        k, v = header.index(key), header.index(value)
+        e = header.index('Edited') if only_edited else None
+        return {r[k]: r[v] for r in rows
+                if r[k] and (e is None or str(r[e] or '').strip().lower() == 'yes')}
+    finally:
+        wb.close()
 
 
 def build_rows():

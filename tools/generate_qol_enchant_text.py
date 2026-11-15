@@ -68,11 +68,15 @@ def load_edited():
     """Rows marked as edited keep their wording."""
     if not os.path.exists(OUTPUT_PATH):
         return {}
-    ws = openpyxl.load_workbook(OUTPUT_PATH)['Enchants']
-    header = [c.value for c in ws[1]]
-    fn, name, edited = header.index('Filename'), header.index('QoL_Name'), header.index('Edited')
-    return {r[fn]: r[name] for r in ws.iter_rows(min_row=2, values_only=True)
-            if str(r[edited] or '').strip().lower() == 'yes'}
+    wb = openpyxl.load_workbook(OUTPUT_PATH, read_only=True)
+    try:
+        rows = wb['Enchants'].iter_rows(min_row=1, values_only=True)
+        header = list(next(rows, ()))
+        fn, name, edited = header.index('Filename'), header.index('QoL_Name'), header.index('Edited')
+        return {r[fn]: r[name] for r in rows
+                if str(r[edited] or '').strip().lower() == 'yes'}
+    finally:
+        wb.close()
 
 
 def check_previous(previous, vanilla, proposed):

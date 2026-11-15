@@ -243,14 +243,17 @@ def main():
         f.write('\n'.join(lines) + '\n')
     path = os.path.join(TABLES_DIR, 'balance_criteria.xlsx')
     book = openpyxl.load_workbook(path)
-    if 'EffectCoverage' in book.sheetnames:
-        del book['EffectCoverage']
-    ws = book.create_sheet('EffectCoverage')
-    ws.append(['Effect_ID', 'Effect', 'Skill_Uses', 'EnemyAttack_Uses', 'State', 'In_Formula', 'Own_Command', 'Other_Places'])
-    for o in sorted(out, key=lambda o: o['id']):
-        ws.append([o['id'], o['name'], o['uses'][0], o['uses'][1], o['state'], ', '.join(o['sections']),
-                   f"{o['class']:#x}" if o['class'] else None, ', '.join(f'{a:#x}' for a in o['unread'])])
-    book.save(path)
+    try:
+        if 'EffectCoverage' in book.sheetnames:
+            del book['EffectCoverage']
+        ws = book.create_sheet('EffectCoverage')
+        ws.append(['Effect_ID', 'Effect', 'Skill_Uses', 'EnemyAttack_Uses', 'State', 'In_Formula', 'Own_Command', 'Other_Places'])
+        for o in sorted(out, key=lambda o: o['id']):
+            ws.append([o['id'], o['name'], o['uses'][0], o['uses'][1], o['state'], ', '.join(o['sections']),
+                       f"{o['class']:#x}" if o['class'] else None, ', '.join(f'{a:#x}' for a in o['unread'])])
+        book.save(path)
+    finally:
+        book.close()
     print(f"Wrote {OUTPUT_PATH}: {dict(counts)}; command classes found: {len(classes)}")
 
 

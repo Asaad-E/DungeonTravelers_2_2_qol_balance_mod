@@ -2156,6 +2156,28 @@
    "fixed_in": "d8fd32b",
    "note": "+1 rank when the rank is 1 to 8.",
    "reach": ""
+  },
+  {
+   "id": "P16.1",
+   "mechanic": "Puppet uniqueness across the party and active doll cap",
+   "rule": "FORMULAS 11.1, 12.8: \"Attaching a doll status (effects 228 - 233) calls AddPuppetCommand (0x43c790): first it scans all party units on the same side (0x43e6d0) and removes any active puppet with the same effect ID (0x43f210) on any member before checking Double Puppet (effect 313: max 2 per owner, else 1; 0x43c918 - 0x43c960). Total active dolls in slots 2000..2999 are capped at 12 (0x43a1a0).\"",
+   "program": [
+    "0x43c790",
+    "0x43c862",
+    "0x43f210",
+    "0x43a1a0"
+   ],
+   "engine": [
+    "Battle.cs:MakeDoll",
+    "Battle.cs:MakeGuestDoll",
+    "Policy.cs:ActDoll"
+   ],
+   "command": "python tools/exe_dis.py 0x43c862 0x43c960 0x43f210 0x43f2d7 0x43a18e 0x43a1a9",
+   "audited": "MISMATCH at 2026-11-14 (two Soul Summoner audit); fixed in working tree",
+   "verdict": "MATCH",
+   "fixed_in": "",
+   "note": "Non-arrow puppets remove any active same-effect doll anywhere on owner.Side before enforcing the owner's 1/2 cap; total active dolls are capped at 12; Policy.ActDoll skips dolls already active on unit.Side.",
+   "reach": "All 6 puppet effects (228..233: Spartan, Oracles, Catalina, Mercidarian, Perdurabo, Musiy), Star Dust Arrow (49), and all Soul Summoner / Doll Master parties."
   }
  ]
 }

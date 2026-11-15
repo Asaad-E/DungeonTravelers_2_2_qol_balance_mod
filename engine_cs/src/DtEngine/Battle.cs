@@ -2576,6 +2576,29 @@ namespace DtEngine
         }
 
         // --- dolls, random moves, items --------------------------------------------------------------------------
+        const int MAX_ACTIVE_DOLLS = 12; // CBattleUnitCtrl::AddDoll (0x43a1a0): units 2000..2999 < 0xc
+
+        /// <summary>True when <paramref name="u"/> is an active puppet doll (effects 228..233),
+        /// distinct from Star Dust Arrow, Genjimaru, and Lilian's shadow.</summary>
+        internal static bool IsPuppet(Unit u)
+            => u.Kind == Kind.Doll && u.Alive && !u.Arrow && !u.Genjimaru && u.ShadowOf == null && u.Doll != null && u.Doll.Effect != T.NONE;
+
+        int ActiveDollCount()
+        {
+            int count = 0;
+            foreach (var u in Units) if (u.Kind == Kind.Doll && u.Alive && u.ShadowOf == null) count++;
+            return count;
+        }
+
+        void RemoveSameTypeDolls(int side, int effect)
+        {
+            // AddPuppetCommand (0x43c862 - 0x43c911): removes any active doll of the same effect anywhere on the owner's side.
+            var same = new List<Unit>();
+            foreach (var u in Units)
+                if (IsPuppet(u) && u.Side == side && u.Doll.Effect == effect) same.Add(u);
+            foreach (var u in same) RemoveDoll(u);
+        }
+
         void MakeDoll(Action action)
         {
             var owner = action.Actor;
@@ -2596,9 +2619,10 @@ namespace DtEngine
             }
             else
             {
+                RemoveSameTypeDolls(owner.Side, doll.Effect);
                 int keep = owner.Has(313) ? 2 : 1;
                 var own = new List<Unit>();
-                foreach (var u in Units) if (u.Owner == owner && u.Kind == Kind.Doll && u.Alive && !u.Arrow) own.Add(u);
+                foreach (var u in Units) if (IsPuppet(u) && u.Owner == owner) own.Add(u);
                 while (own.Count >= keep)
                 {
                     RemoveDoll(own[0]);
@@ -2609,6 +2633,7 @@ namespace DtEngine
             int count = Math.Max(1, PyMath.Int(n != 0 ? n : 1));
             for (int i = 0; i < count; i++)
             {
+                if (ActiveDollCount() >= MAX_ACTIVE_DOLLS) break;
                 var unit = UnitFactory.BuildDoll(owner, doll, action.Level, Data);
                 unit.Arrow = arrow;
                 unit.Life += PyMath.Int(owner.Passive(297, 0.0));
@@ -2628,8 +2653,9 @@ namespace DtEngine
             int life = PyMath.Int(lifeValue != 0 ? lifeValue : 3);
             int level = doll.Turns.Length;
             for (int k = 0; k < doll.Turns.Length; k++) if (doll.Turns[k] >= life) { level = k + 1; break; }
+            RemoveSameTypeDolls(owner.Side, doll.Effect);
             var list = new List<Unit>();
-            foreach (var u in Units) if (u.Owner == owner && u.Kind == Kind.Doll && u.Alive) list.Add(u);
+            foreach (var u in Units) if (u.Owner == owner && IsPuppet(u)) list.Add(u);
             foreach (var u in list) RemoveDoll(u);
 
             int eid = doll.Effect switch
@@ -2667,6 +2693,7 @@ namespace DtEngine
             {
                 unit = UnitFactory.BuildDoll(owner, doll, level, Data);
             }
+            if (ActiveDollCount() >= MAX_ACTIVE_DOLLS) return;
             unit.Arrow = false;
             unit.Life = life;
             unit.Position = Units.Count;
@@ -2683,6 +2710,7 @@ namespace DtEngine
         void MakeGenjimaru(Action action)
         {
             foreach (var u in Units) if (u.Alive && u.Genjimaru) return;
+            if (ActiveDollCount() >= MAX_ACTIVE_DOLLS) return;
             var turns = new int[10];
             Array.Fill(turns, GENJIMARU_LIFE);
             var record = new DollRec { Skill = GENJIMARU_ACTION, Name = "Genjimaru", Effect = GENJIMARU, Range = null, Turns = turns, Actions = new[] { GENJIMARU_ACTION } };

@@ -168,29 +168,32 @@ def load_skill_names(overrides):
         wb.close()
 
 
+def _read_sheet(path, sheet, cols):
+    """Read `cols` from `sheet` of `path` as dicts, closing the read-only workbook immediately."""
+    wb = openpyxl.load_workbook(path, read_only=True)
+    try:
+        rows = wb[sheet].iter_rows(min_row=1, values_only=True)
+        header = list(next(rows, ()))
+        idx = [(name, header.index(name)) for name in cols]
+        return [{name: (r[i] if i < len(r) else None) for name, i in idx} for r in rows]
+    finally:
+        wb.close()
+
+
 def load_skill_text(path):
     """The hand-editable text table: the build uses exactly what its QoL_* columns say."""
-    ws = openpyxl.load_workbook(path)['Skills']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in
-           ('Category', 'Filename', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp')}
-    table = {}
-    for r in ws.iter_rows(min_row=2, values_only=True):
-        table[(r[col['Category']], r[col['Filename']])] = {
-            'vanilla_desc': r[col['Vanilla_Desc']] or '', 'vanilla_lvup': r[col['Vanilla_LvUp']] or '',
-            'desc': r[col['QoL_Desc']] or '', 'lvup': r[col['QoL_LvUp']] or '',
-        }
-    return table
+    return {(r['Category'], r['Filename']): {
+        'vanilla_desc': r['Vanilla_Desc'] or '', 'vanilla_lvup': r['Vanilla_LvUp'] or '',
+        'desc': r['QoL_Desc'] or '', 'lvup': r['QoL_LvUp'] or '',
+    } for r in _read_sheet(path, 'Skills', ('Category', 'Filename', 'Vanilla_Desc', 'Vanilla_LvUp', 'QoL_Desc', 'QoL_LvUp'))}
 
 
 def load_enchant_text(path):
     """The hand-editable enchant name table: the build uses exactly what its QoL_Name column says."""
-    ws = openpyxl.load_workbook(path)['Enchants']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Name', 'QoL_Name', 'Edited')}
-    return {r[col['Filename']]: {'vanilla_name': r[col['Vanilla_Name']] or '', 'name': r[col['QoL_Name']] or '',
-                                 'edited': str(r[col['Edited']] or '').strip().lower() == 'yes'}
-            for r in ws.iter_rows(min_row=2, values_only=True)}
+    return {r['Filename']: {
+        'vanilla_name': r['Vanilla_Name'] or '', 'name': r['QoL_Name'] or '',
+        'edited': str(r['Edited'] or '').strip().lower() == 'yes',
+    } for r in _read_sheet(path, 'Enchants', ('Filename', 'Vanilla_Name', 'QoL_Name', 'Edited'))}
 
 
 def apply_enchant_overrides(table, path, problems):
@@ -226,20 +229,14 @@ def apply_enchant_overrides(table, path, problems):
 
 def load_item_text(path):
     """The hand-editable item text table: the build uses exactly what its QoL_Desc column says."""
-    ws = openpyxl.load_workbook(path)['Items']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
-    return {r[col['Filename']]: {'vanilla_desc': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
-            for r in ws.iter_rows(min_row=2, values_only=True)}
+    return {r['Filename']: {'vanilla_desc': r['Vanilla_Desc'] or '', 'desc': r['QoL_Desc'] or ''}
+            for r in _read_sheet(path, 'Items', ('Filename', 'Vanilla_Desc', 'QoL_Desc'))}
 
 
 def load_enemy_attack_text(path):
     """The hand-editable enemy attack table: the build uses exactly what its QoL_Desc column says."""
-    ws = openpyxl.load_workbook(path)['EnemyAttacks']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
-    return {r[col['Filename']]: {'vanilla_desc': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
-            for r in ws.iter_rows(min_row=2, values_only=True)}
+    return {r['Filename']: {'vanilla_desc': r['Vanilla_Desc'] or '', 'desc': r['QoL_Desc'] or ''}
+            for r in _read_sheet(path, 'EnemyAttacks', ('Filename', 'Vanilla_Desc', 'QoL_Desc'))}
 
 
 def read_archive(pck):
@@ -375,11 +372,8 @@ def build_enemy_attacks(out_dir, table, problems):
 
 
 def load_food_text(path):
-    ws = openpyxl.load_workbook(path)['Meals']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Effect', 'QoL_Effect')}
-    return {r[col['Filename']]: {'vanilla': r[col['Vanilla_Effect']] or '', 'effect': r[col['QoL_Effect']] or ''}
-            for r in ws.iter_rows(min_row=2, values_only=True)}
+    return {r['Filename']: {'vanilla': r['Vanilla_Effect'] or '', 'effect': r['QoL_Effect'] or ''}
+            for r in _read_sheet(path, 'Meals', ('Filename', 'Vanilla_Effect', 'QoL_Effect'))}
 
 
 def build_food(out_dir, table, problems):
@@ -424,11 +418,8 @@ def verify_food(out_dir, table, variant, problems):
 
 
 def load_party_skill_text(path):
-    ws = openpyxl.load_workbook(path)['PartySkills']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Effect', 'QoL_Effect')}
-    return {r[col['Filename']]: {'vanilla': r[col['Vanilla_Effect']] or '', 'effect': r[col['QoL_Effect']] or ''}
-            for r in ws.iter_rows(min_row=2, values_only=True)}
+    return {r['Filename']: {'vanilla': r['Vanilla_Effect'] or '', 'effect': r['QoL_Effect'] or ''}
+            for r in _read_sheet(path, 'PartySkills', ('Filename', 'Vanilla_Effect', 'QoL_Effect'))}
 
 
 def build_party_skills(out_dir, table, problems):
@@ -475,11 +466,8 @@ def verify_party_skills(out_dir, table, variant, problems):
 
 
 def load_joint_skill_text(path):
-    ws = openpyxl.load_workbook(path)['JointSkills']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
-    return {r[col['Filename']]: {'vanilla': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
-            for r in ws.iter_rows(min_row=2, values_only=True)}
+    return {r['Filename']: {'vanilla': r['Vanilla_Desc'] or '', 'desc': r['QoL_Desc'] or ''}
+            for r in _read_sheet(path, 'JointSkills', ('Filename', 'Vanilla_Desc', 'QoL_Desc'))}
 
 
 def build_joint_skills(out_dir, table, problems):
@@ -526,15 +514,12 @@ def verify_joint_skills(out_dir, table, variant, problems):
 
 
 def load_class_text(path):
-    ws = openpyxl.load_workbook(path)['Classes']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Filename', 'Vanilla_Desc', 'QoL_Desc')}
-    return {r[col['Filename']]: {'vanilla': r[col['Vanilla_Desc']] or '', 'desc': r[col['QoL_Desc']] or ''}
-            for r in ws.iter_rows(min_row=2, values_only=True)}
+    return {r['Filename']: {'vanilla': r['Vanilla_Desc'] or '', 'desc': r['QoL_Desc'] or ''}
+            for r in _read_sheet(path, 'Classes', ('Filename', 'Vanilla_Desc', 'QoL_Desc'))}
 
 
 def build_classes(out_dir, table, problems):
-    """Classes: surgical clarifications of weapons and roles for 7 classes; 42 kept byte-identical."""
+    """Classes: surgical clarifications of weapons and roles for 9 classes; 40 kept byte-identical."""
     stats = collections.Counter()
     archive = PckArchive(os.path.join(BACKUP_DIR, CLASS_PCK))
     for i, (fn, b) in enumerate(archive.files):
@@ -1021,24 +1006,27 @@ def apply_skill_text_overrides(target, overrides):
     finally:
         wb_ro.close()
     wb = openpyxl.load_workbook(target)
-    ws = wb['Skills']
-    col = {c.value: k for k, c in enumerate(ws[1])}
-    done = 0
-    for row in ws.iter_rows(min_row=2):
-        key = (row[col['Category']].value, row[col['Filename']].value)
-        if key in wanted:
-            desc, lvup = wanted[key]
-            if desc:
-                row[col['QoL_Desc']].value = desc
-            if lvup:
-                import generate_qol_skill_text
-                row[col['QoL_LvUp']].value = generate_qol_skill_text.spaced(lvup)     # the separators of the template
-            row[col['Edited']].value = 'yes'
-            done += 1
-    if done != len(wanted):
-        raise SystemExit(f'{os.path.basename(overrides)}: {len(wanted) - done} of its rows name no entry of the skill table')
-    wb.save(target)
-    return done
+    try:
+        ws = wb['Skills']
+        col = {c.value: k for k, c in enumerate(ws[1])}
+        done = 0
+        for row in ws.iter_rows(min_row=2):
+            key = (row[col['Category']].value, row[col['Filename']].value)
+            if key in wanted:
+                desc, lvup = wanted[key]
+                if desc:
+                    row[col['QoL_Desc']].value = desc
+                if lvup:
+                    import generate_qol_skill_text
+                    row[col['QoL_LvUp']].value = generate_qol_skill_text.spaced(lvup)     # the separators of the template
+                row[col['Edited']].value = 'yes'
+                done += 1
+        if done != len(wanted):
+            raise SystemExit(f'{os.path.basename(overrides)}: {len(wanted) - done} of its rows name no entry of the skill table')
+        wb.save(target)
+        return done
+    finally:
+        wb.close()
 
 
 def regenerate_text(module, source_table, target, paths, overrides=None):
@@ -1148,21 +1136,24 @@ def mark_built(report):
     """The live rows move to the state "built"; the checklist of the build is written."""
     import balance_values
     wb = openpyxl.load_workbook(balance_values.CHANGES)
-    ws = wb['Changes']
-    head = [c.value for c in ws[1]]
-    state, table, rid, why = (head.index(n) for n in ('State', 'Table', 'ID', 'Why'))
-    by_state, blocked, moved = collections.Counter(), [], 0
-    for row in ws.iter_rows(min_row=2):
-        if row[rid].value is None:
-            continue
-        if row[state].value == 'decided':
-            row[state].value = 'built'
-            moved += 1
-        by_state[(row[table].value, row[state].value)] += 1
-        if row[state].value == 'blocked':
-            blocked.append((row[rid].value, str(row[why].value).split('. Was:')[0]))
-    if moved:
-        wb.save(balance_values.CHANGES)
+    try:
+        ws = wb['Changes']
+        head = [c.value for c in ws[1]]
+        state, table, rid, why = (head.index(n) for n in ('State', 'Table', 'ID', 'Why'))
+        by_state, blocked, moved = collections.Counter(), [], 0
+        for row in ws.iter_rows(min_row=2):
+            if row[rid].value is None:
+                continue
+            if row[state].value == 'decided':
+                row[state].value = 'built'
+                moved += 1
+            by_state[(row[table].value, row[state].value)] += 1
+            if row[state].value == 'blocked':
+                blocked.append((row[rid].value, str(row[why].value).split('. Was:')[0]))
+        if moved:
+            wb.save(balance_values.CHANGES)
+    finally:
+        wb.close()
     tables = sorted({t for t, _ in by_state})
     states = ('built', 'checked', 'decided', 'blocked', 'dropped')
     lines = ['# The build of the Balance variant (generated)', '',

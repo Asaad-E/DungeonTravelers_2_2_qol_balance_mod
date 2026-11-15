@@ -131,6 +131,52 @@ def write_file_safe(path: str, data: bytes):
         f.write(data)
 
 
+def _is_writable_exclusive(path: str) -> bool:
+    """True when `path` can be opened with exclusive read/write access (matching .NET FileShare.None)."""
+    if os.name == 'nt':
+        import ctypes
+        from ctypes import wintypes
+        generic_read = 0x80000000
+        generic_write = 0x40000000
+        open_existing = 3
+        invalid_handle = wintypes.HANDLE(-1).value
+        kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel32.CreateFileW.argtypes = [
+            wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+            wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE,
+        ]
+        kernel32.CreateFileW.restype = wintypes.HANDLE
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.CloseHandle.restype = wintypes.BOOL
+        handle = kernel32.CreateFileW(path, generic_read | generic_write, 0, None, open_existing, 0, None)
+        if handle == invalid_handle:
+            return False
+        kernel32.CloseHandle(handle)
+        return True
+    try:
+        with open(path, 'r+b'):
+            return True
+    except OSError:
+        return False
+
+
+def get_locked(root: str, rels) -> list:
+    """Return error lines for any existing target file under `root` currently held open or read-only."""
+    locked = []
+    seen = set()
+    for rel in sorted(rels, key=str.lower):
+        key = norm_rel(rel).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        target = os.path.join(root, rel)
+        if not os.path.exists(target):
+            continue
+        if not _is_writable_exclusive(target):
+            locked.append(f"{rel}: in use. Close the game and run this again.")
+    return locked
+
+
 def main(script_dir=None):
     args = sys.argv[1:]
     mode = args[0].lower() if args else 'install'
@@ -157,6 +203,9 @@ def main(script_dir=None):
         if not kept and not written:
             print("No backup here: the mod is not installed.")
             sys.exit(0)
+        locked = get_locked(root, kept + [p['rel'] for p in written])
+        if locked:
+            stop_with(locked)
         state = read_state(state_file)
         moved = []
         for rel in kept:
@@ -232,6 +281,11 @@ def main(script_dir=None):
                     'old': bytes.fromhex(p[3]),
                     'new': bytes.fromhex(p[4])
                 })
+
+    pokes = read_pokes(manifest_path)
+    pre_locked = get_locked(root, [f['rel'] for f in files] + [p['rel'] for p in pokes] + backup_files(backup))
+    if pre_locked:
+        stop_with(pre_locked)
 
     state = read_state(state_file)
     stale = False
@@ -333,7 +387,6 @@ def main(script_dir=None):
             stale = True
 
     # Pokes
-    pokes = read_pokes(manifest_path)
     known = known_pokes(mod_dir)
     before = {}
     for k in known:
@@ -362,23 +415,16 @@ def main(script_dir=None):
     if stale:
         problems.extend(UPDATED_MSG)
 
-    # Check writable
-    touched = set(w['rel'] for w in writes) | set(p['rel'] for p in pokes)
-    for rel in touched:
-        p = os.path.join(root, rel)
-        if os.path.exists(p):
-            try:
-                with open(p, 'r+b'):
-                    pass
-            except OSError:
-                problems.append(f"{rel}: in use. Close the game and run this again.")
+    # Check writable (including cross-variant restores before any writes)
+    cross_back = [rel for rel in backup_files(backup) if rel.lower() not in named]
+    touched = [w['rel'] for w in writes] + [p['rel'] for p in pokes] + cross_back
+    problems.extend(get_locked(root, touched))
 
     if problems:
         stop_with(problems)
 
     # 3. Write
     staged_suffix = '.dt22new'
-    extra_staged = []
     try:
         for w in writes:
             if w['source'] is not None:
@@ -388,9 +434,21 @@ def main(script_dir=None):
             target = os.path.join(root, w['rel'])
             write_file_safe(target + staged_suffix, w['bytes'])
 
+        for rel in cross_back:
+            src = os.path.join(backup, rel)
+            dst = os.path.join(root, rel)
+            with open(src, 'rb') as sf:
+                write_file_safe(dst + staged_suffix, sf.read())
+
         for w in writes:
             target = os.path.join(root, w['rel'])
             os.replace(target + staged_suffix, target)
+
+        back_count = 0
+        for rel in cross_back:
+            dst = os.path.join(root, rel)
+            os.replace(dst + staged_suffix, dst)
+            back_count += 1
 
         with open(state_file + staged_suffix, 'w', encoding='utf-8') as sf:
             for w in writes:
@@ -417,22 +475,11 @@ def main(script_dir=None):
         elif os.path.exists(poke_file):
             os.remove(poke_file)
 
-        back_count = 0
-        for rel in backup_files(backup):
-            if rel.lower() not in named:
-                src = os.path.join(backup, rel)
-                dst = os.path.join(root, rel)
-                stage = dst + staged_suffix
-                extra_staged.append(stage)
-                with open(src, 'rb') as sf:
-                    write_file_safe(stage, sf.read())
-                os.replace(stage, dst)
-                back_count += 1
-
     except Exception as e:
         cleanup = [os.path.join(root, w['rel']) + staged_suffix for w in writes]
         cleanup += [os.path.join(backup, w['rel']) + staged_suffix for w in writes if w['source'] is not None]
-        cleanup += [state_file + staged_suffix, poke_file + staged_suffix] + extra_staged
+        cleanup += [os.path.join(root, rel) + staged_suffix for rel in cross_back]
+        cleanup += [state_file + staged_suffix, poke_file + staged_suffix]
         for left in cleanup:
             if os.path.exists(left):
                 try:

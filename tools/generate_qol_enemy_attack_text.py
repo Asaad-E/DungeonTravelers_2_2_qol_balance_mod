@@ -64,11 +64,15 @@ def propose(b, desc):
 def load_edited():
     if not os.path.exists(OUTPUT_PATH):
         return {}
-    ws = openpyxl.load_workbook(OUTPUT_PATH)['EnemyAttacks']
-    header = [c.value for c in ws[1]]
-    fn, desc, edited = header.index('Filename'), header.index('QoL_Desc'), header.index('Edited')
-    return {r[fn]: r[desc] or '' for r in ws.iter_rows(min_row=2, values_only=True)
-            if str(r[edited] or '').strip().lower() == 'yes'}
+    wb = openpyxl.load_workbook(OUTPUT_PATH, read_only=True)
+    try:
+        rows = wb['EnemyAttacks'].iter_rows(min_row=1, values_only=True)
+        header = list(next(rows, ()))
+        fn, desc, edited = header.index('Filename'), header.index('QoL_Desc'), header.index('Edited')
+        return {r[fn]: r[desc] or '' for r in rows
+                if str(r[edited] or '').strip().lower() == 'yes'}
+    finally:
+        wb.close()
 
 
 def build_rows():
@@ -80,7 +84,7 @@ def build_rows():
         if fn in edited:
             desc, note = edited[fn], ''
         problems, _ = check_enemy_attack_text(b, desc, attack['desc'])
-        if problems or any(len(line) > MAX_LINE for line in desc.split('\n')[:1] if desc != attack['desc']):
+        if problems or any(len(line) > MAX_LINE for line in desc.split('\n') if desc != attack['desc']):
             raise SystemExit(f"{fn} ({attack['name']}): {problems or 'data line too long'}")
         vanilla_lines, new_lines = attack['desc'].split('\n'), desc.split('\n')
         if fn in edited:

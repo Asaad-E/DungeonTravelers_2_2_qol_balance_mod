@@ -139,10 +139,38 @@ if (-not (Test-Path -LiteralPath (Join-Path $root 'Data\ENG\Parameter'))) {
                 'Unpack the archive into the folder that holds the .exe of the game and its folder Data.')
 }
 
+function Move-IntoPlace($stage, $dest) {
+    $parent = Split-Path -Parent $dest
+    if ($parent -and -not (Test-Path -LiteralPath $parent)) { [void][System.IO.Directory]::CreateDirectory($parent) }
+    Move-Item -LiteralPath $stage -Destination $dest -Force
+}
+
+function Write-LinesStaged($path, [string[]]$lines, $staged) {
+    $parent = Split-Path -Parent $path
+    if ($parent -and -not (Test-Path -LiteralPath $parent)) { [void][System.IO.Directory]::CreateDirectory($parent) }
+    $stage = $path + $staged
+    [System.IO.File]::WriteAllLines($stage, $lines)
+    Move-Item -LiteralPath $stage -Destination $path -Force
+}
+
+function Get-Locked([string[]]$rels) {
+    $locked = @()
+    foreach ($rel in ($rels | Sort-Object -Unique)) {
+        $target = Join-Path $root $rel
+        if (-not (Test-Path -LiteralPath $target)) { continue }
+        try { [System.IO.File]::Open($target, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None).Dispose() }
+        catch { $locked += "${rel}: in use. Close the game and run this again." }
+    }
+    return $locked
+}
+
 if ($Mode -eq 'uninstall') {
     $kept = Backup-Files
     $written = Known-Pokes
     if ($kept.Count -eq 0 -and $written.Count -eq 0) { Write-Host 'No backup here: the mod is not installed.'; exit 0 }
+    $touched = @($kept) + @($written | ForEach-Object { $_.Rel })
+    $problems = @(Get-Locked $touched)
+    if ($problems.Count -gt 0) { Stop-With $problems }
     $state = Read-State
     $moved = @()
     foreach ($rel in $kept) {
@@ -150,11 +178,22 @@ if ($Mode -eq 'uninstall') {
         if (Changed-Since $state $rel @($original)) { $moved += "${rel}: changed since the mod was installed" }
     }
     if ($moved.Count -gt 0) { Stop-With ($moved + $updated) }
+    $staged = '.dt22new'
     try {
-        foreach ($rel in $kept) { Copy-Item -LiteralPath (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force }
+        foreach ($rel in $kept) {
+            $dest = Join-Path $root $rel
+            $parent = Split-Path -Parent $dest
+            if ($parent -and -not (Test-Path -LiteralPath $parent)) { [void][System.IO.Directory]::CreateDirectory($parent) }
+            [System.IO.File]::Copy((Join-Path $backup $rel), ($dest + $staged), $true)
+        }
+        foreach ($rel in $kept) { Move-IntoPlace ((Join-Path $root $rel) + $staged) (Join-Path $root $rel) }
         [void](Undo-Pokes $written)
         if (Test-Path -LiteralPath $pokeFile) { Remove-Item -LiteralPath $pokeFile -Force }
     } catch {
+        foreach ($rel in $kept) {
+            $left = (Join-Path $root $rel) + $staged
+            if (Test-Path -LiteralPath $left) { Remove-Item -LiteralPath $left -Force }
+        }
         Stop-With @("A file could not be written: $($_.Exception.Message)", 'Close the game and run this again.')
     }
     if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Recurse -Force }
@@ -179,6 +218,10 @@ foreach ($line in [System.IO.File]::ReadAllLines($manifest)) {
         $layouts[$p[1]] += ,@{ Offset = [Convert]::ToInt32($p[2], 16); Old = (To-Bytes $p[3]); New = (To-Bytes $p[4]) }
     }
 }
+
+$pokes = Read-Pokes $manifest
+$preLocked = @(Get-Locked (@($files | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel }) + @(Backup-Files)))
+if ($preLocked.Count -gt 0) { Stop-With $preLocked }
 
 $state = Read-State
 $stale = $false
@@ -268,7 +311,6 @@ foreach ($rel in (Backup-Files)) {
 }
 # the values written in place: each place must hold the value of the game, the one this variant writes, or one this
 # mod is known to have written there before (another variant, or an older version of this one)
-$pokes = Read-Pokes $manifest
 $known = Known-Pokes
 $before = @{}
 foreach ($k in $known) {
@@ -290,12 +332,9 @@ foreach ($k in $pokes) {
 foreach ($rel in $odd.Keys) { $problems += "${rel}: $($odd[$rel])" }
 if ($stale) { $problems += $updated }
 # a file the game holds open cannot be replaced: found now, before anything is written
-$touched = @($writes | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel } | Sort-Object -Unique)
-foreach ($rel in $touched) {
-    if (-not (Test-Path -LiteralPath (Join-Path $root $rel))) { continue }
-    try { [System.IO.File]::Open((Join-Path $root $rel), [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None).Dispose() }
-    catch { $problems += "${rel}: in use. Close the game and run this again." }
-}
+$crossBack = @(Backup-Files | Where-Object { -not $named.ContainsKey($_.ToLower()) })
+$touched = @($writes | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel }) + $crossBack
+$problems += @(Get-Locked $touched)
 if ($problems.Count -gt 0) { Stop-With $problems }
 
 # 3. write. First the copy of every original and every new file beside its place, under another name; only when all
@@ -311,28 +350,39 @@ try {
         }
         Write-File ((Join-Path $root $w.Rel) + $staged) $w.Bytes
     }
-    foreach ($w in $writes) {
-        $target = Join-Path $root $w.Rel
-        Move-Item -LiteralPath ($target + $staged) -Destination $target -Force
+    foreach ($rel in $crossBack) {
+        $dest = Join-Path $root $rel
+        $parent = Split-Path -Parent $dest
+        if ($parent -and -not (Test-Path -LiteralPath $parent)) { [void][System.IO.Directory]::CreateDirectory($parent) }
+        [System.IO.File]::Copy((Join-Path $backup $rel), ($dest + $staged), $true)
     }
-    [System.IO.File]::WriteAllLines($stateFile, [string[]]@($writes | ForEach-Object { "$($_.Rel)|$(Get-Sha $_.Bytes)" }))
+    foreach ($w in $writes) { Move-IntoPlace ((Join-Path $root $w.Rel) + $staged) (Join-Path $root $w.Rel) }
+    $back = 0
+    foreach ($rel in $crossBack) {
+        Move-IntoPlace ((Join-Path $root $rel) + $staged) (Join-Path $root $rel)
+        $back++
+    }
+    Write-LinesStaged $stateFile @($writes | ForEach-Object { "$($_.Rel)|$(Get-Sha $_.Bytes)" }) $staged
     # the record first: what was known and what is about to be written, so a stop half way leaves nothing unrecorded
     $record = @($known | ForEach-Object { $_.Line }) + @($pokes | ForEach-Object { $_.Line }) | Sort-Object -Unique
-    if ($record.Count -gt 0) { [System.IO.File]::WriteAllLines($pokeFile, [string[]]$record) }
+    if ($record.Count -gt 0) { Write-LinesStaged $pokeFile $record $staged }
     [void](Undo-Pokes $known)                             # what this mod wrote in place before goes back first
     foreach ($k in $pokes) { Put-At (Join-Path $root $k.Rel) $k.Offset $k.New }
-    if ($pokes.Count -gt 0) { [System.IO.File]::WriteAllLines($pokeFile, [string[]]@($pokes | ForEach-Object { $_.Line })) }
+    if ($pokes.Count -gt 0) { Write-LinesStaged $pokeFile @($pokes | ForEach-Object { $_.Line }) $staged }
     elseif (Test-Path -LiteralPath $pokeFile) { Remove-Item -LiteralPath $pokeFile -Force }
-    $back = 0
-    foreach ($rel in (Backup-Files)) {
-        if (-not $named.ContainsKey($rel.ToLower())) {
-            Copy-Item -LiteralPath (Join-Path $backup $rel) -Destination (Join-Path $root $rel) -Force
-            $back++
-        }
-    }
 } catch {
     foreach ($w in $writes) {
         $left = (Join-Path $root $w.Rel) + $staged
+        if (Test-Path -LiteralPath $left) { Remove-Item -LiteralPath $left -Force }
+        $leftBackup = (Join-Path $backup $w.Rel) + $staged
+        if (Test-Path -LiteralPath $leftBackup) { Remove-Item -LiteralPath $leftBackup -Force }
+    }
+    foreach ($rel in $crossBack) {
+        $left = (Join-Path $root $rel) + $staged
+        if (Test-Path -LiteralPath $left) { Remove-Item -LiteralPath $left -Force }
+    }
+    foreach ($meta in @($stateFile, $pokeFile)) {
+        $left = $meta + $staged
         if (Test-Path -LiteralPath $left) { Remove-Item -LiteralPath $left -Force }
     }
     Write-Host "A file could not be written: $($_.Exception.Message)"

@@ -89,7 +89,7 @@ SUMMON_TURNS = 147          # "Duration UP" of a summon skill
 # Stored in points and written with %. Resistance is also in points but the game writes it as a plain
 # number on the status screen, so it gets no sign (by decision). Setting percent_points.
 POINT_STEMS = re.compile(rules.setting('percent_points'), re.I)
-NO_GUESS_EFFECTS = {228, 229, 230, 231, 233}   # parameters of a summoned doll: what they scale is not known
+NO_GUESS_EFFECTS = {228, 229, 230, 231, 233}   # doll stat/slot parameters: scaling lives in the summoned doll's own action skill, not guessed here
 # Known effects that no vanilla phrase mentions. They are shown always, also when the value is the same
 # at every level (rule of decided: a value the skill has is in its box). Labels are the game's words.
 # A row without a label (168) is 'Speed increase' or 'Speed decrease', by the sign.
@@ -117,48 +117,59 @@ COST_KINDS = {'Turns': 'turns', 'TP Cost': 'tp', 'Speed': 'speed', 'Chant': 'cha
 # Inputs
 # ---------------------------------------------------------------------------
 def load_skills():
-    wb = openpyxl.load_workbook(SOURCE_PATH)
-    skills = collections.OrderedDict()
-    for r in wb['Skills'].iter_rows(min_row=2, values_only=True):
-        skills[(r[0], r[1])] = {
-            'category': r[0], 'fn': r[1], 'name': r[3], 'levels': r[4],
-            'desc': r[17] or '', 'lvup': r[18] or '', 'arrays': {}, 'slots': [],
-        }
-    for r in wb['SkillLevels'].iter_rows(min_row=2, values_only=True):
-        s = skills[(r[0], r[1])]
-        values = [0 if v is None else v for v in r[10:10 + s['levels']]]
-        if r[5].startswith('effect'):
-            s['slots'].append({'key': r[5], 'id': r[6], 'tail': r[8], 'values': values})
-        else:
-            s['arrays'][r[5]] = values
-    uniques = []
-    for r in wb['UniqueSkills'].iter_rows(min_row=2, values_only=True):
-        uniques.append({'category': 'Unique', 'fn': r[0], 'name': r[2], 'values': list(r[4:14]), 'desc': r[21] or ''})
-    return list(skills.values()), uniques
+    wb = openpyxl.load_workbook(SOURCE_PATH, read_only=True)
+    try:
+        skills = collections.OrderedDict()
+        for r in wb['Skills'].iter_rows(min_row=2, values_only=True):
+            skills[(r[0], r[1])] = {
+                'category': r[0], 'fn': r[1], 'name': r[3], 'levels': r[4],
+                'desc': r[17] or '', 'lvup': r[18] or '', 'arrays': {}, 'slots': [],
+            }
+        for r in wb['SkillLevels'].iter_rows(min_row=2, values_only=True):
+            s = skills[(r[0], r[1])]
+            values = [0 if v is None else v for v in r[10:10 + s['levels']]]
+            if r[5].startswith('effect'):
+                s['slots'].append({'key': r[5], 'id': r[6], 'tail': r[8], 'values': values})
+            else:
+                s['arrays'][r[5]] = values
+        uniques = []
+        for r in wb['UniqueSkills'].iter_rows(min_row=2, values_only=True):
+            uniques.append({'category': 'Unique', 'fn': r[0], 'name': r[2], 'values': list(r[4:14]), 'desc': r[21] or ''})
+        return list(skills.values()), uniques
+    finally:
+        wb.close()
 
 
 def load_previous_mod():
     """Wording of the earlier mod, shown next to the proposal as a reference for hand edits."""
     if not os.path.exists(PREVIOUS_PATH):
         return {}
-    ws = openpyxl.load_workbook(PREVIOUS_PATH)['Skills']
-    return {(r[1], r[2]): (r[8] or '', r[9] or '') for r in ws.iter_rows(min_row=2, values_only=True) if r[1]}
+    wb = openpyxl.load_workbook(PREVIOUS_PATH, read_only=True)
+    try:
+        return {(r[1], r[2]): (r[8] or '', r[9] or '')
+                for r in wb['Skills'].iter_rows(min_row=2, values_only=True) if r[1]}
+    finally:
+        wb.close()
 
 
 def load_edited_rows():
     """Rows marked as Edited keep their text."""
     if not os.path.exists(OUTPUT_PATH):
         return {}
-    ws = openpyxl.load_workbook(OUTPUT_PATH)['Skills']
-    header = [c.value for c in ws[1]]
-    col = {name: header.index(name) for name in ('Category', 'Filename', 'QoL_Desc', 'QoL_LvUp', 'Edited') if name in header}
-    if len(col) < 5:
-        return {}
-    edited = {}
-    for r in ws.iter_rows(min_row=2, values_only=True):
-        if str(r[col['Edited']] or '').strip().lower() in ('yes', 'y', 'true', '1', 'x'):
-            edited[(r[col['Category']], r[col['Filename']])] = (r[col['QoL_Desc']] or '', r[col['QoL_LvUp']] or '')
-    return edited
+    wb = openpyxl.load_workbook(OUTPUT_PATH, read_only=True)
+    try:
+        rows = wb['Skills'].iter_rows(min_row=1, values_only=True)
+        header = list(next(rows, ()))
+        col = {name: header.index(name) for name in ('Category', 'Filename', 'QoL_Desc', 'QoL_LvUp', 'Edited') if name in header}
+        if len(col) < 5:
+            return {}
+        edited = {}
+        for r in rows:
+            if str(r[col['Edited']] or '').strip().lower() in ('yes', 'y', 'true', '1', 'x'):
+                edited[(r[col['Category']], r[col['Filename']])] = (r[col['QoL_Desc']] or '', r[col['QoL_LvUp']] or '')
+        return edited
+    finally:
+        wb.close()
 
 
 # ---------------------------------------------------------------------------

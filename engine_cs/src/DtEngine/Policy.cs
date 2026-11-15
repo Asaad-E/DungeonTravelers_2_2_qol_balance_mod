@@ -297,7 +297,7 @@ namespace DtEngine
                 case Cond.DollSlotFree:
                     {
                         int n = 0;
-                        foreach (var x in b.Units) if (x.Owner == u && x.Alive && x.Kind == Kind.Doll && !x.Arrow) n++;
+                        foreach (var x in b.Units) if (Battle.IsPuppet(x) && x.Owner == u) n++;
                         return n < (u.Has(313) ? 2 : 1);
                     }
             }
@@ -1024,10 +1024,21 @@ namespace DtEngine
             return null;
         }
 
+        static bool DollActiveOnSide(Battle battle, Unit unit, Skill skill)
+        {
+            foreach (var x in battle.Units)
+            {
+                if (!Battle.IsPuppet(x) || x.Side != unit.Side) continue;
+                if (x.Doll.Skill == skill.Id || skill.HasEffect(x.Doll.Effect)) return true;
+            }
+            return false;
+        }
+
         Action ActDoll(Battle battle, Unit unit, string arg)
         {
             var dolls = new List<(Skill, int)>();
-            foreach (var (s, lv) in Options(battle, unit)) if (GivesAny(s, DOLL_EFFECTS)) dolls.Add((s, lv));
+            foreach (var (s, lv) in Options(battle, unit))
+                if (GivesAny(s, DOLL_EFFECTS) && !DollActiveOnSide(battle, unit, s)) dolls.Add((s, lv));
             if (dolls.Count == 0) return null;
             if (!string.IsNullOrEmpty(arg))
             {
