@@ -76,11 +76,11 @@ namespace DtEngine
         static readonly int[] ESARHADDON_ORDER = { 113, 115, 117, 114, 116, 122 };
         public static readonly int[] RANDOM_MOVES = { 152, 153, 154, 155 };
         public const int ITEM_CURE_ONE = 6, ITEM_CURE_ALL = 7, CURE_ALL = 8;
-        static readonly int[] SPEED_BUFFS = { 168, 217, 221, 201, 340, 316 };
+        static readonly int[] SPEED_BUFFS = { 168, 217, 221, 201, 340 };
         static readonly int[] CHANT_SPEED_BUFFS = { 214, 265, 281 };
         static readonly int[] CRIT_TERMS = { 31, 174, 211 };
         static readonly int[] ACCURACY_BUFFS = { 166, 197, 337 }, EVASION_BUFFS = { 164, 198, 338 };
-        static readonly int[] MAGIC_ACCURACY_BUFFS = { 167, 309, 197, 222, 278, 353 }, MAGIC_EVASION_BUFFS = { 165, 198 };
+        static readonly int[] MAGIC_ACCURACY_BUFFS = { 167, 309, 197, 222, 337 }, MAGIC_EVASION_BUFFS = { 165, 198, 338 };
         static readonly int[] MAGIC_DEFENCE_MODIFIERS = { 163, 196, 205, 336, 213, 220, 223 };
         static readonly int[] DEFENCE_MODIFIERS = { 28, 162, 187, 196, 205, 336, 219 };
         static readonly int[] ATTACK_STATUS_MODIFIERS = { 161, 195, 335, 219 };
@@ -100,7 +100,7 @@ namespace DtEngine
         const int ARCANE_CHANCE = 15;
         const int SHADOW_ATTACK = 2, SHADOW_LIFE = 3;
         const double DOLL_MAGIC_SCALE = 500.0;
-        static readonly int[] SONG_EFFECTS = { 211, 212, 213, 214, 215, 216, 217, 218, 220, 222, 223 };
+        static readonly int[] SONG_EFFECTS = { 210, 211, 212, 213, 214, 215, 216, 217, 218, 220, 222, 223 };
         static readonly int[] DANCE_EFFECTS = { 195, 196, 197, 198, 199, 201, 202, 205, 219, 221 };
         static readonly bool[] IsSongEffect = Flags(SONG_EFFECTS), IsDanceEffect = Flags(DANCE_EFFECTS);
         static readonly bool[] StatusEffect = MakeStatusEffects();
@@ -343,6 +343,13 @@ namespace DtEngine
             return !party || !enemies;
         }
 
+        bool HasOwnedDoll(Unit owner)
+        {
+            foreach (var u in Units)
+                if (u.Alive && u.Kind == Kind.Doll && u.Owner == owner) return true;
+            return false;
+        }
+
         // --- the order of turns ------------------------------------------------------------------------------
         public double Wait(Unit unit, Action action = null, bool chanting = false)
         {
@@ -350,7 +357,9 @@ namespace DtEngine
             double f1 = 1.0, f2 = 1.0;
             var s = new PySum();
             foreach (int e in SPEED_BUFFS) AddStatus(ref s, unit, e);
-            double bonus = s.Result + unit.Passive(316, 0.0) * (unit.Kind == Kind.Doll ? 1 : 0);
+            // _SetTime (0x44a23d..0x44a303): 276 (Self Session) and 277 (On Stage) apply on acting turns;
+            // 316 (Double Puppet) applies to the acting puppeteer while her puppet vector [unit+0xd4..0xd8] is non-empty.
+            double bonus = s.Result + unit.Value(276) + unit.Value(277) + (HasOwnedDoll(unit) ? unit.Value(316) : 0.0);
             if (unit.Hp <= 0.4 * unit.MaxHp && unit.Has(261)) bonus += unit.Value(261);
             double enchant = F.SpeedEnchantBonus(unit.Pieces(51), unit.Pieces(52), unit.Pieces(53));
             if (action != null)
@@ -372,11 +381,6 @@ namespace DtEngine
                     double spd = action.Speed + (unit.HasUnique && unit.UniqueEffect == 352 ? unit.Value(352) : 0.0);
                     if (action.Skill != null && action.Skill.IsMagic) { f1 = 1.0; f2 = spd; }
                     else { f1 = spd; f2 = 1.0; }
-                    bool song = false, dance = false;
-                    foreach (int e in SONG_EFFECTS) if (action.Has(e)) { song = true; break; }
-                    if (song) bonus += unit.Value(276);
-                    foreach (int e in DANCE_EFFECTS) if (action.Has(e)) { dance = true; break; }
-                    if (dance) bonus += unit.Value(277);
                 }
             }
             int stat = unit.Stat(statName);
@@ -679,16 +683,26 @@ namespace DtEngine
                  : new Action(unit, AKind.Chant);
         }
 
-        void Pay(Action action)
+        public static int EffectiveTpCost(Unit unit, Skill skill, int level)
         {
-            int cost = action.TpCost;
-            if (cost <= 0) return;
-            var unit = action.Actor;
-            bool technique = action.Skill != null && action.Skill.IsTechnique;
+            if (skill == null) return 0;
+            int cost = skill.Tp[Math.Min(level, skill.Tp.Length) - 1];
+            if (cost <= 0) return 0;
+            bool technique = skill.IsTechnique;
             if (unit.Pieces(technique ? 246 : 248) != 0) cost = PyMath.Int(cost * 0.8);
             if (unit.Pieces(technique ? 247 : 249) != 0) cost = PyMath.Int(cost * 0.6);
             cost = Math.Max(1, cost);
             if (unit.Has(266)) cost = Math.Max(1, cost - PyMath.Int(Math.Ceiling(cost * unit.Value(266))));
+            return cost;
+        }
+
+        public static int EffectiveTpCost(Action action) => action.Skill != null ? EffectiveTpCost(action.Actor, action.Skill, action.Level) : 0;
+
+        void Pay(Action action)
+        {
+            int cost = EffectiveTpCost(action);
+            if (cost <= 0) return;
+            var unit = action.Actor;
             unit.Tp = Math.Max(0, unit.Tp - cost);
             Rec?.TpSpent.Add(new RecKey(unit), cost);
         }

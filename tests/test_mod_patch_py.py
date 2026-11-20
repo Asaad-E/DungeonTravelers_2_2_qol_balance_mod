@@ -257,6 +257,8 @@ class ModPatchPyTest(unittest.TestCase):
         with open(exe_path, 'rb') as f:
             self.assertEqual(f.read(), orig_exe)
         self.assertIn('put back as the original', out)
+        self.assertTrue(os.path.exists(os.path.join(self.mod_dir, 'backup', 'Data', 'ENG', 'Parameter', 'Dummy.pck')))
+        self.assertFalse(os.path.exists(os.path.join(self.mod_dir, 'backup', 'DT22_en.exe')))
         self.assertEqual(self._staged_leftovers(), [])
 
     def test_locked_target_and_cross_back_abort_before_writes(self):
@@ -297,6 +299,49 @@ class ModPatchPyTest(unittest.TestCase):
             self.assertEqual(f.read(), data_a)
         self.assertTrue(os.path.exists(os.path.join(self.mod_dir, 'backup')))
         self.assertEqual(self._staged_leftovers(), [])
+
+    def test_switch_variant_locked_known_poke_aborts_before_writes(self):
+        target_path, exe_path, _, _, data_a, _ = self._setup_two_variants()
+        dungeon_dir = os.path.join(self.root, 'Data', 'Dungeon')
+        os.makedirs(dungeon_dir, exist_ok=True)
+        poke_rel = os.path.join('Data', 'Dungeon', 'd01.dat')
+        poke_path = os.path.join(self.root, poke_rel)
+        orig_poke = b'\xaa' * 8 + b'ORIG' + b'\xbb' * 8
+        with open(poke_path, 'wb') as f:
+            f.write(orig_poke)
+        with open(os.path.join(self.mod_dir, 'vara.txt'), 'a', encoding='utf-8') as f:
+            f.write(f"poke|{poke_rel}|8|{b'ORIG'.hex()}|{b'MOD1'.hex()}\n")
+
+        self.assertEqual(self._run_cli('install', 'vara')[0], 0)
+        with open(poke_path, 'rb') as f:
+            self.assertEqual(f.read(), orig_poke.replace(b'ORIG', b'MOD1'))
+
+        # varb has 0 pokes, so switching vara -> varb must still check locks on known pokes
+        with hold_exclusive_lock(poke_path):
+            code, out = self._run_cli('install', 'varb')
+        self.assertEqual(code, 1)
+        self.assertIn('in use', out)
+        with open(target_path, 'rb') as f:
+            self.assertEqual(f.read(), data_a)
+        with open(poke_path, 'rb') as f:
+            self.assertEqual(f.read(), orig_poke.replace(b'ORIG', b'MOD1'))
+        self.assertEqual(self._staged_leftovers(), [])
+
+    def test_package_variant_sh_scripts_have_unix_exec_metadata(self):
+        import zipfile
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'tools'))
+        import package_variant as pv
+        orig_build = os.path.join(pv.BUILD_DIR, 'qol', 'Data', 'ENG', 'Parameter')
+        if not os.path.isdir(orig_build):
+            self.skipTest('built qol files not present')
+        path, _, problems = pv.package('qol', out_dir=self.temp_dir, stamp='test')
+        self.assertEqual(problems, [])
+        with zipfile.ZipFile(path, 'r') as z:
+            for sh_name in ('Install_QoL.sh', pv.UNINSTALL_SH):
+                info = z.getinfo(sh_name)
+                self.assertEqual(info.create_system, 3, f'{sh_name}: create_system must be UNIX (3)')
+                self.assertEqual(info.compress_type, zipfile.ZIP_DEFLATED, f'{sh_name}: should be deflated')
+                self.assertEqual(info.external_attr >> 16, 0o100755, f'{sh_name}: external_attr must be 0o100755')
 
 
 if __name__ == '__main__':

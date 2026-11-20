@@ -220,7 +220,8 @@ foreach ($line in [System.IO.File]::ReadAllLines($manifest)) {
 }
 
 $pokes = Read-Pokes $manifest
-$preLocked = @(Get-Locked (@($files | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel }) + @(Backup-Files)))
+$known = Known-Pokes
+$preLocked = @(Get-Locked (@($files | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel }) + @($known | ForEach-Object { $_.Rel }) + @(Backup-Files)))
 if ($preLocked.Count -gt 0) { Stop-With $preLocked }
 
 $state = Read-State
@@ -311,7 +312,6 @@ foreach ($rel in (Backup-Files)) {
 }
 # the values written in place: each place must hold the value of the game, the one this variant writes, or one this
 # mod is known to have written there before (another variant, or an older version of this one)
-$known = Known-Pokes
 $before = @{}
 foreach ($k in $known) {
     $key = "$($k.Rel.ToLower())|$($k.Offset)"
@@ -333,7 +333,7 @@ foreach ($rel in $odd.Keys) { $problems += "${rel}: $($odd[$rel])" }
 if ($stale) { $problems += $updated }
 # a file the game holds open cannot be replaced: found now, before anything is written
 $crossBack = @(Backup-Files | Where-Object { -not $named.ContainsKey($_.ToLower()) })
-$touched = @($writes | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel }) + $crossBack
+$touched = @($writes | ForEach-Object { $_.Rel }) + @($pokes | ForEach-Object { $_.Rel }) + @($known | ForEach-Object { $_.Rel }) + $crossBack
 $problems += @(Get-Locked $touched)
 if ($problems.Count -gt 0) { Stop-With $problems }
 
@@ -363,6 +363,16 @@ try {
         $back++
     }
     Write-LinesStaged $stateFile @($writes | ForEach-Object { "$($_.Rel)|$(Get-Sha $_.Bytes)" }) $staged
+    foreach ($rel in $crossBack) {
+        $oldCopy = Join-Path $backup $rel
+        if (Test-Path -LiteralPath $oldCopy) { Remove-Item -LiteralPath $oldCopy -Force }
+        $dir = Split-Path -Parent $oldCopy
+        while ($dir -and $dir.Length -gt $backup.Length -and (Test-Path -LiteralPath $dir)) {
+            if (@(Get-ChildItem -LiteralPath $dir -Force).Count -gt 0) { break }
+            Remove-Item -LiteralPath $dir -Force
+            $dir = Split-Path -Parent $dir
+        }
+    }
     # the record first: what was known and what is about to be written, so a stop half way leaves nothing unrecorded
     $record = @($known | ForEach-Object { $_.Line }) + @($pokes | ForEach-Object { $_.Line }) | Sort-Object -Unique
     if ($record.Count -gt 0) { Write-LinesStaged $pokeFile $record $staged }

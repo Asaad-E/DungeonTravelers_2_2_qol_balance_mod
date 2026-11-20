@@ -28,6 +28,9 @@ FORBIDDEN_TUTORIAL_PHRASES = (
     'boss skills',
     'single best',
     'hyper-fast',
+    'holy light',
+    'with cheer',
+    'confusion',
 )
 
 
@@ -67,6 +70,24 @@ class TestClassTutorialText(unittest.TestCase):
                 lowered = box.lower()
                 for phrase in FORBIDDEN_TUTORIAL_PHRASES:
                     self.assertNotIn(phrase, lowered, f'{ctx}: stale/slang phrase {phrase!r}')
+
+    def test_class_tutorials_match_actual_kits(self):
+        by_prefix = {}
+        for boxes in (ctt.LESSON_08_BOXES, ctt.LESSON_13_BOXES, ctt.LESSON_24_BOXES):
+            for box in boxes:
+                if ':' in box.split('\n', 1)[0]:
+                    cls = box.split(':', 1)[0].strip()
+                    by_prefix[cls] = box
+        self.assertNotIn('Cheer', by_prefix['Maid'])
+        self.assertIn('Cook', by_prefix['Maid'])
+        self.assertNotIn('doll', by_prefix['Spieler'].lower())
+        self.assertNotIn('bonus exp', by_prefix['Spieler'].lower())
+        self.assertNotIn('Accelerator', by_prefix['Enchantress'])
+        self.assertIn('Circle Brave', by_prefix['Enchantress'])
+        self.assertNotIn('Holy Light', by_prefix['Bishop'])
+        self.assertIn('Full Heal', by_prefix['Bishop'])
+        self.assertIn('two songs at once', by_prefix['Diva'].lower())
+        self.assertIn('two dances active at once', by_prefix['Etoile'].lower())
 
     def test_build_tutorials_succeeds_cleanly(self):
         with tempfile.TemporaryDirectory() as tmp:

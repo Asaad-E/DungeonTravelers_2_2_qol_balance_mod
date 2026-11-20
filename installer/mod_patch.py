@@ -283,7 +283,11 @@ def main(script_dir=None):
                 })
 
     pokes = read_pokes(manifest_path)
-    pre_locked = get_locked(root, [f['rel'] for f in files] + [p['rel'] for p in pokes] + backup_files(backup))
+    known = known_pokes(mod_dir)
+    pre_locked = get_locked(
+        root,
+        [f['rel'] for f in files] + [p['rel'] for p in pokes] + [k['rel'] for k in known] + backup_files(backup),
+    )
     if pre_locked:
         stop_with(pre_locked)
 
@@ -387,7 +391,6 @@ def main(script_dir=None):
             stale = True
 
     # Pokes
-    known = known_pokes(mod_dir)
     before = {}
     for k in known:
         key = f"{k['rel'].lower()}|{k['offset']}"
@@ -415,9 +418,9 @@ def main(script_dir=None):
     if stale:
         problems.extend(UPDATED_MSG)
 
-    # Check writable (including cross-variant restores before any writes)
+    # Check writable (including cross-variant restores and previously written pokes before any writes)
     cross_back = [rel for rel in backup_files(backup) if rel.lower() not in named]
-    touched = [w['rel'] for w in writes] + [p['rel'] for p in pokes] + cross_back
+    touched = [w['rel'] for w in writes] + [p['rel'] for p in pokes] + [k['rel'] for k in known] + cross_back
     problems.extend(get_locked(root, touched))
 
     if problems:
@@ -454,6 +457,19 @@ def main(script_dir=None):
             for w in writes:
                 sf.write(f"{w['rel']}|{get_sha(w['bytes'])}\n")
         os.replace(state_file + staged_suffix, state_file)
+
+        backup_abs = os.path.abspath(backup)
+        for rel in cross_back:
+            old_copy = os.path.join(backup, rel)
+            if os.path.exists(old_copy):
+                os.remove(old_copy)
+            parent = os.path.dirname(os.path.abspath(old_copy))
+            while parent and len(parent) > len(backup_abs) and parent.startswith(backup_abs):
+                try:
+                    os.rmdir(parent)
+                except OSError:
+                    break
+                parent = os.path.dirname(parent)
 
         # Pokes write
         record = sorted(set(k['line'] for k in known) | set(p['line'] for p in pokes))

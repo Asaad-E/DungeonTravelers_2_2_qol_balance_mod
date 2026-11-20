@@ -61,9 +61,9 @@ LESSON_08_BOXES = [
     "Every party begins with these five basic archetypes.\nAt Level 15, they branch into Intermediate roles,\nand at Level 30 unlock their ultimate classes.",
     "Fighter: Frontline anchor who absorbs heavy blows.\nProvoke draws dangerous attacks from fragile allies,\nkeeping your spellcasters alive during boss fights.",
     "Magic User: Casts elemental spells across all rows.\nChants take time to cast, but strike with heavy power,\nexploiting enemy weaknesses for massive burst damage.",
-    "Scout: Agile skirmisher with speed, evasion, and crits.\nDisarms traps, spots shortcuts, and steals rare loot,\ndelivering rapid strikes to pick off backline foes.",
-    "Maid: Indispensable support that restores TP each turn.\nCleanses nasty ailments with Cheer and pacifies foes,\nallowing attackers to use skills sustainably.",
-    "Spieler: Chaotic wildcard using cards, coins, and luck.\nOffers unpredictable buffs, bonus EXP, and doll allies,\nturning the tides of battle through daring gambles."
+    "Scout: Agile skirmisher with speed, evasion, and crits.\nStrikes fast with Sharp Stab and Poison Shot, cures self\nwith Cleanse, and steals gold while dodging enemy blows.",
+    "Maid: Indispensable support keeping the party's TP full.\nUses Cook, Self-Sacrifice, and First Aid to sustain allies,\nwhile Lullaby puts dangerous foes to sleep in battle.",
+    "Spieler: Chaotic wildcard relying on luck and gambles.\nFires Danger Shoot, heals with Coffee Break, spins wild\nRoulette Circus outcomes, and finds items as you walk."
 ]
 
 LESSON_12_BOXES = [
@@ -80,13 +80,13 @@ LESSON_13_BOXES = [
     "Paladin: Frontline protector wielding heavy armor and shield.\nGuards frail allies from lethal hits and cuts damage taken.\nEssential when boss hits threaten backline mages.",
     "Berserker: Savage warrior wielding giant axes and blades.\nTrades defense for fury, shattering armor with huge hits.\nShreds high-DEF foes before they outlast your team.",
     "Sorceress: Pure offensive spellcaster of destructive magic.\nUnleashes wide elemental spells that sweep entire enemy rows.\nA focused specialist when you need decisive magical burst.",
-    "Enchantress: Versatile battle-mage of buffs and utility.\nGrants party speed with Accelerator and elemental covers.\nBrings crucial tactical control to hard encounters.",
+    "Enchantress: Versatile battle-mage of buffs and control.\nBoosts allies with Circle Brave, Circle Protect, and weapon\nenchants, while shutting down foes with status spells.",
     "Priestess: Divine restorative healer wielding holy wands.\nRestores party HP with Heal, cures ailments, and revives.\nYour foundational insurance in deep labyrinths.",
     "Archer: Dedicated marksman striking from safe back rows.\nFires full-power arrows ignoring row penalties with crits.\nGreat for safely picking off high-threat foes.",
     "Assassin: Lethal skirmisher striking from the shadows.\nSpecializes in critical strikes, sleep, silence, and stun.\nShuts down dangerous enemies before they can act.",
-    "Bard: Musical supporter whose songs bolster the party.\nSings passive auras that replenish TP and boost stats.\nSustains allies continuously without turn cost.",
+    "Bard: Musical supporter whose songs bolster the party.\nSings passive auras that replenish TP and boost stats.\nSustains allies continuously without TP cost.",
     "Dancer: Rhythmic debuffer whose dances cripple foes.\nDrains enemy attack power, slows turn gauges, and defense.\nTurns grueling boss fights heavily in your favor.",
-    "Trickster: Evasive gambler slinging cards and sudden hexes.\nDodges heavy blows while spreading chaos and confusion.\nAn agile disturber that keeps enemies off balance.",
+    "Trickster: Evasive gambler dealing risky burst and chaos.\nTrades DEF for ATK with High Risk, High Return, springs\nCheckmate and Magic Box, and evades hits with Pretend.",
     "Doll Master: Puppet commander crafting battle dolls.\nSummons autonomous doll allies to attack and defend.\nOnce summoned, dolls act on their own turns without TP cost."
 ]
 
@@ -104,13 +104,13 @@ LESSON_24_BOXES = [
     "Witch: Dedicated arcanist of devastating elemental sorcery.\nChannels supreme all-target and single-target spells.\nExcels at exploiting elemental weaknesses with burst power.",
     "Magical Princess: Hybrid battle-mage with instant blades.\nTransforms to an empowered form, ignoring cast chants.\nBypasses mage fragility with heavy hybrid output.",
     "Sage: Tactical spellmaster controlling battle tempo.\nAccelerator speeds party casting while barriers shield.\nUnrivaled utility ensuring your team moves first.",
-    "Bishop: Divine beacon of recovery and resurrection.\nCircle Heal, Circle Nurse, and Holy Light restore all.\nGuarantees full recovery even after lethal rounds.",
+    "Bishop: Divine beacon of recovery and resurrection.\nFull Heal, Circle Nurse, and Insurance protect every ally,\nbacked by Moon Curtain and Circle Heal in lethal fights.",
     "Sniper: Precision marksman striking cleanly from afar.\nWields bows and firearms for guided, armor-piercing shots.\nSupports allies with Warning Shot and bow covering fire.",
     "Treasure Hunter: Agile explorer built to maximize spoils.\nCombines Treasure Hunt, Item Steal, and Trap Search utility.\nStrikes reliably with quick dagger, whip, and ranged skills.",
     "Kunoichi: Shadow warrior wielding lethal illusions.\nShadow clones absorb hits while dual-wielding strikes.\nIncredible burst damage paired with top survival.",
-    "Diva: Master vocalist whose continuous songs empower allies.\nSongs raise crits, speed, magic hit, chant speed, and hits.\nUses Self Session to sing while acting freely each turn.",
+    "Diva: Master vocalist whose continuous songs empower all.\nSongs raise crits, speed, magic hit, chant speed, and hits.\nSelf Session lets her sustain two songs at once, faster.",
     "Mistress: Ruthless dominator wielding whips and commands.\nInflicts crippling debuffs, forcing foes to obedience.\nPunishes afflicted foes with amplified execution.",
-    "Etoile: Supreme ballerina who commands battle tempo.\nDances sap foe speed, resistance, and HP with On Stage.\nSacrifices herself with Primevil to revive fallen allies.",
+    "Etoile: Supreme ballerina who commands battle tempo.\nOn Stage lets her keep two dances active at once, sapping\nfoe speed, resistance, and HP; Primevil revives the party.",
     "Joker: Reckless destroyer trading safety for burst power.\nTrump Card converts DEF to ATK; Mad Zapper pierces rows.\nWields whips, axes, and unpredictable gambles in combat.",
     "Soul Summoner: Master puppeteer commanding supreme dolls.\nDouble Puppet fields two dolls empowered by Soul Seal.\nUnleashes Mercidarian, Perdurabo, Musiy, and Soul Eater.",
     "Papillon: Agile hand-fan fighter sweeping wide fields.\nRose Queen poisons all foes while Tinker Squash delays.\nEvades blows with Illusion and turns foes into food."

@@ -174,6 +174,10 @@ class ModPatchPs1Tests(unittest.TestCase):
             self.assertEqual(fx['van']['exe'], fx['exe'].read_bytes())
             self.assertEqual(fx['van']['dungeon'], fx['dungeon'].read_bytes())
             self.assertFalse((mod_dir / 'pokes.txt').exists())
+            # Restored crossBack files must be pruned from backup/ so stale copies do not linger
+            self.assertTrue((mod_dir / 'backup' / 'Data' / 'ENG' / 'Parameter' / 'a.pck').exists())
+            self.assertFalse((mod_dir / 'backup' / 'Data' / 'ENG' / 'Parameter' / 'b.pck').exists())
+            self.assertFalse((mod_dir / 'backup' / 'Game.exe').exists())
             self._assert_no_staged_files(fx['game'])
 
     def test_locked_target_aborts_before_partial_write_on_install_and_uninstall(self):
@@ -209,6 +213,17 @@ class ModPatchPs1Tests(unittest.TestCase):
             self.assertNotEqual(0, res_sw.returncode)
             self.assertIn('in use', res_sw.stdout)
             self.assertEqual(fx['v1']['a'], fx['a'].read_bytes())
+            self._assert_no_staged_files(fx['game'])
+
+            # Lock previously poked dungeon file when switching v1 -> v2 (v2 has 0 pokes) -> aborts cleanly
+            with _exclusive_win_lock(fx['dungeon']):
+                res_sw2 = self._run_ps1(mod_dir, 'install', 'v2')
+            self.assertNotEqual(0, res_sw2.returncode)
+            self.assertIn('in use', res_sw2.stdout)
+            self.assertEqual(fx['v1']['a'], fx['a'].read_bytes())
+            self.assertEqual(fx['v1']['b'], fx['b'].read_bytes())
+            self.assertEqual(fx['v1']['exe'], fx['exe'].read_bytes())
+            self.assertEqual(fx['v1']['dungeon'], fx['dungeon'].read_bytes())
             self._assert_no_staged_files(fx['game'])
 
     def test_external_update_blocks_uninstall(self):

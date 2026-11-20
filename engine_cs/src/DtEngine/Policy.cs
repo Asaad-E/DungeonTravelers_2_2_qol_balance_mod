@@ -155,7 +155,7 @@ namespace DtEngine
                 if (skill.IsMagic && (unit.St[117] != null || (battle.ZoneInfo != null && battle.ZoneInfo.NoMagic))) continue;
                 if (skill.IsTechnique && unit.St[114] != null) continue;
                 int level = Math.Max(1, Math.Min(lv, skill.Levels));
-                if (skill.Tp[level - 1] > unit.Tp) continue;
+                if (Battle.EffectiveTpCost(unit, skill, level) > unit.Tp) continue;
                 found.Add((skill, level));
             }
             return found;
@@ -329,7 +329,7 @@ namespace DtEngine
             {
                 var skill = battle.Data.ById(skillId);
                 if (skill != null && UsableInBattle(skill) && GivesAny(skill, HEAL_EFFECTS))
-                    costs.Add(skill.Tp[Math.Max(1, Math.Min(level, skill.Levels)) - 1]);
+                    costs.Add(Battle.EffectiveTpCost(unit, skill, Math.Max(1, Math.Min(level, skill.Levels))));
             }
             return costs;
         }
@@ -361,7 +361,7 @@ namespace DtEngine
         public double TpPenalty(Unit unit, Action action)
         {
             if (unit.MaxTp == 0) return 1.0;
-            return 1.0 + tpWeight * action.TpCost / unit.MaxTp;
+            return 1.0 + tpWeight * Battle.EffectiveTpCost(action) / unit.MaxTp;
         }
 
         static Unit[] EnemiesOf(Battle battle, Unit unit) => battle.TargetableArray(1 - unit.Side);
@@ -411,6 +411,14 @@ namespace DtEngine
             return best;
         }
 
+        static bool HasAnyEffect(int[] effects, params int[] ids)
+        {
+            foreach (int e in effects)
+                foreach (int id in ids)
+                    if (e == id) return true;
+            return false;
+        }
+
         static double RandomMoveValue(Battle battle, Action action)
         {
             int effect = 0;
@@ -419,17 +427,49 @@ namespace DtEngine
             foreach (var t in battle.Data.RandomMoves) if (t.Effect == effect) { table = t; break; }
             if (table == null) return 0.0;
             bool joker = action.Actor.Has(315);
+            double unitScale = Math.Max(25.0, action.Actor.Stat(Unit.ATK) * 0.8);
             double total = 0.0, weight = 0.0;
             foreach (var r in table.Results)
             {
                 var skill = battle.Data.ById(r.Skill);
                 double w = joker ? r.JokerWeight : r.Weight;
                 weight += w;
-                if (skill != null && r.Effects.Length > 0)
+                if (skill == null || r.Effects.Length == 0) continue;
+                var sub = new Action(action.Actor, AKind.Skill, skill, action.Level);
+                int tc = sub.TargetCode;
+                bool targetsFoes = tc == T.SINGLE || tc == T.RANDOM || tc == T.ROW || tc == T.PIERCE || tc == T.ALL;
+                bool targetsAllies = T.OwnSide(tc);
+                bool harms = HasAnyEffect(r.Effects, 0, 1, 8, 113, 114, 115, 116, 117, 118, 119, 120, 122, 123, 140, 143, 435);
+                bool heals = HasAnyEffect(r.Effects, 9, 103, 104, 128, 132);
+                if (targetsFoes)
                 {
-                    double dmg = DamageValue(battle, new Action(action.Actor, AKind.Skill, skill, action.Level), out _);
-                    if (dmg > 0) total += w * dmg;
-                    else total += w * Math.Max(25.0, action.Actor.Stat(Unit.ATK) * 0.8);
+                    if (heals)
+                    {
+                        var foes = EnemiesOf(battle, action.Actor);
+                        double avgHeal = unitScale;
+                        if (foes.Length > 0)
+                        {
+                            double h = ExpectedHeal(battle, sub, foes[0]);
+                            if (h > 0) avgHeal = Math.Min(foes[0].MaxHp - foes[0].Hp, h);
+                        }
+                        total -= w * avgHeal;
+                    }
+                    else
+                    {
+                        double dmg = DamageValue(battle, sub, out _);
+                        if (dmg > 0) total += w * dmg;
+                        else total += w * unitScale * 0.5;
+                    }
+                }
+                else if (targetsAllies)
+                {
+                    if (harms) total -= w * unitScale * 1.5;
+                    else total += w * unitScale * 0.5;
+                }
+                else
+                {
+                    if (heals || HasAnyEffect(r.Effects, 425, 143)) total -= w * unitScale * 0.5;
+                    else if (HasAnyEffect(r.Effects, 427)) total += w * unitScale;
                 }
             }
             return weight != 0 ? total / weight : 0.0;
@@ -561,7 +601,7 @@ namespace DtEngine
                 if (c < 0) scratch.Reset(unit, AKind.Attack, null, 1);
                 else scratch.Reset(unit, AKind.Skill, candidateSkills[c], candidateLevels[c]);
                 var action = scratch;
-                int tpCost = action.TpCost;
+                int tpCost = Battle.EffectiveTpCost(action);
                 if (tpCost > unit.Tp * (1.0 - tpReserve) && tpCost > 0) continue;
                 if (tpCost > 0 && unit.Tp - tpCost < reserve) continue;
                 double total = DamageValue(battle, action, out Unit target);
@@ -677,7 +717,23 @@ namespace DtEngine
                             restored *= 2.5;
                     }
                 }
-                else if (code == T.ALLIES || code == T.ALLY_ROW || code == T.SELF)
+                else if (code == T.ALLY_ROW)
+                {
+                    var frontSum = new PySum();
+                    var backSum = new PySum();
+                    Unit frontRep = null, backRep = null;
+                    foreach (var m in battle.AlliesArray(unit))
+                    {
+                        if (m.Kind != Kind.Member) continue;
+                        double v = Math.Min(m.MaxHp - m.Hp, ExpectedHeal(battle, action, m)) * (m.HpRatio < 0.25 ? 1.3 : 1.0);
+                        if (m.Front) { frontSum.AddFloat(v); if (frontRep == null) frontRep = m; }
+                        else { backSum.AddFloat(v); if (backRep == null) backRep = m; }
+                    }
+                    double fVal = frontSum.Result, bVal = backSum.Result;
+                    if (frontRep != null && (backRep == null || fVal >= bVal)) { target = frontRep; restored = fVal; }
+                    else { target = backRep; restored = bVal; }
+                }
+                else if (code == T.ALLIES || code == T.SELF)
                 {
                     target = null;
                     var sum = new PySum();
@@ -795,7 +851,8 @@ namespace DtEngine
             {
                 if (!Puts(skill, effect)) continue;
                 var action = new Action(unit, AKind.Skill, skill, level);
-                if (action.TpCost > 0 && unit.Tp - action.TpCost < reserve) continue;
+                int tpCost = Battle.EffectiveTpCost(action);
+                if (tpCost > 0 && unit.Tp - tpCost < reserve) continue;
                 bool dance = Battle.IsDance(effect);
                 if ((Battle.IsSong(effect) || dance))
                 {
@@ -830,7 +887,7 @@ namespace DtEngine
                         }
                         action.Target = best;
                     }
-                    else if (effect == 162 && unit.St[170] != null)
+                    else if (effect == 162 && ProvokingAnyEnemy(battle, unit))
                     {
                         // a defence buff of a unit that draws the blows (Provoke up) goes on herself, the one hit, and on nobody else:
                         // the buff raises the DEF of the target by a share, so it is worth the turn on the highest DEF only
@@ -1056,7 +1113,22 @@ namespace DtEngine
             return new Action(unit, AKind.Skill, bestD.Item1, bestD.Item2);
         }
 
-        static readonly string[] HeavyRoles = { "attacker", "mage", "healer", "valkyrie", "dark lord", "magical princess", "sage" };
+        static bool ProvokingAnyEnemy(Battle battle, Unit unit)
+        {
+            foreach (var f in EnemiesOf(battle, unit))
+            {
+                if (f.St[170] != null && f.St[170].Source == unit) return true;
+                foreach (var p in f.ProvokedBy) if (p.unit == unit) return true;
+            }
+            return false;
+        }
+
+        static readonly string[] HeavyRoles =
+        {
+            "tank", "attacker", "healer", "mage", "shooter", "dolls", "dark lord", "papillon",
+            "valkyrie", "treasure hunter", "soul summoner", "magical princess", "sage",
+            "kunoichi", "mistress", "joker"
+        };
 
         Action ActTp(Battle battle, Unit unit, string arg)
         {

@@ -191,12 +191,18 @@ def package(variant, out_dir=DIST_DIR, stamp=None):
             z.writestr(f'Install_{title}.bat', LAUNCHER.format(args=f'install {variant}'))
             z.writestr(UNINSTALL, LAUNCHER.format(args='uninstall'))
 
-            sh_install = zipfile.ZipInfo(f'Install_{title}.sh')
-            sh_install.external_attr = 0o755 << 16
+            now = datetime.datetime.now().timetuple()[:6]
+
+            sh_install = zipfile.ZipInfo(f'Install_{title}.sh', date_time=now)
+            sh_install.create_system = 3
+            sh_install.compress_type = zipfile.ZIP_DEFLATED
+            sh_install.external_attr = 0o100755 << 16
             z.writestr(sh_install, LAUNCHER_SH.format(args=f'install {variant}'))
 
-            sh_uninstall = zipfile.ZipInfo(UNINSTALL_SH)
-            sh_uninstall.external_attr = 0o755 << 16
+            sh_uninstall = zipfile.ZipInfo(UNINSTALL_SH, date_time=now)
+            sh_uninstall.create_system = 3
+            sh_uninstall.compress_type = zipfile.ZIP_DEFLATED
+            sh_uninstall.external_attr = 0o100755 << 16
             z.writestr(sh_uninstall, LAUNCHER_SH.format(args='uninstall'))
 
             z.write(os.path.join(RELEASE_DIR, PATCH_SCRIPT), f'{MOD_DIR}/{PATCH_SCRIPT}')
