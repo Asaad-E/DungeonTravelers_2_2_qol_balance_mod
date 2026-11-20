@@ -97,7 +97,7 @@ Rows: 181. open: 0, closed: 82, not a problem: 86, out of the balance: 13. Open 
 | F87 | Sniper | closed | true | Addressed by W036 - W037 opening Spiral Arrow and Divine Cannon to guns (W038 and W039, Warning Shot and Support Shot, dropped on 2026-10-11: a passive record holds one weapon code). |
 | F88 | Gear of weak classes | closed | partly true: the Kunoichi (K001 - K025, T001 - T030) and the Mistress (T051 - T065) were behind |  |
 | F94 | Mercenaries | not a problem | true | Cosmetic/flavor quirk with minimal progression impact |
-| S07 | Witch | closed | partly true | INT x0.90 (V062 - V160), AGI x0.90 (V16195 - V16293), and levels 6 - 10 basic spells x0.85 (V161 - V185) bring Witch inside the band (Wins 70.0%, -0.5 SD; Speed x1.36, +1.9 SD; CLASS_BALANCE.md) while keeping her strong on magic-weak bosses and 0.70 advanced / 0.90 late in CLASS_STAGES.md. |
+| S07 | Witch | closed | partly true | INT x0.90 (V062 - V160), AGI x0.90 (V16195 - V16293), and levels 6 - 10 basic spells x0.85 (V161 - V185) bring Witch inside the target band (see docs/generated/CLASS_BALANCE.md and CLASS_STAGES.md) while keeping her strong on magic-weak bosses. |
 | S08 | Summons of the Soul Summoner | not a problem | partly true: a summon acts like the slowest member of the party | Its wait is that of the slowest member (median 0.42 at level 90), still sooner than most bosses (0.42 - 0.55): late for a party, not too late to act. Its weight is data of each form (tools/summon_data.py) |
 | S17 | Cap of damage reduction | not a problem | true | The pieces that cut damage add up to a quarter at most (docs/FORMULAS.md 2.4: never below 0.75); the claim compares it with the half of the first game. It is a constant of the program, and a party defends itself with DEF, guards and Cover, which the cap does not touch |
 | U02 | Doll Master line | closed | true | All data and benign: the hidden action skills (power, chances, heal and spell power), the turns a doll lasts, TP cost and speed of the cast, Doll Mastery, the growth row of the class |
@@ -114,40 +114,40 @@ Rows: 181. open: 0, closed: 82, not a problem: 86, out of the balance: 13. Open 
 | F22 | Lottery skills | not a problem | true for Roulette Circus only, and by its nature: Magic Box, Showtime and Heaven or Hell are worth 100% after the L rows |  |
 | F27 | Provoke | closed | partly true: situational, it is the right action where a tank must draw a boss off a fragile party |  |
 | F28 | Attract | not a problem | partly true: as F27 |  |
-| F29 | Shield Bash | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 71%: not dead |  |
-| F30 | Halving Slice | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 87%: not dead |  |
-| F31 | Blood Drain | closed | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 56% before, 69% after X |  |
-| F32 | Soul Drain | closed | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): Soul Drain 56%, Soul Absorb 41% before; 65% and 68% after X |  |
-| F33 | Life Bring | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): Life Bring 100% for the Dark Lord at C22 (her best against groups there) |  |
+| F29 | Shield Bash | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 71%: not dead |  |
+| F30 | Halving Slice | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 87%: not dead |  |
+| F31 | Blood Drain | closed | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 56% before, 69% after X |  |
+| F32 | Soul Drain | closed | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): Soul Drain 56%, Soul Absorb 41% before; 65% and 68% after X |  |
+| F33 | Life Bring | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): Life Bring 100% for the Dark Lord at C22 (her best against groups there) |  |
 | F34 | Blood Rage | closed | true: 43 TP for a slow buff |  |
 | F35 | Brave | closed | true: weaker than the party buffs it does not stack with |  |
-| F36 | Backward Swing | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 61%: just above the line |  |
-| F37 | Armor Penetration | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 62%, besides its DEF debuff |  |
+| F36 | Backward Swing | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 61%: just above the line |  |
+| F37 | Armor Penetration | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 62%, besides its DEF debuff |  |
 | F38 | Avenger | not a problem | passive: out of the measure; it can trigger an enemy Dark Aura by design |  |
 | F39 | Poison | not a problem | false: measured +11% shorter fights with it |  |
 | F40 | Nurse | not a problem | false: a free cure (9 TP) against a bought item |  |
 | F41 | Full Heal | not a problem | partly true: a single full heal (36 TP) beside Circle Heal (party, 64 TP): about equal HP per TP late; the emergency tool |  |
 | F42 | Bible Thump | not a problem | partly true: it needs a tome, which costs the Sage the INT of her staff; with one it is her best strike against the bosses that resist her spells |  |
-| F43 | Shine Curse | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 100%: the best strike of the Bishop line against groups |  |
+| F43 | Shine Curse | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 100%: the best strike of the Bishop line against groups |  |
 | F44 | Illusion | closed | true: two hits nullified for 46 TP against five for Shadow Clone |  |
 | F45 | Magical Spark | closed | true before; decided in T05 (Q, Magical Spark x1.7): worth 100% now |  |
 | F46 | Magic Change | closed | true before; decided in T05 (Q, Magical Change -25% TP) |  |
 | F47 | Sun Veil | closed | partly true: it pays only where the boss casts |  |
 | F48 | Circle Brave | closed | true before; Circle Brave x1.6 (T066) passes War Cry (0.256 against 0.18) |  |
 | F49 | Gold Steal | out of the balance | true: gold only; out of the battle balance |  |
-| F50 | Poison Shot | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Scout at C03 |  |
-| F51 | Arrow Rain | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Sniper against groups |  |
+| F50 | Poison Shot | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Scout at C03 |  |
+| F51 | Arrow Rain | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Sniper against groups |  |
 | F52 | Support Shot | closed | true: it fires only after a plain attack of a member (4 - 12% by level), and a party that has TP does not make plain attacks |  |
-| F53 | Spiral Arrow | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 82%: not dead (slow but strong) |  |
+| F53 | Spiral Arrow | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 82%: not dead (slow but strong) |  |
 | F54 | Trap Search | out of the balance | out of battle: a dungeon comfort |  |
 | F55 | Treasure Search | out of the balance | out of battle |  |
 | F56 | Whistle | out of the balance | out of battle |  |
 | F57 | Hard Whipping | closed | true before; decided in T05 (Hard Whipping x1.6) and W (whips) |  |
-| F58 | Phoenix | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Kunoichi against groups |  |
+| F58 | Phoenix | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Kunoichi against groups |  |
 | F59 | Ninja Piledriver | closed | true before; decided in T05 (K, x2.5) |  |
 | F60 | Shadow Clone | closed | true: the chant gets slower with levels |  |
 | F61 | Shadow Sew | closed | true: lands on lower level targets only |  |
-| F62 | Fire Scroll | closed | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 44 - 51% before, 66 - 77% after X |  |
+| F62 | Fire Scroll | closed | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 44 - 51% before, 66 - 77% after X |  |
 | F63 | Barrage | not a problem | passive: double attack of the Kunoichi; W raised Double and Triple Attack |  |
 | F64 | Lullaby | not a problem | false: measured +4% shorter fights with it (a free sleep on every enemy) |  |
 | F65 | Sacred Hymn | not a problem | partly true: it serves at the last boss alone | A song of RES is worth its slot where the boss casts: the last one. Elsewhere Carol and March are better uses of the two slots |
@@ -157,11 +157,11 @@ Rows: 181. open: 0, closed: 82, not a problem: 86, out of the balance: 13. Open 
 | F69 | Carrot and Stick | closed | partly true: a debuff paid with a heal of the enemy; M raised it x1.5 |  |
 | F70 | Ecstasy | closed | true, for another reason: it stacks with War Cry but adds nothing that can be measured | Three turns once a battle are too little at that size. At 30% to 50% the fights of C30 and C40 are 5% to 8% shorter; at 60% to 100%, 8% to 10% (the same measure with the values changed) |
 | F71 | Oracles | closed | true by the guide (Mercidarian best); D raised every doll |  |
-| F72 | Life Bringer | closed | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 41% before, 76% after X |  |
+| F72 | Life Bringer | closed | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 41% before, 76% after X |  |
 | F73 | Beast Binder | not a problem | false with a whip in hand: the best strike of the Joker against groups from C34 on |  |
 | F74 | Limit Field | closed | true |  |
-| F75 | Graceful Rose | closed | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 100% now (S) |  |
-| F76 | Surprise Fist | not a problem | tools/skill_worth.py (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Joker at C29 |  |
+| F75 | Graceful Rose | closed | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 100% now (S) |  |
+| F76 | Surprise Fist | not a problem | historical skill-worth measure (superseded by dtcli skill-battery) (worth beside the best strike of its own class, top level, boss and random battles): 100% for the Joker at C29 |  |
 | F77 | Musiy | not a problem | false after D: measured +15% shorter fights with it |  |
 | F78 | Double Attack | closed | W (+25%) |  |
 | F79 | Triple Attack | closed | W (+25%) |  |
@@ -189,7 +189,7 @@ Rows: 181. open: 0, closed: 82, not a problem: 86, out of the balance: 13. Open 
 |---|---|---|---|---|
 | J15 | Boss dispel | not a problem | partly true | True of the postgame, not of the story. The removal rides on a hit that also deals its damage, so it costs the boss nothing; what keeps a buff worth its turn is its length against how often that attack is picked, and the buffs measured still pay (docs/generated/SKILL_VALUE.md). Left as the game has it: it is what makes the postgame bosses different from the story ones |
 | J16 | Resistance wall | not a problem | false as stated: one postgame boss in 55 resists every element at 100 | A resistance of 100 halves the damage and never voids it (docs/FORMULAS.md 2.4), and every postgame boss but one leaves an element below 100 to strike. The wall the claim describes is one fight, not the postgame |
-| J17 | Area damage spikes | not a problem | true from C26 on | True from C26 on, and meant: one enemy action can fell the frailest member from full HP in most battles of the last third of the story, with Cover and the guards played. It is the reason the Valkyrie and the Paladin have a place (rows J04, F07), and the parties without them still win those fights (measures/WIN_RATES.md: Dual-Support 91% and Mage-Heavy 96% over the 17 bosses of the battery on the variant). Taking the spikes away would take the guard classes with them |
+| J17 | Area damage spikes | not a problem | true from C26 on | True from C26 on, and meant: one enemy action can fell the frailest member from full HP in most battles of the last third of the story, with Cover and the guards played. It is the reason the Valkyrie and the Paladin have a place (rows J04, F07), and the parties without them still win those fights (see measures/WIN_RATES.md over the 17 bosses of the battery on the variant). Taking the spikes away would take the guard classes with them |
 | F86 | Superboss openings | closed | true | An opening no party can answer is unfair, not hard: the guard that stops the spell cannot be up before the first turn. The fight keeps its spell and its difficulty, without the roll that decided it |
 | F95 | Anti-magic bosses | not a problem | partly true: she adds 20 to 40 points of wins at two of the four postgame fights, and is not needed in the story | She helps where magic is shut, as the guide says, but a party wins P07 and P25 without her (Meta 95% and 76%) |
 | S04 | Bosses beaten by levels and items | not a problem | false: on-level parties of several kinds win the story bosses | The figures of 2026-10-19 on the corrected engine (the earlier 42 of 44 predated the audit). |
@@ -249,7 +249,7 @@ Rows: 181. open: 0, closed: 82, not a problem: 86, out of the balance: 13. Open 
 |---|---|---|---|---|
 | J36 | Meals | closed | true: a meal lasts 15 to 50 steps, about one battle | The buff of a meal was gone a battle later. The count of steps is one byte that only the map uses; with it the buffs and the lowered stats a member carries out of a battle last 2.4 times as long on the map too, which is why it is 12 and not more, while poison and the other ailments that end on a roll keep their own count |
 | S18 | Bag of 30 slots | not a problem | partly true: 30 slots until quest rank 8, 50 at the end | The 30 is a constant of the program and the four enlargements are data of the quest ranks; a player who does quests has 35 slots by the middle of the story. Choosing what to carry back is part of an expedition, and the variant leaves it: a larger bag is a patch of the program for a matter of comfort |
-| S19 | Early economy | closed | partly true: five to eighteen battles pay one basic heal at the start | Battles pay little at the start; quests are where the early gold comes from, and the variant raises the gold of every quest by 40% (row S20) |
+| S19 | Early economy | closed | partly true: five to eighteen battles pay one basic heal at the start | Battles pay little at the start; quests are where the early gold comes from, and the variant raises the gold of 41 quests by ~20% (row S20) |
 | S20 | EXP of quests | not a problem | true as stated; not answered by a change of quests | Of the 471 quests none pays EXP as its reward in a field the variant writes: the reward is an item, a piece, EXP or gold by its kind (QuestData 0x38), and only gold was raised. The claim stands as the game has it; the members who are behind catch up in battles, not through quests |
 
 ## T15 Unique skills

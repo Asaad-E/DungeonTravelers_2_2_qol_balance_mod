@@ -196,7 +196,7 @@ namespace DtEngine
                     for (int i = 0; i < u.StCount; i++)
                     {
                         var s = u.St[u.StatusAt(i)];
-                        if (s.Source == unit && s.Skill == name) return true;
+                        if (s.Source == unit && (s.AttackId != T.NONE ? s.AttackId == id : s.Skill == name)) return true;
                     }
                 }
                 return false;
@@ -208,7 +208,7 @@ namespace DtEngine
                 if (attack == null) return false;
                 // with an attack already rolled, the command holds only when it names that attack (0x4321aa - 0x4321b7)
                 if (rolled >= 0 && rolled < unit.Attacks.Length && unit.Attacks[rolled] != id) return false;
-                unit.Uses.TryGetValue(attack.Name ?? "", out int used);
+                unit.UsesById.TryGetValue(id, out int used);
                 return used >= args[1];
             }
             if (cid == 9)
@@ -242,11 +242,27 @@ namespace DtEngine
             }
         }
 
-        static bool HasAnyAilment(Unit u)
+        static int AilmentCount(Unit u)
         {
-            foreach (int e in Battle.AILMENT_IDS) if (u.St[e] != null) return true;
-            return false;
+            int n = 0;
+            foreach (int e in Battle.AILMENT_IDS) if (u.St[e] != null) n++;
+            return n;
         }
+
+        static void MostAilments(Unit[] list, List<Unit> outList, bool skipPetrified = false)
+        {
+            int best = 0;
+            foreach (var u in list)
+            {
+                if (skipPetrified && u.St[120] != null) continue;
+                int c = AilmentCount(u);
+                if (c <= 0) continue;
+                if (c > best) { best = c; outList.Clear(); outList.Add(u); }
+                else if (c == best) outList.Add(u);
+            }
+        }
+
+        static bool HasAnyAilment(Unit u) => AilmentCount(u) > 0;
 
         static bool HasBuff(Unit unit)
         {
@@ -297,8 +313,15 @@ namespace DtEngine
                 case 1: Lowest(foes, u => u.HpRatio, found); break;
                 case 2: Lowest(allies, u => u.TpRatio, found); break;
                 case 3: Lowest(foes, u => u.TpRatio, found); break;
-                case 4: case 9: case 13: foreach (var u in allies) if (HasAnyAilment(u)) found.Add(u); break;
-                case 5: case 14: foreach (var u in foes) if (HasAnyAilment(u)) found.Add(u); break;
+                case 4: MostAilments(allies, found); break;
+                case 5: MostAilments(foes, found, skipPetrified: true); break;
+                case 9:
+                    // 0x433ee4 / 0x433f49: prioritize slow (122) / petrification (120) on allies before other ailments.
+                    foreach (var u in allies) if (u.St[122] != null || u.St[120] != null) found.Add(u);
+                    if (found.Count == 0) MostAilments(allies, found);
+                    break;
+                case 13: foreach (var u in allies) if (HasAnyAilment(u)) found.Add(u); break;
+                case 14: foreach (var u in foes) if (HasAnyAilment(u)) found.Add(u); break;
                 case 6: foreach (var u in foes) if (u.Chant != null) found.Add(u); break;
                 case 7: foreach (var u in foes) if (!u.Front) found.Add(u); break;
                 case 8:

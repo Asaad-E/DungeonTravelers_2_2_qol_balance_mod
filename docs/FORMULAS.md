@@ -124,13 +124,13 @@ hit:      A = accuracy of the spell + (own INT - target RES) * 0.002 + Loose Spi
           B = A * 100 + own enchantments - target enchantments
           final = (B * (1 + own magic accuracy buffs) / Nocturne) * (1 - target magic evasion buffs)
 attack A  = own INT * (2 + swing)
-attack B  = (attack A + power of the spell * (1 + Magic Mastery)) * (1 + modifiers) * (1 + enchantments * 0.01)
-attack C  = attack B * (1 + modifiers) * (1 + element boost)
+attack B  = (attack A + power of the spell * (1 + Magic Mastery) * (1 + 195 + 335 + joint power)) * (1 + enchantments * 0.01)
+attack C  = attack B * (1 + Spiritual Fantasia) * (1 + element boost)
 defence A = target RES * 1.5 * (1 + modifiers) * (1 + enchantments * 0.01)
 damage A  = attack C - defence A
 damage B  = damage A * (1 + power boost) * (1 + damage cut)
 damage C  = damage B * resistance                 resistance = (100 - resistance value * 0.5) * 0.01
-final     = damage C * (1 + other bonuses) * critical
+final     = damage C * (1 + other bonuses) * race guard * critical
 ```
 
 * A spell adds its **power** to `INT * 2` before the multipliers; defence is `RES * 1.5`, also subtracted.
@@ -142,9 +142,9 @@ final     = damage C * (1 + other bonuses) * critical
   spell critical, and the factor is 1.25. Neither figure comes from the skill. A critical spell breaks a chant with the
   same second roll of 33 in 100 as a critical blow (`0x44f13f`).
 * **Received magic damage** (`0x44e72e - 0x44e812`): enchantments 68 to 71 take 0.10, 0.05, 0.08 and 0.04 per piece, and
-  the sum stops at 0.25. The reductions by race of the attacker (enchantments 227 to 244) follow.
+  the sum stops at 0.25. The reductions by race of the attacker (enchantments 227 to 244) multiply final damage at `0x44ee20` (`mulss xmm0, [ebp+0x5c]`).
 * **Cap** (`0x44f0ce`): a spell whose skill carries effect 296 deals at most that value.
-* No floor was found at the end of this function: unlike a blow, a spell has no guaranteed minimum.
+* **Floor and missed spells** (`0x44ee33 - 0x44ee81`): a missed spell deals half damage (three quarters with enchantment 272, integer division toward zero); after that, any spell whose damage is 0 or less strikes for a random roll of 1 to 5 (`rand(5) + 1`).
 
 ## 4. Critical hits (`0x44f190`, returns the factor of the hit) **[message + code]**
 
@@ -180,13 +180,13 @@ wait until the next turn = 1 - value
 
 * **weight** is a virtual call of the unit (slot `0xf4`). For a player it is the delay multiplier of the rank of the equipped weapon (the float of `WeaponRankData`: 1.00 for A+ up to 2.90 for F). **For an enemy it is the float at `0x44` of `EnemyStatusData`** (`0x4f2150`, slot `0xf4` of the enemy class) **[code]**. Summons and mercenaries take a rank index from their own record and return the delay of that weapon rank (`0x4feeb0`, `0x5001d0`). Ordinary enemies carry weights in the range of the weapon ranks; bosses carry a fraction of the lightest weapon, which is why they act several times per turn of the party: it is one number per enemy, in data.
 * **The weapon term is subtracted from the base and grows with the level of the unit.** A slow weapon does not multiply the wait: it takes a bite of `weight / 12 * (1 + level / 100)` out of a base that depends on AGI. The slower the class, the larger the share it loses, and the bite doubles between level 1 and level 99. This is the mechanism behind the complaint about two-handed weapons, and it means that changing the twelve multipliers does not act as a percentage.
-* **`F1`, `F2`**: factors of the action; 1 for a plain action such as defending. `F1` is the speed of the action itself, the one the skill box shows (higher is sooner): `[vtable+0x154]` of the skill for a player (`0x449cb0`), the float at file offset 0x44 of the attack for an enemy (`0x449d53`), left at 1 for an enemy attack that is chanted. `F2` is the speed of the chant, used while the unit is chanting: `[vtable+0x158]` for a player spell (`0x449d9a`), the float at file offset 0x34 for a chanted enemy attack (`0x449e20`). Neither is a power.
+* **`F1`, `F2`**: factors of the action; 1 for a plain action such as defending. For a player skill (`0x449c81 - 0x449df6`), Techniques set `F1 = speed`, `F2 = 1`, while Magic post-cast leaves `F1 = 1` and sets `F2 = speed` (linear, never squared); for an enemy attack, `F1` is the float at file offset 0x44 (`0x449d53`), left at 1 when chanted. While chanting, `F2` is the chant speed (`[vtable+0x158]` for a player spell at `0x449d9a`, float at file offset 0x34 for a chanted enemy attack at `0x449e20`). Neither is a power.
 * **slow**: 0.5 while the unit has status 122, else 1 (`0x449e65`).
-* **buffs**, added together. Acting: effects 168 (speed buff), 217, 221, and 261 while HP is at or below 40% of max; plus 201, 340, 276, 277 and, in one case, 316. Chanting: effects 214, 265, 281.
+* **buffs**, added together. Acting: effects 168 (speed buff), 217, 221, and 261 while HP is at or below 40% of max; plus 201, 340, 276 (`Self Session`, `0x44a23d`), 277 (`On Stage`, `0x44a273`), and 316 (`Double Puppet`, `0x44a2a9 - 0x44a2ce`, added to the acting puppeteer while her active puppet list `[battleUnit+0xd4..0xd8]` is non-empty). Chanting: effects 214, 265, 281.
 * **enchantments**: acting, +0.10 per piece of enchantment 51 (speed UP), +0.05 per piece of 52, -0.10 per piece of 53; chanting, +0.20 per piece of 54 (chant speed UP), +0.10 per piece of 55, -0.20 per piece of 56. Each sum is kept between -0.5 and +0.5 (`0x44a1b3 - 0x44a1d4`): five speed UP or three chant speed UP reach the cap.
 * **The cap of 0.92 is the "soft cap" of the guides**: no unit waits less than 0.08. Past it, AGI and speed gear do nothing.
 * Enchantment 298: with it, a chant gets +0.25 on the value (still capped at 0.92) (`0x44a359 - 0x44a390`).
-* At the start of a battle the gauge of each player unit is random (`0x449194`); in one battle of five the order of everyone is random.
+* At the start of a battle (`0x449130`, see section 16.5): members, enemies, and dolls start at a plain-action `_SetTime`; summons and guest allies start at `(rand(500) + 1) / 1000` (unless battle byte `0x33` is set), and 1 in 5 battles all gauges are `rand(93) / 100`.
 
 **Check against a player test** (Japanese wiki, pages/105.html, "行動速度アップ・詠唱速度アップの上限について"). Unit A: rank A weapon, AGI 261, five speed UP. Unit B: rank B weapon, AGI 47, from 0 to 6 speed UP. Both only defend; the test counts the turns of A during 10 turns of B.
 
@@ -312,23 +312,22 @@ These take the target's maximum and a fraction; only effect 103 (6b) uses the ca
 * **Slow halves speed.**
 * **The wait until the next turn is `1 - value`, with the value capped at 0.92.** The formula reproduces a player test of the Japanese wiki to the decimal (section 5). Speed is not a ratio: near the cap a small gain in value is a large cut of the wait, which is why speed dominates.
 
-## 8. Left for later, and what needs each
+## 8. Historical phase-0 checklist (mostly resolved below)
 
-Phase 0 is closed with these points open. None enters the fight of a party against enemies as the simulator of
-phase 1 models it; each is read when the work named beside it starts.
+Most points originally left open at the close of phase 0 have since been read from the binary and documented in later sections:
 
-| Point | Needed by |
+| Point | Status / Section |
 |---|---|
-| HP of a summon (set after `0x4ffc90`); for a doll, the class and level its stats are computed from and what removes it before its turns end (11.1) | The rows about summons and dolls (S08, U02, J18) |
-| In the magic function, what the roll at `0x44ed8c` decides; what happens to a spell whose damage comes out at 0 or less | The rows about Limit Field and about magic against high RES |
-| Turn skipping (stun, paralysis): how many turns are lost | The rows about locks |
-| Zones: which side slots 3 and 5 stand for against 4 and 6; the map cells that carry each zone | The row about damage zones (F91) |
-| The source of the EXP bonus fraction and of effect 157 (6c) (the recovery after a battle is read: 12.14) | The TP economy and the pace targets (phase 3) |
-| Targeting: the code that returns the formation row (the eleven rows are read; which formation each stands for is taken from its figures); the names of the attack scopes | A check of 9.1 before the tank rows are closed |
-| In `_SetTime`, the branch for action kind 8 with the chant flag (`0x449e54`) | Enemies that chant |
-| The bonus per stat of a character at offsets 0xdc onwards (10) | Units of the simulator beyond growth, resets and equipment |
-| The enchantments `generated/ENCHANT_SIZES.md` lists with "?" | Each one when a change touches it |
-| Two groups of fields and two ints of the drops of an enemy (`tools/enemy_data.py`) | The economy |
+| HP of a summon; doll stat calculation and removal | Resolved: sections 11.1 (`0x4f3290`, `0x4f7c00`, `0x43caf0`) and 16.5 |
+| Magic roll at `0x44ed8c` (spell hit) and 0-damage floor (`1..5`) | Resolved: section 3 (`0x44ee33 - 0x44ee81`) |
+| Turn skipping (stun, paralysis) | Resolved: sections 12.4 and 16.5 (`0x436c40`, `0x4fa185`) |
+| Zones: slots 3/5 vs 4/6 and map cells | Resolved: sections 2.5 (`0x44fbb0`) and 16.2 (`tools/map_data.py`) |
+| EXP bonus fraction and effect 157 (6c) | Post-battle recovery read (12.14); EXP factors read (`ExePatches` X01–X08) |
+| Targeting formation rows and attack scopes | Resolved: sections 9.1 and 16.5 (`0x43fa64`, `0x43def0`) |
+| In `_SetTime`, action kind 8 with chant flag (`0x449e54`) | Resolved: section 5 and 16.5 (`0x449b0d - 0x449b38`) |
+| Character bonus per stat at offsets `0xdc` onwards | Resolved: section 10 (`0x4ce0a0`, character sub-event bonuses, capped at 50) |
+| Enchantments `generated/ENCHANT_SIZES.md` listed with "?" | Open only when a change touches an unread enchantment |
+| Unread drop-table fields of an enemy (`tools/enemy_data.py`) | Drop slots and steal weights read in `measures/drops_reading.md` and `measures/steal_reading.md` |
 
 ## 9. Enemy AI script (`EnemyAIData.bin`, `cbattleai2.cpp`)
 
@@ -443,9 +442,10 @@ more `EnemyAttackData` entry (`tools/enemy_data.py`, `tools/npc_data.py`).
   Hunter, Magical Princess, Sage, Mistress, Papillon). The same class therefore grows differently by route.
   `tools/class_data.py` holds the table; the figures are in `generated/BALANCE_BASELINE.md`.
 * The figure added to every stat (offset 0x120 of the character) is the bonus of the level resets (`0x4f94f0`):
-  each reset adds 5 when it gives up 98 levels or more, 4 from 89, 3 from 79, 2 from 69, 1 from 59, nothing below,
-  and the total stops at 50. It is added to HP and TP as to the other six. The three recipes of the player guide
-  (atwiki dt2-2 page 79) come out at exactly 50 with these steps. `gamedata/progression.py` holds the rule.
+  in vanilla each reset adds 5 when it gives up 98 levels or more, 4 from 89, 3 from 79, 2 from 69, 1 from 59, nothing below
+  (in the Balance variant, `ExePatches` X09–X12 raise the top four tiers to 6/5/4/3), and the total stops at 50.
+  It is added to HP and TP as to the other six. The three recipes of the player guide (atwiki dt2-2 page 79) come out
+  at exactly 50 with the vanilla steps. `gamedata/progression.py` holds the rule.
 * The bonus per stat at offsets 0xdc onwards of the character (HP 0xdc, TP 0xe0, ATK 0xe4, DEF 0xe8, INT 0xec, RES 0xf0, DEX 0xf4, AGI 0xf8, plus SP at 0x11c/0x124) is the permanent bonus granted by character sub-events. It is initialized to 0 via memset of 0x44 bytes at `0x4f43ea` (`0x4f4380`) and written by the script event opcode handler at `0x4ce0a0` (called by event interpreter `0x4c7620` at `0x4c9d88`), capped at 50 (`0x32`). The pieces equipped are added afterwards by `0x4f8270` (section 10.1). **[code]**
 
 ### 10.1 Stats of a piece of equipment (six getters from `0x4e12a0`) **[code]**
@@ -552,8 +552,9 @@ whole party (`0x4fab50`, `0x4e4dd0`), or by walking the effects of the action an
 
 ### 12.2 Number of hits (`0x417cd0`)
 
-A multi-hit effect sets the count: a fixed number, or a base plus a weighted pick from a table; while effect 210 is in
-the action the pick uses a second table that never gives the lowest count. A plain attack with none of them rolls
+A multi-hit effect sets the count: a fixed number, or a base plus a weighted pick from a table; while effect 210
+(`Barrage Rondo`, song status on the actor or effect on the action) is active, the pick uses a second table that never
+gives the lowest count. Effect 178 adds `int(value) + 1` hits. A plain attack with none of them rolls
 Triple Attack first (three more hits) and, failing that, Double Attack (two more), each a roll below 100 under
 `value * 100`. The tables are in the sheet.
 
@@ -574,8 +575,8 @@ What a success of those three does next is only partly followed (see the sheet).
 
 An ailment keeps a recovery chance. Each time its turn method runs, a roll below 100 under that chance ends it; on a
 failure the chance rises by 10. A piece with enchantment 265 makes the check come sooner outside battle (every two steps
-of its counter instead of five). Poison takes `int(max HP * 0.05)` when it ticks. Where the chance starts and how often
-the method runs are not followed.
+of its counter instead of five). Poison takes `int(max HP * 0.05)` (capped at 250, leaves at least 1 HP, see 16.4) when
+it ticks. The starting chance is the action's `turns` figure (`0x47bc03`, `0x48d211`; 0 for every player skill, see 16.5).
 
 ### 12.6 Statuses that change stats (`0x4fbdd0`)
 
@@ -781,14 +782,15 @@ Each unique skill is a status of one effect, and its value by level is its chanc
     Sugar Coma            a short-range hit on her: the attacker gets Slow and speed -0.2
     Furious Strike        her physical action ignores defence and cannot miss
     Alter Fate            a hit on her deals nothing
-    Usurper of Souls      before her action: the summoned units of the other side are removed
+    Usurper of Souls      before her action: removes one summoned doll of the other side (reworked in Balance into No Miracles Needed: Guts effect 254)
     Did You Call for Me?  after her action: she acts twice
     Undaunted Spirit      end of a turn, while fallen: she rises
     Tranquil Song         before her action: ATK -0.1 and INT -0.1 on every opponent
     Forerunner            a chanted spell is cast at once
     Overstock Clearance   before her action: she first uses an item of her stock
     Shadow Heart          before her action: a unit of her own joins to attack
-    Arcane Shield         the roll is 15 in 100, written in the program; the value is the share of the damage sent back
+    Arcane Shield         the roll is 15 in 100 in vanilla (25 in 100 in Balance via X13), skipped if fallen (`0x4251a8`); the value is the share of the damage sent back
+    Positive Trance       adds +1% damage per point of Pep above 100 in vanilla (85 in Balance via X17) divided by skill value
 
 Read on 2026-10-12 (`measures/qol_fields_reading.md` 5 to 7, checked against the program):
 
@@ -927,8 +929,9 @@ A **joint skill** is computed by the magic formula: when the action is a joint s
 * A grand sealbook has one enchantment (Scanner: 298, chants +0.25 on the gauge value; the roll before it is "a
   number below 10 under 10", so it always applies, `0x44a359 - 0x44a394`). From the GameFAQs guide (Grand Sealbooks):
   one is carried at a time, its enchantment acts for the whole party and its summon stands in the party.
-* The piece counter (`0x4f5470`) stops at one for an enchantment whose record has a flag; which field holds the flag
-  is not identified (bit 0 of file offset 0x20 is not it: Speed UP has it and stacks in the player test of 5).
+* The piece counter (`0x4f5470`) stops at one when bit 0 of the enchantment record's flags word (file offset `0x20`) is
+  cleared; when bit 0 is set (e.g., Speed UP, or `All stats` IDs 24–28 changed from `428` to `429` in Balance, see
+  `VERDICTS.md` S09), pieces stack across equipped items and sealbooks.
 
 ### 16.2 Zones that forbid magic
 
@@ -983,11 +986,13 @@ A sleeping unit takes none.
   joint power)) * (1 + enchantments * 0.01); attack C = attack B * (1 + Spiritual Fantasia) * (1 + element boost), the
   element boost being 0.2 for the matching element status 325 - 329 and 0.2 per piece of its "magic buff" enchantment
   (78 - 82). A spell of a doll adds 500 * (Doll Mastery + min(0.05, 0.02 * pieces of 304 + 0.01 * pieces of 305)) to its
-  power. Magic hit terms of decided: 167, 309, 197, 222, 278, 353; of the target: 165, 198. Magic defence modifiers:
+  power. Magic hit terms of the caster (`0x44d759 - 0x44d95f`): 167, 309, 197, 222, 337, plus 278 and 353 for Lullaby
+  (skill 205) only; of the target: 165, 198, 338. Magic defence modifiers:
   163, 196, 205, 336, 213, 220, 223.
 * Effects 71 and 136 (`0x44c60e - 0x44c6b6`): 71 adds its value to the "other" bonus once for every buff or debuff of
   the target; 136 adds value * the number of the hit record.
-* Dolls (`0x4f3290` from `0x4fd867`): a copy of the owner's character (class, level, bonuses, equipment), HP 9,999.
+* Dolls (`0x4f3290`, `0x4f7c00`, `0x4fd630`; see 11.1): copy the owner's class, previous class, level, and 6 equipment
+  slots, zero reset bonus (`0x120`) and sub-event bonuses (`0xdc`), skip passives, have weight `0.0` and HP 9,999.
 * Revive item (`0x5101a4 - 0x5101ca`): int(max HP * the value of the item / 100), at least 1.
 * Per-turn damage of effects 199 and 339 is capped by the Damage cap (296) of the action that put it.
 

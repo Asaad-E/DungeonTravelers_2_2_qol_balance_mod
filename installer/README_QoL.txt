@@ -33,9 +33,10 @@ your own copy.
 
 1. Close the game. It must be the original game, with no other mod installed.
 2. Unpack this archive into the folder of the game: the one that holds the game's .exe and its
-   folder "Data". You now have there "Install_QoL.bat", "Uninstall_DT22_Mod.bat" and a folder
-   "DT22_Mod".
-3. Run "Install_QoL.bat" (double click).
+   folder "Data". You now have there "Install_QoL.bat", "Uninstall_DT22_Mod.bat",
+   "Install_QoL.sh", "Uninstall_DT22_Mod.sh", and a folder "DT22_Mod".
+3. Run "Install_QoL.bat" (Windows, double click) or "./Install_QoL.sh" (Linux / Steam Deck,
+   requires python3).
 
 It checks every file it is about to change, keeps a copy of each original in "DT22_Mod\backup",
 and then changes them. If a file is not the original one it says which and changes nothing.

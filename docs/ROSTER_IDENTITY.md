@@ -280,9 +280,9 @@ books are listed by the level of their first form (the order the story offers th
 ## Mercenaries of the tavern
 
 A mercenary is hired for a number of battles and stands beside the summon (`docs/FORMULAS.md` 16.5). The bar offers,
-of her stages whose story flag is open, the highest (sheet `MercenaryUnlocks`). Every mercenary but the Three Fates
-must have a niche where she is worth her fee and none may dominate (decided 2026-10-17); the Three Fates are an
-in-game joke and stay one. The battery measures each against a band of points (`mercenary_band` of
+of her stages whose story flag is open, the highest (sheet `MercenaryUnlocks`). Every mercenary must have a niche
+where she is worth her fee and none may dominate (decided 2026-10-17); the Three Fates keep their break-taking
+gimmick (exempt from the standard band) while receiving stat, fee, and `Take Break` weight tuning so they remain usable. The battery measures each against a band of points (`mercenary_band` of
 `data_tables/measure_config.json`).
 
 ### Euphemia (stages 26 - 67; from C25)
@@ -456,10 +456,10 @@ in-game joke and stay one. The battery measures each against a band of points (`
 - **Keep:** her revive; a little lazy.
 
 ### Three Fates (85 - 93; from P24)
-- **Role:** three goddesses (?) with a little of everything and Take Break half the time.
-- **Niche:** none by design: an in-game joke ("they take a LOT of breaks"); exempt from the band.
+- **Role:** three goddesses (?) with a little of everything and `Take Break` (reduced from weight 50 to 20 in Balance, with INT x1.25, ATK x1.15, and lower hiring fees 9000 -> 7200 / 9999 -> 8000).
+- **Niche:** comic-relief postgame all-rounders ("they take a LOT of breaks"); exempt from the standard band while remaining viable when hired.
 - **Personality:** "eat like pigs and smell like a barn"; three-for-one.
-- **Keep:** the breaks.
+- **Keep:** the break-taking gimmick at a fairer rate and fee.
 
 ### Arjuna, Citlalinicue, Marduk, Yoshitsune (95 - 99)
 - **Role:** the four wandering warriors met as optional bosses; hired, each is a top fighter of her kind (archer, brute,

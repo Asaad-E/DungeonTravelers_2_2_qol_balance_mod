@@ -90,7 +90,7 @@ namespace DtEngine
         const int STAB_EVASION = 253;
         public const int SACRIFICE = 77, MAX_HP_DRAIN = 133, EXTRA_TARGETS = 137;
         const int SAMSARA_STEP = 50;
-        const int MURDER = 258, DARK_QUEST = 263, KNOCK_DOWN = 305, PRETEND = 310, DEMON_WALL = 356, ENEMIES_FLEE = 432;
+        const int MURDER = 258, DARK_QUEST = 263, KNOCK_DOWN = 305, PRETEND = 310, MURDER_LICENSE = 319, MURDER_LICENSE_ATTACK = 413, DEMON_WALL = 356, ENEMIES_FLEE = 432, ESCAPE_SELF = 11;
         const int DARK_AURA_TURNS = 4, ECSTASY_TURNS = 3;
         const int SLOW_TARGET_RECOVERY = 5, SLOW_TARGET_TURNS = 5, SUGAR_COMA_RECOVERY = 5, SUGAR_COMA_TURNS = 3;
         const int SPECIAL_SLEEP_EFFECT = 143, SPECIAL_SLEEP_START = 5;
@@ -563,7 +563,16 @@ namespace DtEngine
 
         void BeforeAction(Unit unit)
         {
-            if (!unit.HasUnique) return;
+            // Murder License (enemy passive 1580, effect 319; 0x437364..0x437488): before the bearer's own action,
+            // with no roll, executes its linked attack (413 Head Shot) on a random living opponent.
+            if (unit.Alive && unit.Has(MURDER_LICENSE))
+            {
+                var mlAtk = Data.GetAttack(MURDER_LICENSE_ATTACK);
+                var foes = TargetableArray(1 - unit.Side);
+                if (mlAtk != null && foes.Length > 0)
+                    Perform(new Action(unit, AKind.Enemy, mlAtk, 1) { Target = foes[Rng.ChoiceIndex(foes.Length)] });
+            }
+            if (!unit.Alive || !unit.HasUnique) return;
             int effect = unit.UniqueEffect;
             double value = unit.UniqueValue;
             if (effect == 446 && unit.Items.Count > 0 && Roll(value) && ChooseMember != null)
@@ -886,6 +895,11 @@ namespace DtEngine
             unit.LastSkillId = action.SourceId;
             unit.Uses.TryGetValue(key, out int used);
             unit.Uses[key] = used + 1;
+            if (action.Atk != null)
+            {
+                unit.UsesById.TryGetValue(action.Atk.Id, out int usedId);
+                unit.UsesById[action.Atk.Id] = usedId + 1;
+            }
             foreach (int randomEffect in RANDOM_MOVES)
             {
                 if (action.Has(randomEffect))
@@ -1709,7 +1723,6 @@ namespace DtEngine
             double powerBoost = First(action, unit, 27) + First(action, unit, 173);
             double cut = Math.Max(-0.25, -(0.10 * target.Pieces(68) + 0.05 * target.Pieces(69) + 0.08 * target.Pieces(70) + 0.04 * target.Pieces(71))) + target.StatusValue(183);
             double other = target.Value(190) + FullHpBonus(unit) + LevelBonus(unit, target);
-            cut += RaceGuard(unit, target) - 1.0;
             double targetMods;
             {
                 var s = new PySum();
@@ -1718,10 +1731,11 @@ namespace DtEngine
             }
             // the swing of a spell is the spell's own (0x44dbc3 - 0x44dc18), never the caster's weapon; an enemy attack has none
             double swing = expect || action.Skill == null ? 0.0 : SwingOf(action.Skill.Swing);
+            // RaceGuard is multiplicative in the magic damage formula (0x44ee20: mulss xmm0, [ebp+0x5c]), matching physical.
             return F.MagicDamage(unit.Stat(Unit.INT) * ZoneFactor(unit, action), power, target.Stat(Unit.RES), mastery, modifiers,
                                  Math.Min(50, 4 * unit.Pieces(37) + 2 * unit.Pieces(38)), second, elementBoost, targetMods,
                                  Math.Min(50, 4 * target.Pieces(41) + 2 * target.Pieces(42)), swing, powerBoost, cut, resistance,
-                                 critical, other);
+                                 critical, other) * RaceGuard(unit, target);
         }
 
         bool spellMissed;       // the spell being dealt missed its roll (Hits): its damage is cut, it cannot be critical
@@ -1892,6 +1906,8 @@ namespace DtEngine
         public double MeanHits(Action action)
         {
             bool rondo = action.Has(210) || action.Actor.Has(210);
+            double hits = 0.0;
+            bool multi = false;
             foreach (var m in MULTI_HIT)
             {
                 if (action.Has(m.effect))
@@ -1901,18 +1917,24 @@ namespace DtEngine
                     for (int i = 0; i < table.Length; i++) s.AddFloat(m.picks[i] * table[i]);
                     var t = new PySum();
                     foreach (var w in table) t.AddFloat(w);
-                    return m.baseHits + s.Result / t.Result;
+                    hits = m.baseHits + s.Result / t.Result;
+                    multi = true;
+                    break;
                 }
             }
-            double hits = action.Val(93, 1);
-            if (hits == 0) hits = 1;
-            if (action.Kind == AKind.Attack)
+            if (!multi)
             {
-                double triple = action.Actor.Has(252) ? Math.Min(1.0, action.Actor.Value(252)) : 0.0;
-                double dbl = action.Actor.Has(251) ? Math.Min(1.0, action.Actor.Value(251)) : 0.0;
-                hits = 3 * triple + 2 * dbl + (1 - triple) * (1 - dbl);
+                hits = action.Val(93, 1);
+                if (hits == 0) hits = 1;
+                if (action.Kind == AKind.Attack)
+                {
+                    double triple = action.Actor.Has(252) ? Math.Min(1.0, action.Actor.Value(252)) : 0.0;
+                    double dbl = action.Actor.Has(251) ? Math.Min(1.0, action.Actor.Value(251)) : 0.0;
+                    hits = 3 * triple + 2 * dbl + (1 - triple) * (1 - dbl);
+                }
             }
-            return hits;
+            if (action.Has(178)) hits += PyMath.Int(action.Val(178, 0)) + 1;
+            return Math.Max(1.0, hits);
         }
 
         int SpecialDamage(Action action, Unit target)
@@ -2046,7 +2068,7 @@ namespace DtEngine
                 if (target.Chant != null || Performing(target))
                     Interrupt(target, amount, critical, action == null || !action.Magic);
             }
-            if (target.HasUnique && target.UniqueEffect == 447 && unit != null && !unit.Has(307) && amount > 0)
+            if (target.Alive && target.HasUnique && target.UniqueEffect == 447 && unit != null && !unit.Has(307) && amount > 0)
             {
                 int arcaneSet = Options.HasArcaneChance ? Options.ArcaneChance : Data.ArcaneChance;
                 int arcane = arcaneSet != T.NONE && arcaneSet != 0 ? arcaneSet : ARCANE_CHANCE;
@@ -2231,6 +2253,11 @@ namespace DtEngine
                     ApplyAilment(unit, target, 116, SPECIAL_SLEEP_VALUE, action, SPECIAL_SLEEP_START);
                     continue;
                 }
+                if (effect == ESCAPE_SELF && target == unit)
+                {
+                    if (Options.RandomBattle) unit.Alive = false;
+                    continue;
+                }
                 if (effect == ENEMIES_FLEE && hostile)
                 {
                     if (Options.RandomBattle) target.Alive = false;
@@ -2278,7 +2305,7 @@ namespace DtEngine
                     if (song || dance) PerformSong(unit, action, target, effect, value, dance);
                     else
                     {
-                        var st = new Status(effect, value, action.Turns, unit, action.SourceName, kind) { IsInt = action.EffIsInt(i) };
+                        var st = new Status(effect, value, action.Turns, unit, action.SourceName, kind, action.Atk != null ? action.Atk.Id : T.NONE) { IsInt = action.EffIsInt(i) };
                         if (effect == 199 || effect == 200 || effect == 339)
                             if (action.TryVal(296, out double cap)) st.WithData(cap);
                         target.SetStatus(st);
@@ -2353,9 +2380,10 @@ namespace DtEngine
                     }
                 }
             }
+            int atkId = action.Atk != null ? action.Atk.Id : T.NONE;
             if (effect == 215 || effect == 216)
             {
-                target.SetStatus(new Status(effect, value, 0, singer, name, Status.SongKind).WithData(bonus));
+                target.SetStatus(new Status(effect, value, 0, singer, name, Status.SongKind, atkId).WithData(bonus));
             }
             else
             {
@@ -2366,7 +2394,7 @@ namespace DtEngine
                     case 202: sign = -1; scale = 100; break;
                     case 211: sign = 1; scale = 100; break;
                 }
-                var st = new Status(effect, value + sign * scale * bonus, 0, singer, name, Status.SongKind);
+                var st = new Status(effect, value + sign * scale * bonus, 0, singer, name, Status.SongKind, atkId);
                 if (effect == 199 && action.TryVal(296, out double cap)) st.WithData(cap);
                 target.SetStatus(st);
             }

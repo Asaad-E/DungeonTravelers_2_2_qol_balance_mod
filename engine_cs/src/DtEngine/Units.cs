@@ -15,14 +15,15 @@ namespace DtEngine
         public double Turns;
         public Unit Source;
         public string Skill;
+        public int AttackId = T.NONE;
         public int Kind = 5;
         public bool HasData;
         public double Data;
         public bool IsInt;            // the value is an int in the Python (taken as it is from the data)
 
-        public Status(int effect, double value, double turns = 0, Unit source = null, string skill = null, int kind = 5)
+        public Status(int effect, double value, double turns = 0, Unit source = null, string skill = null, int kind = 5, int attackId = T.NONE)
         {
-            Effect = effect; Value = value; Turns = turns; Source = source; Skill = skill; Kind = kind;
+            Effect = effect; Value = value; Turns = turns; Source = source; Skill = skill; Kind = kind; AttackId = attackId;
         }
 
         public Status WithData(double data) { HasData = true; Data = data; return this; }
@@ -88,6 +89,7 @@ namespace DtEngine
         public int TurnsTaken;
         public int LastSkillId = T.NONE;
         public Dictionary<string, int> Uses = new Dictionary<string, int>();
+        public Dictionary<int, int> UsesById = new Dictionary<int, int>();
         public HashSet<long> OnceDone = new HashSet<long>();
         public bool EcstasyDone;
         public int SamsaraState;               // 0 None, 1 False, 2 a list
@@ -153,7 +155,7 @@ namespace DtEngine
             c.St = NoStatuses; c.stOrder = Array.Empty<int>(); c.StCount = 0;
             pvShared = true; c.pvShared = true;
             c.Song = new List<string>(); c.Dance = new List<string>();
-            c.Uses = new Dictionary<string, int>(); c.OnceDone = new HashSet<long>();
+            c.Uses = new Dictionary<string, int>(); c.UsesById = new Dictionary<int, int>(); c.OnceDone = new HashSet<long>();
             c.ProvokedBy = new List<(Unit, double)>();
             c.Items = new Dictionary<int, int>(Items);
             c.Chant = null; c.Owner = null; c.ShadowOf = null; c.AiTargets = null; c.Samsara = null; c.Roster = null;
