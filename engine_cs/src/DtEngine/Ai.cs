@@ -177,6 +177,18 @@ namespace DtEngine
             {
                 int id = SkillOf(unit, args[0]);
                 var attack = id != T.NONE ? battle.Data.GetAttack(id) : null;
+                if (attack != null)
+                {
+                    // 0x432028..0x432156: when the attack carries effect 146 (0x92, doll summon), check active dolls owned by self with matching summon attack id.
+                    bool summonsDoll = false;
+                    for (int k = 0; k < attack.EffId.Length; k++) if (attack.EffId[k] == 146) { summonsDoll = true; break; }
+                    if (summonsDoll)
+                    {
+                        foreach (var u in battle.Units)
+                            if (u.Alive && u.Kind == Kind.Doll && u.Owner == unit && u.SummonAttackId == id) return true;
+                        return false;
+                    }
+                }
                 string name = attack != null ? attack.Name : null;
                 foreach (var u in battle.Units)
                 {

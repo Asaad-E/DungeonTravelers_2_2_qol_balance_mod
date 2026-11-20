@@ -294,6 +294,8 @@ def boss_rows_inputs(vanilla, variant, config):
     def with_flags(data):
         data.arcane_chance = variant_mod.arcane_chance()
         data.interrupt_product = variant_mod.interrupt_product()
+        data.third_eye_dispel = variant_mod.third_eye_dispel()
+        data.positive_trance_threshold = variant_mod.positive_trance_threshold()
         return data
 
     whole_variant = with_flags(variant_mod.apply(vanilla, rows))
@@ -326,7 +328,9 @@ def boss_rows_inputs(vanilla, variant, config):
 def flags_of(data):
     return {'arcane_chance': getattr(data, 'arcane_chance', None),
             'interrupt_product': bool(getattr(data, 'interrupt_product', False)),
-            'survival_guard': bool(getattr(data, 'survival_guard', False))}
+            'survival_guard': bool(getattr(data, 'survival_guard', False)),
+            'third_eye_dispel': bool(getattr(data, 'third_eye_dispel', False)),
+            'positive_trance_threshold': int(getattr(data, 'positive_trance_threshold', 100))}
 
 
 def snapshot():

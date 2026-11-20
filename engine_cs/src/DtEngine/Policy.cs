@@ -1029,7 +1029,9 @@ namespace DtEngine
             foreach (var x in battle.Units)
             {
                 if (!Battle.IsPuppet(x) || x.Side != unit.Side) continue;
-                if (x.Doll.Skill == skill.Id || skill.HasEffect(x.Doll.Effect)) return true;
+                // AddPuppetCommand (0x43c83c..0x43c86e): guest/summon puppets do not conflict with party members' puppets.
+                if (x.Owner != null && (x.Owner.Kind == Kind.Member) != (unit.Kind == Kind.Member)) continue;
+                if ((x.Doll != null && x.Doll.Skill == skill.Id) || skill.HasEffect(x.PuppetEffect)) return true;
             }
             return false;
         }

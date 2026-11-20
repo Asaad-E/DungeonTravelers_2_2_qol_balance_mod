@@ -313,7 +313,8 @@ namespace DtEngine
 
         // flags of the variant
         public int ArcaneChance = T.NONE;
-        public bool InterruptProduct, SurvivalGuard;
+        public bool InterruptProduct, SurvivalGuard, ThirdEyeDispel;
+        public int PositiveTranceThreshold = 100;
 
         /// <summary>The same data with the stats of some enemy records changed (GameData.with_changes on 'enemies'): a copy that shares everything else.
         /// changes: enemy id -> field -> value; the fields are those of the record (hp, atk, def, int, res, dex, agi, res_slash ... res_lightning).</summary>

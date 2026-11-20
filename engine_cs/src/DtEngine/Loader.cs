@@ -294,6 +294,8 @@ namespace DtEngine
             d.ArcaneChance = I(flags.GetProperty("arcane_chance"));
             d.InterruptProduct = B(flags.GetProperty("interrupt_product"));
             d.SurvivalGuard = B(flags.GetProperty("survival_guard"));
+            d.ThirdEyeDispel = flags.TryGetProperty("third_eye_dispel", out var ted) && B(ted);
+            d.PositiveTranceThreshold = flags.TryGetProperty("positive_trance_threshold", out var ptt) ? I(ptt) : 100;
 
             foreach (var s in e.GetProperty("skills").EnumerateArray())
             {

@@ -236,6 +236,8 @@ def balance_data(data, path=CHANGES):
     out.arcane_chance = arcane_chance()
     out.interrupt_product = interrupt_product()
     out.survival_guard = lever_patched('L46')
+    out.third_eye_dispel = third_eye_dispel()
+    out.positive_trance_threshold = positive_trance_threshold()
     return out
 
 
@@ -253,8 +255,22 @@ def interrupt_product():
 
 
 def arcane_chance():
-    """The roll of Arcane Shield on the variant: the byte the set balance of the sheet ExePatches puts at the
-    place of lever L38, or None when the set leaves it alone."""
+    """The roll of Arcane Shield on the variant: the byte row X13 of the sheet ExePatches puts at 0x424768,
+    or None when the set leaves it alone."""
     import exe_patch
-    row = next((p for p in exe_patch.patches('balance') if p['lever'] == 'L38'), None)
+    row = next((p for p in exe_patch.patches('balance') if p['id'] == 'X13'), None)
     return row['new'][-1] if row else None
+
+
+def third_eye_dispel():
+    """Whether the set balance of the sheet ExePatches enables Third Eye Wide dispel (row X16, 0x47ee73)."""
+    import exe_patch
+    return any(p['id'] == 'X16' for p in exe_patch.patches('balance'))
+
+
+def positive_trance_threshold():
+    """The Pep activation threshold of Positive Trance on the variant: row X17 of ExePatches (0x44ccd2),
+    or 100 (vanilla) when the set leaves it alone."""
+    import exe_patch
+    row = next((p for p in exe_patch.patches('balance') if p['id'] == 'X17'), None)
+    return int(round(row['float_after'])) if row and row['float_after'] is not None else 100

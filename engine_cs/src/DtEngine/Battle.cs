@@ -14,7 +14,8 @@ namespace DtEngine
         public bool Boss;
         public double MaxTime = 400.0;
         // flags of the data that a job sets for its own battles (null: those of the data)
-        public bool? SurvivalGuard, InterruptProduct;
+        public bool? SurvivalGuard, InterruptProduct, ThirdEyeDispel;
+        public int? PositiveTranceThreshold;
         public bool HasArcaneChance;
         public int ArcaneChance = T.NONE;
         public bool Record;                 // keep the recorder of the battle (sim.battle.Recorder)
@@ -367,8 +368,10 @@ namespace DtEngine
                 }
                 else if (action.Kind == AKind.Skill || action.Kind == AKind.Enemy)
                 {
-                    f1 = action.Speed + (unit.HasUnique && unit.UniqueEffect == 352 ? unit.Value(352) : 0.0);
-                    if (action.Skill != null && action.Skill.IsMagic) f2 = f1;
+                    // _SetTime (0x449c81..0x449df6): Techniques/Joint set F1=speed, F2=1.0; Magic post-cast leaves F1=1.0 and sets F2=speed.
+                    double spd = action.Speed + (unit.HasUnique && unit.UniqueEffect == 352 ? unit.Value(352) : 0.0);
+                    if (action.Skill != null && action.Skill.IsMagic) { f1 = 1.0; f2 = spd; }
+                    else { f1 = spd; f2 = 1.0; }
                     bool song = false, dance = false;
                     foreach (int e in SONG_EFFECTS) if (action.Has(e)) { song = true; break; }
                     if (song) bonus += unit.Value(276);
@@ -529,7 +532,8 @@ namespace DtEngine
                 {
                     int[] choices = { 113, 115, 116, 114, 117, 118, 74 };
                     int effect = choices[Rng.ChoiceIndex(choices.Length)];
-                    if (effect == 74) { if (Roll(0.75)) Dispel(unit); }
+                    // X16 (0x47ee73): vanilla skips buff dispel; Balance NOPs the jump (75% dispel chance).
+                    if (effect == 74) { if ((Options.ThirdEyeDispel ?? Data.ThirdEyeDispel) && Roll(0.75)) Dispel(unit); }
                     else ApplyAilment(other, unit, effect, 0.75, null);
                 }
             }
@@ -1522,8 +1526,9 @@ namespace DtEngine
                 Unit wall = DemonWallOf(target, action.Actor);
                 if (wall != null) amount = Math.Max(0, PyMath.Int(amount + amount * wall.Value(DEMON_WALL)));
                 var actor = action.Actor;
-                if (!action.Magic && actor.HasUnique && actor.UniqueEffect == 440 && actor.Pep > 85)
-                    amount += PyMath.Int(amount * (actor.Pep - 85) / Math.Max(1.0, actor.UniqueValue) / 100.0);
+                int ptThresh = Options.PositiveTranceThreshold ?? Data.PositiveTranceThreshold;
+                if (!action.Magic && actor.HasUnique && actor.UniqueEffect == 440 && actor.Pep > ptThresh)
+                    amount += PyMath.Int(amount * (actor.Pep - ptThresh) / Math.Max(1.0, actor.UniqueValue) / 100.0);
             }
             if (target.St[116] != null && !special) amount = amount * F.SLEEP_NUM / F.SLEEP_DEN;
             if (!special && action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) amount += PyMath.Int(amount * F.AILING_SHARE);
@@ -1616,8 +1621,9 @@ namespace DtEngine
                 if (any) other += min;
             }
             // Positive Trance is an integer step after the cut (0x44ccb2, P6.9 of the audit); the expectation keeps it in the bonus
-            if (expect && unit.HasUnique && unit.UniqueEffect == 440 && unit.Pep > 85)
-                other += (unit.Pep - 85) / Math.Max(1.0, unit.UniqueValue) / 100.0;
+            int ptThreshExp = Options.PositiveTranceThreshold ?? Data.PositiveTranceThreshold;
+            if (expect && unit.HasUnique && unit.UniqueEffect == 440 && unit.Pep > ptThreshExp)
+                other += (unit.Pep - ptThreshExp) / Math.Max(1.0, unit.UniqueValue) / 100.0;
             if (action.Has(136)) other += action.Val(136, 0) * index;
             if (action.Has(DARK_QUEST) || unit.Has(DARK_QUEST))
                 other += First(action, unit, DARK_QUEST) * CountAilments(unit);
@@ -2578,10 +2584,41 @@ namespace DtEngine
         // --- dolls, random moves, items --------------------------------------------------------------------------
         const int MAX_ACTIVE_DOLLS = 12; // CBattleUnitCtrl::AddDoll (0x43a1a0): units 2000..2999 < 0xc
 
+        // Exact EnemyAttackData summon -> action attack IDs decoded from Command::CCommand_0146::AddTask
+        // (guest/summon branch 0x48490a..0x4852c0, enemy branch 0x4852ca..0x485c17).
+        static readonly Dictionary<int, int[]> EnemyDollActions = new Dictionary<int, int[]>
+        {
+            { 690, new[] { 307 } }, { 691, new[] { 308 } },
+            { 693, new[] { 310 } }, { 694, new[] { 311 } },
+            { 696, new[] { 313 } }, { 697, new[] { 314 } },
+            { 699, new[] { 316 } }, { 700, new[] { 317 } },
+            { 702, new[] { 319 } }, { 703, new[] { 320 } },
+            { 705, new[] { 322 } }, { 706, new[] { 323 } },
+            { 708, new[] { 737 } }, { 709, new[] { 738 } },
+            { 711, new[] { 740 } }, { 712, new[] { 741 } },
+            { 717, new[] { 1480 } }, { 718, new[] { 1481 } }, { 719, new[] { 1482 } },
+            { 721, new[] { 1484 } }, { 722, new[] { 1485 } }, { 723, new[] { 1486 } },
+            { 725, new[] { 1488 } }, { 726, new[] { 1489 } }, { 727, new[] { 1490 } },
+            { 729, new[] { 1492 } }, { 730, new[] { 1493 } }, { 731, new[] { 1494 } },
+            { 733, new[] { 1590, 1594, 1598, 1602, 1606 } },
+            { 734, new[] { 1591, 1595, 1599, 1603, 1607 } },
+            { 735, new[] { 1592, 1596, 1600, 1604, 1608 } },
+            { 1789, new[] { 1801 } }, { 1790, new[] { 1802 } }, { 1791, new[] { 1803 } },
+        };
+
+        static readonly int[] PUPPET_EFFECTS = { 228, 229, 230, 231, 232, 233 };
+
+        static bool IsArrowAttack(int attackId)
+            => attackId == 696 || attackId == 697 || attackId == 1789 || attackId == 1790 || attackId == 1791;
+
+        static bool SamePuppetGroup(Unit a, Unit b)
+            // AddPuppetCommand (0x43c83c..0x43c86e): members (0x43e6d0(1,1)), guests/summons (0x43b3a0), and enemies (0x43e6d0(0,0)) each have their own pool.
+            => a != null && b != null && a.Side == b.Side && (a.Kind == Kind.Member) == (b.Kind == Kind.Member);
+
         /// <summary>True when <paramref name="u"/> is an active puppet doll (effects 228..233),
-        /// distinct from Star Dust Arrow, Genjimaru, and Lilian's shadow.</summary>
+        /// distinct from Star Dust Arrow, Genjimaru, Lilian's shadow, and non-puppet enemy summons.</summary>
         internal static bool IsPuppet(Unit u)
-            => u.Kind == Kind.Doll && u.Alive && !u.Arrow && !u.Genjimaru && u.ShadowOf == null && u.Doll != null && u.Doll.Effect != T.NONE;
+            => u.Kind == Kind.Doll && u.Alive && !u.Arrow && !u.Genjimaru && u.ShadowOf == null && u.PuppetEffect != T.NONE;
 
         int ActiveDollCount()
         {
@@ -2590,19 +2627,19 @@ namespace DtEngine
             return count;
         }
 
-        void RemoveSameTypeDolls(int side, int effect)
+        void RemoveSameTypeDolls(Unit owner, int effect)
         {
-            // AddPuppetCommand (0x43c862 - 0x43c911): removes any active doll of the same effect anywhere on the owner's side.
+            // AddPuppetCommand (0x43c83c - 0x43c911): removes any active doll of the same effect in the owner's pool.
             var same = new List<Unit>();
             foreach (var u in Units)
-                if (IsPuppet(u) && u.Side == side && u.Doll.Effect == effect) same.Add(u);
+                if (IsPuppet(u) && u.PuppetEffect == effect && SamePuppetGroup(u.Owner, owner)) same.Add(u);
             foreach (var u in same) RemoveDoll(u);
         }
 
         void MakeDoll(Action action)
         {
             var owner = action.Actor;
-            if (owner.Side == Unit.PARTY && owner.Kind != Kind.Member)
+            if (action.Kind == AKind.Enemy || owner.Kind != Kind.Member)
             {
                 MakeGuestDoll(action);
                 return;
@@ -2619,7 +2656,7 @@ namespace DtEngine
             }
             else
             {
-                RemoveSameTypeDolls(owner.Side, doll.Effect);
+                RemoveSameTypeDolls(owner, doll.Effect);
                 int keep = owner.Has(313) ? 2 : 1;
                 var own = new List<Unit>();
                 foreach (var u in Units) if (IsPuppet(u) && u.Owner == owner) own.Add(u);
@@ -2646,59 +2683,48 @@ namespace DtEngine
         void MakeGuestDoll(Action action)
         {
             var owner = action.Actor;
-            DollRec doll = null;
-            foreach (var d in Data.Dolls) if (d.Effect != T.NONE && action.Has(d.Effect)) { doll = d; break; }
-            if (doll == null) return;
-            double lifeValue = action.Val(147, 3);
-            int life = PyMath.Int(lifeValue != 0 ? lifeValue : 3);
-            int level = doll.Turns.Length;
-            for (int k = 0; k < doll.Turns.Length; k++) if (doll.Turns[k] >= life) { level = k + 1; break; }
-            RemoveSameTypeDolls(owner.Side, doll.Effect);
-            var list = new List<Unit>();
-            foreach (var u in Units) if (u.Owner == owner && IsPuppet(u)) list.Add(u);
-            foreach (var u in list) RemoveDoll(u);
+            if (!EnemyDollActions.TryGetValue(action.SourceId, out var actionIds)) return;
 
-            int eid = doll.Effect switch
-            {
-                231 => 307, // Catalina
-                228 => 308, // Spartan
-                229 => 310, // Oracles
-                233 => 311, // Musiy
-                _ => T.NONE
-            };
+            int puppetEffect = T.NONE;
+            foreach (int pe in PUPPET_EFFECTS)
+                if (action.Has(pe)) { puppetEffect = pe; break; }
+            bool arrow = IsArrowAttack(action.SourceId);
 
-            Unit unit;
-            if (eid != T.NONE && Data.Enemies.TryGetValue(eid, out var enemy))
+            if (puppetEffect != T.NONE)
             {
-                unit = new Unit(doll.Name, owner.Side, enemy.Level, UnitFactory.DOLL_HP, 0, enemy.Stats, enemy.Resist, enemy.Weight, enemy.Swing, enemy.Race, Kind.Doll);
-                unit.Owner = owner;
-                unit.Doll = doll;
-                unit.DollLevel = level;
-                unit.AttackRange = doll.Range == "short" ? T.SHORT : doll.Range == "mid" ? T.MID : doll.Range == "long" ? T.LONG : T.SHORT;
-                unit.Front = owner.Front;
-                unit.Attacks = enemy.Attacks;
-                unit.Script = enemy.Script;
-                unit.ImmuneMask = enemy.ImmuneMask;
-                if (enemy.Passives != null)
+                RemoveSameTypeDolls(owner, puppetEffect);
+                int keep = owner.Has(313) ? 2 : 1; // 0x43c920: Double Puppet (e.g. Paracas passive 1561)
+                var own = new List<Unit>();
+                foreach (var u in Units) if (IsPuppet(u) && u.Owner == owner) own.Add(u);
+                while (own.Count >= keep)
                 {
-                    foreach (int attackId in enemy.Passives)
-                    {
-                        var attack = Data.GetAttack(attackId);
-                        if (attack != null)
-                            for (int k = 0; k < attack.EffId.Length; k++) unit.SetPassive(attack.EffId[k], attack.EffValue[k], attack.EffIsInt[k]);
-                    }
+                    RemoveDoll(own[0]);
+                    own.RemoveAt(0);
                 }
             }
-            else
+
+            double lifeValue = action.Val(147, 3);
+            int life = PyMath.Int(lifeValue != 0 ? lifeValue : 3);
+            double countValue = action.Val(146, 1);
+            int count = Math.Max(1, PyMath.Int(countValue != 0 ? countValue : 1));
+            string name = action.Atk != null && !string.IsNullOrEmpty(action.Atk.Name) ? action.Atk.Name : "Doll";
+
+            for (int i = 0; i < count; i++)
             {
-                unit = UnitFactory.BuildDoll(owner, doll, level, Data);
+                if (ActiveDollCount() >= MAX_ACTIVE_DOLLS) break;
+                // CGamePlayerStatusOtherETCDoll (0x4fe5f0) / CGameEnemyStatusETCDoll (0x4fd3d0): copies owner stats, HP=9999, weight=0.0 (0x4fd630).
+                var unit = new Unit(name, owner.Side, owner.Level, UnitFactory.DOLL_HP, 0, owner.Base, null, 0.0, 0.0, owner.Race, Kind.Doll);
+                unit.Owner = owner;
+                unit.Arrow = arrow;
+                unit.Life = life;
+                unit.SummonAttackId = action.SourceId;
+                unit.PuppetEffect = puppetEffect;
+                unit.Attacks = actionIds;
+                unit.Front = owner.Front;
+                unit.Position = Units.Count;
+                unit.NextTime = Time + Wait(unit);
+                AddUnit(unit);
             }
-            if (ActiveDollCount() >= MAX_ACTIVE_DOLLS) return;
-            unit.Arrow = false;
-            unit.Life = life;
-            unit.Position = Units.Count;
-            unit.NextTime = Time + Wait(unit);
-            AddUnit(unit);
         }
 
         void RemoveDoll(Unit doll)
@@ -2723,6 +2749,25 @@ namespace DtEngine
 
         Action DollAction(Unit doll)
         {
+            if (doll.SummonAttackId != T.NONE)
+            {
+                if (doll.Attacks == null || doll.Attacks.Length == 0) return new Action(doll, AKind.Attack);
+                int chosenAtk = doll.Attacks[Rng.ChoiceIndex(doll.Attacks.Length)];
+                var atk = Data.GetAttack(chosenAtk);
+                if (atk == null) return null;
+                var atkAction = new Action(doll, AKind.Enemy, atk, 1);
+                if (atkAction.TargetCode == T.ALLY)
+                {
+                    Unit best = null;
+                    foreach (var m in AlliesArray(doll))
+                    {
+                        if (NotACandidate(m)) continue;
+                        if (best == null || m.HpRatio < best.HpRatio) best = m;
+                    }
+                    atkAction.Target = best;
+                }
+                return atkAction;
+            }
             var actions = doll.Doll.Actions;
             if (actions.Length == 0) return new Action(doll, AKind.Attack);
             int chosen = actions[Rng.ChoiceIndex(actions.Length)];

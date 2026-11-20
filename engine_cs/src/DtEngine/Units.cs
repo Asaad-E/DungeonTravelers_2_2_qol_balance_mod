@@ -108,6 +108,7 @@ namespace DtEngine
         public string Role = "attacker";
         public bool HasRole;
         public int[] Raw;
+        public int[] DollBase;        // exact player-doll base stats from 0x4f7c00 (growth without reset bonus + copied equipment + class mods + equip enchants)
         public int Sealbook = T.NONE;
         public int EnemyId = T.NONE;
         public bool IsGuest;          // a hired guest ally (built with the kind of the summon)
@@ -117,6 +118,8 @@ namespace DtEngine
         public bool Snack;
         public DollRec Doll;
         public int DollLevel;
+        public int SummonAttackId = T.NONE;    // EnemyAttackData id that summoned a guest/enemy doll (0x4320e3 / 0x432111)
+        public int PuppetEffect = T.NONE;      // 228..233 puppet effect id for same-type uniqueness and owner cap (0x43c816)
         public bool Arrow, Genjimaru;
         public Unit ShadowOf;
         public int Extra;
@@ -465,7 +468,10 @@ namespace DtEngine
             double PV(int e, double d) => double.IsNaN(passiveValues[e]) ? d : passiveValues[e];
             double mastery = PV(MASTERY, 0.0) + PV(MASTERY_ALL, 0.0);
             var totals = (int[])characterStats.Clone();
+            var dollTotals = new int[6];
+            Array.Copy(grown, dollTotals, 6);
             var enchants = new Dictionary<int, int>();
+            var dollEnchants = new Dictionary<int, int>();
             var enchantOrder = new List<int>();
             Piece weapon = null;
             double yearning = PV(YEARNING, 0.0);
@@ -473,11 +479,16 @@ namespace DtEngine
             // enchantment 264 on any piece, the sealbook, the grand sealbook or the forge adds 0.02 to the class weapon modifier
             // (once, not per piece: 0x4f7fb0 - 0x4f7fd9)
             double modifierUp = Carries(F.WEAPON_MODIFIER_ENCHANT) ? F.WEAPON_MODIFIER_UP : 0.0;
+            bool dollCarries264 = equipment.Any(e => data.Equipment[e.EquipId].Enchants.Contains(F.WEAPON_MODIFIER_ENCHANT))
+                                  || (forged != null && forged.TryGetValue(F.WEAPON_MODIFIER_ENCHANT, out int f264) && f264 > 0);
+            double dollModifierUp = dollCarries264 ? F.WEAPON_MODIFIER_UP : 0.0;
             var gains = new int[6];
+            var dollGains = new int[6];
             foreach (var use in equipment)
             {
                 var piece = data.Equipment[use.EquipId];
-                int[] stats = PieceStats(piece, use.Upgrade);
+                int[] rawStats = PieceStats(piece, use.Upgrade);
+                int[] stats = (int[])rawStats.Clone();
                 if (use.Slot == 0 && piece.Category == 0)
                 {
                     weapon = piece;
@@ -490,34 +501,57 @@ namespace DtEngine
                     for (int s = 0; s < 6; s++) stats[s] = PyMath.Int(stats[s] * share);
                 }
                 for (int s = 0; s < 6; s++) totals[s] += stats[s];
+                // CGamePlayerStatusETCDoll (0x4f3456..0x4f347d, 0x4f7c00): copies all 6 equipment slots without passives (mastery=0, dualWield=0 -> slot 1 weapon skipped at 0x4f65a0)
+                bool dollPieceActive = !(use.Slot == 1 && piece.Category == 0);
+                if (dollPieceActive)
+                    for (int s = 0; s < 6; s++) dollTotals[s] += rawStats[s];
                 foreach (int e in piece.Enchants)
                 {
                     enchants.TryGetValue(e, out int c);
                     enchants[e] = c + 1;
+                    dollEnchants.TryGetValue(e, out int dc);
+                    dollEnchants[e] = dc + 1;
                 }
                 foreach (var entry in modifiers)
                 {
                     bool matches = entry.Slot == use.Slot && (use.Slot != 0 || piece.Type == entry.Type)
                                    && (use.Slot != 1 || piece.Category == 1);
                     if (matches)
+                    {
                         for (int s = 0; s < 6; s++)
+                        {
                             if (stats[s] > 0)
                                 gains[s] += Math.Max(0, PyMath.Int((characterStats[s] + stats[s]) * (entry.Modifier + 0.01 * yearning + modifierUp)));
+                            if (dollPieceActive && rawStats[s] > 0)
+                                dollGains[s] += Math.Max(0, PyMath.Int((grown[s] + rawStats[s]) * (entry.Modifier + dollModifierUp)));
+                        }
+                    }
                 }
             }
             for (int s = 0; s < 6; s++) totals[s] += gains[s];
+            for (int s = 0; s < 6; s++) dollTotals[s] += dollGains[s];
             if (sealbook != T.NONE && data.SealbookEnchants.TryGetValue(sealbook, out var sbe))
                 foreach (int e in sbe) { enchants.TryGetValue(e, out int c); enchants[e] = c + 1; }
             if (partyEnchants != null)
                 foreach (int e in partyEnchants) { enchants.TryGetValue(e, out int c); enchants[e] = c + 1; }
             if (forged != null)
-                foreach (var kv in forged) { enchants.TryGetValue(kv.Key, out int c); enchants[kv.Key] = c + kv.Value; }
+                foreach (var kv in forged)
+                {
+                    enchants.TryGetValue(kv.Key, out int c); enchants[kv.Key] = c + kv.Value;
+                    dollEnchants.TryGetValue(kv.Key, out int dc); dollEnchants[kv.Key] = dc + kv.Value;
+                }
             var counted = new Dictionary<int, int>();
             foreach (var kv in enchants) counted[kv.Key] = data.EnchantStacks.Contains(kv.Key) ? kv.Value : Math.Min(kv.Value, 1);
+            var dollCounted = new Dictionary<int, int>();
+            foreach (var kv in dollEnchants) dollCounted[kv.Key] = data.EnchantStacks.Contains(kv.Key) ? kv.Value : Math.Min(kv.Value, 1);
             var bonusTotal = new int[6];
             var resistBonus = new int[8];
             EnchantBonus(counted, characterStats, hp, tp, front, bonusTotal, out int bonusHp, out int bonusTp, resistBonus);
             for (int s = 0; s < 6; s++) totals[s] += bonusTotal[s];
+            var dollBonusTotal = new int[6];
+            var dollResistUnused = new int[8];
+            EnchantBonus(dollCounted, grown, grown[6], grown[7], front, dollBonusTotal, out _, out _, dollResistUnused);
+            for (int s = 0; s < 6; s++) dollTotals[s] += dollBonusTotal[s];
             hp += bonusHp; tp += bonusTp;
             var resist = new int[8];
             for (int i = 0; i < 8; i++) resist[i] = crownBonus + resistBonus[i];
@@ -527,6 +561,7 @@ namespace DtEngine
             unit.AdoptPassives(passiveValues);
             unit.PvInt = passiveInt;
             unit.Raw = (int[])characterStats.Clone();
+            unit.DollBase = dollTotals;
             if (counted.Count > 0)
             {
                 var pieces = new int[GameData.MaxEnchant];
@@ -659,7 +694,12 @@ namespace DtEngine
         public static Unit BuildDoll(Unit owner, DollRec doll, int level, GameData data)
         {
             int[] baseStats;
-            if (data != null && owner.ClassId != T.NONE)
+            if (owner.DollBase != null)
+            {
+                // CGamePlayerStatusETCDoll (0x4f3290 + 0x4f7c00): growth without reset bonus + copied equipment + class mods + equip enchants
+                baseStats = (int[])owner.DollBase.Clone();
+            }
+            else if (owner.Kind == Kind.Member && data != null && owner.ClassId != T.NONE)
             {
                 int row = data.GrowthRowOf(owner.ClassId, owner.PreviousClass);
                 int[] grown = data.Stats(row, owner.Level);
@@ -675,11 +715,13 @@ namespace DtEngine
                 var sealed_ = data.Enemies[owner.Sealbook];
                 for (int s = 0; s < 6; s++) baseStats[s] += PyMath.Int(sealed_.Stats[s] * owner.Value(SOUL_SEAL));
             }
-            var unit = new Unit(doll.Name, owner.Side, owner.Level, DOLL_HP, 0, baseStats, null, owner.Weight, 0.0, T.NONE, Kind.Doll);
+            // All three doll vtables (0x6d4768, 0x6d4dd8, 0x6d434c) map weight slot +0xf4 to 0x4fd630 (fldz; ret => 0.0).
+            var unit = new Unit(doll.Name, owner.Side, owner.Level, DOLL_HP, 0, baseStats, null, 0.0, 0.0, T.NONE, Kind.Doll);
             unit.Owner = owner;
             unit.Life = doll.Turns[level - 1];
             unit.Doll = doll;
             unit.DollLevel = level;
+            unit.PuppetEffect = doll.Effect;
             unit.AttackRange = doll.Range == "short" ? T.SHORT : doll.Range == "mid" ? T.MID : doll.Range == "long" ? T.LONG : T.SHORT;
             unit.Front = owner.Front;
             return unit;
