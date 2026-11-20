@@ -1426,73 +1426,73 @@ def build_guide(side='vanilla', out_dir=DEFAULT_OUT_DIR):
     # 1. README.md
     readme_path = os.path.join(out_dir, 'README.md')
     readme_content = build_readme_content(guide_text, snapshot)
-    with open(readme_path, 'w', encoding='utf-8') as f:
+    with open(readme_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(readme_content)
         
     # 2. classes.md
     classes_path = os.path.join(out_dir, 'classes.md')
     classes_content = build_classes_content(guide_text, snapshot)
-    with open(classes_path, 'w', encoding='utf-8') as f:
+    with open(classes_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(classes_content)
         
     # 3. formulas.md
     formulas_path = os.path.join(out_dir, 'formulas.md')
     formulas_content = build_formulas_content(guide_text, snapshot)
-    with open(formulas_path, 'w', encoding='utf-8') as f:
+    with open(formulas_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(formulas_content)
         
     # 4. skills.md
     skills_path = os.path.join(out_dir, 'skills.md')
     skills_content = build_skills_content(guide_text, snapshot, sot_data)
-    with open(skills_path, 'w', encoding='utf-8') as f:
+    with open(skills_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(skills_content)
         
     # 5. characters.md
     chars_path = os.path.join(out_dir, 'characters.md')
     chars_content = build_characters_content(guide_text, snapshot, sot_data)
-    with open(chars_path, 'w', encoding='utf-8') as f:
+    with open(chars_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(chars_content)
         
     # 6. enchantments.md
     ench_path = os.path.join(out_dir, 'enchantments.md')
     ench_content = build_enchantments_content(guide_text, snapshot, sot_data, enchant_sizes)
-    with open(ench_path, 'w', encoding='utf-8') as f:
+    with open(ench_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(ench_content)
         
     # 7. equipment.md
     eq_path = os.path.join(out_dir, 'equipment.md')
     eq_content = build_equipment_content(guide_text, snapshot, sot_data)
-    with open(eq_path, 'w', encoding='utf-8') as f:
+    with open(eq_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(eq_content)
         
     # 8. enemies.md
     enemies_path = os.path.join(out_dir, 'enemies.md')
     enemies_content = build_enemies_content(guide_text, snapshot, sot_data)
-    with open(enemies_path, 'w', encoding='utf-8') as f:
+    with open(enemies_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(enemies_content)
         
     # 9. bosses.md
     bosses_path = os.path.join(out_dir, 'bosses.md')
     bosses_content = build_bosses_content(guide_text, snapshot, sot_data)
-    with open(bosses_path, 'w', encoding='utf-8') as f:
+    with open(bosses_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(bosses_content)
         
     # 10. summons.md
     summons_path = os.path.join(out_dir, 'summons.md')
     summons_content = build_summons_content(guide_text, snapshot, sot_data)
-    with open(summons_path, 'w', encoding='utf-8') as f:
+    with open(summons_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(summons_content)
         
     # 11. mercenaries.md
     merc_path = os.path.join(out_dir, 'mercenaries.md')
     merc_content = build_mercenaries_content(guide_text, snapshot, sot_data)
-    with open(merc_path, 'w', encoding='utf-8') as f:
+    with open(merc_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(merc_content)
         
     # 12. progression.md
     prog_path = os.path.join(out_dir, 'progression.md')
     prog_content = build_progression_content(guide_text, snapshot, sot_data)
-    with open(prog_path, 'w', encoding='utf-8') as f:
+    with open(prog_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(prog_content)
         
     return {

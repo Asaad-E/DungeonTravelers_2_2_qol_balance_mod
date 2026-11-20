@@ -343,6 +343,19 @@ class ModPatchPyTest(unittest.TestCase):
                 self.assertEqual(info.compress_type, zipfile.ZIP_DEFLATED, f'{sh_name}: should be deflated')
                 self.assertEqual(info.external_attr >> 16, 0o100755, f'{sh_name}: external_attr must be 0o100755')
 
+    def test_uninstall_when_not_installed_with_manifest_pokes_reports_not_installed(self):
+        self._setup_two_variants()
+        dungeon_dir = os.path.join(self.root, 'Data', 'Dungeon')
+        os.makedirs(dungeon_dir, exist_ok=True)
+        poke_rel = os.path.join('Data', 'Dungeon', 'd01.dat')
+        with open(os.path.join(self.root, poke_rel), 'wb') as f:
+            f.write(b'\xaa' * 8 + b'ORIG' + b'\xbb' * 8)
+        with open(os.path.join(self.mod_dir, 'vara.txt'), 'a', encoding='utf-8') as f:
+            f.write(f"poke|{poke_rel}|8|{b'ORIG'.hex()}|{b'MOD1'.hex()}\n")
+        code, out = self._run_cli('uninstall')
+        self.assertEqual(code, 0)
+        self.assertIn('the mod is not installed', out)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,6 @@
 """
 The engine against the program, item by item: docs/generated/ENGINE_CONFORMITY.md, generated from
-data_tables/engine_conformity.json (the 99 items of the engine audit of 2026-10-18, plan docs/ENGINE_AUDIT.md, with the
+data_tables/engine_conformity.json (the items of the engine audit, plan docs/ENGINE_AUDIT.md, with the
 verdict each has after the fixes that followed it).
 
     python tools/engine_conformity.py           writes the document; exit 1 when a check fails

@@ -167,7 +167,19 @@ function Get-Locked([string[]]$rels) {
 if ($Mode -eq 'uninstall') {
     $kept = Backup-Files
     $written = Known-Pokes
-    if ($kept.Count -eq 0 -and $written.Count -eq 0) { Write-Host 'No backup here: the mod is not installed.'; exit 0 }
+    if ($kept.Count -eq 0 -and -not (Test-Path -LiteralPath $pokeFile)) {
+        $hasActivePoke = $false
+        foreach ($k in $written) {
+            $p = Join-Path $root $k.Rel
+            if (-not (Test-Path -LiteralPath $p)) { continue }
+            try { if (Holds-At $p $k.Offset $k.New) { $hasActivePoke = $true; break } }
+            catch { $hasActivePoke = $true; break }
+        }
+        if (-not $hasActivePoke) {
+            Write-Host 'No backup here: the mod is not installed.'
+            exit 0
+        }
+    }
     $touched = @($kept) + @($written | ForEach-Object { $_.Rel })
     $problems = @(Get-Locked $touched)
     if ($problems.Count -gt 0) { Stop-With $problems }

@@ -1219,7 +1219,7 @@ def mark_built(report):
     if blocked:
         lines += ['', '## Blocked rows', '', '| Row | Why it cannot be written |', '|---|---|']
         lines += [f'| {r} | {w} |' for r, w in blocked]
-    with open(BALANCE_REPORT, 'w', encoding='utf-8') as f:
+    with open(BALANCE_REPORT, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(lines) + '\n')
     return moved, lines[4]
 
@@ -1409,9 +1409,10 @@ def main():
     elif not args.no_install:
         result = install_variant.install(args.variant)
         install_variant.report(args.variant, *result)
-        for line in install_variant.install_program(args.variant):
+        program_lines = install_variant.install_program(args.variant)
+        for line in program_lines:
             print(line)
-        if result[2]:
+        if result[2] or any('Floors: REFUSED' in line for line in program_lines):
             sys.exit(1)
 
 

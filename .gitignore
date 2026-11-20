@@ -44,9 +44,8 @@ build/
 # Local settings of the assistant
 .claude/
 
-# Snapshots of a workbook kept beside a working script
-scratch/**/*.xlsx
-scratch/*.xlsx
+# Working space and snapshots kept beside working scripts
+scratch/
 
 # Working notes kept on this machine only
 CLAUDE.md

@@ -39,10 +39,12 @@ def main():
             return 1
     stamp_after = datetime.date.today().isoformat()
     keep = {f'{PREFIX}_{v}_{s}.zip'.lower() for v in VARIANTS for s in (stamp_before, stamp_after)}
+    removed = 0
     for name in old:
         if name.lower() not in keep:
             os.remove(os.path.join(DIST_DIR, name))
-    print(f'{len(old)} older archive(s) removed from {DIST_DIR}; it holds:')
+            removed += 1
+    print(f'{removed} older archive(s) removed from {DIST_DIR}; it holds:')
     for name in sorted(os.listdir(DIST_DIR)):
         print(f'    {name}  ({os.path.getsize(os.path.join(DIST_DIR, name)):,} bytes)')
     return 0

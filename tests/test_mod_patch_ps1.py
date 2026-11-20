@@ -240,6 +240,13 @@ class ModPatchPs1Tests(unittest.TestCase):
             self.assertEqual(b'PATCHED_BY_STEAM!!', fx['a'].read_bytes())
             self._assert_no_staged_files(fx['game'])
 
+    def test_uninstall_when_not_installed_with_manifest_pokes_reports_not_installed(self):
+        with tempfile.TemporaryDirectory() as td:
+            fx = self._build_fixture(Path(td))
+            res = self._run_ps1(fx['mod_dir'], 'uninstall')
+            self.assertEqual(0, res.returncode, res.stdout + res.stderr)
+            self.assertIn('the mod is not installed', res.stdout)
+
 
 if __name__ == '__main__':
     unittest.main()

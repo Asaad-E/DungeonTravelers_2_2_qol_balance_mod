@@ -128,8 +128,8 @@ Useful development commands:
 
 All gameplay values, rules, and text strings reside in spreadsheets under `data_tables/`, keeping balance data decoupled from script logic:
 
-* `balance_changes.xlsx`: Contains every modified value with its original figure and rationale.
-* `FORMULAS.md`: Complete reverse-engineered combat formulas with binary function offsets.
+* `data_tables/balance_changes.xlsx`: Contains every modified value with its original figure and rationale.
+* `docs/FORMULAS.md`: Complete reverse-engineered combat formulas with binary function offsets.
 * `docs/generated/ENGINE_CONFORMITY.md`: the engine held against the program, mechanic by mechanic.
 * `engine_cs/`: C# combat engine used to benchmark encounter outcomes across hundreds of simulated party variations.
 

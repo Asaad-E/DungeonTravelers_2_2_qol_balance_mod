@@ -200,9 +200,22 @@ def main(script_dir=None):
     if mode == 'uninstall':
         kept = backup_files(backup)
         written = known_pokes(mod_dir)
-        if not kept and not written:
-            print("No backup here: the mod is not installed.")
-            sys.exit(0)
+        if not kept and not os.path.exists(poke_file):
+            has_active_poke = False
+            for p in written:
+                ppath = os.path.join(root, p['rel'])
+                if not os.path.exists(ppath):
+                    continue
+                try:
+                    if holds_at(ppath, p['offset'], p['new']):
+                        has_active_poke = True
+                        break
+                except OSError:
+                    has_active_poke = True
+                    break
+            if not has_active_poke:
+                print("No backup here: the mod is not installed.")
+                sys.exit(0)
         locked = get_locked(root, kept + [p['rel'] for p in written])
         if locked:
             stop_with(locked)
