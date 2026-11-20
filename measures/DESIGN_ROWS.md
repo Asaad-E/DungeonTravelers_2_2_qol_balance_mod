@@ -4,39 +4,39 @@ The game as it is. Each section answers the test its row of the register names.
 
 ## J17 Area damage spikes
 
-The reference party at the 40 boss fights of the story, 30 battles each, guards and Cover played as its policy has them. The largest damage one enemy action did to one member, against the max HP of the frailest member: at least once above her whole HP in 19 fights, and in the median battle in 12 (C16, C26, C27, C29, C31, C32, C35, C36, C37, C38, C39, C40). The action may be an area attack or several hits on one member.
+The reference party at the 40 boss fights of the story, 30 battles each, guards and Cover played as its policy has them. The largest damage one enemy action did to one member, against the max HP of the frailest member: at least once above her whole HP in 19 fights, and in the median battle in 12 (C16, C26, C29, C31, C32, C34, C35, C36, C37, C38, C39, C40). The action may be an area attack or several hits on one member.
 
 | Boss | Median largest hit / HP of the frailest | Largest seen | Median / mean HP of the party | Wins |
 |---|---|---|---|---|
-| C05 | 51% | 78% | 36% | 100% |
-| C09 | 20% | 79% | 16% | 100% |
+| C05 | 56% | 79% | 40% | 100% |
+| C09 | 31% | 83% | 25% | 100% |
 | C11 | 80% | 87% | 65% | 100% |
-| C12 | 65% | 98% | 52% | 100% |
+| C12 | 69% | 92% | 56% | 100% |
 | C13 | 92% | 107% | 76% | 100% |
-| C14 | 93% | 97% | 77% | 100% |
+| C14 | 93% | 96% | 77% | 100% |
 | C16 | 103% | 106% | 83% | 100% |
-| C17 | 85% | 96% | 71% | 93% |
-| C19 | 60% | 90% | 49% | 90% |
+| C17 | 84% | 97% | 70% | 100% |
+| C19 | 60% | 90% | 49% | 97% |
 | C21 | 75% | 79% | 61% | 100% |
-| C22 | 95% | 167% | 77% | 100% |
-| C24 | 76% | 80% | 61% | 100% |
-| C25 | 94% | 161% | 76% | 100% |
-| C26 | 118% | 228% | 95% | 97% |
-| C27 | 104% | 249% | 78% | 100% |
-| C28 | 93% | 188% | 70% | 83% |
-| C29 | 114% | 153% | 86% | 27% |
-| C29a | 77% | 80% | 58% | 100% |
-| C30 | 97% | 124% | 73% | 100% |
-| C31 | 115% | 156% | 87% | 100% |
-| C32 | 151% | 196% | 114% | 73% |
-| C33 | 98% | 166% | 74% | 97% |
-| C34 | 91% | 108% | 68% | 100% |
-| C35 | 134% | 193% | 100% | 80% |
-| C36 | 168% | 201% | 125% | 27% |
-| C37 | 112% | 163% | 83% | 97% |
-| C38 | 122% | 175% | 90% | 83% |
-| C39 | 152% | 157% | 112% | 63% |
-| C40 | 146% | 197% | 108% | 70% |
+| C22 | 95% | 144% | 77% | 100% |
+| C24 | 76% | 76% | 61% | 100% |
+| C25 | 99% | 164% | 80% | 100% |
+| C26 | 117% | 169% | 95% | 100% |
+| C27 | 52% | 184% | 39% | 100% |
+| C28 | 90% | 161% | 68% | 70% |
+| C29 | 115% | 153% | 87% | 30% |
+| C29a | 78% | 80% | 59% | 100% |
+| C30 | 97% | 129% | 73% | 100% |
+| C31 | 118% | 156% | 89% | 100% |
+| C32 | 161% | 198% | 121% | 40% |
+| C33 | 99% | 156% | 75% | 97% |
+| C34 | 115% | 129% | 86% | 97% |
+| C35 | 135% | 193% | 101% | 90% |
+| C36 | 168% | 197% | 125% | 53% |
+| C37 | 109% | 159% | 81% | 100% |
+| C38 | 169% | 175% | 125% | 73% |
+| C39 | 153% | 157% | 113% | 57% |
+| C40 | 148% | 185% | 110% | 50% |
 
 Fights where no hit reached 75% of her HP are left out of the table.
 
@@ -46,21 +46,21 @@ Boss fights that stand on a cell that forbids magic: C29a, P07, P13, P25, P47. S
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
-| Dual-Support | 100% | 36% | 0% | 5% | 0% |
-| Mage-Heavy | 79% | 0% | 0% | 0% | 0% |
-| Juggernaut | 96% | 52% | 1% | 7% | 0% |
-| Juggernaut-Plus | 95% | 46% | 0% | 0% | 0% |
-| Anti-Meta | 1% | 0% | 0% | 0% | 0% |
-| Anti-Meta-Plus | 22% | 0% | 0% | 0% | 0% |
+| Dual-Support | 100% | 4% | 0% | 0% | 0% |
+| Mage-Heavy | 40% | 0% | 0% | 0% | 0% |
+| Juggernaut | 88% | 4% | 0% | 4% | 0% |
+| Juggernaut-Plus | 83% | 0% | 0% | 0% | 0% |
+| Anti-Meta | 2% | 0% | 0% | 0% | 0% |
+| Anti-Meta-Plus | 27% | 0% | 0% | 0% | 0% |
 
 The same party with and without her:
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
-| Meta | 100% | 97% | 1% | 76% | 0% |
-| Meta, an attacker in her place | 99% | 91% | 0% | 29% | 0% |
-| Dual-Support | 100% | 36% | 0% | 5% | 0% |
-| Dual-Support, she in the place of the shooter | 100% | 5% | 3% | 6% | 0% |
+| Meta | 100% | 41% | 1% | 59% | 0% |
+| Meta, an attacker in her place | 100% | 33% | 0% | 23% | 0% |
+| Dual-Support | 100% | 4% | 0% | 0% | 0% |
+| Dual-Support, she in the place of the shooter | 98% | 0% | 1% | 3% | 0% |
 
 ## S14 Harmful map zones
 

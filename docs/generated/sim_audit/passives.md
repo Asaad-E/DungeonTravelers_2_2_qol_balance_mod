@@ -1,6 +1,6 @@
 ## passives
 
-53 act, 12 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
+55 act, 10 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
 
 | Passive | Effects | Tested as | Result |
 |---|---|---|---|
@@ -39,7 +39,7 @@
 | 273 Dark Aura | 262 | attacker (Yae, 29, C18) | acts |
 | 274 Dark Quest | 263 | dark lord (Yae, 62, C38) | acts |
 | 275 Anti-Dark Aura | 304 | papillon (Lizerietta, 29, C18) | no effect seen |
-| 276 Absolute Attack | 307 | tank (Alisia, 62, C38) | no effect seen |
+| 276 Absolute Attack | 307 | tank (Alisia, 62, C38) | acts |
 | 277 Imperial Guard | 308 | tank (Alisia, 62, C38) | acts |
 | 278 Pretend | 310 | papillon (Lizerietta, 29, C18) | acts |
 | 279 Esarhaddon | 311 | sage (Fiora, 62, C38) | acts |
@@ -64,7 +64,7 @@
 | 298 Maid Mastery | 278 | maid (Conette, 14, C11) | acts |
 | 299 Song Mastery | 279 | maid (Conette, 29, C18) | acts |
 | 300 Dance Mastery | 280 | etoile (Ist, 29, C18) | acts |
-| 301 Doll Mastery | 286 | dolls (Lizerietta, 29, C18) | no effect seen |
+| 301 Doll Mastery | 286 | dolls (Lizerietta, 29, C18) | acts |
 | 302 Barrage | 251 | kunoichi (Tsurara, 62, C38) | no effect seen |
 | 303 Fast Talk | 281 | maid (Conette, 62, C38) | acts |
 | 304 Negotiate | 282 | - | outside battle |
