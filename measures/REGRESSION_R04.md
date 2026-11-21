@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 13 of 17 such pairs on the variant, 16 of 26 in vanilla.**
+**A party without the class reaches the floor at 18 of 30 such pairs on the variant, 16 of 26 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -19,11 +19,11 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C13 | vanilla | Bard | 50% | Meta with etoile for diva | 100% |
 | C13 | variant | Bard | 50% | Meta with etoile for diva | 100% |
 | C17 | vanilla | Bard | 50% | Meta with etoile for diva | 88% |
-| C17 | variant | Bard | 50% | Meta with etoile for diva | 95% |
+| C17 | variant | Bard | 50% | Meta with etoile for diva | 93% |
 | C18 | vanilla | Bard | 20% | Meta with etoile for diva | 100% |
 | C18 | variant | Bard | 20% | Meta with etoile for diva | 100% |
 | C19 | vanilla | Diva | 50% | Meta with etoile for diva | 95% |
-| C19 | variant | Diva | 50% | Meta with etoile for diva | 95% |
+| C19 | variant | Diva | 50% | Meta with etoile for diva | 88% |
 | C21 | vanilla | Diva | 80% | Meta with etoile for diva | 95% |
 | C21 | variant | Diva | 80% | Meta with etoile for diva | 97% |
 | C24 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
@@ -35,6 +35,11 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C28 | vanilla | Papillon | 50% | Meta with attacker for papillon | 67% |
 | C28 | vanilla | Treasure Hunter | 50% | Meta with shooter for treasure hunter | 30% **below** |
 | C28 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 22% **below** |
+| C28 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 63% |
+| C28 | variant | Diva | 50% | Meta with etoile for diva | 67% |
+| C28 | variant | Papillon | 50% | Meta with joker for papillon | 53% |
+| C28 | variant | Treasure Hunter | 50% | Meta with shooter for treasure hunter | 55% |
+| C28 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 33% **below** |
 | C29 | vanilla | Diva | 50% | Meta with etoile for diva | 95% |
 | C29 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 83% |
 | C29 | variant | Diva | 50% | Meta with etoile for diva | 78% |
@@ -43,9 +48,17 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C30 | variant | Diva | 50% | Meta with etoile for diva | 100% |
 | C36 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 47% **below** |
 | C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 52% |
-| C36 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 83% |
-| C36 | variant | Diva | 50% | Dual-Support with mistress for diva | 53% |
-| C36 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 82% |
+| C36 | variant | Dark Lord | 50% | Dual-Support with attacker for dark lord | 82% |
+| C36 | variant | Diva | 50% | Dual-Support with mistress for diva | 37% **below** |
+| C36 | variant | Valkyrie | 50% | Dual-Support with attacker for tank | 57% |
+| C38 | variant | Diva | 80% | Anti-Meta-Plus with etoile for diva | 90% |
+| C38 | variant | Magical Princess | 80% | none could be built | - **below** |
+| C38 | variant | Mistress | 80% | none could be built | - **below** |
+| C38 | variant | Papillon | 80% | none could be built | - **below** |
+| C38 | variant | Soul Summoner | 80% | none could be built | - **below** |
 | C40 | vanilla | Bishop | 50% | Dual-Support with etoile for healer | 42% **below** |
 | C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 50% |
 | C40 | vanilla | Valkyrie | 50% | Dual-Support with attacker for tank | 28% **below** |
+| C40 | variant | Bishop | 50% | Dual-Support with etoile for healer | 45% **below** |
+| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 73% |
+| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 22% **below** |
