@@ -179,6 +179,7 @@ namespace DtEngine
         public long Classes;
         public int[] Enchants;
         public bool TwoHanded;
+        public int PlainTarget = T.SINGLE;   // EquipmentData 0x54 bit 4 (Pierce) / bit 5 (Row)
     }
 
     public sealed class ClassMod
@@ -259,6 +260,7 @@ namespace DtEngine
         public double[] Factors = new double[6];
         public int[] Attacks;
         public int Passive = T.NONE;
+        public int[] Passives = Array.Empty<int>();
         public Script Script;
     }
 
@@ -313,15 +315,18 @@ namespace DtEngine
         public Dictionary<int, int[][]> Growth = new Dictionary<int, int[][]>();   // row -> level-1 -> [atk, def, int, res, dex, agi, hp, tp]
         public Dictionary<int, (int row, (int previous, int row)[] byPrevious, int dflt)> GrowthRow = new Dictionary<int, (int, (int, int)[], int)>();
         public Dictionary<int, string> ClassNames = new Dictionary<int, string>();
+        public Dictionary<int, int> ClassUnarmedRanks = new Dictionary<int, int>();
         public List<ClassMod> ClassModifiers = new List<ClassMod>();
         public List<Character> Characters = new List<Character>();
         public Dictionary<int, Piece> Equipment = new Dictionary<int, Piece>();
         public List<Piece> EquipmentList = new List<Piece>();
         public HashSet<int> EnchantStacks = new HashSet<int>();
+        public HashSet<int> EnchantOffhand = new HashSet<int>();
         public Dictionary<int, int[]> SealbookEnchants = new Dictionary<int, int[]>();
         public Dictionary<int, double> WeaponRanks = new Dictionary<int, double>();
         public Dictionary<int, Item> Items = new Dictionary<int, Item>();
         public Dictionary<int, int> ItemSkills = new Dictionary<int, int>();
+        public Dictionary<int, (int SkillId, bool UseValAsLevel, int FixedLevel)> ItemSkillSpecs = new Dictionary<int, (int, bool, int)>();
         public SortedDictionary<int, double> ExpCurve = new SortedDictionary<int, double>();
         public Dictionary<int, double> SpCurve = new Dictionary<int, double>();
         public List<FloorZone> Floors = new List<FloorZone>();

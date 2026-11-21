@@ -272,7 +272,8 @@ namespace DtEngine
         {
             get
             {
-                if (Skill == null && Atk == null) return Kind == AKind.Attack ? T.SINGLE : T.SELF;
+                if (Skill == null && Atk == null)
+                    return Kind == AKind.Attack ? (Actor.Weapon != null ? Actor.Weapon.PlainTarget : T.SINGLE) : T.SELF;
                 return Skill != null ? Skill.Target : Atk.Target;
             }
         }
@@ -289,22 +290,36 @@ namespace DtEngine
 
         int WeaponAttrWithOverrides()
         {
-            // 0x4161e1..0x416275: weapon-element statuses (325..329) and weapon-element enchants (78..82) apply to both plain attacks and weapon-attribute skills.
+            // 0x416193..0x416e49: non-players return Actor.AttackAttr directly; players check 325..329 (1 active -> element; >=2 -> weapon physical,
+            // NOT falling through to enchants 78..82); if 0 statuses, first active weapon-element enchant in Fire..Lightning order (78..82) wins.
+            if (Actor.Kind != DtEngine.Kind.Member) return Actor.AttackAttr;
             if (Actor.StCount > 0)
             {
                 int count = 0, element = 0;
                 for (int e = 325; e <= 329; e++)
                     if (Actor.St[e] != null) { count++; element = WeaponElement(e); }
                 if (count == 1) return element;
+                if (count >= 2) return Actor.AttackAttr;
             }
             if (Actor.HasEnchants)
             {
-                int count = 0, element = 0;
                 for (int e = 78; e <= 82; e++)
-                    if (Actor.Pieces(e) != 0) { count++; element = EnchantElement(e); }
-                if (count == 1) return element;
+                    if (Actor.Pieces(e) != 0) return EnchantElement(e);
             }
             return Actor.AttackAttr;
+        }
+
+        /// <summary>Physical weapon/skill attribute (Slash/Stab/Bash/etc.) WITHOUT player weapon-element overrides (325..329 / 78..82),
+        /// used by physical-nullify enchants (120..123) and Stab Dodge (253) (0x421fe0..0x422090).</summary>
+        public int PhysicalAttr
+        {
+            get
+            {
+                if (Skill == null && Atk == null) return Actor.AttackAttr;
+                int a = Skill != null ? Skill.Attr : Atk.Attr;
+                if (a == T.NONE || a == -1 || a == T.WEAPON_ATTR) return Actor.AttackAttr;
+                return a;
+            }
         }
 
         public int Attr

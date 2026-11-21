@@ -388,6 +388,8 @@ namespace DtEngine
                 }
             }
             foreach (var c in e.GetProperty("class_names").EnumerateArray()) d.ClassNames[I(c[0])] = S(c[1]);
+            if (e.TryGetProperty("class_unarmed_ranks", out var cur))
+                foreach (var c in cur.EnumerateArray()) d.ClassUnarmedRanks[I(c[0])] = I(c[1]);
             foreach (var m in e.GetProperty("class_modifiers").EnumerateArray())
             {
                 var cm = new ClassMod { Class = I(m.GetProperty("class")), Previous = I(m.GetProperty("previous")) };
@@ -412,6 +414,7 @@ namespace DtEngine
                     Rate = D(p.GetProperty("rate")), Classes = p.GetProperty("classes").GetInt64(), Swing = D(p.GetProperty("swing")),
                     Rank = I(p.GetProperty("rank")), Type = I(p.GetProperty("type")), Enchants = Ints(p.GetProperty("enchants")),
                     TwoHanded = B(p.GetProperty("two_handed")), Range = I(p.GetProperty("range")), Attr = I(p.GetProperty("attr")),
+                    PlainTarget = p.TryGetProperty("plain_target", out var pt) ? I(pt) : T.SINGLE,
                 };
                 string[] st = { "atk", "def", "int", "res", "dex", "agi" };
                 var stats = p.GetProperty("stats");
@@ -420,17 +423,22 @@ namespace DtEngine
                 d.EquipmentList.Add(piece);
             }
             foreach (var x in e.GetProperty("enchant_stacks").EnumerateArray()) d.EnchantStacks.Add(I(x));
+            if (e.TryGetProperty("enchant_offhand", out var eo))
+                foreach (var x in eo.EnumerateArray()) d.EnchantOffhand.Add(I(x));
             foreach (var s in e.GetProperty("sealbooks").EnumerateArray()) d.SealbookEnchants[I(s.GetProperty("id"))] = Ints(s.GetProperty("enchants"));
             foreach (var r in e.GetProperty("weapon_ranks").EnumerateArray()) d.WeaponRanks[I(r[0])] = D(r[1]);
             foreach (var it in e.GetProperty("items").EnumerateArray())
             {
                 var item = new Item { Id = I(it.GetProperty("id")), Name = S(it.GetProperty("name")) };
                 var kinds = new List<int>(); var vals = new List<double>();
-                foreach (var x in it.GetProperty("effects").EnumerateArray()) { kinds.Add(I(x[0])); vals.Add(x[1].ValueKind == JsonValueKind.Null ? 0 : D(x[1])); }
+                var src = it.TryGetProperty("slots", out var sl) ? sl : it.GetProperty("effects");
+                foreach (var x in src.EnumerateArray()) { kinds.Add(I(x[0])); vals.Add(x[1].ValueKind == JsonValueKind.Null ? 0 : D(x[1])); }
                 item.Kinds = kinds.ToArray(); item.Values = vals.ToArray();
                 d.Items[item.Id] = item;
             }
             foreach (var x in e.GetProperty("item_skills").EnumerateArray()) d.ItemSkills[I(x[0])] = I(x[1]);
+            if (e.TryGetProperty("item_skill_specs", out var iss))
+                foreach (var x in iss.EnumerateArray()) d.ItemSkillSpecs[I(x[0])] = (I(x[1]), I(x[2]) != 0, I(x[3]));
             foreach (var x in e.GetProperty("exp_curve").EnumerateArray()) d.ExpCurve[I(x[0])] = D(x[1]);
             foreach (var x in e.GetProperty("sp_curve").EnumerateArray()) d.SpCurve[I(x[0])] = D(x[1]);
             foreach (var z in e.GetProperty("floors").EnumerateArray())
@@ -475,6 +483,7 @@ namespace DtEngine
                     Id = I(s.GetProperty("id")), Family = I(s.GetProperty("family")), Enemy = I(s.GetProperty("enemy")),
                     Level = I(s.GetProperty("level")), Rank = I(s.GetProperty("rank")), Name = S(s.GetProperty("name")),
                     Attacks = Ints(s.GetProperty("attacks")), Passive = I(s.GetProperty("passive")),
+                    Passives = s.TryGetProperty("passives", out var sps) ? Ints(sps) : (I(s.GetProperty("passive")) != T.NONE ? new[] { I(s.GetProperty("passive")) } : Array.Empty<int>()),
                     Script = LoadScript(s.GetProperty("script")),
                 };
                 string[] st = { "atk", "def", "int", "res", "dex", "agi" };

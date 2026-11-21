@@ -48,8 +48,9 @@ namespace DtEngine
         public string Name;
         public int Side, Level;
         public Kind Kind;
-        public int MaxHpBase, MaxTp, Hp, Tp;
+        public int MaxHpBase, BaseHp, MaxTp, Hp, Tp;
         public int[] Base = new int[6];
+        public int[] OffhandBonus;            // off-hand dual-wield weapon stats added after stat buffs (0x4fc26f..0x4fc5c1)
         public int[] ResistBase = new int[8];
         public double Weight, Swing;
         public int Race = T.NONE;
@@ -117,9 +118,7 @@ namespace DtEngine
         public int[] Samsara;
         public int AiSet;
         public int Life;
-        List<(Unit unit, double value)> provokedBy;
-        public List<(Unit unit, double value)> ProvokedBy => provokedBy ?? (provokedBy = new List<(Unit, double)>());
-        public bool HasProvokedBy => provokedBy != null && provokedBy.Count > 0;
+        public int BaseTargetShare;            // initial formation target share computed once at battle start (0x43daca)
         public double Pep = 100.0;
         public bool HasUnique;
         public int UniqueEffect;
@@ -162,7 +161,7 @@ namespace DtEngine
         public Unit(string name, int side, int level, int hp, int tp, int[] baseStats, int[] resist, double weight, double swing, int race, Kind kind)
         {
             Name = name; Side = side; Level = level; Kind = kind;
-            MaxHpBase = hp; MaxTp = tp; Hp = hp; Tp = tp;
+            MaxHpBase = hp; BaseHp = hp; MaxTp = tp; Hp = hp; Tp = tp;
             Array.Copy(baseStats, Base, 6);
             if (resist != null) Array.Copy(resist, ResistBase, 8);
             Weight = weight; Swing = swing; Race = race;
@@ -174,15 +173,25 @@ namespace DtEngine
         {
             var c = (Unit)MemberwiseClone();
             c.Base = (int[])Base.Clone();
+            if (OffhandBonus != null) c.OffhandBonus = (int[])OffhandBonus.Clone();
             c.ResistBase = (int[])ResistBase.Clone();
             c.St = NoStatuses; c.stOrder = Array.Empty<int>(); c.StCount = 0; c.statModCount = 0;
             pvShared = true; c.pvShared = true;
             c.song = null; c.dance = null;
             c.uses = null; c.usesById = null; c.onceDone = null;
-            c.provokedBy = null;
             c.Items = copyItems ? new Dictionary<int, int>(Items) : Items;
             c.Chant = null; c.Owner = null; c.ShadowOf = null; c.AiTargets = null; c.Samsara = null; c.Roster = null;
             return c;
+        }
+
+        /// <summary>Clamps Pep to [70, 130] and applies pep-locking enchantments 201 (70), 200 (>=100), 195 (130) (0x4f69e0..0x4f6a6a).</summary>
+        public void ClampPep()
+        {
+            Pep = F.Clamp(Pep, 70.0, 130.0);
+            if (!HasEnchants) return;
+            if (Pieces(201) != 0) Pep = 70.0;
+            if (Pieces(200) != 0 && Pep < 100.0) Pep = 100.0;
+            if (Pieces(195) != 0) Pep = 130.0;
         }
 
         // --- statuses --------------------------------------------------------------------------------------
@@ -326,21 +335,35 @@ namespace DtEngine
         public int Stat(int name)
         {
             int b = Base[name];
-            if (statModCount == 0) return b > 0 ? b : 0;
+            int off = OffhandBonus != null ? OffhandBonus[name] : 0;
+            if (statModCount == 0)
+            {
+                int r = b + off;
+                return r <= 0 ? 0 : r > 9999 ? 9999 : r;
+            }
             int total = b;
             var s = St[StatBuff[name]];
             if (s != null) total += PyMath.Int(b * s.Value);
-            s = St[189]; if (s != null) total += PyMath.Int(b * s.Value);
-            s = St[193]; if (s != null) total += PyMath.Int(b * s.Value);
-            s = St[194]; if (s != null) total += PyMath.Int(b * s.Value);
-            if (name == ATK && St[TRUMP_CARD] != null) total += PyMath.Int(Base[DEF] * St[TRUMP_CARD].Value);
-            if (name == DEF && St[TRUMP_CARD] != null) total = 0;
+            // 0x4fc140: 189 / 193 / 194 are mutually exclusive (first present wins).
+            s = St[189];
+            if (s != null) total += PyMath.Int(b * s.Value);
+            else if ((s = St[193]) != null) total += PyMath.Int(b * s.Value);
+            else if ((s = St[194]) != null) total += PyMath.Int(b * s.Value);
+            if (St[TRUMP_CARD] != null)
+            {
+                if (name == ATK) total += PyMath.Int(Base[DEF] * St[TRUMP_CARD].Value);
+                else if (name == DEF) total -= 10000;
+            }
             if (St[120] != null)
             {
-                if (name == DEF) total += b / 2;
-                if (name == AGI) total -= b / 2;
+                // 0x4fc01d..0x4fc04c: Petrify adds Raw[DEF]/2 and subtracts Raw[AGI]/2.
+                int rawStat = Raw != null ? Raw[name] : b;
+                if (name == DEF) total += rawStat / 2;
+                else if (name == AGI) total -= rawStat / 2;
             }
-            return total > 0 ? total : 0;
+            // 0x4fc26f..0x4fc5c1: off-hand dual-wield weapon contribution is added after stat buffs, then clamped to [0, 9999].
+            total += off;
+            return total <= 0 ? 0 : total > 9999 ? 9999 : total;
         }
 
         public int MaxHp
@@ -350,7 +373,8 @@ namespace DtEngine
                 int hp = MaxHpBase;
                 if (StCount == 0) return hp;
                 var s = St[MAX_HP_BUFF];
-                if (s != null) hp += PyMath.Int(hp * s.Value);
+                // 0x4f7c29, 0x4fc089: effect 172 multiplies pre-enchant BaseHp (growth + crown), not post-enchant MaxHpBase.
+                if (s != null) hp += PyMath.Int(BaseHp * s.Value);
                 return hp;
             }
         }
@@ -363,11 +387,11 @@ namespace DtEngine
             {
                 if (StCount != 0 || hasElemResistPassive)
                 {
-                    for (int i = 0; i < 4; i++)
-                    {
-                        int e = ElementResistBuffs[i];
-                        if (Has(e)) value += PyMath.Int(Value(e));
-                    }
+                    // 0x4fc1e6: 202 and 341 are mutually exclusive (202 wins); 169 and 248 remain additive.
+                    if (Has(169)) value += PyMath.Int(Value(169));
+                    if (Has(202)) value += PyMath.Int(Value(202));
+                    else if (Has(341)) value += PyMath.Int(Value(341));
+                    if (Has(248)) value += PyMath.Int(Value(248));
                 }
             }
             else if (StCount != 0)
@@ -421,11 +445,13 @@ namespace DtEngine
             return c.Length == 0 ? Array.Empty<ModEntry>() : c[0].Entries;
         }
 
-        /// <summary>enchant_bonus: what the enchantments add to a character. Fills total[6], returns hp, tp, resist[8].</summary>
+        /// <summary>enchant_bonus: what the enchantments add to a character. Fills total[6], returns hp, tp, resist[8].
+        /// ENCHANT_SHARE (0..23) scales naked baseStats; ENCHANT_LINE (222..225, 281) scales gearedStats (0x4f8bd0..0x4f8d8f).</summary>
         public static void EnchantBonus(Dictionary<int, int> enchants, int[] baseStats, int baseHp, int baseTp, bool front,
-                                        int[] total, out int hpOut, out int tpOut, int[] resistOut)
+                                        int[] total, out int hpOut, out int tpOut, int[] resistOut, int[] gearedStats = null)
         {
             Array.Clear(total, 0, 6);
+            int[] lineSource = gearedStats ?? baseStats;
             int hp = 0, tp = 0;
             var resist = new int[8];
             foreach (var kv in enchants)
@@ -448,7 +474,7 @@ namespace DtEngine
                         foreach (var (index, value) in rs) resist[index] += value;
                     if (F.ENCHANT_LINE.TryGetValue(e, out var line) && line.front == front)
                         foreach (var (stat, share) in line.shares)
-                            total[stat] += share < 1 ? PyMath.Int(baseStats[stat] * share) : PyMath.Int(baseStats[stat] / share);
+                            total[stat] += share < 1 ? PyMath.Int(lineSource[stat] * share) : PyMath.Int(lineSource[stat] / share);
                 }
             }
             int halfHp = PyMath.Int(baseHp / 2.0), halfTp = PyMath.Int(baseTp / 2.0);
@@ -517,13 +543,9 @@ namespace DtEngine
                             int at = Math.Min(lv, eff.Values.Length) - 1;
                             double value = eff.Values[at];
                             bool valueInt = eff.IsInt[at];
-                            bool hasExisting = !double.IsNaN(passiveValues[eff.Id]);
-                            double existing = hasExisting ? passiveValues[eff.Id] : value;
-                            bool existingInt = hasExisting ? passiveInt != null && passiveInt[eff.Id] : valueInt;
-                            bool keep = Math.Abs(existing) >= Math.Abs(value);       // max(a, b, key=abs): the first of equals
-                            passiveValues[eff.Id] = keep ? existing : value;
-                            bool chosenInt = keep ? existingInt : valueInt;
-                            if (chosenInt) { if (passiveInt == null) passiveInt = new bool[GameData.MaxEffect]; passiveInt[eff.Id] = true; }
+                            // 0x4f9b72..0x4f9bf5: duplicate passive effect IDs overwrite the earlier slot (last wins).
+                            passiveValues[eff.Id] = value;
+                            if (valueInt) { if (passiveInt == null) passiveInt = new bool[GameData.MaxEffect]; passiveInt[eff.Id] = true; }
                             else if (passiveInt != null) passiveInt[eff.Id] = false;
                         }
                     }
@@ -532,8 +554,14 @@ namespace DtEngine
             bool hasUnique = false;
             int uniqueEffect = 0;
             double uniqueValue = 0;
-            // an enchantment on any piece, the sealbook, the grand sealbook or the forge (the list 0xf0 counts, 16.1)
-            bool Carries(int enchant) => equipment.Any(e => data.Equipment[e.EquipId].Enchants.Contains(enchant))
+            bool offhandFilter = data.EnchantOffhand.Count > 0 || data.EnchantStacks.Count > 0;
+            // an enchantment on any active piece (off-hand weapon requires bit 7, 0x4f636b), sealbook, grand sealbook or forge
+            bool Carries(int enchant) => equipment.Any(u =>
+                                         {
+                                             var p = data.Equipment[u.EquipId];
+                                             if (u.Slot == 1 && p.Category == 0 && offhandFilter && !data.EnchantOffhand.Contains(enchant)) return false;
+                                             return p.Enchants.Contains(enchant);
+                                         })
                                          || (sealbook != T.NONE && data.SealbookEnchants.TryGetValue(sealbook, out var own) && own.Contains(enchant))
                                          || (partyEnchants != null && partyEnchants.Contains(enchant))
                                          || (forged != null && forged.TryGetValue(enchant, out int count) && count > 0);
@@ -555,20 +583,18 @@ namespace DtEngine
             double PV(int e, double d) => double.IsNaN(passiveValues[e]) ? d : passiveValues[e];
             double mastery = PV(MASTERY, 0.0) + PV(MASTERY_ALL, 0.0);
             var totals = (int[])characterStats.Clone();
-            var dollTotals = new int[6];
-            Array.Copy(grown, dollTotals, 6);
+            // CGamePlayerStatusETCDoll (0x4f3586..0x4f35fc): inherits characterStats (including crownBonus), personal & grand sealbooks.
+            var dollTotals = (int[])characterStats.Clone();
+            int[] offhandBonus = null;
             var enchants = new Dictionary<int, int>();
             var dollEnchants = new Dictionary<int, int>();
-            var enchantOrder = new List<int>();
             Piece weapon = null;
             double yearning = PV(YEARNING, 0.0);
+            int yearningFloor = PyMath.Int(yearning);
             var modifiers = ModifierList(data, classId, previous);
-            // enchantment 264 on any piece, the sealbook, the grand sealbook or the forge adds 0.02 to the class weapon modifier
+            // enchantment 264 on any active piece, the sealbook, the grand sealbook or the forge adds 0.02 to the class weapon modifier
             // (once, not per piece: 0x4f7fb0 - 0x4f7fd9)
             double modifierUp = Carries(F.WEAPON_MODIFIER_ENCHANT) ? F.WEAPON_MODIFIER_UP : 0.0;
-            bool dollCarries264 = equipment.Any(e => data.Equipment[e.EquipId].Enchants.Contains(F.WEAPON_MODIFIER_ENCHANT))
-                                  || (forged != null && forged.TryGetValue(F.WEAPON_MODIFIER_ENCHANT, out int f264) && f264 > 0);
-            double dollModifierUp = dollCarries264 ? F.WEAPON_MODIFIER_UP : 0.0;
             var gains = new int[6];
             var dollGains = new int[6];
             foreach (var use in equipment)
@@ -576,24 +602,30 @@ namespace DtEngine
                 var piece = data.Equipment[use.EquipId];
                 int[] rawStats = PieceStats(piece, use.Upgrade);
                 int[] stats = (int[])rawStats.Clone();
-                if (use.Slot == 0 && piece.Category == 0)
-                {
-                    weapon = piece;
-                    stats[Unit.ATK] = stats[Unit.ATK] + PyMath.Int(stats[Unit.ATK] * mastery);
-                    stats[Unit.RES] = stats[Unit.RES] + PyMath.Int(stats[Unit.RES] * mastery);
-                }
-                if (use.Slot == 1 && piece.Category == 0)
+                bool isOffhandWeapon = use.Slot == 1 && piece.Category == 0;
+                if (use.Slot == 0 && piece.Category == 0) weapon = piece;
+                if (isOffhandWeapon)
                 {
                     double share = PV(DUAL_WIELD, 0.0);
-                    for (int s = 0; s < 6; s++) stats[s] = PyMath.Int(stats[s] * share);
+                    if (share != 0.0)
+                    {
+                        offhandBonus = offhandBonus ?? new int[6];
+                        for (int s = 0; s < 6; s++) offhandBonus[s] += PyMath.Int(rawStats[s] * share);
+                    }
                 }
-                for (int s = 0; s < 6; s++) totals[s] += stats[s];
-                // CGamePlayerStatusETCDoll (0x4f3456..0x4f347d, 0x4f7c00): copies all 6 equipment slots without passives (mastery=0, dualWield=0 -> slot 1 weapon skipped at 0x4f65a0)
-                bool dollPieceActive = !(use.Slot == 1 && piece.Category == 0);
-                if (dollPieceActive)
+                else
+                {
+                    // 0x4f6530: Equipment Mastery (243 + 298) scales ATK and RES of every equipped piece except off-hand weapon.
+                    stats[Unit.ATK] = stats[Unit.ATK] + PyMath.Int(stats[Unit.ATK] * mastery);
+                    stats[Unit.RES] = stats[Unit.RES] + PyMath.Int(stats[Unit.RES] * mastery);
+                    for (int s = 0; s < 6; s++) totals[s] += stats[s];
+                    // CGamePlayerStatusETCDoll: copies all active pieces without passives (mastery=0, dualWield=0 -> slot 1 weapon skipped).
                     for (int s = 0; s < 6; s++) dollTotals[s] += rawStats[s];
+                }
                 foreach (int e in piece.Enchants)
                 {
+                    // 0x4f6334..0x4f638d: off-hand weapon enchantments only register if EnchantData 0x20 bit 7 (0x80) is set.
+                    if (isOffhandWeapon && offhandFilter && !data.EnchantOffhand.Contains(e)) continue;
                     enchants.TryGetValue(e, out int c);
                     enchants[e] = c + 1;
                     dollEnchants.TryGetValue(e, out int dc);
@@ -605,12 +637,15 @@ namespace DtEngine
                                    && (use.Slot != 1 || piece.Category == 1);
                     if (matches)
                     {
+                        // 0x4f7fdf..0x4f8044: class modifiers use raw upgraded piece stats (before mastery) and floor each gain at int(yearning).
                         for (int s = 0; s < 6; s++)
                         {
-                            if (stats[s] > 0)
-                                gains[s] += Math.Max(0, PyMath.Int((characterStats[s] + stats[s]) * (entry.Modifier + 0.01 * yearning + modifierUp)));
-                            if (dollPieceActive && rawStats[s] > 0)
-                                dollGains[s] += Math.Max(0, PyMath.Int((grown[s] + rawStats[s]) * (entry.Modifier + dollModifierUp)));
+                            if (rawStats[s] > 0)
+                            {
+                                gains[s] += Math.Max(yearningFloor, PyMath.Int((characterStats[s] + rawStats[s]) * (entry.Modifier + 0.01 * yearning + modifierUp)));
+                                if (!isOffhandWeapon)
+                                    dollGains[s] += Math.Max(0, PyMath.Int((characterStats[s] + rawStats[s]) * (entry.Modifier + modifierUp)));
+                            }
                         }
                     }
                 }
@@ -618,9 +653,17 @@ namespace DtEngine
             for (int s = 0; s < 6; s++) totals[s] += gains[s];
             for (int s = 0; s < 6; s++) dollTotals[s] += dollGains[s];
             if (sealbook != T.NONE && data.SealbookEnchants.TryGetValue(sealbook, out var sbe))
-                foreach (int e in sbe) { enchants.TryGetValue(e, out int c); enchants[e] = c + 1; }
+                foreach (int e in sbe)
+                {
+                    enchants.TryGetValue(e, out int c); enchants[e] = c + 1;
+                    dollEnchants.TryGetValue(e, out int dc); dollEnchants[e] = dc + 1;
+                }
             if (partyEnchants != null)
-                foreach (int e in partyEnchants) { enchants.TryGetValue(e, out int c); enchants[e] = c + 1; }
+                foreach (int e in partyEnchants)
+                {
+                    enchants.TryGetValue(e, out int c); enchants[e] = c + 1;
+                    dollEnchants.TryGetValue(e, out int dc); dollEnchants[e] = dc + 1;
+                }
             if (forged != null)
                 foreach (var kv in forged)
                 {
@@ -633,20 +676,36 @@ namespace DtEngine
             foreach (var kv in dollEnchants) dollCounted[kv.Key] = data.EnchantStacks.Contains(kv.Key) ? kv.Value : Math.Min(kv.Value, 1);
             var bonusTotal = new int[6];
             var resistBonus = new int[8];
-            EnchantBonus(counted, characterStats, hp, tp, front, bonusTotal, out int bonusHp, out int bonusTp, resistBonus);
+            int[] gearedForLine = totals;
+            if (offhandBonus != null)
+            {
+                gearedForLine = new int[6];
+                for (int s = 0; s < 6; s++) gearedForLine[s] = totals[s] + offhandBonus[s];
+            }
+            EnchantBonus(counted, characterStats, hp, tp, front, bonusTotal, out int bonusHp, out int bonusTp, resistBonus, gearedForLine);
             for (int s = 0; s < 6; s++) totals[s] += bonusTotal[s];
             var dollBonusTotal = new int[6];
             var dollResistUnused = new int[8];
-            EnchantBonus(dollCounted, grown, grown[6], grown[7], front, dollBonusTotal, out _, out _, dollResistUnused);
+            EnchantBonus(dollCounted, characterStats, hp, tp, front, dollBonusTotal, out _, out _, dollResistUnused, dollTotals);
             for (int s = 0; s < 6; s++) dollTotals[s] += dollBonusTotal[s];
+            int baseHpPreEnchant = hp;
             hp += bonusHp; tp += bonusTp;
             var resist = new int[8];
             for (int i = 0; i < 8; i++) resist[i] = crownBonus + resistBonus[i];
-            // 0x4f55ab..0x4f55d9: enchantment 263 sets unarmed rank delay to Rank A (WeaponRanks[1]).
-            double rankDelay = weapon != null && weapon.Rank != T.NONE && weapon.Rank >= 0 ? data.WeaponRanks[weapon.Rank]
-                             : (counted.ContainsKey(263) && data.WeaponRanks.TryGetValue(1, out double rankA) ? rankA : UnarmedDelay(data));
+            // 0x4f5556..0x4f55df: weapon rank, else enchant 263 -> Rank A (WeaponRanks[1]), else ClassData +0x24 unarmed rank.
+            double rankDelay;
+            if (weapon != null && weapon.Rank != T.NONE && weapon.Rank >= 0)
+                rankDelay = data.WeaponRanks[weapon.Rank];
+            else if (counted.ContainsKey(263) && data.WeaponRanks.TryGetValue(1, out double rankA))
+                rankDelay = rankA;
+            else if (data.ClassUnarmedRanks.TryGetValue(classId, out int unarmedRank) && data.WeaponRanks.TryGetValue(unarmedRank, out double classUnarmed))
+                rankDelay = classUnarmed;
+            else
+                rankDelay = UnarmedDelay(data);
             var unit = new Unit(name ?? (character != null ? character.Name : "class " + classId), Unit.PARTY, level, hp, tp, totals, resist,
                                 rankDelay, weapon != null ? weapon.Swing : 0.0, T.NONE, Kind.Member);
+            unit.BaseHp = baseHpPreEnchant;
+            unit.OffhandBonus = offhandBonus;
             unit.AdoptPassives(passiveValues);
             unit.PvInt = passiveInt;
             unit.Raw = (int[])characterStats.Clone();
@@ -674,10 +733,21 @@ namespace DtEngine
             unit.PreviousClass = previous;
             unit.Front = front;
             if (items != null) unit.Items = new Dictionary<int, int>(items);
+            unit.ClampPep();
             return unit;
         }
 
         public static double UnarmedDelay(GameData data) => data.WeaponRanks[5];
+
+        static int FirstAttackAttr(GameData data, int[] attacks)
+        {
+            if (attacks != null && attacks.Length > 0)
+            {
+                var first = data.GetAttack(attacks[0]);
+                if (first != null && first.Attr >= 1 && first.Attr <= 9) return first.Attr;
+            }
+            return T.NEUTRAL;
+        }
 
         public static Unit BuildEnemy(GameData data, int enemyId, bool front, string name = null)
         {
@@ -685,6 +755,7 @@ namespace DtEngine
             var unit = new Unit(name ?? e.Name, Unit.ENEMIES, e.Level, e.Hp, 0, e.Stats, e.Resist, e.Weight, e.Swing, e.Race, Kind.Enemy);
             unit.ImmuneMask = e.ImmuneMask;
             unit.Attacks = e.Attacks;
+            unit.AttackAttr = FirstAttackAttr(data, e.Attacks);
             unit.Script = e.Script;
             unit.Front = front;
             unit.EnemyId = enemyId;
@@ -709,6 +780,7 @@ namespace DtEngine
             var unit = new Unit(record.Name, Unit.PARTY, record.Level, 9999, 0, record.Stats, null, weight, 0.0, T.NONE, Kind.Summon);
             unit.IsGuest = true;
             unit.Attacks = record.Attacks;
+            unit.AttackAttr = FirstAttackAttr(data, record.Attacks);
             unit.Script = record.Script;
             foreach (int id in record.Passives)
                 if (data.Attacks.TryGetValue(id, out var extra) && extra.Passive)
@@ -754,19 +826,43 @@ namespace DtEngine
             return under ?? first;
         }
 
-        public static Unit BuildSummon(GameData data, SummonForm form, List<Unit> party, int hp)
+        public static Unit BuildSummon(GameData data, SummonForm form, List<Unit> party, int hp, int[] partyEnchants = null)
         {
             data.Enemies.TryGetValue(form.Enemy, out var enemy);
+            Dictionary<int, int> partyCounted = null;
+            if (partyEnchants != null && partyEnchants.Length > 0)
+            {
+                partyCounted = new Dictionary<int, int>();
+                foreach (int e in partyEnchants)
+                {
+                    partyCounted.TryGetValue(e, out int c);
+                    partyCounted[e] = data.EnchantStacks.Contains(e) ? c + 1 : 1;
+                }
+            }
+            var memberStats = new List<int[]>(party.Count);
+            var tmpBonus = new int[6];
+            var tmpResist = new int[8];
+            foreach (var m in party)
+            {
+                if (m.Kind != Kind.Member) continue;
+                var src = (int[])(m.Raw != null ? m.Raw : m.Base).Clone();
+                // 0x4f7ac0: temporary naked party copies include Grand Sealbook stat enchantments before taking the party max.
+                if (partyCounted != null)
+                {
+                    EnchantBonus(partyCounted, src, m.BaseHp, m.MaxTp, m.Front, tmpBonus, out _, out _, tmpResist, src);
+                    for (int s = 0; s < 6; s++) src[s] += tmpBonus[s];
+                }
+                memberStats.Add(src);
+            }
             var stats = new int[6];
             for (int s = 0; s < 6; s++)
             {
                 int floor = enemy != null ? enemy.Stats[s] : 0;
                 bool any = false;
                 int best = 0;
-                foreach (var m in party)
+                foreach (var src in memberStats)
                 {
-                    if (m.Kind != Kind.Member) continue;
-                    int v = m.Raw != null ? m.Raw[s] : m.Base[s];
+                    int v = src[s];
                     if (!any || v > best) { best = v; any = true; }
                 }
                 stats[s] = Math.Max(floor, PyMath.Int(PyMath.Single(best * form.Factors[s])));
@@ -774,9 +870,15 @@ namespace DtEngine
             double weight = data.WeaponRanks.TryGetValue(form.Rank, out var w) ? w : 2.0;
             var unit = new Unit(form.Name, Unit.PARTY, form.Level, hp, 0, stats, null, weight, 0.0, T.NONE, Kind.Summon);
             unit.Attacks = form.Attacks;
+            unit.AttackAttr = FirstAttackAttr(data, form.Attacks);
             unit.Script = form.Script;
-            if (form.Passive != T.NONE && data.Attacks.TryGetValue(form.Passive, out var pa))
-                for (int k = 0; k < pa.EffId.Length; k++) unit.SetPassive(pa.EffId[k], pa.EffValue[k], pa.EffIsInt[k]);
+            // 0x50030b..0x500497: apply all passive_count (up to 5) passives on SummonData.
+            var passives = form.Passives != null && form.Passives.Length > 0
+                ? form.Passives
+                : (form.Passive != T.NONE ? new[] { form.Passive } : Array.Empty<int>());
+            foreach (int pid in passives)
+                if (pid != T.NONE && data.Attacks.TryGetValue(pid, out var pa))
+                    for (int k = 0; k < pa.EffId.Length; k++) unit.SetPassive(pa.EffId[k], pa.EffValue[k], pa.EffIsInt[k]);
             return unit;
         }
 
@@ -785,7 +887,7 @@ namespace DtEngine
             int[] baseStats;
             if (owner.DollBase != null)
             {
-                // CGamePlayerStatusETCDoll (0x4f3290 + 0x4f7c00): growth without reset bonus + copied equipment + class mods + equip enchants
+                // CGamePlayerStatusETCDoll (0x4f3290 + 0x4f7c00): characterStats (with crown) + copied equipment + class mods + all enchants
                 baseStats = (int[])owner.DollBase.Clone();
             }
             else if (owner.Kind == Kind.Member && data != null && owner.ClassId != T.NONE)
@@ -799,7 +901,9 @@ namespace DtEngine
             {
                 baseStats = (int[])owner.Base.Clone();
             }
-            if (data != null && owner.Has(SOUL_SEAL) && owner.Sealbook != T.NONE && data.Enemies.ContainsKey(owner.Sealbook))
+            // 0x4fdfd0: Soul Seal (314) applies only to the 6 puppets (effects 228..233), not Arrow or Genjimaru.
+            bool isPuppet = doll.Effect >= 228 && doll.Effect <= 233;
+            if (isPuppet && data != null && owner.Has(SOUL_SEAL) && owner.Sealbook != T.NONE && data.Enemies.ContainsKey(owner.Sealbook))
             {
                 var sealed_ = data.Enemies[owner.Sealbook];
                 for (int s = 0; s < 6; s++) baseStats[s] += PyMath.Int(sealed_.Stats[s] * owner.Value(SOUL_SEAL));

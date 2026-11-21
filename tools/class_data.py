@@ -73,6 +73,15 @@ def class_names(path=CLASS_PCK):
     return names
 
 
+def class_unarmed_ranks(path=CLASS_PCK):
+    """{class id: unarmed weapon rank index} from ClassData.pck +0x24 (memory +0x3c; 0x4f5556..0x4f55df)."""
+    ranks = {}
+    for _, blob in PckArchive(path).files:
+        blob = bytes(blob)
+        ranks[struct.unpack_from('<i', blob, 0)[0]] = struct.unpack_from('<i', blob, 0x24)[0]
+    return ranks
+
+
 def route_name(class_id, previous, names):
     return names[class_id] if previous is None else f'{names[class_id]} (from {names[previous]})'
 

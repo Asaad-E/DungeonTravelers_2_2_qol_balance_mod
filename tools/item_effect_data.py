@@ -30,17 +30,24 @@ APPLY_SLOT = 3
 RDATA = (0x630000, 0x720000)              # where the class tables of the program live
 # push -1; push flag; push skill id (one byte or four); call
 PERFORMS_A_SKILL = re.compile(rb'\x6a\xff\x6a(.)(?:\x6a(.)|\x68(....))\xe8', re.S)
+# generalized: push fixed_level (imm8); push use_val_as_level (imm8); push skill id (imm8 or imm32); call 0x50b030
+PERFORMS_A_SKILL_ANY = re.compile(rb'\x6a(.)\x6a(.)(?:\x6a(.)|\x68(....))\xe8', re.S)
 
 
 SKILL_ITEMS_FALLBACK = {
-    25: (193, 1), 26: (194, 1), 27: (36, 1), 28: (175, 1), 29: (197, 1),
-    30: (5, 1), 31: (6, 1), 32: (2, 1), 33: (188, 1), 34: (191, 1),
-    37: (35, 1), 38: (33, 1), 40: (177, 1), 41: (198, 1), 43: (201, 1),
-    44: (202, 1), 46: (144, 1), 47: (148, 1), 48: (152, 1), 49: (156, 1),
+    25: (193, 0), 26: (194, 0), 27: (36, 0), 28: (175, 0), 29: (197, 0),
+    30: (5, 0), 31: (6, 0), 32: (2, 0), 33: (188, 0), 34: (191, 0),
+    37: (35, 0), 38: (33, 0), 40: (177, 0), 41: (198, 0), 43: (201, 0),
+    44: (202, 0), 46: (144, 1), 47: (148, 1), 48: (152, 1), 49: (156, 1),
     50: (160, 1), 51: (164, 1), 90: (143, 1), 91: (145, 1), 92: (146, 1),
     93: (147, 1), 94: (149, 1), 95: (150, 1), 96: (151, 1), 97: (153, 1),
     98: (154, 1), 99: (155, 1), 100: (157, 1), 101: (158, 1), 102: (159, 1),
     103: (161, 1), 104: (162, 1), 105: (178, 1), 106: (224, 1)
+}
+
+SKILL_ITEM_SPECS_FALLBACK = {
+    **{k: (sid, flag, -1) for k, (sid, flag) in SKILL_ITEMS_FALLBACK.items()},
+    42: (200, 0, 1), 45: (216, 0, 1),
 }
 
 MEAL_BUFFS_FALLBACK = {
@@ -69,6 +76,36 @@ def skill_items(exe=None):
         m = PERFORMS_A_SKILL.match(exe.read(method, 16))
         if m:
             found[kind] = (m.group(2)[0] if m.group(2) else struct.unpack('<I', m.group(3))[0], m.group(1)[0])
+    return found
+
+
+def skill_item_specs(exe=None):
+    """{item effect type: (skill id, use_val_as_level, fixed_level)} for all 41 0x50b030 item-cast kinds (incl. 42, 45)."""
+    try:
+        exe = exe or Exe()
+    except (SystemExit, Exception):
+        return dict(SKILL_ITEM_SPECS_FALLBACK)
+    if not exe or not exe.data:
+        return dict(SKILL_ITEM_SPECS_FALLBACK)
+    cases = struct.unpack(f'<{TYPES}I', exe.read(SWITCH_TABLE, 4 * TYPES))
+    found = {}
+    for kind, case in enumerate(cases):
+        stores = [struct.unpack('<I', m.group(1))[0] for m in re.finditer(rb'\xc7[\x00-\x07](....)', exe.read(case, 0x60), re.S)]
+        vtables = [v for v in stores if RDATA[0] <= v < RDATA[1]]
+        if not vtables:
+            continue
+        method = exe.u32(vtables[-1] + 4 * APPLY_SLOT)
+        body = exe.read(method, 16)
+        m = PERFORMS_A_SKILL_ANY.match(body)
+        if m:
+            call_end = m.end() + 4
+            rel = struct.unpack('<i', body[m.end():call_end])[0]
+            if method + call_end + rel != 0x50b030:
+                continue
+            fixed_lv = struct.unpack('<b', m.group(1))[0]
+            use_val = m.group(2)[0]
+            skill_id = m.group(3)[0] if m.group(3) else struct.unpack('<I', m.group(4))[0]
+            found[kind] = (skill_id, use_val, fixed_lv)
     return found
 
 

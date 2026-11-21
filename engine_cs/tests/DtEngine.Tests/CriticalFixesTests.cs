@@ -156,12 +156,12 @@ namespace DtEngine.Tests
             Assert.Equal(0.0, playerDoll.Weight);
             Assert.True(playerDoll.Base[Unit.ATK] >= ss.DollBase[Unit.ATK]);
 
-            // Rebuild same member with crownBonus = 50: DollBase must stay identical (0x4f3316 zeros reset bonus [doll+0x120]).
+            // Rebuild same member with crownBonus = 50: DollBase inherits crownBonus (+50 copied at 0x4f3586..0x4f358c).
             var equip = new List<UnitFactory.PieceUse> { new UnitFactory.PieceUse(0, ss.Weapon.Id, 5) };
             var uncrowned = UnitFactory.BuildMember(data, ss.Character, ss.ClassId, ss.Level, ss.PreviousClass, equip, ss.Skills, 0, "u0", true, null, T.NONE, null, null);
             var crowned = UnitFactory.BuildMember(data, ss.Character, ss.ClassId, ss.Level, ss.PreviousClass, equip, ss.Skills, 50, "u50", true, null, T.NONE, null, null);
-            Assert.Equal(uncrowned.Base[Unit.ATK] + 50, crowned.Base[Unit.ATK]); // owner gains +50 (or more with mods)
-            Assert.Equal(uncrowned.DollBase, crowned.DollBase);
+            Assert.Equal(uncrowned.Base[Unit.ATK] + 50, crowned.Base[Unit.ATK]);
+            Assert.True(crowned.DollBase[Unit.ATK] >= uncrowned.DollBase[Unit.ATK] + 50);
 
             // 2. Guest doll (Paracas Lv53 with passive 1561 = Double Puppet 313): keeps both Oracles (722) and Catalina (725),
             //    uses Paracas's stats (not Grimoire/Magi/Vulgate), and does not replace a party member's Oracles.

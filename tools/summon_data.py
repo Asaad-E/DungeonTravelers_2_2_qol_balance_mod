@@ -45,13 +45,16 @@ def read_summon(blob):
     count = i(r['attack_count'])
     strings = [t.decode('utf-8', 'replace') for t in b[r['attack_ids'] + 8 * r['attack_slots']:].split(b'\x00') if t]
     printable = [t for t in strings if len(t) > 2 and all(32 <= ord(c) < 0x3000 for c in t)]
+    pcount = max(0, min(i(r['passive_count']), r.get('passive_slots', 5)))
+    passives = [i(r['passive'] + 4 * k) for k in range(pcount) if i(r['passive'] + 4 * k) != -1]
     return {'id': i(r['id']), 'character': i(r['character']),
             'family': i(r['enemy']), 'enemy': i(r['enemy']),
             'level': i(r['level']),
             'rank': i(r['rank']),
             'factors': dict(zip(STATS, struct.unpack_from('<6f', b, r['factors']))),
             'attacks': [i(r['attack_ids'] + 8 * k) for k in range(max(count, 0))],
-            'passive': i(r['passive']) if i(r['passive']) != -1 else None,
+            'passive': passives[0] if passives else None,
+            'passives': passives,
             'name': printable[-1] if printable else ''}
 
 

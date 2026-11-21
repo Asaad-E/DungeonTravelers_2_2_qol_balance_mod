@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.join(PROJECT_DIR, 'tools')
 WORKBOOK = os.path.join(PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx')
 CRITERIA = os.path.join(PROJECT_DIR, 'data_tables', 'balance_criteria.xlsx')
 CACHE = os.path.join(SIM_DIR, '__pycache__', 'game_data.pkl')
-CACHE_VERSION = 9
+CACHE_VERSION = 10
 LEVELS = [f'Lv{k}' for k in range(1, 11)]
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)
@@ -121,15 +121,18 @@ class GameData:
         self.enemies = {}           # enemy id -> dict from tools/enemy_data.py, plus 'script'
         self.growth = {}            # ClassLevelData row -> [stats per level]
         self.class_names = {}
+        self.class_unarmed_ranks = {}  # class id -> weapon rank index when unarmed (ClassData.pck +0x24; 0x4f5585)
         self.class_modifiers = []
         self.characters = []
         self.equipment = {}         # equipment id -> dict
         self.enchants = {}
         self.enchant_stacks = set()  # enchantments every piece of which counts (EnchantData 0x20 bit 0; 0x4f5499)
+        self.enchant_offhand = set()  # enchantments that also count on an off-hand weapon (EnchantData 0x20 bit 7; 0x4f636b)
         self.sealbooks = {}            # sealbook id -> {'name', 'grand', 'level', 'enchants'}
         self.weapon_ranks = {}      # rank index -> delay
         self.items = {}
         self.item_skills = {}       # item effect type -> skill id it performs
+        self.item_skill_specs = {}  # item effect type -> (skill id, use_val_as_level, fixed_level) (0x50b030 / 0x511790)
         self.exp_curve = {}         # level -> EXP needed from the level below
         self.sp_curve = {}
         self.floors = []
@@ -213,11 +216,10 @@ def _load_attacks(wb, data):
         for k in range(1, 6):
             if r[f'Eff{k}_ID'] is not None:
                 effects.append((r[f'Eff{k}_ID'], r[f'Eff{k}_Tail'], r[f'Eff{k}_Value'] or 0))
-        header = r['Header_Line'] or ''
-        reach = None
-        for word, value in (('Short', SHORT), ('Mid', MID), ('Long', LONG), ('None', NO_RANGE)):
-            if f'Range: {word}' in header:
-                reach = value
+        # EnemyAttackData Anim_0x28 (+0x40 in memory) bits 7, 8, 9 hold Short, Mid, Long range; none set -> NO_RANGE
+        # (0x4183d0 - 0x418475).
+        anim = r['Anim_0x28'] or 0
+        reach = SHORT if (anim >> 7 & 1) else MID if (anim >> 8 & 1) else LONG if (anim >> 9 & 1) else NO_RANGE
         data.attacks[r['Skill_ID']] = EnemyAttack(
             id=r['Skill_ID'], name=r['Name'], target=r['Target_Code'], attr=r['Attr_Code'],
             chant_speed=r['Chant_Speed'] or 0, accuracy=r['Accuracy'] or 0, power=r['Power'] or 0,
@@ -246,15 +248,21 @@ def _load_equipment(wb, data):
                  'swing': r['Swing'] or 0.0, 'rank': r['Rank_Idx'], 'type': r['Type_Code'],
                  'enchants': [r[f'Enchant{k}_ID'] for k in range(1, 5) if r[f'Enchant{k}_ID'] is not None],
                  'two_handed': bool(flags & WEAPON_TWO_HANDED) if r['Category_Code'] == 0 else False,
+                 # EquipmentData 0x54 bit 4 (0x10): Pierce plain attack, bit 5 (0x20): Row plain attack (0x4510dd - 0x451125)
+                 'plain_target': (PIERCE if (flags & 0x10) else ROW if (flags & 0x20) else SINGLE) if r['Category_Code'] == 0 else SINGLE,
                  'range': next((v for bit, v in WEAPON_RANGE_BITS.items() if flags & bit), SHORT),
                  'attr': next((v for bit, v in WEAPON_ATTR_BITS.items() if flags & bit), NEUTRAL)}
         data.equipment[r['Equip_ID']] = piece
     for r in _rows(wb, 'Enchants'):
         data.enchants[r['Enchant_ID']] = r['Name']
         # the piece counter (0x4f5470) and the stat function (0x4f8311) count one piece only when bit 0 of the flags
-        # (file 0x20, memory 0x38 of the record of map 0x7389d0) is clear
-        if (r['w_0x20'] or 0) & 1:
+        # (file 0x20, memory 0x38 of the record of map 0x7389d0) is clear; bit 7 (0x80) allows an off-hand weapon
+        # enchantment to register on the unit (0x4f6334 - 0x4f638d)
+        eflags = r['w_0x20'] or 0
+        if eflags & 1:
             data.enchant_stacks.add(r['Enchant_ID'])
+        if eflags & 0x80:
+            data.enchant_offhand.add(r['Enchant_ID'])
     # SealScrollData: 0x00 id (the id of the enemy it seals), 0x18 kind (0 a sealbook, 1 a grand sealbook),
     # 0x1C number of enchantments and 0x20 their ids (read into the enchantment list at 0x4f7b5d), 0x34 level
     for r in _rows(wb, 'Raw_SealScroll'):
@@ -271,9 +279,11 @@ def _load_misc(wb, data):
         data.unique[r['Skill_ID']] = {'name': r['Name'], 'effect': r['w_0x50'],
                                       'values': [r[k] for k in LEVELS[:9]] + [r['EX']]}
     for r in _rows(wb, 'Items'):
+        # Preserve the fixed 4-slot layout (slots 0-1 ally, slots 2-3 enemy; 0x55b550) alongside filtered 'effects'
+        slots = [(-1 if r[f'Eff{k}_Type'] is None else r[f'Eff{k}_Type'], r[f'Eff{k}_Value'] or 0) for k in range(1, 5)]
         data.items[r['Item_ID']] = {'name': r['Name'], 'price': r['Buy_Price'],
-                                    'effects': [(r[f'Eff{k}_Type'], r[f'Eff{k}_Value']) for k in range(1, 5)
-                                                if r[f'Eff{k}_Type'] not in (None, -1)]}
+                                    'effects': [(t, v) for t, v in slots if t != -1],
+                                    'slots': slots}
     for r in _rows(wb, 'ExpCurve'):
         data.exp_curve[r['Level']] = r['Req_EXP']
         data.sp_curve[r['Level']] = r['SP']
@@ -325,6 +335,7 @@ def build():
         data.enemies[enemy['id']] = enemy
     data.growth = class_data.growth()
     data.class_names = class_data.class_names()
+    data.class_unarmed_ranks = class_data.class_unarmed_ranks()
     try:
         data.class_modifiers = class_modifier_data.class_modifiers(exe)
     except Exception:
@@ -347,6 +358,7 @@ def build():
     except Exception:
         data.random_moves = {}
     data.item_skills = {kind: skill for kind, (skill, _) in item_effect_data.skill_items(exe).items()}
+    data.item_skill_specs = item_effect_data.skill_item_specs(exe)
     criteria = openpyxl.load_workbook(CRITERIA, read_only=True)
     try:
         data.effect_rules = {r['Effect_ID']: r['Rule'] for r in _rows(criteria, 'EffectRules')}

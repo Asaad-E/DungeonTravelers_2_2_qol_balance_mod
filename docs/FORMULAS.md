@@ -656,11 +656,13 @@ it**, not the sum: two members with the same passive do not stack.
 
 Before the damage of a hit is kept, the target can turn it away, in this order:
 
-* **Cover** (`0x420b60`): for an action aimed at one unit or at random units, one of the other units of the target's
-  side that has Cover, picked with equal chances, becomes the target. There is no roll and no test of the kind of
-  damage. After the action each covered hit rolls `value * 100` to **end** that Cover: the value of the skill is the
-  chance to lose it (0.70 at level 1, 0.40 at level 5).
+* **Cover** (`0x420b60`): for a **physical** action (effect ID 0; `0x420b70`) aimed at one unit or at random units, one of
+  the other targetable units of the target's side that has Cover, picked with equal chances, becomes the target. Magic
+  and pure status attacks are never covered. After the action each covered hit rolls `value * 100` to **end** that Cover:
+  the value of the skill is the chance to lose it (0.70 at level 1, 0.40 at level 5).
 * **No effect**: a unit with All Resistances 100, or with Nullify Short-Mid against a short or mid range hit.
+* **Alter Fate** (`0x421ca7 - 0x421db3`): rolls `value * 100` immediately after Nullify Short-Mid; on success voids the
+  entire hit (damage, barriers, counters, dispel, and post-hit ailments/effects).
 * **Elegant Dancing**: the first damaging hit deals 0 and the status is spent.
 * **Counter** (`0x422553`): roll `value * 100`; the hit does nothing and the target counters.
 * **Clone, Illusion, Barrier System** (`0x41f920`): each is a count of hits; a damaging hit (not one that halves or
@@ -709,13 +711,15 @@ A counter is built by `_SetupCounter` (`0x425930`).
 The turn of a unit goes through numbered states. The ones read:
 
     0    start: Esarhaddon removes ailments (0x436727)
-    4    petrification runs its per-turn method, before anything else (0x436be4)
-    6    a unit that cannot act says so and its turn ends (0x436ca1)
-    9 - 11   the rolls of the opponents: Warning Shot, Mesmerized, Erotic Dance; a success ends the turn
-    12   the command is chosen (Murder License replaces it, 0x437364)
-    13 - 15  the action
-    16   **every status of the unit runs its per-turn method** (0x437b0c): regeneration, Carol, Chorale, poison,
-         the damage of an enemy dance, natural recovery
+    1    natural ailment recovery rolls (113..117, 122) BEFORE turn-loss checks (0x43692f)
+    2    Third Eye Wide (345) of opponents (0x47ee00; starts ailment recovery at 0%)
+    4    petrification advances stage 1 -> 2 -> 3 (0x436be4; barrier at stage 3 blocks and cures 120, 0x4830ad)
+    5-7  hard turn loss: Stage>=3 petrification, Sleep (116), Paralysis (115, 30%) skip states 8-22 and action (0x436c3f)
+    8    timed status durations decrement and expire BEFORE soft turn-loss checks (0x436d4c)
+    9-11 soft turn loss: Warning Shot (259), Magnificent Steps (283), Mesmerized (203)
+    16-21 regeneration (215, 216, 246, 247, enchantments), dances (199, 200 [MaxTp], 204, 339 on the dancer's turn, 0x42b5b5), and Poison (113)
+    22   Undaunted Spirit (355) revives dead allies on the acting unit's side (0x43851e)
+    action phase: command choice (Murder License 319 runs before action, 0x437364) and execution; doll lifetime ticks at end of turn (0x438cbd)
 
 So regeneration and poison act **after** the action of their bearer, once per turn of that unit. A passive skill
 stands on its bearer as a status that never ends (the finder `0x47e340` reads passives and statuses from the same
@@ -979,8 +983,9 @@ A sleeping unit takes none.
   at once. No turn is skipped.
 * Double and Triple Attack (`0x418045 - 0x4180e3`): Triple rolls and adds 3 hits, Double rolls on its own and adds 2;
   with neither the attack hits once.
-* Recovery of an ailment (`0x47bc03`, `0x48d211`): the chance starts at the turns figure of the action that caused it
-  (0 for every skill of the player) and rises by 10 after each failed check.
+* Recovery of an ailment (`0x4185b7`, `0x418812`, `0x418a9b`, `0x48d211`): action-inflicted recovering ailments
+  (113..117, 122) start at **5%** natural recovery (Third Eye Wide 345 explicitly starts at 0%) and rise by 10 after
+  each failed State 1 check before turn-loss.
 * Enemy chants (`0x449b0d - 0x449b38`): bit 11 of the word at file 0x28 of the attack, INT; bit 12, RES.
 * Magic attack (`0x44dcc0 - 0x44e6c6`): attack B = (INT * (2 + swing) + power * (1 + Magic Mastery) * (1 + 195 + 335 +
   joint power)) * (1 + enchantments * 0.01); attack C = attack B * (1 + Spiritual Fantasia) * (1 + element boost), the
@@ -989,10 +994,13 @@ A sleeping unit takes none.
   power. Magic hit terms of the caster (`0x44d759 - 0x44d95f`): 167, 309, 197, 222, 337, plus 278 and 353 for Lullaby
   (skill 205) only; of the target: 165, 198, 338. Magic defence modifiers:
   163, 196, 205, 336, 213, 220, 223.
-* Effects 71 and 136 (`0x44c60e - 0x44c6b6`): 71 adds its value to the "other" bonus once for every buff or debuff of
-  the target; 136 adds value * the number of the hit record.
-* Dolls (`0x4f3290`, `0x4f7c00`, `0x4fd630`; see 11.1): copy the owner's class, previous class, level, and 6 equipment
-  slots, zero reset bonus (`0x120`) and sub-event bonuses (`0xdc`), skip passives, have weight `0.0` and HP 9,999.
+* Effects 71 and 136 (`0x44c60e - 0x44c6b6`): 71 adds its value to the "other" bonus once for each of the 22 stat
+  buff/debuff statuses (`41..46, 161..169, 172..174, 184..186, 189`) on the target; 136 adds value * the number of the
+  hit record.
+* Dolls (`0x4f3290`, `0x4f3586 - 0x4f35fc`, `0x4f7c00`, `0x4fd630`; see 11.1): copy the owner's class, previous class,
+  level, reset/crown bonus (`0x120`, copied at `0x4f3586`), personal & grand sealbook enchants (`0x12c..0x130`), and 6
+  equipment slots; skip passives, have weight `0.0` and HP 9,999; Soul Seal (`314`) and Doll's Life (`297`) apply only
+  to the 6 puppets (`228..233`).
 * Revive item (`0x5101a4 - 0x5101ca`): int(max HP * the value of the item / 100), at least 1.
 * Per-turn damage of effects 199 and 339 is capped by the Damage cap (296) of the action that put it.
 
@@ -1108,7 +1116,7 @@ from the formation is still to be followed (assumption A10).
 |---|---|---|
 | 77 Sacrifice (Primevil) | After the action the user takes damage equal to its own max HP | `0x481060` |
 | 133 (Life Bringer) | The target loses max HP for good, int(damage of the hit * value), through the modifier of its max HP (unit slot 0x2c adds to 0x98) | `0x483ee0 - 0x483f8a` |
-| 137 (Megaton Press) | After the chosen target, the next int(value) - 1 units of its side in the order of turns are hit too | `0x42017a - 0x4202f3` |
+| 137 (Megaton Press) | Sorts all living targetable units of both sides by turn order; steps forward from the chosen target up to int(value) - 1 extra targets and stops immediately if an opposite-side unit intervenes | `0x42017a - 0x4202f3` |
 | 143 Special Sleep (Showtime) | A sleep command of value 10.0, recovery chance starting at 5, through the roll of sleep: certain unless immune, resistance 100 or a nullifying piece | `0x484150 - 0x48424d` |
 | 146, 147 | The doll function builds as many units as 146 says, each living 147 turns plus 297 of the owner; Star Dust Arrow goes through it too and builds two or three arrows whose action is hidden skill 106 (a shot at random targets, 1 to 3 hits, one per target) | `0x484330`, `0x484491 - 0x48449d` |
 | 258 Murder | A critical blow by an action or a user that carries it applies instant death at its value, through the roll of instant death | `0x44d26f - 0x44d2cf` |
@@ -1130,11 +1138,10 @@ life (A28: the GameFAQs guide says interruption does not and the death of the Sn
 A sweep of every enchantment id the program counts (`push <id>` then `call [vtable+0xf0]`, 114 ids) against the engine
 found these unplayed; each is now in the engine (`Formulas.cs` names the constants):
 
-* **A missed spell is not a miss** (`0x44ed8c - 0x44ee81`): the roll of the hit chance of a spell, when it fails, sets
-  the result to "missed" but the damage is still dealt (the caller adds it, `0x423257`): half of it, three quarters
-  with a piece of **272** ("Reduce damage penalty for missed spells"); a missed spell cannot be critical. Any spell whose
-  damage comes to 0 or less deals 1 to 5 (a number below 5, plus 1). The other effects of a missed spell are not
-  applied in the engine (not read).
+* **A missed spell is not a miss** (`0x421ab9 - 0x421ade`, `0x44ed8c - 0x44ee81`): the roll of the hit chance of a
+  damaging spell, when it fails, sets the result to "missed" but still checks Voided, deals grazed damage (half, three
+  quarters with **272**, full for special-damage magic; never critical; floor 1 to 5), and runs post-hit effects
+  (ailments, drains, reactive triggers).
 * **219 / 220**: +0.1 a piece to the "other" bonus of a blow or a spell when the target's level is above (219) or below
   (220) the attacker's (`0x44ca01 - 0x44ca8b`, `0x44ecc1 - 0x44ed4b`).
 * **264**: +0.02 to the class weapon modifier of the stats when any piece, the sealbook or the grand sealbook carries it,

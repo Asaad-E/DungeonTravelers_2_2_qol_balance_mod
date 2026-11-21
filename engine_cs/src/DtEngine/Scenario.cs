@@ -487,7 +487,8 @@ namespace DtEngine
             foreach (var f in Data.Summons.Where(f => f.Family == sealbook && f.Level <= average).OrderBy(f => f.Level))
                 last = f;
             if (last == null) return null;
-            var unit = UnitFactory.BuildSummon(Data, last, members, Setup.SettingInt("summon_hp"));
+            Data.SealbookEnchants.TryGetValue(sealbook, out var partyEnchants);
+            var unit = UnitFactory.BuildSummon(Data, last, members, Setup.SettingInt("summon_hp"), partyEnchants);
             unit.Level = last.Level;
             return unit;
         }

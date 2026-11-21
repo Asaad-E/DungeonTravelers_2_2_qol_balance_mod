@@ -1,6 +1,6 @@
 ## actives
 
-220 act as their effects say, 15 to read, of 235 active skills.
+221 act as their effects say, 14 to read, of 235 active skills.
 
 | Skill | Effects | Performed by | Result |
 |---|---|---|---|
@@ -231,7 +231,7 @@
 | 230 Primevil | 103/4, 106/4, 105/4, 77/4 | etoile | acts |
 | 231 Carrot and Stick | 131/4, 163/5, 162/5, 25/4 | mistress | acts |
 | 232 Prism Dawn | 1/4, 47/2 | sage | acts |
-| 233 Soul Eater | 1/4, 119/4, 87/2 | soul summoner | not seen: ailment 119 |
+| 233 Soul Eater | 1/4, 119/4, 87/2 | soul summoner | acts |
 | 234 Heaven or Hell | 155/2 | joker | acts |
 | 235 Musiy's Action (Fireball) | 1/4 | papillon | acts |
 | 236 Musiy's Action (Ice Edge) | 1/4 | papillon | acts |

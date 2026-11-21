@@ -186,7 +186,7 @@
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "CGamePlayerStatusETCDoll copies characterStats (including crownBonus), equipment, class modifiers, and personal/grand sealbook enchants (0x4f3586..0x4f35fc); Soul Seal (314) applies only to the 6 puppets (0x4fdfd0).",
    "reach": "All 7 doll skill types across player classes and guest mercenaries in `build/engine_snapshot.json`."
   },
   {
@@ -350,7 +350,7 @@
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "Player dolls inherit characterStats (including crownBonus) plus equipment, class modifiers, and personal/grand sealbook enchants (0x4f3586..0x4f35fc); newly summoned dolls start at gauge = RandRange(92)/100 (0x43a2a3..0x43a2bf).",
    "reach": "All 7 doll records (Spartan, Oracles, Mercidarian, Musiy, Catalina, Perdurabo, and Shadow/Genjimaru) in `build/engine_snapshot.json`."
   },
   {
@@ -525,13 +525,14 @@
     "0x436f8b"
    ],
    "engine": [
-    "Battle.cs:LostTurn"
+    "Battle.cs:LostTurnHard",
+    "Battle.cs:LostTurnSoft"
    ],
    "command": "python tools/exe_dis.py 0x436c47 0x436c51 0x436caa 0x436cb4 0x436d11 0x436d29 0x436d89 0x436d89 0x436dc3 0x436dcb 0x436dde 0x436de0 0x436e2d 0x436e2d 0x436e64 0x436e6c 0x436e7f 0x436e81 0x436eb6 0x436eb6",
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "Natural ailment recovery (State 1) runs before hard turn loss (States 5-7: Stage>=3 Petrify, Sleep, Paralysis 30%); timed status countdown (State 8) runs before soft turn loss (States 9-11: Warning Shot 259, Magnificent Steps 283, Mesmerized 203).",
    "reach": "Evaluated on every unit turn in battle. Affects all 14 player skills and 285 enemy/NPC attacks carrying petrify (120), sleep (116), paralysis (115), Warning Shot (259), Magnificent Steps (283), or Mesmerized (203) in `build/engine_snapshot.json`."
   },
   {
@@ -820,7 +821,7 @@
    "audited": "MISMATCH at 4defd76",
    "verdict": "FIXED",
    "fixed_in": "43ec275",
-   "note": "Cover and redirections choose among units below 2000.",
+   "note": "Cover (171; 0x420b70) redirects only physical actions (effect ID 0) among targetable units below 2000; never redirects magic or pure status attacks.",
    "reach": "1 player skill (Cover, Paladin id 171) in `build/engine_snapshot.json` (queried via Python checking effect 171 across skills and attacks; 0 enemy attacks carry effect 171)."
   },
   {
@@ -865,7 +866,7 @@
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "EXTRA_TARGETS (137; 0x4201e0..0x4202f3) sorts all living targetable units of both sides by turn order, steps forward from chosen, and breaks immediately when an opposite-side unit intervenes.",
    "reach": "14 enemy attacks with EXTRA_TARGETS (137), 32 player skills with scope 8 (ALLIES, including party songs/dances), and 1 player skill with random moves in `build/engine_snapshot.json` (queried via Python inspecting `effects` and `target` in vanilla `skills` and `attacks`)."
   },
   {
@@ -1268,14 +1269,14 @@
    ],
    "engine": [
     "Battle.cs:AfterHit",
-    "Battle.cs:Tick",
+    "Battle.cs:DecrementTimedStatuses",
     "Units.cs:Status"
    ],
    "command": "python tools/exe_dis.py 0x48d5d9 0x48d5e0 0x48d601 0x48d610 0x41853b 0x418540 0x418543 0x41854a 0x418551 0x418561 0x485d42 0x485d51",
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "Timed status durations decrement in State 8 before 259/283/203 turn-loss checks (0x436d4c); Poison/Regen/Dances run in States 16-21.",
    "reach": "58 player skills and 452 enemy attacks with kind 5 (or status-applying effects) in `build/engine_snapshot.json` (queried via Python inspecting skill/attack records)."
   },
   {
@@ -1310,13 +1311,15 @@
    "engine": [
     "Battle.cs:Turn",
     "Battle.cs:EndOfTurn",
-    "Battle.cs:Tick"
+    "Battle.cs:RollAilmentRecovery",
+    "Battle.cs:DecrementTimedStatuses",
+    "Battle.cs:TickRegenAndDances"
    ],
    "command": "python tools/exe_dis.py 0x437b0c 0x437b12 0x437b5a 0x437b6e 0x437b71 0x437b8f 0x437b95 0x437ba1 0x48d5b5 0x48d5de 0x48d605 0x48d610 0x48bc88 0x48bc8f 0x48bca3 0x48bca9 0x48bcab 0x48bcb1",
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "Turn phase order matches 0x43692f..0x4386e7: State 1 natural recovery, State 4 Petrify stage++ (barrier blocks and cures 120), States 5-7 hard turn loss, State 8 timed status countdown, States 9-11 soft turn loss, States 16-21 regen/dancer-turn dances (200 uses MaxTp)/Poison, State 22 same-side Undaunted (355).",
    "reach": "58 player skills and 452 enemy attacks with timed status effects in `build/engine_snapshot.json` (queried via Python inspecting skill/attack records). Session ended after P8.3."
   },
   {
@@ -1336,7 +1339,7 @@
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "Recovering ailments (113..117, 122) can be re-applied (stripping barriers or resetting recovery chance); Petrify (120) and Shadow Sew (123) do not overwrite an existing instance; 192 is checked in Voided.",
    "reach": "44 player skills and 897 enemy attacks with ailment effects, and 461 of 516 enemies with one or more immunity bits in `build/engine_snapshot.json` (queried via Python inspecting `sides.vanilla.skills`, `sides.vanilla.attacks`, and `sides.vanilla.enemies`). Session ended after P8.4."
   },
   {
@@ -1350,14 +1353,14 @@
     "0x48d211"
    ],
    "engine": [
-    "Battle.cs:Tick",
+    "Battle.cs:RollAilmentRecovery",
     "Battle.cs:ApplyAilment"
    ],
    "command": "python tools/exe_dis.py 0x47bc08 0x47bc13 0x48d1e0 0x48d1e9 0x48d211 0x48d22b 0x48d241 0x48d24b",
    "audited": "MATCH at 4defd76",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "Action-inflicted recovering ailments (113..117, 122) start at 5% natural recovery (0x4185b7, 0x418812, 0x418a9b) and rise by +10% each turn in State 1 before LostTurnHard; Third Eye Wide (345) explicitly initializes at 0%.",
    "reach": "30 player skills and 592 enemy attacks with recovering ailments in `build/engine_snapshot.json` (queried via Python inspecting `sides.vanilla.skills` and `sides.vanilla.attacks` for effects 113, 114, 115, 116, 117, 120, 122). Session ended after P8.5."
   },
   {
@@ -1369,7 +1372,7 @@
    ],
    "engine": [
     "Battle.cs",
-    "Battle.cs:Tick"
+    "Battle.cs:TickRegenAndDances"
    ],
    "command": "python tools/exe_dis.py 0x482186 0x48219f 0x4821a7 0x4821ba 0x4821bc 0x4821cb 0x4821ed 0x482200",
    "audited": "MATCH at 4defd76",
@@ -1391,7 +1394,8 @@
     "0x4fa2f2"
    ],
    "engine": [
-    "Battle.cs:LostTurn",
+    "Battle.cs:LostTurnHard",
+    "Battle.cs:LostTurnSoft",
     "Battle.cs:Stun",
     "Battle.cs:Delay",
     "Ai.cs:Choose"
@@ -1634,7 +1638,7 @@
    "audited": "MISMATCH at 2fcd922",
    "verdict": "FIXED",
    "fixed_in": "43ec275",
-   "note": "The effects of an item are read in pairs by side: the first two for the own side, the next two for the other.",
+   "note": "Fixed 4-slot layout preserved (slots 0-1 ally, 2-3 enemy, -1 empty; 0x55b550); supports HP/TP/HP+TP single and party kinds (0..5) with Item Mastery (275), true-ailment cures (6/7 excluding Shadow Sew 123), and all 41 item-cast skill specs (0x50b030/0x511790).",
    "reach": "179 items with > 2 effect pairs in `build/engine_snapshot.json`."
   },
   {
@@ -1772,13 +1776,14 @@
    ],
    "engine": [
     "Battle.cs:EndOfTurn",
-    "Battle.cs:Tick"
+    "Battle.cs:DecrementTimedStatuses",
+    "Battle.cs:TickRegenAndDances"
    ],
    "command": "python tools/exe_dis.py 0x437b5a 0x437ba5 0x48d160 0x48d179 0x48d5d9 0x48d610",
    "audited": "MATCH at 2fcd922",
    "verdict": "MATCH",
    "fixed_in": "",
-   "note": "",
+   "note": "Dances 199, 200, 204, 339 tick on the dancer turn across all living units bearing that dancer status (0x42b5b5), with 200 scaling target.MaxTp.",
    "reach": "312 player skills and 442 enemy/guest attacks carrying timed turn durations in `build/engine_snapshot.json`."
   },
   {
@@ -2043,13 +2048,14 @@
    ],
    "engine": [
     "Battle.cs:MagicDamageActual",
-    "Battle.cs:Damage"
+    "Battle.cs:Damage",
+    "Battle.cs:Resolve"
    ],
    "command": "python tools/exe_dis.py 0x44ed8c 0x44edec",
    "audited": "MISMATCH at db97660 (enchantment sweep of 2026-10-19)",
    "verdict": "FIXED",
    "fixed_in": "d8fd32b",
-   "note": "A missed spell deals half its damage, three quarters with enchantment 272, never a critical; any spell at 0 or less deals 1 to 5. Its other effects are not applied (not read).",
+   "note": "A missed damaging spell (including special-damage magic) checks Voided, deals grazed (half, or 3/4 with enchant 272; full for special damage) with 1-5 floor, and still runs AfterHit (ailments, drains, reactive triggers; 0x421ab9..0x421ade).",
    "reach": ""
   },
   {

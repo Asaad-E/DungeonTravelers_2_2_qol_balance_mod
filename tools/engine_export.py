@@ -106,7 +106,8 @@ def equipment_json(p):
         'id': p['id'], 'name': p['name'], 'category': p['category'],
         'stats': {s: whole(v, f"{s} of piece {p['id']}") for s, v in p['stats'].items()},
         'rate': p['rate'], 'classes': p['classes'], 'swing': p['swing'], 'rank': p['rank'], 'type': p['type'],
-        'enchants': list(p['enchants']), 'two_handed': bool(p['two_handed']), 'range': p['range'], 'attr': p['attr'],
+        'enchants': list(p['enchants']), 'two_handed': bool(p['two_handed']),
+        'plain_target': p.get('plain_target', 0), 'range': p['range'], 'attr': p['attr'],
     }
 
 
@@ -128,6 +129,7 @@ def side_json(data, flags):
                    for k, rows in data.growth.items()],
         'growth_row': growth_row,
         'class_names': [[k, v] for k, v in data.class_names.items()],
+        'class_unarmed_ranks': [[k, v] for k, v in data.class_unarmed_ranks.items()],
         'class_modifiers': [{'class': m['class'], 'previous': m['previous'],
                              'entries': [{'modifier': x['modifier'], 'slot': x['slot'], 'type': x['type']}
                                          for x in m['entries']]} for m in data.class_modifiers],
@@ -135,11 +137,15 @@ def side_json(data, flags):
                         'start_exp': c['start_exp'], 'unique_skill': c['unique_skill']} for c in data.characters],
         'equipment': [equipment_json(p) for p in data.equipment.values()],
         'enchant_stacks': sorted(data.enchant_stacks),
+        'enchant_offhand': sorted(data.enchant_offhand),
         'sealbooks': [{'id': k, 'enchants': list(v['enchants'])} for k, v in data.sealbooks.items()],
         'weapon_ranks': [[k, v] for k, v in data.weapon_ranks.items()],
-        'items': [{'id': k, 'name': v['name'], 'effects': [[t, val] for t, val in v['effects']]}
+        'items': [{'id': k, 'name': v['name'], 'effects': [[t, val] for t, val in v['effects']],
+                   'slots': [[t, val] for t, val in v['slots']]}
                   for k, v in data.items.items()],
         'item_skills': [[k, v] for k, v in data.item_skills.items()],
+        'item_skill_specs': [[k, sid, int(use_val), int(fixed_lv)]
+                             for k, (sid, use_val, fixed_lv) in data.item_skill_specs.items()],
         'exp_curve': [[k, v] for k, v in data.exp_curve.items()],
         'sp_curve': [[k, v] for k, v in data.sp_curve.items()],
         'floors': [{'dungeon': z['dungeon'], 'floor': z['floor'], 'zone': z['zone'], 'name': z['name'],
@@ -158,7 +164,9 @@ def side_json(data, flags):
                          for k, v in data.zone_factors.items()],
         'summons': [{'id': s['id'], 'family': s['family'], 'enemy': s['enemy'], 'level': s['level'], 'rank': s['rank'],
                      'name': s['name'], 'factors': {k: v for k, v in s['factors'].items()},
-                     'attacks': list(s['attacks']), 'passive': s['passive'], 'script': script_json(s['script'])}
+                     'attacks': list(s['attacks']), 'passive': s['passive'],
+                     'passives': list(s.get('passives', [s['passive']] if s['passive'] is not None else [])),
+                     'script': script_json(s['script'])}
                     for s in data.summons],
         'npcs': [{'id': n['id'], 'character': n['character'], 'level': whole(n['level'], 'level of a guest'), 'raw_1c': n['raw_1c'],
                   'name': n['name'], 'attacks': list(n['attacks']), 'cost': whole(n['cost'], f"cost of guest {n['id']}"),

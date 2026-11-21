@@ -310,7 +310,7 @@ namespace DtEngine.Tests
         }
 
         [Fact]
-        public void M19_AlterFate349_ZeroesDamageWithoutBlockingAilments()
+        public void M19_AlterFate349_VoidsFullHitIncludingAilments()
         {
             var snap = LoadSnapshot();
             var data = snap.Sides["variant"];
@@ -330,9 +330,10 @@ namespace DtEngine.Tests
             var foe = new Unit("Foe", Unit.ENEMIES, 50, 1000, 0, new[] { 200, 60, 60, 60, 200, 60 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
             var battle = new Battle(data, new List<Unit> { target }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
 
+            // 0x421ca7..0x421db3: Alter Fate (349) returns early in Voided, blocking damage, barriers, dispel, and AfterHit ailments.
             battle.Perform(new Action(foe, AKind.Skill, poisonStrike, 1, target));
             Assert.Equal(500, target.Hp);
-            Assert.NotNull(target.St[113]);
+            Assert.Null(target.St[113]);
         }
 
         [Fact]
@@ -349,7 +350,7 @@ namespace DtEngine.Tests
             Assert.True(res.Lost, "Gradual petrification must kill at stage 3 (0x48305a..0x483115)");
             Assert.True(foe.Hp < 5000, "Unit at petrify stage 1-2 must still act before stage 3 death (0x4fb5c0/0x4fb600)");
 
-            // Barrier (101) blocks stage 3 death (0x41f920)
+            // Barrier (101) blocks stage 3 death AND cures petrification (0x4830ad)
             var shielded = new Unit("Shielded", Unit.PARTY, 50, 500, 100, new[] { 60, 60, 60, 60, 60, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
             var st120 = new Status(120, 1.0, 0, foe) { Stage = 2 };
             shielded.SetStatus(st120);
@@ -361,6 +362,264 @@ namespace DtEngine.Tests
             b2.Run();
             Assert.True(shielded.Alive, "Barrier 101 must block stage 3 petrification death (0x41f920)");
             Assert.Null(shielded.St[101]);
+            Assert.Null(shielded.St[120]);
+        }
+
+        [Fact]
+        public void R2_AttackAttrOverrides_NonPlayerDefault_AndPhysicalAttrSeparation()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // 1A #1: Enemy with Slash plain attack sets AttackAttr = SLASH (not NEUTRAL).
+            int slashEnemyId = data.Enemies.Values.First(e => e.Attacks.Length > 0 && data.GetAttack(e.Attacks[0])?.Attr == T.SLASH).Id;
+            var enemy = UnitFactory.BuildEnemy(data, slashEnemyId, true);
+            Assert.Equal(T.SLASH, enemy.AttackAttr);
+            var weapAttrAtk = new EnemyAttack { Id = 9991, Name = "Attr0", Target = T.SINGLE, Attr = 0, Speed = 1.0, EffId = new[] { 0 }, EffKind = new[] { 4 }, EffValue = new[] { 1.0 }, EffIsInt = new[] { false } };
+            Assert.Equal(T.SLASH, new Action(enemy, AKind.Enemy, weapAttrAtk, 1).Attr);
+
+            // 1A #5: Player with 2x weapon-element statuses (325+326) returns weapon physical (not falling through to enchant 78).
+            var hero = new Unit("Hero", Unit.PARTY, 50, 500, 100, new[] { 80, 60, 60, 60, 80, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member) { AttackAttr = T.STAB };
+            var ench = new int[GameData.MaxEnchant];
+            ench[78] = 1; ench[79] = 1; // Fire + Water enchants -> Fire wins (78..82 priority)
+            hero.SetEnchants(ench);
+            var plain = new Action(hero, AKind.Attack);
+            Assert.Equal(T.FIRE, plain.Attr);
+            Assert.Equal(T.STAB, plain.PhysicalAttr);
+
+            hero.SetStatus(new Status(325, 1, 3, hero));
+            hero.SetStatus(new Status(326, 1, 3, hero));
+            Assert.Equal(T.STAB, plain.Attr);
+        }
+
+        [Fact]
+        public void R2_MissedSpellRunsAfterHit_AndDrainsRespectUndeadCapAndTargetTp()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+            var missDrainSpell = new Skill
+            {
+                Category = "Magic", Id = 9992, Name = "MissPoison", Levels = 1, Target = T.SINGLE, Attr = T.FIRE, Group = 1,
+                IsMagic = true, Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 },
+                Accuracy = new[] { 0.0 }, Turns = new[] { 0.0 },
+                Effects = new[]
+                {
+                    new Effect { Id = 1, Kind = 4, Values = new[] { 100.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 55, Kind = 2, Values = new[] { 0.0 }, IsInt = new[] { false } }, // 0% hit -> always misses
+                    new Effect { Id = 113, Kind = 4, Values = new[] { 10.0 }, IsInt = new[] { false } }, // 100% poison
+                }
+            };
+            var mage = new Unit("Mage", Unit.PARTY, 50, 500, 100, new[] { 40, 40, 200, 40, 40, 40 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var foe = new Unit("Foe", Unit.ENEMIES, 50, 1000, 0, new[] { 40, 40, 40, 40, 40, 40 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var battle = new Battle(data, new List<Unit> { mage }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            battle.Perform(new Action(mage, AKind.Skill, missDrainSpell, 1, foe));
+            Assert.True(foe.Hp < 1000, "Missed spell still deals grazed damage");
+            Assert.NotNull(foe.St[113]); // 1A #3: AfterHit runs on missed damaging spell
+
+            // 1A #4: HP Drain (75) skips Undead (race 5), floors at 1, caps at target pre-hit HP; TP Drain (76) subtracts target member TP.
+            var drainSkill = new Skill
+            {
+                Category = "Technique", Id = 9993, Name = "Drain", Levels = 1, Target = T.SINGLE, Attr = T.SLASH, Group = 1,
+                IsTechnique = true, Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[]
+                {
+                    new Effect { Id = 0, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 55, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 75, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 76, Kind = 4, Values = new[] { 0.5 }, IsInt = new[] { false } },
+                }
+            };
+            var vampire = new Unit("Vamp", Unit.PARTY, 50, 500, 100, new[] { 500, 50, 50, 50, 100, 50 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Hp = 100, Tp = 10 };
+            var undead = new Unit("Zombie", Unit.ENEMIES, 50, 200, 0, new[] { 20, 20, 20, 20, 20, 20 }, null, 1.4, 0.0, 5, Kind.Enemy);
+            var weakLive = new Unit("Slime", Unit.ENEMIES, 50, 200, 0, new[] { 20, 20, 20, 20, 20, 20 }, null, 1.4, 0.0, 0, Kind.Enemy) { Hp = 25 };
+            var b2 = new Battle(data, new List<Unit> { vampire }, new List<Unit> { undead, weakLive }, new PyRandom(1), null, new BattleOptions(), null);
+            b2.Perform(new Action(vampire, AKind.Skill, drainSkill, 1, undead));
+            Assert.Equal(100, vampire.Hp); // Undead blocks HP drain
+            Assert.Equal(10, vampire.Tp);  // Undead blocks TP drain
+
+            b2.Perform(new Action(vampire, AKind.Skill, drainSkill, 1, weakLive));
+            Assert.Equal(125, vampire.Hp); // Overkill capped at target's pre-hit HP (25)
+        }
+
+        [Fact]
+        public void R2_TurnPhaseOrder_SleepCanWakeUp_AndInstantPetrify121IsStage3()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // 1B #1: Sleep (116) with 100% recovery wakes in State 1 BEFORE State 6 LostTurn and acts on the same turn!
+            var sleeper = new Unit("Sleeper", Unit.PARTY, 50, 500, 100, new[] { 200, 60, 60, 60, 200, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            sleeper.Attacks = new[] { 0 };
+            sleeper.SetStatus(new Status(116, 1.0, 0, null).WithData(100));
+            var dummy = new Unit("Dummy", Unit.ENEMIES, 50, 5000, 0, new[] { 10, 10, 10, 10, 10, 1 }, null, 3.0, 0.0, T.NONE, Kind.Enemy);
+            var b = new Battle(data, new List<Unit> { sleeper }, new List<Unit> { dummy }, new PyRandom(1), null, new BattleOptions(), null, 1.0);
+            sleeper.NextTime = 0.01; dummy.NextTime = 5.0;
+            b.Run();
+            Assert.Null(sleeper.St[116]);
+            Assert.True(dummy.Hp < 5000, "Sleeper that naturally woke in State 1 must act on that turn");
+
+            // 1B #2: Instant Petrify (121) checks barrier (101) and attaches Status(120) directly at Stage = 3.
+            var petrifySkill = new Skill
+            {
+                Category = "Magic", Id = 9994, Name = "StoneGaze", Levels = 1, Target = T.SINGLE, Attr = T.EARTH, Group = 1,
+                IsMagic = true, Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 },
+                Accuracy = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[]
+                {
+                    new Effect { Id = 55, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 121, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                }
+            };
+            var caster = new Unit("Caster", Unit.ENEMIES, 50, 1000, 0, new[] { 60, 60, 100, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var target = new Unit("Target", Unit.PARTY, 50, 500, 100, new[] { 60, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            target.SetStatus(new Status(101, 1.0, 5, target));
+            var b2 = new Battle(data, new List<Unit> { target }, new List<Unit> { caster }, new PyRandom(1), null, new BattleOptions(), null);
+            b2.Perform(new Action(caster, AKind.Skill, petrifySkill, 1, target));
+            Assert.Null(target.St[101]); // barrier consumed
+            Assert.Null(target.St[120]); // petrify blocked
+
+            b2.Perform(new Action(caster, AKind.Skill, petrifySkill, 1, target));
+            Assert.NotNull(target.St[120]);
+            Assert.Equal(3, target.St[120].Stage);
+        }
+
+        [Fact]
+        public void R2_AilmentRecovery5Pct_Arcane25PctOverwrite_AndDance200MaxTp()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // 1B #3: Action-inflicted recovering ailment initializes recovery at 5%.
+            var hero = new Unit("Hero", Unit.PARTY, 50, 500, 100, new[] { 80, 60, 60, 60, 100, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var foe = new Unit("Foe", Unit.ENEMIES, 50, 1000, 0, new[] { 80, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var b = new Battle(data, new List<Unit> { hero }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            Assert.True(b.ApplyAilment(hero, foe, 113, 10.0, new Action(hero, AKind.Attack)));
+            Assert.Equal(5.0, foe.St[113].Data);
+
+            // 1B #6: Dance 200 ticks on dancer's turn and multiplies target.MaxTp (not MaxHp).
+            var dancer = new Unit("Dancer", Unit.ENEMIES, 50, 1000, 0, new[] { 40, 40, 40, 40, 40, 100 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var victim = new Unit("Victim", Unit.PARTY, 50, 2000, 100, new[] { 40, 40, 40, 40, 40, 10 }, null, 3.0, 0.0, T.NONE, Kind.Member);
+            victim.SetStatus(new Status(200, 0.10, 0, dancer, "TPDance", Status.SongKind)); // 10% of MaxTp(100) = 10, NOT 10% of MaxHp(2000)=200
+            var b2 = new Battle(data, new List<Unit> { victim }, new List<Unit> { dancer }, new PyRandom(1), null, new BattleOptions(), null, 0.5);
+            dancer.NextTime = 0.01; victim.NextTime = 5.0;
+            b2.Run();
+            Assert.Equal(90, victim.Tp);
+        }
+
+        [Fact]
+        public void R2_Items4Slot_OffhandBit7_StatClamp9999_AndMutuallyExclusiveBuffs()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // 2A #1 & #2: All items preserve 4 slots; ItemSkillSpecs holds all 41 specs incl. kinds 42 & 45.
+            Assert.True(data.Items.Values.All(it => it.Kinds.Length == 4));
+            Assert.True(data.ItemSkillSpecs.ContainsKey(42));
+            Assert.True(data.ItemSkillSpecs.ContainsKey(45));
+            Assert.Equal(41, data.ItemSkillSpecs.Count);
+
+            // 2A #4: EnchantOffhand loaded from bit 7 (0x80).
+            Assert.True(data.EnchantOffhand.Count > 0 && data.EnchantOffhand.Count < 300);
+
+            // 2A #11 & #12: 189/193/194 mutually exclusive, 202/341 mutually exclusive, Stat clamped to 9999, OffhandBonus not multiplied by stat buffs.
+            var u = new Unit("Tank", Unit.PARTY, 99, 500, 100, new[] { 1000, 100, 100, 100, 100, 100 }, new[] { 0, 0, 0, 0, 0, 0, 0, 0 }, 1.4, 0.0, T.NONE, Kind.Member);
+            u.OffhandBonus = new[] { 200, 0, 0, 0, 0, 0 };
+            u.SetStatus(new Status(41, 0.5, 3, u));  // +50% of 1000 = +500 (offhand 200 NOT multiplied) -> 1700
+            Assert.Equal(1700, u.Stat(Unit.ATK));
+
+            u.SetStatus(new Status(189, 0.2, 3, u)); // +200 -> 1900
+            u.SetStatus(new Status(193, 0.3, 3, u)); // ignored while 189 active
+            Assert.Equal(1900, u.Stat(Unit.ATK));
+
+            u.Base[Unit.ATK] = 9500;
+            Assert.Equal(9999, u.Stat(Unit.ATK)); // clamped at 9999
+
+            u.SetStatus(new Status(202, -30, 0, u));
+            u.SetStatus(new Status(341, -20, 0, u)); // ignored while 202 active
+            Assert.Equal(-30, u.Resistance(3));
+
+            // R3 #4: Pep clamp enchants 201 (70), 200 (>=100), 195 (130).
+            var e201 = new int[GameData.MaxEnchant]; e201[201] = 1;
+            u.SetEnchants(e201); u.Pep = 120; u.ClampPep(); Assert.Equal(70.0, u.Pep);
+            var e195 = new int[GameData.MaxEnchant]; e195[195] = 1;
+            u.SetEnchants(e195); u.Pep = 80; u.ClampPep(); Assert.Equal(130.0, u.Pep);
+        }
+
+        [Fact]
+        public void R2_Targeting_ExtraTargets137_Cover171PhysicalOnly_Breath_AndMultiPassiveSummon()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // 2B #2: Cover (171) redirects physical attacks, NOT magic.
+            var cover = new Unit("Tank", Unit.PARTY, 50, 1000, 100, new[] { 60, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            cover.SetStatus(new Status(171, 0.0, 3, cover));
+            var ally = new Unit("Mage", Unit.PARTY, 50, 1000, 100, new[] { 60, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var foe = new Unit("Caster", Unit.ENEMIES, 50, 1000, 0, new[] { 150, 60, 200, 60, 200, 60 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var fireball = data.SkillList.First(s => s.Name == "Fireball");
+            var b = new Battle(data, new List<Unit> { cover, ally }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            b.Perform(new Action(foe, AKind.Skill, fireball, 5, ally));
+            Assert.Equal(1000, cover.Hp); // Cover did NOT intercept magic
+            Assert.True(ally.Hp < 1000);
+
+            b.Perform(new Action(foe, AKind.Attack) { Target = ally });
+            Assert.True(cover.Hp < 1000); // Cover DID intercept physical attack
+
+            // 2B #3: Breath attack (eff 3) bypasses Silence (117) and Freeze (114).
+            var breathAtk = data.Attacks.Values.First(a => a.EffId.Contains(3) && (a.Spell || a.Technique));
+            var plainAtk = data.Attacks.Values.First(a => a.Plain && a.EffId.Contains(0));
+            var dragon = new Unit("Dragon", Unit.ENEMIES, 50, 1000, 0, new[] { 100, 60, 100, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Enemy)
+            {
+                Attacks = new[] { plainAtk.Id, breathAtk.Id },
+                Script = new Script
+                {
+                    Id = 1,
+                    Opening = new CommandList { Id = 1, Commands = Array.Empty<Command>() },
+                    Sets = new[] { new AiSet { Number = 0, Weights = new[] { 0, 100 }, Commands = new CommandList { Id = 2, Commands = Array.Empty<Command>() } } }
+                }
+            };
+            dragon.SetStatus(new Status(114, 1, 0, ally)); // Freeze
+            dragon.SetStatus(new Status(117, 1, 0, ally)); // Silence
+            var bDragon = new Battle(data, new List<Unit> { ally }, new List<Unit> { dragon }, new PyRandom(1), null, new BattleOptions(), null);
+            var chosen = Ai.Choose(bDragon, dragon);
+            Assert.Equal(breathAtk.Id, chosen.SourceId);
+
+            // 2B #6: Summon 95 has 2 passives loaded and applied.
+            var s95 = data.Summons.First(s => s.Id == 95);
+            Assert.True(s95.Passives.Length >= 2);
+            var sumUnit = UnitFactory.BuildSummon(data, s95, new List<Unit> { cover }, 9999);
+            foreach (int pid in s95.Passives)
+            {
+                var pa = data.GetAttack(pid);
+                if (pa != null)
+                    foreach (int eff in pa.EffId) Assert.True(sumUnit.HasPassive(eff));
+            }
+
+            // 2B #10: Weapon 198 (Pierce) and 344 (Row) set PlainTarget on plain Attack.
+            Assert.Equal(T.PIERCE, data.Equipment[198].PlainTarget);
+            Assert.Equal(T.ROW, data.Equipment[344].PlainTarget);
+            cover.Weapon = data.Equipment[198];
+            Assert.Equal(T.PIERCE, new Action(cover, AKind.Attack).TargetCode);
+
+            // 2B #1: ExtraTargets (137) stops immediately when an opposite-side unit intervenes in turn order.
+            var e1 = new Unit("E1", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 1.4, 0.0, T.NONE, Kind.Enemy) { NextTime = 0.10 };
+            var e2 = new Unit("E2", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 1.4, 0.0, T.NONE, Kind.Enemy) { NextTime = 0.30 };
+            var p1 = new Unit("P1", Unit.PARTY, 50, 1000, 100, new[] { 200, 50, 50, 50, 200, 50 }, null, 1.4, 0.0, T.NONE, Kind.Member) { NextTime = 0.20 };
+            var splash = new Skill
+            {
+                Category = "Technique", Id = 9995, Name = "Splash", Levels = 1, Target = T.SINGLE, Attr = T.SLASH, Group = 1,
+                IsTechnique = true, Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[]
+                {
+                    new Effect { Id = 0, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 55, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 137, Kind = 2, Values = new[] { 3.0 }, IsInt = new[] { true } },
+                }
+            };
+            var bSplash = new Battle(data, new List<Unit> { p1 }, new List<Unit> { e1, e2 }, new PyRandom(1), null, new BattleOptions(), null);
+            bSplash.Perform(new Action(p1, AKind.Skill, splash, 1, e1));
+            Assert.True(e1.Hp < 1000);
+            Assert.Equal(1000, e2.Hp); // P1 intervened at t=0.20 between E1(0.10) and E2(0.30), breaking the chain!
         }
     }
 }

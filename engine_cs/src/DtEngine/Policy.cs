@@ -9,8 +9,8 @@ namespace DtEngine
     {
         static readonly int[] HEAL_EFFECTS = { 103, 104, 128, 132 };
         static readonly int[] DOLL_EFFECTS = { 228, 229, 230, 231, 232, 233 };
-        static readonly int[] ITEM_HEAL_KINDS = { 0, 3 };
-        static readonly int[] ITEM_TP_KINDS = { 1 };
+        static readonly int[] ITEM_HEAL_KINDS = { 0, 2, 3, 5 };
+        static readonly int[] ITEM_TP_KINDS = { 1, 2, 4, 5 };
         static readonly int[] ITEM_REVIVE_KINDS = { 8 };
         static readonly int[] ITEM_CURE_KINDS = { Battle.ITEM_CURE_ALL, Battle.ITEM_CURE_ONE };
         static readonly int[] RANDOM_HARM_EFFECTS = { 0, 1, 8, 113, 114, 115, 116, 117, 118, 119, 120, 122, 123, 140, 143, 435 };
@@ -792,13 +792,7 @@ namespace DtEngine
             return Math.Abs(s.Value) < Math.Abs(mine);
         }
 
-        static bool ProvokedByUnit(Unit enemy, Unit unit)
-        {
-            if (!enemy.HasProvokedBy) return false;
-            var list = enemy.ProvokedBy;
-            for (int i = 0; i < list.Count; i++) if (list[i].unit == unit) return true;
-            return false;
-        }
+        static bool ProvokedByUnit(Unit enemy, Unit unit) => enemy.St[170] != null && enemy.St[170].Source == unit;
 
         static double ExpectedHeal(Battle battle, Action action, Unit target)
         {
@@ -928,16 +922,17 @@ namespace DtEngine
                 int itemId = kv.Key, count = kv.Value;
                 battle.Data.Items.TryGetValue(itemId, out var item);
                 if (count <= 0 || item == null) continue;
+                int allySlots = Math.Min(2, item.Kinds.Length);
                 bool any = false;
-                for (int i = 0; i < item.Kinds.Length; i++) if (Array.IndexOf(kinds, item.Kinds[i]) >= 0) any = true;
+                for (int i = 0; i < allySlots; i++) if (Array.IndexOf(kinds, item.Kinds[i]) >= 0) any = true;
                 if (!any) continue;
                 bool party = false;
-                for (int i = 0; i < item.Kinds.Length; i++) if (item.Kinds[i] == 3) party = true;
+                for (int i = 0; i < allySlots; i++) if (item.Kinds[i] == 3 || item.Kinds[i] == 4 || item.Kinds[i] == 5) party = true;
                 double size;
                 if (arg != "cure")
                 {
                     bool first = true; size = 0;
-                    for (int i = 0; i < item.Kinds.Length; i++)
+                    for (int i = 0; i < allySlots; i++)
                         if (Array.IndexOf(kinds, item.Kinds[i]) >= 0)
                         {
                             double v = item.Values[i] != 0 ? item.Values[i] : 0;
@@ -947,7 +942,7 @@ namespace DtEngine
                 else
                 {
                     size = 0;
-                    for (int i = 0; i < item.Kinds.Length; i++) if (item.Kinds[i] == Battle.ITEM_CURE_ALL) size = 1;
+                    for (int i = 0; i < allySlots; i++) if (item.Kinds[i] == Battle.ITEM_CURE_ALL) size = 1;
                 }
                 bool flag = party == (hurt >= 2);
                 // max() of the tuples (flag, size, item id)
@@ -1259,14 +1254,7 @@ namespace DtEngine
         static bool ProvokingAnyEnemy(Battle battle, Unit unit)
         {
             foreach (var f in EnemiesOf(battle, unit))
-            {
                 if (f.St[170] != null && f.St[170].Source == unit) return true;
-                if (f.HasProvokedBy)
-                {
-                    var list = f.ProvokedBy;
-                    for (int i = 0; i < list.Count; i++) if (list[i].unit == unit) return true;
-                }
-            }
             return false;
         }
 

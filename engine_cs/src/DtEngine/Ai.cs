@@ -17,6 +17,13 @@ namespace DtEngine
             public bool None => Kind == 0;
         }
 
+        static bool IsBreath(EnemyAttack atk)
+        {
+            if (atk.EffId == null) return false;
+            for (int i = 0; i < atk.EffId.Length; i++) if (atk.EffId[i] == 3) return true;
+            return false;
+        }
+
         public static Action Choose(Battle battle, Unit unit)
         {
             var attacks = unit.Attacks;
@@ -25,12 +32,14 @@ namespace DtEngine
             unit.AiTargets?.Clear();
             if (attacks.Length == 0) return new Action(unit, AKind.Defend);
             var chosen = ChooseAttack(battle, unit);
-            // the choice is then replaced by the unit's plain attack (0x4312b0 - 0x4313b5): always under shadow sew (123, slot 0xd0 of
-            // the unit class), for a spell (bit 2 of the attack's flags) under silence (117, slot 0xc0), for a technique (bit 1) under
-            // freeze (114, slot 0xb4). The plain attack the program takes is the record's own (0xc8 of the enemy's status data, 0x54 of a
-            // summon's form, 0x58 of a guest's record); the engine takes attack slot 0, the plain attack in the data it reads
-            if (chosen.Atk != null && (unit.St[123] != null || (unit.St[117] != null && chosen.Atk.Spell) || (unit.St[114] != null && chosen.Atk.Technique)))
-                return AttackAction(battle, unit, 0, T.NONE);
+            // 0x431257..0x4313b5: Shadow Sew (123) replaces any attack with plain attack; Breath (effect ID 3) bypasses
+            // Silence (117, spells) and Freeze (114, techniques).
+            if (chosen.Atk != null)
+            {
+                bool blocked = unit.St[123] != null
+                    || (!IsBreath(chosen.Atk) && ((unit.St[117] != null && chosen.Atk.Spell) || (unit.St[114] != null && chosen.Atk.Technique)));
+                if (blocked) return AttackAction(battle, unit, 0, T.NONE);
+            }
             return chosen;
         }
 
@@ -190,13 +199,21 @@ namespace DtEngine
                     return false;
                 }
                 string name = attack != null ? attack.Name : null;
-                foreach (var u in battle.Units)
+                // 0x431e8b..0x432173: check self for timed/song statuses, and living opponents for dance / 335..341 statuses.
+                for (int i = 0; i < unit.StCount; i++)
                 {
-                    if (!u.Alive) continue;
+                    var s = unit.St[unit.StatusAt(i)];
+                    if (s.Source == unit && (s.Turns != 0 || Battle.IsSong(s.Effect)) && (s.AttackId != T.NONE ? s.AttackId == id : s.Skill == name))
+                        return true;
+                }
+                foreach (var u in battle.OpponentsArray(unit))
+                {
                     for (int i = 0; i < u.StCount; i++)
                     {
                         var s = u.St[u.StatusAt(i)];
-                        if (s.Source == unit && (s.AttackId != T.NONE ? s.AttackId == id : s.Skill == name)) return true;
+                        if (s.Source == unit && (Battle.IsDance(s.Effect) || (s.Effect >= 335 && s.Effect <= 341))
+                            && (s.AttackId != T.NONE ? s.AttackId == id : s.Skill == name))
+                            return true;
                     }
                 }
                 return false;
@@ -230,8 +247,8 @@ namespace DtEngine
                 case 2: { int m = 100; bool any = false; foreach (var u in foes) { int v = PyMath.Int(u.HpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : 100; }
                 case 3: { int m = 100; bool any = false; foreach (var u in allies) { int v = PyMath.Int(u.TpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : 100; }
                 case 4: { int m = 100; bool any = false; foreach (var u in foes) { int v = PyMath.Int(u.TpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : 100; }
-                case 5: { int n = 0; foreach (var u in allies) if (HasAnyAilment(u)) n++; return n; }
-                case 6: { int n = 0; foreach (var u in foes) if (HasAnyAilment(u)) n++; return n; }
+                case 5: { int n = 0; foreach (var u in allies) if (HasAilmentOrDebuff(u)) n++; return n; }
+                case 6: { int n = 0; foreach (var u in foes) if (HasAilmentOrDebuff(u)) n++; return n; }
                 case 7: { int n = 0; foreach (var u in foes) if (u.Chant != null) n++; return n; }
                 case 8: { int n = 0; foreach (var u in foes) if (!u.Front) n++; return n; }
                 case 9: { int n = 0; foreach (var u in foes) if (u.Front) n++; return n; }
@@ -241,50 +258,62 @@ namespace DtEngine
             }
         }
 
-        static int AilmentCount(Unit u)
+        static int DebuffCount(Unit u)
         {
-            if (u.StCount == 0) return 0;
             int n = 0;
-            var ids = Battle.AILMENT_IDS;
-            for (int i = 0; i < ids.Length; i++) if (u.St[ids[i]] != null) n++;
+            for (int i = 0; i < u.StCount; i++) if (Battle.IsDebuffStatus(u.St[u.StatusAt(i)])) n++;
             return n;
         }
 
+        static int AilmentAndDebuffCount(Unit u) => Battle.CountTrueAilments(u) + DebuffCount(u);
+
+        static bool HasAilmentOrDebuff(Unit u) => Battle.HasTrueAilment(u) || HasDebuff(u);
+
         static void MostAilments(Unit[] list, List<Unit> outList, bool skipPetrified = false)
         {
-            int best = 0;
+            // 0x433b80..0x433d70: counts true ailments + debuffs (vtable+0x5c); keeps 0-ties so all eligible candidates tie uniformly.
+            int best = -1;
             foreach (var u in list)
             {
                 if (skipPetrified && u.St[120] != null) continue;
-                int c = AilmentCount(u);
-                if (c <= 0) continue;
+                int c = AilmentAndDebuffCount(u);
                 if (c > best) { best = c; outList.Clear(); outList.Add(u); }
                 else if (c == best) outList.Add(u);
             }
         }
 
-        static bool HasAnyAilment(Unit u) => AilmentCount(u) > 0;
-
         static bool HasBuff(Unit unit)
         {
             for (int i = 0; i < unit.StCount; i++)
-            {
-                int e = unit.StatusAt(i);
-                var s = unit.St[e];
-                if (s.Source != null && s.Source.Side == unit.Side && !Battle.IsAilmentId(e)) return true;
-            }
+                if (Battle.IsBuffStatus(unit.St[unit.StatusAt(i)])) return true;
             return false;
         }
 
         static bool HasDebuff(Unit unit)
         {
             for (int i = 0; i < unit.StCount; i++)
-            {
-                int e = unit.StatusAt(i);
-                var s = unit.St[e];
-                if (s.Source != null && s.Source.Side != unit.Side && !Battle.IsAilmentId(e)) return true;
-            }
+                if (Battle.IsDebuffStatus(unit.St[unit.StatusAt(i)])) return true;
             return false;
+        }
+
+        static void PickCurePriority(Unit[] allies, List<Unit> found)
+        {
+            // 0x433e67..0x4342c9: strict 9-tier priority ladder:
+            // Slow(122) > Petrify3(120, Stage>=3) > Petrify1-2(120, Stage<3) > Sleep(116) > Freeze(114) > Silence(117) > Paralysis(115) > Poison(113) > Debuff(+0x5c).
+            foreach (var u in allies) if (u.St[122] != null) found.Add(u);
+            if (found.Count > 0) return;
+            foreach (var u in allies) if (u.St[120] != null && u.St[120].Stage >= 3) found.Add(u);
+            if (found.Count > 0) return;
+            foreach (var u in allies) if (u.St[120] != null && u.St[120].Stage < 3) found.Add(u);
+            if (found.Count > 0) return;
+            int[] tiers = { 116, 114, 117, 115, 113 };
+            for (int t = 0; t < tiers.Length; t++)
+            {
+                int e = tiers[t];
+                foreach (var u in allies) if (u.St[e] != null) found.Add(u);
+                if (found.Count > 0) return;
+            }
+            foreach (var u in allies) if (HasDebuff(u)) found.Add(u);
         }
 
         static Action AttackAction(Battle battle, Unit unit, int slot, int attackId, bool byId = false)
@@ -317,13 +346,9 @@ namespace DtEngine
                 case 3: Lowest(foes, true, found); break;
                 case 4: MostAilments(allies, found); break;
                 case 5: MostAilments(foes, found, skipPetrified: true); break;
-                case 9:
-                    // 0x433ee4 / 0x433f49: prioritize slow (122) / petrification (120) on allies before other ailments.
-                    foreach (var u in allies) if (u.St[122] != null || u.St[120] != null) found.Add(u);
-                    if (found.Count == 0) MostAilments(allies, found);
-                    break;
-                case 13: foreach (var u in allies) if (HasAnyAilment(u)) found.Add(u); break;
-                case 14: foreach (var u in foes) if (HasAnyAilment(u)) found.Add(u); break;
+                case 9: PickCurePriority(allies, found); break;
+                case 13: foreach (var u in allies) if (HasAilmentOrDebuff(u)) found.Add(u); break;
+                case 14: foreach (var u in foes) if (HasAilmentOrDebuff(u)) found.Add(u); break;
                 case 6: foreach (var u in foes) if (u.Chant != null) found.Add(u); break;
                 case 7: foreach (var u in foes) if (!u.Front) found.Add(u); break;
                 case 8:
@@ -348,9 +373,10 @@ namespace DtEngine
 
         static void Lowest(Unit[] list, bool tp, List<Unit> found)
         {
-            double best = double.MaxValue;
-            foreach (var u in list) { double v = tp ? u.TpRatio : u.HpRatio; if (v < best) best = v; }
-            foreach (var u in list) if ((tp ? u.TpRatio : u.HpRatio) == best) found.Add(u);
+            // 0x43083e: compares truncated integer percents (0..100).
+            int best = int.MaxValue;
+            foreach (var u in list) { int v = PyMath.Int((tp ? u.TpRatio : u.HpRatio) * 100); if (v < best) best = v; }
+            foreach (var u in list) if (PyMath.Int((tp ? u.TpRatio : u.HpRatio) * 100) == best) found.Add(u);
         }
     }
 }
