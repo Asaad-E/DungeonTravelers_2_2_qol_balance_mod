@@ -89,7 +89,7 @@ class Skill:
 class EnemyAttack:
     """An EnemyAttackData record: also the attacks of summons and guest allies, and the passives of enemies."""
     __slots__ = ('id', 'name', 'target', 'attr', 'chant_speed', 'accuracy', 'power', 'turns', 'speed', 'effects',
-                 'range', 'passive', 'chant_stat', 'spell', 'technique')
+                 'range', 'passive', 'chant_stat', 'plain', 'spell', 'technique')
 
     def __init__(self, **kw):
         for k in self.__slots__:
@@ -225,7 +225,7 @@ def _load_attacks(wb, data):
             passive='Passive Skill' in str(r['Vanilla_Desc'] or ''),
             chant_stat=_enemy_chant_stat(r['Anim_0x28'] or 0),
             # bit 2 of the word at file 0x28 (+0x40 in memory): a spell, which an anti-magic zone stops (0x41a483)
-            spell=bool((r['Anim_0x28'] or 0) >> 2 & 1),
+            plain=bool((r['Anim_0x28'] or 0) & 1), spell=bool((r['Anim_0x28'] or 0) >> 2 & 1),
             # bit 1 of the same word: a technique, which freeze stops (the choice of an AI unit, 0x431344 for spells under
             # silence, 0x4312e4 for techniques under freeze)
             technique=bool((r['Anim_0x28'] or 0) >> 1 & 1))

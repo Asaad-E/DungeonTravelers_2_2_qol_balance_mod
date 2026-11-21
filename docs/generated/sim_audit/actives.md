@@ -1,6 +1,6 @@
 ## actives
 
-222 act as their effects say, 13 to read, of 235 active skills.
+220 act as their effects say, 15 to read, of 235 active skills.
 
 | Skill | Effects | Performed by | Result |
 |---|---|---|---|
@@ -191,9 +191,9 @@
 | 187 Heal | 103/4, 295/4 | tank | acts |
 | 188 Circle Heal | 103/4, 295/4 | tank | acts |
 | 189 Full Heal | 104/4 | healer | acts |
-| 190 Nurse | 106/4 | healer | acts |
+| 190 Nurse | 106/4 | healer | not seen: anything |
 | 191 Circle Nurse | 106/4 | healer | acts |
-| 192 Resurrect | 105/4 | healer | acts |
+| 192 Resurrect | 105/4 | healer | not seen: anything |
 | 193 Brave | 161/5 | dark lord | acts |
 | 194 Protect | 162/5 | tank | acts |
 | 195 Sun Veil | 163/5 | sage | acts |

@@ -1611,7 +1611,7 @@
    "audited": "FIXED at 5e78354",
    "verdict": "FIXED",
    "fixed_in": "5e78354",
-   "note": "A guest doll (Catalina 307, Spartan 308, Oracles 310, Musiy 311) is instantiated at 0x4852ca via constructor 0x4fd3d0 / 0x4f0530 using its EnemyStatusData monster record from Data.Enemies rather than inheriting owner stats.",
+   "note": "Guest and enemy dolls (Catalina 307, Spartan 308, Oracles 310, Musiy 311) are instantiated at 0x48490a..0x485c17 via CGamePlayerStatusOtherETCDoll (0x4fe5f0) / CGameEnemyStatusETCDoll (0x4fd3d0), both of which copy owner stats, HP=9999, and weight=0.0 (0x4fd630), matching MakeGuestDoll.",
    "reach": "10 NPC records across Marion, Paracas, and Arjuna."
   },
   {

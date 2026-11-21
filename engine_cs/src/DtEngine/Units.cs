@@ -19,6 +19,7 @@ namespace DtEngine
         public int Kind = 5;
         public bool HasData;
         public double Data;
+        public int Stage;             // petrification stage counter (0x48305a: lethal at stage 3)
         public bool IsInt;            // the value is an int in the Python (taken as it is from the data)
 
         public Status(int effect, double value, double turns = 0, Unit source = null, string skill = null, int kind = 5, int attackId = T.NONE)
@@ -360,22 +361,24 @@ namespace DtEngine
             int value = ResistBase[index];
             if (index >= 3)
             {
-                if (StCount == 0 && !hasElemResistPassive) return value;
-                for (int i = 0; i < 4; i++)
+                if (StCount != 0 || hasElemResistPassive)
                 {
-                    int e = ElementResistBuffs[i];
-                    if (Has(e)) value += PyMath.Int(Value(e));
+                    for (int i = 0; i < 4; i++)
+                    {
+                        int e = ElementResistBuffs[i];
+                        if (Has(e)) value += PyMath.Int(Value(e));
+                    }
                 }
             }
-            else
+            else if (StCount != 0)
             {
-                if (StCount == 0) return value;
                 // PHYSICAL_RESIST_BUFFS {185: 0, 184: 1, 186: 2}
                 int e = index == 0 ? 185 : index == 1 ? 184 : 186;
                 var s = St[e];
                 if (s != null) value += PyMath.Int(s.Value);
             }
-            return value;
+            // 0x4fc6c7..0x4fc751: clamp all 8 resistances to [-100, +100] before Samsara (416..423) overrides.
+            return value < -100 ? -100 : value > 100 ? 100 : value;
         }
 
         public bool IsMember => Kind == Kind.Member;
@@ -493,12 +496,21 @@ namespace DtEngine
                     else if (passiveInt != null) passiveInt[effect] = false;
                 }
             }
+            Piece mainWeapon = null;
+            bool hasShield = false;
+            foreach (var use in equipment)
+            {
+                var piece = data.Equipment[use.EquipId];
+                if (use.Slot == 0 && piece.Category == 0) mainWeapon = piece;
+                if (use.Slot == 1 && piece.Category == 1) hasShield = true;
+            }
             if (skills != null)
             {
                 foreach (var (skillId, lv) in skills)
                 {
                     var skill = data.GetSkill("Passive", skillId);
-                    if (skill != null)
+                    // 0x4f4cca..0x4f4cd7: gate every passive by player->vtable+0x12c(PassiveSkillData+0x6c)
+                    if (skill != null && Policy.WeaponAllows(mainWeapon, hasShield, skill))
                     {
                         foreach (var eff in skill.Effects)
                         {
@@ -630,7 +642,9 @@ namespace DtEngine
             hp += bonusHp; tp += bonusTp;
             var resist = new int[8];
             for (int i = 0; i < 8; i++) resist[i] = crownBonus + resistBonus[i];
-            double rankDelay = weapon != null && weapon.Rank != T.NONE && weapon.Rank >= 0 ? data.WeaponRanks[weapon.Rank] : UnarmedDelay(data);
+            // 0x4f55ab..0x4f55d9: enchantment 263 sets unarmed rank delay to Rank A (WeaponRanks[1]).
+            double rankDelay = weapon != null && weapon.Rank != T.NONE && weapon.Rank >= 0 ? data.WeaponRanks[weapon.Rank]
+                             : (counted.ContainsKey(263) && data.WeaponRanks.TryGetValue(1, out double rankA) ? rankA : UnarmedDelay(data));
             var unit = new Unit(name ?? (character != null ? character.Name : "class " + classId), Unit.PARTY, level, hp, tp, totals, resist,
                                 rankDelay, weapon != null ? weapon.Swing : 0.0, T.NONE, Kind.Member);
             unit.AdoptPassives(passiveValues);

@@ -18,7 +18,7 @@ namespace DtEngine
         public Unit Target;
         public int Item = T.NONE;
         public Unit[] FixedTargets;
-        public bool Chanting, Furious;
+        public bool Chanting, Furious, Paid;
 
         // the effects at the level of the action: id, kind, value; the first of each id is what value() finds. The arrays are shared
         // between the actions that have the same effects (a skill at a level whose figures take nothing from the user, an enemy
@@ -111,7 +111,7 @@ namespace DtEngine
         public void Reset(Unit actor, AKind kind, Skill skill, int level)
         {
             Actor = actor; Kind = kind; Skill = skill; Atk = null; Level = level; Target = null; Item = T.NONE; FixedTargets = null;
-            Chanting = false; Furious = false; fx = null;
+            Chanting = false; Furious = false; Paid = false; fx = null;
         }
 
         public bool HasSource => Skill != null || Atk != null;
@@ -282,21 +282,38 @@ namespace DtEngine
             switch (e) { case 325: return 4; case 326: return 5; case 327: return 8; case 328: return 6; default: return 7; }
         }
 
+        static int EnchantElement(int e)
+        {
+            switch (e) { case 78: return 4; case 79: return 5; case 80: return 6; case 81: return 7; default: return 8; }
+        }
+
+        int WeaponAttrWithOverrides()
+        {
+            // 0x4161e1..0x416275: weapon-element statuses (325..329) and weapon-element enchants (78..82) apply to both plain attacks and weapon-attribute skills.
+            if (Actor.StCount > 0)
+            {
+                int count = 0, element = 0;
+                for (int e = 325; e <= 329; e++)
+                    if (Actor.St[e] != null) { count++; element = WeaponElement(e); }
+                if (count == 1) return element;
+            }
+            if (Actor.HasEnchants)
+            {
+                int count = 0, element = 0;
+                for (int e = 78; e <= 82; e++)
+                    if (Actor.Pieces(e) != 0) { count++; element = EnchantElement(e); }
+                if (count == 1) return element;
+            }
+            return Actor.AttackAttr;
+        }
+
         public int Attr
         {
             get
             {
-                if (Skill == null && Atk == null)
-                {
-                    if (Actor.StCount == 0) return Actor.AttackAttr;
-                    int count = 0, element = 0;
-                    for (int e = 325; e <= 329; e++)
-                        if (Actor.St[e] != null) { count++; element = WeaponElement(e); }
-                    if (count == 1) return element;
-                    return Actor.AttackAttr;
-                }
+                if (Skill == null && Atk == null) return WeaponAttrWithOverrides();
                 int a = Skill != null ? Skill.Attr : Atk.Attr;
-                if (a == T.NONE || a == -1 || a == T.WEAPON_ATTR) return Actor.AttackAttr;
+                if (a == T.NONE || a == -1 || a == T.WEAPON_ATTR) return WeaponAttrWithOverrides();
                 return a;
             }
         }
@@ -325,7 +342,7 @@ namespace DtEngine
                     {
                         bool zero = false;
                         foreach (int w in s.Weapons) if (w == 0) zero = true;
-                        return zero ? Math.Min(Actor.AttackRange, T.SHORT) : s.Range;
+                        return zero ? (Actor.AttackRange >= 0 ? Math.Min(Actor.AttackRange, T.SHORT) : T.SHORT) : s.Range;
                     }
                     return s.Range != T.NONE ? s.Range : Actor.AttackRange;
                 }

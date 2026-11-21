@@ -100,8 +100,8 @@ namespace DtEngine.Tests
                 Classes = Array.Empty<int>(), Range = T.SHORT
             };
             double expected = battle.MeanHits(new Action(caster, AKind.Skill, skill, 1));
-            // 1 base hit + (int(2) + 1) = 4 hits, matching NumberOfHits (Battle.cs:1263).
-            Assert.Equal(4.0, expected, 9);
+            // 0x417da9..0x4180e3: hits starts at 0; effect 178 adds int(val)+1 = 3 hits and sets any=true (no extra +1 default).
+            Assert.Equal(3.0, expected, 9);
         }
 
         [Fact]

@@ -84,7 +84,7 @@ namespace DtEngine
         public double[] EffValue;
         public bool[] EffIsInt;
         public int Range = T.NONE;
-        public bool Passive, Spell, Technique;       // Spell: bit 2 of the flags word (silence, anti-magic); Technique: bit 1 (freeze)
+        public bool Passive, Plain, Spell, Technique; // Plain: bit 0 (+0x40); Technique: bit 1 (freeze); Spell: bit 2 (silence, anti-magic)
         public int ChantStat;
         public bool Chanted => ChantSpeed != 0;
         public Action.FxSet Fx;       // the effects as arrays shared by the actions (made when first asked)

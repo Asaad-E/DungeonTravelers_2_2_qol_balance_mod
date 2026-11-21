@@ -342,7 +342,9 @@ namespace DtEngine
                     Attr = I(a.GetProperty("attr")), ChantSpeed = D(a.GetProperty("chant_speed")),
                     Accuracy = D(a.GetProperty("accuracy")), Power = D(a.GetProperty("power")), Turns = I(a.GetProperty("turns")),
                     Speed = D(a.GetProperty("speed")), Range = I(a.GetProperty("range")), Passive = B(a.GetProperty("passive")),
-                    ChantStat = ChantStatOf(a.GetProperty("chant_stat")), Spell = B(a.GetProperty("spell")),
+                    ChantStat = ChantStatOf(a.GetProperty("chant_stat")),
+                    Plain = a.TryGetProperty("plain", out var pl) && B(pl),
+                    Spell = B(a.GetProperty("spell")),
                     Technique = a.TryGetProperty("technique", out var tq) && B(tq),
                 };
                 var ids = new List<int>(); var kinds = new List<int>(); var vals = new List<double>(); var wholes = new List<bool>();

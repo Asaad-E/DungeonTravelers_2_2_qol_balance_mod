@@ -210,18 +210,25 @@ namespace DtEngine
             return false;
         }
 
-        public static bool WeaponAllows(Unit unit, Skill skill)
+        /// <summary>Weapon/shield requirement check matching CGamePlayerStatus::vtable+0x12c (0x4f4910):
+        /// -1 any, 0 short-range weapon, 1..14 weapon type (code - 1), 15 special weapon types 14..20,
+        /// 16 shield in off-hand, 19 any weapon equipped in slot 0.</summary>
+        public static bool WeaponAllows(Piece weapon, bool shield, Skill skill)
         {
             if (skill.Weapons.Length == 0) return true;
-            var weapon = unit.Weapon;
             foreach (int code in skill.Weapons)
             {
+                if (code == -1) return true;
                 if (code == 0 && weapon != null && weapon.Range == 0) return true;
-                if (code == 16 && unit.Shield) return true;
-                if (weapon != null && weapon.Type + 1 == code) return true;
+                if (code == 15 && weapon != null && weapon.Type >= 14 && weapon.Type <= 20) return true;
+                if (code == 16 && shield) return true;
+                if (code == 19 && weapon != null) return true;
+                if (code >= 1 && code <= 14 && weapon != null && weapon.Type + 1 == code) return true;
             }
             return false;
         }
+
+        public static bool WeaponAllows(Unit unit, Skill skill) => WeaponAllows(unit.Weapon, unit.Shield, skill);
 
         /// <summary>The skills the member can use now. The list is made again only when the TP of the member, a silence or a freeze on her, or the
         /// battle has changed what it depends on; callers only read it.</summary>

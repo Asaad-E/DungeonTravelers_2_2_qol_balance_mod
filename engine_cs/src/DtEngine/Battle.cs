@@ -100,8 +100,9 @@ namespace DtEngine
         const int ARCANE_CHANCE = 15;
         const int SHADOW_ATTACK = 2, SHADOW_LIFE = 3;
         const double DOLL_MAGIC_SCALE = 500.0;
-        static readonly int[] SONG_EFFECTS = { 210, 211, 212, 213, 214, 215, 216, 217, 218, 220, 222, 223 };
-        static readonly int[] DANCE_EFFECTS = { 195, 196, 197, 198, 199, 201, 202, 205, 219, 221 };
+        // Exact 0x47b220 CCommand vtable flags: +0x6c (Song) = 210..223, +0x70 (Dance) = 195..205.
+        static readonly int[] SONG_EFFECTS = { 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223 };
+        static readonly int[] DANCE_EFFECTS = { 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205 };
         static readonly bool[] IsSongEffect = Flags(SONG_EFFECTS), IsDanceEffect = Flags(DANCE_EFFECTS);
         static readonly bool[] StatusEffect = MakeStatusEffects();
         static readonly bool[] DispelAlways = Flags(new[] { 27, 171, 325, 326, 327, 328, 329, 101, 102, 181, 189, 191, 193, 194 });
@@ -217,6 +218,7 @@ namespace DtEngine
             public int[] RecDamage = new int[64], RecActions = new int[64];
             public Action[] LastAction = new Action[64];
             public bool[] Reprisal = new bool[64];
+            public int[] ArcaneDamage = new int[64];
             public readonly HashSet<(Unit, int)> Spent = new HashSet<(Unit, int)>();
             public readonly List<(Unit unit, int count)> Covered = new List<(Unit, int)>(8);
             public readonly List<Unit> Guarding = new List<Unit>(8);
@@ -258,6 +260,9 @@ namespace DtEngine
         Action[] lastAction;
         bool[] reprisal;
         bool reprisalDirty;
+        int[] arcaneDamage;
+        bool arcaneDirty;
+        bool inCounter;
         // the full recorder (null when nobody asks for it)
         public Recorder Rec;
         Dictionary<Unit, int> damageByTarget;
@@ -295,6 +300,7 @@ namespace DtEngine
             RecActions = scratch.RecActions;
             lastAction = scratch.LastAction;
             reprisal = scratch.Reprisal;
+            arcaneDamage = scratch.ArcaneDamage;
 
             Data = data; Rng = rng;
             Units = new List<Unit>(party.Count + enemies.Count + 16);
@@ -305,6 +311,7 @@ namespace DtEngine
             Array.Clear(RecActions, 0, Units.Count);
             Array.Clear(lastAction, 0, Units.Count);
             Array.Clear(reprisal, 0, Units.Count);
+            Array.Clear(arcaneDamage, 0, Units.Count);
             int ocClear = Math.Min(OptionCache.Length, Units.Count);
             for (int k = 0; k < ocClear; k++) OptionCache[k].Owner = null;
             for (int k = 0; k < Units.Count; k++)
@@ -343,6 +350,7 @@ namespace DtEngine
             scratch.RecActions = RecActions;
             scratch.LastAction = lastAction;
             scratch.Reprisal = reprisal;
+            scratch.ArcaneDamage = arcaneDamage;
             scratch.CandidateSkills = CandidateSkills;
             scratch.CandidateLevels = CandidateLevels;
             scratch.OptionCache = OptionCache;
@@ -360,6 +368,7 @@ namespace DtEngine
                 Array.Resize(ref RecActions, size);
                 Array.Resize(ref lastAction, size);
                 Array.Resize(ref reprisal, size);
+                Array.Resize(ref arcaneDamage, size);
             }
         }
 
@@ -464,6 +473,7 @@ namespace DtEngine
             RecActions[unit.Position] = 0;
             lastAction[unit.Position] = null;
             reprisal[unit.Position] = false;
+            arcaneDamage[unit.Position] = 0;
             if (unit.Position < OptionCache.Length) OptionCache[unit.Position] = default;
             if (unit.Kind == Kind.Doll && unit.Alive) activeDolls++;
             if (unit.Has(DEMON_WALL)) anyDemonWall = true;
@@ -504,7 +514,7 @@ namespace DtEngine
             for (int i = 0; i < Units.Count; i++)
             {
                 var u = Units[i];
-                if (u.Alive && u.Kind == Kind.Doll && u.Owner == owner) return true;
+                if (IsPuppet(u) && u.Owner == owner) return true;
             }
             return false;
         }
@@ -686,6 +696,34 @@ namespace DtEngine
                 for (int i = 0; i < Math.Min(Math.Max(n, 0), ESARHADDON_ORDER.Length) && i < ESARHADDON_ORDER.Length; i++)
                     unit.PopStatus(ESARHADDON_ORDER[i]);
             }
+            // Phase 4 (0x436be4 -> 0x48305a..0x483115): gradual petrification advances 1 -> 2 -> 3 with no natural recovery;
+            // at stage 3, consumes an Aegis/Nullify barrier (101/102/181; 0x41f920) if present, otherwise lethal.
+            var petrify = unit.St[120];
+            if (petrify != null)
+            {
+                petrify.Stage++;
+                if (petrify.Stage == 3)
+                {
+                    bool blocked = false;
+                    for (int k = 0; k < 3; k++)
+                    {
+                        int ec = k == 0 ? 101 : k == 1 ? 102 : 181;
+                        var bs = unit.St[ec];
+                        if (bs != null)
+                        {
+                            bs.Value -= 1;
+                            if (bs.Value <= 0) unit.PopStatus(ec);
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if (!blocked)
+                    {
+                        LoseHp(unit, unit.Hp, petrify.Source);
+                        if (!unit.Alive) { Undaunted(); return; }
+                    }
+                }
+            }
             if (unit.SamsaraState != 0 && (unit.SamsaraState == 2 || unit.Hp < unit.MaxHp / 2.0))
             {
                 unit.Samsara = new int[8];
@@ -777,7 +815,18 @@ namespace DtEngine
             unit.AdoptPassives((double[])owner.Pv.Clone());
             unit.PvInt = owner.PvInt != null ? (bool[])owner.PvInt.Clone() : null;
             unit.SetEnchants((int[])owner.Enchants.Clone());
+            // 0x4fe2e0..0x4fe3d5: inherits weapon range/attr and copies active song & magic buffs from owner.
+            unit.Weapon = owner.Weapon;
+            unit.AttackRange = owner.AttackRange;
+            unit.AttackAttr = owner.AttackAttr;
             unit.Swing = owner.Swing;
+            for (int i = 0; i < owner.StCount; i++)
+            {
+                var st = owner.St[owner.StatusAt(i)];
+                if (st == null || IsAilment[st.Effect]) continue;
+                bool keep = st.Kind == Status.SongKind || (st.Source != null && st.Source.Side == owner.Side);
+                if (keep) unit.SetStatus(new Status(st.Effect, st.Value, st.Turns, st.Source, st.Skill, st.Kind, st.AttackId) { HasData = st.HasData, Data = st.Data, IsInt = st.IsInt });
+            }
             unit.ShadowOf = owner;
             unit.Position = Units.Count;
             unit.NextTime = Time + Wait(unit);
@@ -807,7 +856,9 @@ namespace DtEngine
         Lost LostTurn(Unit unit)
         {
             if (!unit.Alive) return Lost.Skip;
-            if (unit.St[120] != null || unit.St[116] != null) return Deny(unit, Lost.Skip);
+            // 0x436c3f..0x436d4c & 0x4fb590..0x4fb63f: Phase 5 (+0xc8) skips only stage>=3 petrification; Phase 6 (+0xbc) skips Sleep (116).
+            var pet = unit.St[120];
+            if ((pet != null && pet.Stage >= 3) || unit.St[116] != null) return Deny(unit, Lost.Skip);
             if (unit.St[115] != null && Rng.RandRange(100) < 30) return Deny(unit, Lost.Skip);
             foreach (var other in OpponentsArray(unit))
             {
@@ -840,6 +891,7 @@ namespace DtEngine
             if (speed.HasValue && speed.Value != 0 && !(unit.HasUnique && unit.UniqueEffect == 358 && Roll(unit.UniqueValue)))
             {
                 Pay(action);
+                action.Paid = true;
                 action.Chanting = true;
                 unit.Chant = action;
                 Rec?.ChantsStarted.Add(new RecKey(unit), 1);
@@ -971,7 +1023,7 @@ namespace DtEngine
                 {
                     unit.Pep = Math.Max(70.0, Math.Min(130.0, unit.Pep + s.Value));
                 }
-                if (IsAilment[effect] && unit.St[effect] != null && effect != 119 && effect != 123)
+                if (IsAilment[effect] && unit.St[effect] != null && effect != 119 && effect != 120 && effect != 123)
                 {
                     int chance = s.HasData ? PyMath.Int(s.Data) : 0;
                     if (Rng.RandRange(100) < chance)
@@ -1047,7 +1099,7 @@ namespace DtEngine
                 Rec?.SkillUses.Add(new RecKey(unit, "nullified in an anti-magic zone"), 1);
                 return;
             }
-            if (!action.Chanting && action.Kind == AKind.Skill && !action.ChantSpeed.HasValue) Pay(action);
+            if (!action.Paid && action.Kind == AKind.Skill) Pay(action);
             if (Rec != null) Rec.SkillUses.Add(new RecKey(unit, action.SourceName ?? "Attack"), 1);
             unit.LastSkillId = action.SourceId;
             if (action.Atk != null) unit.RecordUseById(action.Atk.Id);
@@ -1118,6 +1170,7 @@ namespace DtEngine
             }
             int index = 0;
             if (reprisalDirty) { Array.Clear(reprisal, 0, Units.Count); reprisalDirty = false; }
+            if (arcaneDirty) { Array.Clear(arcaneDamage, 0, Units.Count); arcaneDirty = false; }
             damageByTarget = Rec != null ? new Dictionary<Unit, int>() : null;
             foreach (var target in targets)
             {
@@ -1138,6 +1191,22 @@ namespace DtEngine
                 }
             }
             guarding.Clear();
+            // Arcane Shield (447) post-action fixed damage (0x425157..0x425248): skips dead bearers and attackers >= 2000.
+            if (arcaneDirty)
+            {
+                int arcaneSet = Options.HasArcaneChance ? Options.ArcaneChance : Data.ArcaneChance;
+                int arcane = arcaneSet != T.NONE && arcaneSet != 0 ? arcaneSet : ARCANE_CHANCE;
+                for (int ui = 0; ui < Units.Count; ui++)
+                {
+                    int stored = arcaneDamage[ui];
+                    if (stored <= 0) continue;
+                    arcaneDamage[ui] = 0;
+                    var bearer = Units[ui];
+                    if (bearer.Alive && unit.Alive && bearer.HasUnique && bearer.UniqueEffect == 447 && Rng.RandRange(100) < arcane)
+                        LoseHp(unit, PyMath.Int(stored * bearer.UniqueValue), bearer);
+                }
+                arcaneDirty = false;
+            }
             // Reprisal after the action: the first target, in order, whose record is set and who still bears it and stands (0x424d50 -
             // 0x424de7); one counter for the whole action
             if (reprisalDirty)
@@ -1160,12 +1229,13 @@ namespace DtEngine
                     if (unit.Side == Unit.ENEMIES && kv.Key.Side == Unit.PARTY) Rec.LargestHit.Max(new RecKey(unit), kv.Value);
                 damageByTarget = null;
             }
-            // Support Shot: the givers are units below 2000 of the attacker's side, and a doll's attack starts none (P7.3 of the audit)
-            if (action.Kind == AKind.Attack && !NotACandidate(unit))
+            // Support Shot (260; 0x425381..0x4255be): fires on plain attacks by non-dolls (player Attack or enemy/guest/summon Plain);
+            // shooters include living allies of the same side (members, enemies, summons, guests — never dolls).
+            if (!inCounter && unit.Kind != Kind.Doll && (action.Kind == AKind.Attack || (action.Atk != null && action.Atk.Plain)))
             {
-                foreach (var ally in TargetableArray(unit.Side))
+                foreach (var ally in AlliesArray(unit))
                 {
-                    if (ally != unit && ally.Has(260) && Roll(ally.Value(260)))
+                    if (ally != unit && ally.Kind != Kind.Doll && ally.Has(260) && Roll(ally.Value(260)))
                     {
                         Unit first = null;
                         foreach (var t in targets) if (t.Alive) { first = t; break; }
@@ -1174,7 +1244,16 @@ namespace DtEngine
                             var opp = OpponentsArray(unit);
                             if (opp.Length > 0) first = opp[0];
                         }
-                        if (first != null) Resolve(new Action(ally, AKind.Attack), first, 0);
+                        if (first != null)
+                        {
+                            Action shot = new Action(ally, AKind.Attack);
+                            if (ally.Kind != Kind.Member && ally.Attacks != null && ally.Attacks.Length > 0)
+                            {
+                                var atk0 = Data.GetAttack(ally.Attacks[0]);
+                                if (atk0 != null) shot = new Action(ally, AKind.Enemy, atk0, 1);
+                            }
+                            Resolve(shot, first, 0);
+                        }
                         break;
                     }
                 }
@@ -1408,29 +1487,42 @@ namespace DtEngine
 
         int NumberOfHits(Action action)
         {
-            int hits;
+            // 0x417da7..0x4180e3: starts at hits=0, any=false; each hit-count effect adds to hits and sets any=true;
+            // Double/Triple Attack run only on plain attacks when !any; default hits=1 when !any.
+            int hits = 0;
+            bool any = false;
             int mhIdx = action.MultiHitIndex;
+            bool has178 = action.Has(178) || action.Actor.Has(178);
+            bool isPlain = action.Kind == AKind.Attack || (action.Atk != null && action.Atk.Plain);
             if (mhIdx >= 0)
             {
                 bool rondo = action.Has(210) || action.Actor.Has(210);
                 var m = MULTI_HIT[mhIdx];
                 var table = rondo ? m.rondo : m.weights;
                 double sum = rondo ? MultiHitRondoSum[mhIdx] : MultiHitWeightSum[mhIdx];
-                hits = m.baseHits + WeightedWithSum(m.picks, table, sum);
+                hits += m.baseHits + WeightedWithSum(m.picks, table, sum);
+                any = true;
             }
-            else
+            if (action.TryVal(93, out double v93) && v93 != 0)
             {
-                double v = action.Val(93, 1);
-                hits = PyMath.Int(v != 0 ? v : 1);
-                if (action.Kind == AKind.Attack)
-                {
-                    int extra = 0;
-                    if (action.Actor.Has(252) && Roll(action.Actor.Value(252))) extra += 3;
-                    if (action.Actor.Has(251) && Roll(action.Actor.Value(251))) extra += 2;
-                    hits = extra != 0 ? extra : 1;
-                }
+                hits += PyMath.Int(v93);
+                any = true;
             }
-            if (action.Has(178)) hits += PyMath.Int(action.Val(178, 0)) + 1;
+            // 0x417ffe: Charge/Focusing (178) lives in the merged actor+action command list and adds int(v)+1.
+            if (has178)
+            {
+                hits += PyMath.Int(First(action, action.Actor, 178)) + 1;
+                any = true;
+            }
+            // 0x417d7f..0x418045: Double/Triple Attack apply on player Attack and plain enemy/guest/summon attacks (+0x40 & 1), skipped when any hit effect fired.
+            if (isPlain && !any)
+            {
+                int extra = 0;
+                if (action.Actor.Has(252) && Roll(action.Actor.Value(252))) extra += 3;
+                if (action.Actor.Has(251) && Roll(action.Actor.Value(251))) extra += 2;
+                if (extra != 0) { hits += extra; any = true; }
+            }
+            if (!any) hits = 1;
             return Math.Max(1, hits);
         }
 
@@ -1550,7 +1642,6 @@ namespace DtEngine
             }
             if (target.Has(192) && attr != T.NEUTRAL) return true;
             if (target.Has(182) && (action.Reach == T.SHORT || action.Reach == T.MID)) return true;
-            if (target.HasUnique && target.UniqueEffect == 349 && Roll(target.UniqueValue)) return true;
             if (target.Has(PRETEND) && action.Physical && Roll(target.Value(PRETEND)))
             {
                 Counter(target, unit);
@@ -1562,8 +1653,9 @@ namespace DtEngine
                 spent.Add((target, 285));
                 return true;
             }
+            // Knock Down (305; 0x42222c..0x422246): requires the defender (if a player) to have a weapon equipped in slot 0.
             if (target.Has(KNOCK_DOWN) && action.Physical && action.Reach == T.LONG &&
-                (unit.Side == Unit.ENEMIES || unit.Weapon != null) && Roll(target.Value(KNOCK_DOWN)))
+                (target.Kind != Kind.Member || target.Weapon != null) && Roll(target.Value(KNOCK_DOWN)))
             {
                 Counter(target, unit);
                 return true;
@@ -1736,10 +1828,10 @@ namespace DtEngine
             if (target.St[116] != null && !special) amount = amount * F.SLEEP_NUM / F.SLEEP_DEN;
             if (!special && action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) amount += PyMath.Int(amount * F.AILING_SHARE);
             if (action.Has(86) && target.Kind == Kind.Member && target.ClassId >= F.MAGIC_USER_LOW && target.ClassId < F.MAGIC_USER_HIGH) amount += amount;
-            if (action.Magic)
-            {
-                if (action.TryVal(296, out double cap)) amount = Math.Min(amount, PyMath.Int(cap));
-            }
+            // 0x44f0a0 -> 0x44f0ce: damage cap (296) applies after special damage too (e.g. Heaven or Hell Effect).
+            if (action.TryVal(296, out double cap)) amount = Math.Min(amount, PyMath.Int(cap));
+            // Alter Fate (349; 0x421cef..0x421d1d): zeroes HP/TP damage only, without blocking ailments or debuffs.
+            if (target.HasUnique && target.UniqueEffect == 349 && Roll(target.UniqueValue)) amount = 0;
             if (action.Has(2))
             {
                 target.Tp = Math.Max(0, target.Tp - amount);
@@ -1773,6 +1865,19 @@ namespace DtEngine
             return false;
         }
 
+        // 0x4faf20 -> 0x4faf90 -> vtable+0x68: true for ailments 113..122, false for Shadow Sew (123; 0x4151f0).
+        static bool HasTrueAilment(Unit u)
+        {
+            if (u.StCount == 0) return false;
+            var ids = AILMENT_IDS;
+            for (int i = 0; i < ids.Length; i++)
+            {
+                int id = ids[i];
+                if (id != 123 && u.St[id] != null) return true;
+            }
+            return false;
+        }
+
         int CountAilments(Unit u)
         {
             if (u.StCount == 0) return 0;
@@ -1789,7 +1894,7 @@ namespace DtEngine
             bool furious = action.Furious;
             double modifiers = First(action, unit, 26) + (action.Atk != null ? action.Atk.Power : 0.0) + SumStatus(unit, ATTACK_STATUS_MODIFIERS);
             if (unit.HasUnique && unit.UniqueEffect == 443) modifiers += unit.UniqueValue;
-            if (unit.Kind == Kind.Doll && unit.Owner != null)
+            if (IsPuppet(unit) && unit.Owner != null)
                 modifiers += unit.Owner.Passive(286, 0.0) + Math.Min(0.05, 0.02 * unit.Owner.Pieces(304) + 0.01 * unit.Owner.Pieces(305));
             if (action.Has(111) && unit.Weapon != null && unit.Weapon.TwoHanded && unit.Weapon.Type == 3) modifiers += action.Val(111, 0);
             double swing = expect ? 0.0 : Swing(unit);
@@ -1816,8 +1921,8 @@ namespace DtEngine
                 bool any = false; double min = 0;
                 foreach (var m in AlliesArray(target))
                 {
-                    double g = m.Passive(308, 0.0);       // passives.get(308) truthy only when non-zero
-                    if (m.HasPassive(308) && g != 0.0) { if (!any || g < min) { min = g; any = true; } }
+                    double g = m.Passive(308, 0.0);       // passives.get(308) truthy only when non-zero; requires shield (0x44c7c0)
+                    if (m.HasPassive(308) && (m.Kind != Kind.Member || m.Shield) && g != 0.0) { if (!any || g < min) { min = g; any = true; } }
                 }
                 if (any) other += min;
             }
@@ -1864,7 +1969,7 @@ namespace DtEngine
         {
             var unit = action.Actor;
             double power = action.Val(MAGIC_POWER, 0.0);
-            if (unit.Kind == Kind.Doll && unit.Owner != null)
+            if (IsPuppet(unit) && unit.Owner != null)
             {
                 var owner = unit.Owner;
                 power += DOLL_MAGIC_SCALE * (owner.Passive(286, 0.0) + Math.Min(0.05, 0.02 * owner.Pieces(304) + 0.01 * owner.Pieces(305)));
@@ -1967,8 +2072,9 @@ namespace DtEngine
             else if (action.Has(72)) chance = action.Val(72, 0) * 100;
             if (roll == 1) chance = F.Clamp(chance, F.HIT_MIN, F.HIT_MAX);
             if (target.St[116] != null) chance = 100.0;
-            if (action.Has(149) && target.Adult == false) chance = 0.0;
-            if (action.Has(150) && target.Adult == true) chance = 0.0;
+            // 0x44b01e..0x44b099 & 0x44db15: 149 (Four-Letter Word) misses adults (flag&1!=0); 150 (drinking) misses minors (flag&1==0).
+            if (action.Has(149) && target.Adult) chance = 0.0;
+            if (action.Has(150) && !target.Adult) chance = 0.0;
             return PyMath.Int(chance) / 100.0;
         }
 
@@ -2043,7 +2149,12 @@ namespace DtEngine
             if (action.Magic && !special)
                 chance += (1 - chance) * (action.Actor.Pieces(F.MISSED_SPELL_ENCHANT) != 0 ? 0.75 : 0.5);
             if (action.Has(139) && target.St[116] != null && !target.Immune("instant death")) return chance * target.Hp;
-            if (special) return chance * Math.Min(target.Hp, SpecialDamage(action, target));
+            if (special)
+            {
+                double specDmg = SpecialDamage(action, target);
+                if (action.TryVal(296, out double specCap)) specDmg = Math.Min(specDmg, specCap);
+                return chance * Math.Min(target.Hp, specDmg);
+            }
             double perHit;
             if (action.Magic) perHit = MagicDamageExpected(action, target);
             else
@@ -2057,10 +2168,7 @@ namespace DtEngine
             if (wall != null) perHit = Math.Max(0.0, perHit + perHit * wall.Value(DEMON_WALL));
             if (action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) perHit += perHit * F.AILING_SHARE;
             if (action.Has(86) && target.Kind == Kind.Member && target.ClassId >= F.MAGIC_USER_LOW && target.ClassId < F.MAGIC_USER_HIGH) perHit += perHit;
-            if (action.Magic)
-            {
-                if (action.TryVal(296, out double cap)) perHit = Math.Min(perHit, cap);
-            }
+            if (action.TryVal(296, out double cap)) perHit = Math.Min(perHit, cap);
             return chance * hits * perHit;
         }
 
@@ -2071,25 +2179,35 @@ namespace DtEngine
 
         public double MeanHits(Action action)
         {
-            double hits;
+            double hits = 0.0;
+            bool any = false;
             int mhIdx = action.MultiHitIndex;
+            bool has178 = action.Has(178) || action.Actor.Has(178);
+            bool isPlain = action.Kind == AKind.Attack || (action.Atk != null && action.Atk.Plain);
             if (mhIdx >= 0)
             {
                 bool rondo = action.Has(210) || action.Actor.Has(210);
-                hits = rondo ? MultiHitMeanRondo[mhIdx] : MultiHitMeanNormal[mhIdx];
+                hits += rondo ? MultiHitMeanRondo[mhIdx] : MultiHitMeanNormal[mhIdx];
+                any = true;
             }
-            else
+            if (action.TryVal(93, out double v93) && v93 != 0)
             {
-                hits = action.Val(93, 1);
-                if (hits == 0) hits = 1;
-                if (action.Kind == AKind.Attack)
-                {
-                    double triple = action.Actor.Has(252) ? Math.Min(1.0, action.Actor.Value(252)) : 0.0;
-                    double dbl = action.Actor.Has(251) ? Math.Min(1.0, action.Actor.Value(251)) : 0.0;
-                    hits = 3 * triple + 2 * dbl + (1 - triple) * (1 - dbl);
-                }
+                hits += v93;
+                any = true;
             }
-            if (action.Has(178)) hits += PyMath.Int(action.Val(178, 0)) + 1;
+            if (has178)
+            {
+                hits += PyMath.Int(First(action, action.Actor, 178)) + 1;
+                any = true;
+            }
+            if (isPlain && !any)
+            {
+                double triple = action.Actor.Has(252) ? Math.Min(1.0, action.Actor.Value(252)) : 0.0;
+                double dbl = action.Actor.Has(251) ? Math.Min(1.0, action.Actor.Value(251)) : 0.0;
+                hits = 3 * triple + 2 * dbl + (1 - triple) * (1 - dbl);
+                any = true;
+            }
+            if (!any) hits = 1.0;
             return Math.Max(1.0, hits);
         }
 
@@ -2226,11 +2344,12 @@ namespace DtEngine
                 if (target.Chant != null || Performing(target))
                     Interrupt(target, amount, critical, action == null || !action.Magic);
             }
-            if (target.Alive && target.HasUnique && target.UniqueEffect == 447 && unit != null && !unit.Has(307) && amount > 0)
+            // Arcane Shield (447; 0x424749, 0x425157..0x425248): accumulates damage during the action; retaliation fires post-action, skipping dead & attackers >= 2000.
+            if (target.Alive && target.HasUnique && target.UniqueEffect == 447 && unit != null && !NotACandidate(unit) && !unit.Has(307) && amount > 0)
             {
-                int arcaneSet = Options.HasArcaneChance ? Options.ArcaneChance : Data.ArcaneChance;
-                int arcane = arcaneSet != T.NONE && arcaneSet != 0 ? arcaneSet : ARCANE_CHANCE;
-                if (Rng.RandRange(100) < arcane) LoseHp(unit, PyMath.Int(amount * target.UniqueValue), target);
+                Grow(target.Position);
+                arcaneDamage[target.Position] += amount;
+                arcaneDirty = true;
             }
         }
 
@@ -2278,6 +2397,8 @@ namespace DtEngine
             unit.Alive = false;
             unit.Chant = null;
             unit.ClearStatuses();
+            // 0x43c1fa: falling clears active song and dance slots on the singer/dancer.
+            unit.ClearSongsAndDances();
             if (Rec != null) { Rec.Deaths.Add(new RecKey(unit), 1); if (unit.Side == Unit.ENEMIES) Rec.Kills++; }
             if (activeDolls > 0)
             {
@@ -2313,11 +2434,8 @@ namespace DtEngine
         {
             var unit = action.Actor;
             bool hostile = target.Side != unit.Side;
-            bool song = false;
-            if (action.Skill != null && action.Skill.IsMagic && action.TpCost == 0)
-                foreach (int e in SONG_EFFECTS) if (action.Has(e)) { song = true; break; }
-            bool dance = false;
-            foreach (int e in DANCE_EFFECTS) if (action.Has(e)) { dance = true; break; }
+            // Capture pre-hit ailment state BEFORE the current hit's ailments are applied (0x422b82 runs before 0x422bd0).
+            bool preAiling = hostile && dealt != 0 && target.Alive && HasTrueAilment(target);
             int count = action.Count;
             // the list is walked as worked out before the hit; copy it as the loop can change nothing of it
             for (int i = 0; i < count; i++)
@@ -2442,17 +2560,19 @@ namespace DtEngine
                     LoseHp(target, target.Hp, unit);
                     continue;
                 }
+                if (effect == 10)
+                {
+                    // 0x47fc30..0x47fcae: enemy Defend / Photosynthesis / Kotatsu Oranges sets the defending state directly.
+                    target.Defending = true;
+                    continue;
+                }
                 if (effect == 121 && hostile && !target.Immune("petrification") && target.Resistance(6) < 100 && !Nullified(target, 120))
                 {
                     target.SetStatus(new Status(120, 1, 0, unit));
                     EndParts(target, PartsFor(121));
                     continue;
                 }
-                if (effect == 320 && hostile && AnyAilment(target))
-                {
-                    ApplyAilment(unit, target, 119, value, action);
-                    continue;
-                }
+                if (effect == 320) continue;
                 if (effect == 168 && action.Has(79))
                 {
                     if (!Roll(action.Val(79, 0))) continue;
@@ -2465,7 +2585,8 @@ namespace DtEngine
                 if (effect == 295 || effect == 296) continue;
                 if (kind == 4 || kind == 5 || StatusEffect[effect])
                 {
-                    if (song || dance) PerformSong(unit, action, target, effect, value, dance);
+                    bool isSong = IsSongEffect[effect], isDance = IsDanceEffect[effect];
+                    if (isSong || isDance) PerformSong(unit, action, target, effect, value, isDance);
                     else
                     {
                         var st = new Status(effect, value, action.Turns, unit, action.SourceName, kind, action.Atk != null ? action.Atk.Id : T.NONE) { IsInt = action.EffIsInt(i) };
@@ -2475,6 +2596,10 @@ namespace DtEngine
                     }
                 }
             }
+            // Devil's Whisper (320; 0x422b82, 0x422cf1..0x422d32, 0x423560): fires only on damaging hits (dealt != 0) when
+            // the target ALREADY had a true ailment (113..122, excluding 123) before the hit's own ailments were applied.
+            if (preAiling && target.Alive && (action.Has(320) || unit.Has(320)))
+                ApplyAilment(unit, target, 119, First(action, unit, 320), action);
             // the answers of the unit hit (0x423cd0): skipped whole when the attacker is a doll, the summon or a guest (0x423d0e - 0x423d38)
             if (hostile && dealt != 0 && !NotACandidate(unit))
             {
@@ -2560,7 +2685,7 @@ namespace DtEngine
                     case 211: sign = 1; scale = 100; break;
                 }
                 var st = new Status(effect, value + sign * scale * bonus, 0, singer, name, Status.SongKind, atkId);
-                if (effect == 199 && action.TryVal(296, out double cap)) st.WithData(cap);
+                if ((effect == 199 || effect == 200) && action.TryVal(296, out double cap)) st.WithData(cap);
                 target.SetStatus(st);
             }
         }
@@ -2652,7 +2777,7 @@ namespace DtEngine
                 for (int i = 0; i < Units.Count; i++)
                 {
                     var u = Units[i];
-                    if (u.Owner == unit && u.Kind == Kind.Doll && u.Alive && !u.Arrow && !u.Genjimaru) RemoveDoll(u);
+                    if (u.Owner == unit && u.Kind == Kind.Doll && u.Alive && !u.Arrow && !u.Genjimaru && u.ShadowOf == null) RemoveDoll(u);
                 }
             }
         }
@@ -2711,7 +2836,7 @@ namespace DtEngine
             if (effect == 103)
             {
                 double coefficient = value;
-                if (unit.Kind == Kind.Doll && unit.Owner != null)
+                if (IsPuppet(unit) && unit.Owner != null)
                     coefficient += F.DollHealBonus(unit.Owner.Passive(286, 0.0), unit.Owner.Pieces(304), unit.Owner.Pieces(305));
                 bool hasFixed = action.TryVal(9, out double fixedValue) && fixedValue != 0;
                 int amount;
@@ -2771,25 +2896,33 @@ namespace DtEngine
 
         void Counter(Unit unit, Unit attacker)
         {
-            // a counter is never set up against a doll, the summon or a guest (0x43b5f0, 0x43b610 at 0x42261b - 0x422637); the
-            // hit that started it stays voided
-            if (NotACandidate(attacker)) return;
+            // a counter is never set up against a doll, the summon or a guest (0x43b5f0, 0x43b610 at 0x42261b - 0x422637);
+            // and never recurses from inside another counter (0x42039d); the hit that started it stays voided.
+            if (inCounter || NotACandidate(attacker)) return;
             if (unit.Alive && attacker.Alive)
             {
                 if (unit == attacker) return;
                 Trace?.Counter(this, unit, attacker);
                 var saved = damageByTarget;              // the counter keeps a record of its own hits
                 damageByTarget = null;
-                // an enemy counters with its first attack (P7.1 of the audit); a member with a plain attack (the skill its status
-                // links to is not read: a model limit)
-                Action answer = new Action(unit, AKind.Attack);
-                if (unit.Kind == Kind.Enemy && unit.Attacks != null && unit.Attacks.Length > 0)
+                inCounter = true;
+                try
                 {
-                    var atk = Data.GetAttack(unit.Attacks[0]);
-                    if (atk != null) answer = new Action(unit, AKind.Enemy, atk, 1);
+                    // an enemy counters with its first attack (P7.1 of the audit); a member with a plain attack (the skill its status
+                    // links to is not read: a model limit)
+                    Action answer = new Action(unit, AKind.Attack);
+                    if (unit.Kind == Kind.Enemy && unit.Attacks != null && unit.Attacks.Length > 0)
+                    {
+                        var atk = Data.GetAttack(unit.Attacks[0]);
+                        if (atk != null) answer = new Action(unit, AKind.Enemy, atk, 1);
+                    }
+                    Resolve(answer, attacker, 0);
                 }
-                Resolve(answer, attacker, 0);
-                damageByTarget = saved;
+                finally
+                {
+                    inCounter = false;
+                    damageByTarget = saved;
+                }
             }
         }
 
@@ -3087,7 +3220,8 @@ namespace DtEngine
                 else if (Data.ItemSkills.TryGetValue(kind, out int skillId))
                 {
                     var skill = Data.ById(skillId);
-                    if (skill != null) Perform(new Action(unit, AKind.Skill, skill, skill.Levels, action.Target));
+                    // 0x50b136: item-invoked skills do not spend TP.
+                    if (skill != null) Perform(new Action(unit, AKind.Skill, skill, skill.Levels, action.Target) { Paid = true });
                 }
             }
         }
