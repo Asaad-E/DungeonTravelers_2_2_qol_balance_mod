@@ -357,10 +357,16 @@ namespace DtEngine
             return amount;
         }
 
-        public static int FractionRecovery(double maximum, double value, bool hasCap, double cap)
+        public static int FractionRecovery(double maximum, double value, bool hasCap, double cap, double capBonus = 0.0)
         {
             int amount = PyMath.Int(maximum * value);
-            return hasCap ? Math.Min(amount, PyMath.Int(cap)) : amount;
+            if (hasCap)
+            {
+                int limit = PyMath.Int(cap);
+                limit += PyMath.Int(limit * capBonus);
+                return Math.Min(amount, limit);
+            }
+            return amount;
         }
 
         /// <summary>sim.progression.after_battle_recovery</summary>

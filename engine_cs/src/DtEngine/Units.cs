@@ -95,12 +95,14 @@ namespace DtEngine
         }
         public double NextTime;
         public Action Chant;
-        List<string> song, dance;
+        List<string> song, dance, geass;
         public List<string> Song => song ?? (song = new List<string>());
         public List<string> Dance => dance ?? (dance = new List<string>());
+        public List<string> Geass => geass ?? (geass = new List<string>());
         public bool HasSongs => song != null && song.Count > 0;
         public bool HasDances => dance != null && dance.Count > 0;
-        public void ClearSongsAndDances() { song?.Clear(); dance?.Clear(); }
+        public bool HasGeass => geass != null && geass.Count > 0;
+        public void ClearSongsAndDances() { song?.Clear(); dance?.Clear(); geass?.Clear(); }
         public Unit Owner;
         public int TurnsTaken;
         public int LastSkillId = T.NONE;
@@ -177,7 +179,7 @@ namespace DtEngine
             c.ResistBase = (int[])ResistBase.Clone();
             c.St = NoStatuses; c.stOrder = Array.Empty<int>(); c.StCount = 0; c.statModCount = 0;
             pvShared = true; c.pvShared = true;
-            c.song = null; c.dance = null;
+            c.song = null; c.dance = null; c.geass = null;
             c.uses = null; c.usesById = null; c.onceDone = null;
             c.Items = copyItems ? new Dictionary<int, int>(Items) : Items;
             c.Chant = null; c.Owner = null; c.ShadowOf = null; c.AiTargets = null; c.Samsara = null; c.Roster = null;
@@ -210,6 +212,18 @@ namespace DtEngine
         public void SetStatus(Status s)
         {
             if (St == NoStatuses) St = RentStatusArray();
+            // 0x4f9bff..0x4f9c7c (vtable+0x7c == 1 -> 325..329): elemental weapon enchants are mutually exclusive.
+            if (s.Effect >= 325 && s.Effect <= 329)
+            {
+                for (int e = 325; e <= 329; e++) if (e != s.Effect && St[e] != null) PopStatus(e);
+            }
+            // 0x4f9c7c..0x4f9cfc (vtable+0x84 == 1 -> 101, 102, 181): barriers are mutually exclusive.
+            else if (s.Effect == 101 || s.Effect == 102 || s.Effect == 181)
+            {
+                if (s.Effect != 101 && St[101] != null) PopStatus(101);
+                if (s.Effect != 102 && St[102] != null) PopStatus(102);
+                if (s.Effect != 181 && St[181] != null) PopStatus(181);
+            }
             if (St[s.Effect] == null)
             {
                 if (StCount == stOrder.Length) Array.Resize(ref stOrder, Math.Max(8, StCount * 2));
@@ -232,6 +246,8 @@ namespace DtEngine
                     StCount--;
                     break;
                 }
+            // 0x4fc63a..0x4fc644: clamp current HP to MaxHp when Max HP buff (172) is removed.
+            if (e == MAX_HP_BUFF && Hp > MaxHp) Hp = MaxHp;
             return s;
         }
 
@@ -382,6 +398,8 @@ namespace DtEngine
         public int Resistance(int index)
         {
             if (SamsaraState == 2) return Samsara[index];
+            // 0x4fc1b0..0x4fc1e4: Effect 192 (All Resistances 100) adds +10000 to all 8 resistances, clamping to +100.
+            if (StCount != 0 && St[192] != null) return 100;
             int value = ResistBase[index];
             if (index >= 3)
             {

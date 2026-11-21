@@ -685,7 +685,7 @@ A counter is built by `_SetupCounter` (`0x425930`).
 
 ### 12.14 After an action and after a battle (`Battle::CBattleBase::Update`, `0x438cef`)
 
-* Double Action and Triple Action (enemies): roll `value * 100` for two actions; failing that, roll for three.
+* Double Action (288), Triple Action (289), and Unique extra action (354): roll `value * 100` for extra actions (`0x438cd2..0x4392ea`). On re-entry (`[esi+0xb0] != 0`, `0x4365ff`), **all** extra actions skip Turn-Start states `0..23` and proceed directly to action selection.
 * Ecstasy (`0x47f59b`): once per battle, when damage takes its bearer from half max HP or more to below half, an ATK
   buff and a DEX buff of its value.
 * Paean (`0x439380`): its value is the `bonus` of the EXP share (6c).
@@ -713,7 +713,7 @@ The turn of a unit goes through numbered states. The ones read:
     0    start: Esarhaddon removes ailments (0x436727)
     1    natural ailment recovery rolls (113..117, 122) BEFORE turn-loss checks (0x43692f)
     2    Third Eye Wide (345) of opponents (0x47ee00; starts ailment recovery at 0%)
-    4    petrification advances stage 1 -> 2 -> 3 (0x436be4; barrier at stage 3 blocks and cures 120, 0x4830ad)
+    4    petrification advances stage 1 -> 2 -> 3 (0x436be4; barrier at stage 3 blocks and cures 120, 0x4830ad; otherwise unit stays alive at Stage 3 with HP intact, ends all performances, and clears all other statuses, 0x48305a..0x4831eb)
     5-7  hard turn loss: Stage>=3 petrification, Sleep (116), Paralysis (115, 30%) skip states 8-22 and action (0x436c3f)
     8    timed status durations decrement and expire BEFORE soft turn-loss checks (0x436d4c)
     9-11 soft turn loss: Warning Shot (259), Magnificent Steps (283), Mesmerized (203)
@@ -1070,8 +1070,8 @@ action (kind 7: `0x449a24`, `0x449d87`, `0x44a31c`). Warning Shot replaces the c
 (`0x4371c3`) and state 16 runs.
 
 **What an ailment ends when it lands** (status creation `0x4f9930`; end calls `0x43bc50` chant, `0x43c110` songs,
-`0x43c600` dances, `0x43c9b0` dolls): freeze ends dances and dolls; sleep, stun, Shadow Sew and effect 121 end all four;
-silence ends the chant and the songs; petrification ends none. A frozen member cannot use techniques, a silenced one
+`0x43c600` dances, `0x43c9b0` dolls, `0x43ce30` Geass): freeze ends dances, dolls, and Geass; sleep, stun, Shadow Sew, and effect 121 (and gradual petrification reaching Stage 3) end all five;
+silence ends the chant and the songs; petrification below Stage 3 ends none. A frozen member cannot use techniques, a silenced one
 spells and songs (atwiki dt2-2 page 125). Effect 139 kills only a sleeping target (slot `0xbc`). The statuses whose class
 answers yes at slot `0x8c` end at the tick of a sleeping bearer (`0x48d5b5 - 0x48d5d7`), not of any bearer that cannot
 act.
@@ -1124,7 +1124,7 @@ from the formation is still to be followed (assumption A10).
 | 305 Knock Down | A long-range blow (by a member only when she holds a weapon) on its bearer rolls value * 100; on a success it does nothing and the bearer performs the skill linked to the status | `0x4221ee - 0x422540` |
 | 310 Pretend | A blow on its bearer rolls value * 100; on a success it does nothing and the bearer performs the skill linked to the status | `0x421db8 - 0x42206c` |
 | 314 Soul Seal | A doll of a bearer adds to each of its six stats int(stat of the enemy its sealbook seals * value) | `0x4fdfd0 - 0x4fe102` |
-| 356 Demon Wall | When any unit of the target's side has it, the damage of a blow or a spell becomes max(0, int(damage * (1 + value))); the values are negative. Read again for the engine audit (2026-10-18): it acts only when the attacker is an enemy of race 5, 7 or 8 (`0x44cbf0` and the same test in the spell function at `0x44ee87 - 0x44ee91`) | `0x44cbf0 - 0x44cc4e`, `0x44ef59` |
+| 356 Demon Wall | When a living ally in the **same row** as the target bears it (`0x44cbb9`, `0x44ef26`, `0x43e759`), the damage of a blow or a spell from an enemy of race 5, 7 or 8 (`0x44cbf0`, `0x44ee87`) becomes `max(0, int(damage * (1 + value)))`; the values are negative | `0x44cbb9 - 0x44cc4e`, `0x44ef26 - 0x44ef59` |
 | 427 Genjimaru | Unless one is in the battle, a unit built like a doll that performs hidden skill 107 | `0x48b1f0` |
 | 432 Enemies Flee | Each enemy targeted is marked as gone when the battle allows running away | `0x48b3c0` |
 

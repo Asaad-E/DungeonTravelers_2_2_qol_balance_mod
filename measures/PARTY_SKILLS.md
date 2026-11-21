@@ -4,23 +4,23 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 
 | Party skill | Members | Bonus at every proof | Wins | Fights shorter | HP left |
 |---|---|---|---|---|---|
-| Vigor Trio | 3 | atk +32 | +20 | +18% | +17 |
-| Board Members | 3 | dex +20, agi +20 | +21 | +17% | +17 |
-| Vagabonds | 3 | agi +20 | +21 | +13% | +16 |
-| Eccentrics | 3 | agi +20 | +21 | +13% | +16 |
-| Mission Ongoing | 4 | fire +10, atk +20 | +16 | +14% | +13 |
-| Sales Experience | 4 | wind +20, agi +10 | +18 | +9% | +15 |
-| Kindred Spirits | 4 | tp +50, fire +20 | +10 | +9% | +7 |
-| NegaPosi | 4 | hp +50, tp +50 | +11 | +8% | +9 |
-| The New Magi | 3 | tp +50, fire +20 | +8 | +7% | +6 |
-| Full of Guts | 4 | hp +100 | +9 | +4% | +9 |
-| Graceful Agers | 4 | lightning +20, hp +50 | +7 | +3% | +7 |
-| Attentive | 3 | int +20 | +4 | +3% | +4 |
-| Celebrities | 3 | lightning +50 | +3 | +0% | +3 |
-| Libra Guard | 3 | def +25 | +2 | +1% | +2 |
-| Beyond Human | 3 | stab +20 | +0 | +2% | +1 |
-| Royal Squadron | 4 | bash +10, earth +20 | +1 | +0% | +2 |
-| Veteran Soldiers | 2 | slash +25 | +0 | +0% | +0 |
-| Flawless Poise | 3 | water +20, earth +20 | -2 | +2% | +1 |
-| Dark and Light | 3 | res +20 | -1 | +1% | -0 |
-| Natural Klutzes | 2 | bash +20 | -0 | -0% | -0 |
+| Vigor Trio | 3 | atk +32 | +13 | +16% | +13 |
+| Board Members | 3 | dex +20, agi +20 | +13 | +16% | +12 |
+| Vagabonds | 3 | agi +20 | +14 | +14% | +13 |
+| Eccentrics | 3 | agi +20 | +14 | +14% | +13 |
+| Mission Ongoing | 4 | fire +10, atk +20 | +8 | +16% | +9 |
+| Sales Experience | 4 | wind +20, agi +10 | +9 | +11% | +12 |
+| NegaPosi | 4 | hp +50, tp +50 | +8 | +9% | +11 |
+| Kindred Spirits | 4 | tp +50, fire +20 | +7 | +9% | +7 |
+| The New Magi | 3 | tp +50, fire +20 | +4 | +9% | +6 |
+| Graceful Agers | 4 | lightning +20, hp +50 | +8 | +2% | +7 |
+| Full of Guts | 4 | hp +100 | +8 | +1% | +7 |
+| Attentive | 3 | int +20 | +2 | +2% | +4 |
+| Celebrities | 3 | lightning +50 | +4 | -1% | +2 |
+| Dark and Light | 3 | res +20 | +2 | -1% | +2 |
+| Royal Squadron | 4 | bash +10, earth +20 | +2 | -1% | +2 |
+| Flawless Poise | 3 | water +20, earth +20 | +1 | -0% | +2 |
+| Beyond Human | 3 | stab +20 | +0 | +0% | +0 |
+| Veteran Soldiers | 2 | slash +25 | +0 | -0% | -0 |
+| Natural Klutzes | 2 | bash +20 | -1 | +1% | -0 |
+| Libra Guard | 3 | def +25 | -2 | +0% | -1 |

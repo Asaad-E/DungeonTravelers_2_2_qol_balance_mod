@@ -1,6 +1,6 @@
 ## passives
 
-48 act, 17 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
+49 act, 16 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
 
 | Passive | Effects | Tested as | Result |
 |---|---|---|---|
@@ -21,7 +21,7 @@
 | 255 Mini Auto-Recovery | 246 | tank (Alisia, 29, C18) | no effect seen |
 | 256 Auto-Refresh | 247 | tank (Alisia, 62, C38) | acts |
 | 257 Mini Auto-Refresh | 247 | sage (Fiora, 29, C18) | acts |
-| 258 Adaptation | 248 | attacker (Yae, 29, C18) | no effect seen |
+| 258 Adaptation | 248 | attacker (Yae, 29, C18) | acts |
 | 259 Avenger | 249 | tank (Alisia, 14, C11) | acts |
 | 260 Mind's Eye | 250 | attacker (Yae, 62, C38) | acts |
 | 261 Double Attack | 251 | tank (Alisia, 14, C11) | acts |

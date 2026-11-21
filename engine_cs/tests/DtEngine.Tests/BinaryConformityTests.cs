@@ -387,9 +387,12 @@ namespace DtEngine.Tests
             Assert.Equal(T.FIRE, plain.Attr);
             Assert.Equal(T.STAB, plain.PhysicalAttr);
 
+            // 0x4f9bff..0x4f9c7c: weapon-element statuses (325..329) are mutually exclusive, so casting Water (326) replaces Fire (325).
             hero.SetStatus(new Status(325, 1, 3, hero));
             hero.SetStatus(new Status(326, 1, 3, hero));
-            Assert.Equal(T.STAB, plain.Attr);
+            Assert.Null(hero.St[325]);
+            Assert.NotNull(hero.St[326]);
+            Assert.Equal(T.WATER, plain.Attr);
         }
 
         [Fact]
@@ -620,6 +623,200 @@ namespace DtEngine.Tests
             bSplash.Perform(new Action(p1, AKind.Skill, splash, 1, e1));
             Assert.True(e1.Hp < 1000);
             Assert.Equal(1000, e2.Hp); // P1 intervened at t=0.20 between E1(0.10) and E2(0.30), breaking the chain!
+        }
+
+        [Fact]
+        public void R3_Recheck_ExtraTurnSkipsTurnStart_AndPetrifyStage3KeepsUnitAlive()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // #1: Extra turn from Double Action (288) skips ALL turn-start phases (buff countdown, poison, petrify advance).
+            var boss = new Unit("Boss", Unit.ENEMIES, 50, 5000, 0, new[] { 40, 60, 40, 60, 60, 200 }, null, 1.0, 0.0, T.NONE, Kind.Enemy);
+            boss.SetPassive(288, 1.0); // 100% Double Action
+            boss.SetStatus(new Status(41, 0.25, 2, boss)); // 2-turn ATK buff
+            boss.SetStatus(new Status(113, 1.0, 0, boss).WithData(0)); // Poison (0% recovery so it won't clear)
+            var hero = new Unit("Hero", Unit.PARTY, 50, 5000, 100, new[] { 40, 60, 40, 60, 60, 10 }, null, 2.0, 0.0, T.NONE, Kind.Member);
+            var b = new Battle(data, new List<Unit> { hero }, new List<Unit> { boss }, new PyRandom(1), null, new BattleOptions(), null);
+            boss.NextTime = 0.01;
+            hero.NextTime = 5.0;
+            b.MaxActions = 2; // Boss normal turn + Boss extra turn
+            b.Run();
+            Assert.Equal(2, boss.TurnsTaken);
+            Assert.NotNull(boss.St[41]);
+            Assert.Equal(1.0, boss.St[41].Turns); // Decremented ONCE (2 -> 1), NOT twice!
+            // Poison ticked ONCE (5% of 5000 = 250 cap), NOT twice!
+            Assert.Equal(5000 - 250, boss.Hp);
+
+            // #2: Gradual Petrify Stage 3 keeps Alive = true, HP intact, clears other statuses, and does NOT trigger Resuscitate (188).
+            var victim = new Unit("Victim", Unit.PARTY, 50, 800, 100, new[] { 60, 60, 60, 60, 60, 200 }, null, 1.0, 0.0, T.NONE, Kind.Member);
+            var partner = new Unit("Partner", Unit.PARTY, 50, 800, 100, new[] { 60, 60, 60, 60, 60, 10 }, null, 2.0, 0.0, T.NONE, Kind.Member);
+            var dummy = new Unit("Dummy", Unit.ENEMIES, 50, 5000, 0, new[] { 10, 60, 10, 60, 60, 10 }, null, 2.0, 0.0, T.NONE, Kind.Enemy);
+            victim.SetStatus(new Status(120, 1.0, 0, dummy) { Stage = 2 });
+            victim.SetStatus(new Status(188, 0.5, 5, victim)); // Resuscitate
+            victim.SetStatus(new Status(41, 0.25, 5, victim)); // ATK buff
+            var bPet = new Battle(data, new List<Unit> { victim, partner }, new List<Unit> { dummy }, new PyRandom(1), null, new BattleOptions(), null);
+            victim.NextTime = 0.01; partner.NextTime = 5.0; dummy.NextTime = 5.0;
+            bPet.MaxActions = 1;
+            bPet.Run();
+            Assert.True(victim.Alive);
+            Assert.Equal(800, victim.Hp);
+            Assert.NotNull(victim.St[120]);
+            Assert.Equal(3, victim.St[120].Stage);
+            Assert.Null(victim.St[41]);  // Other statuses cleared
+            Assert.Null(victim.St[188]); // Cleared without false revive
+        }
+
+        [Fact]
+        public void R3_Recheck_Effect192_BarriersExclusive_MaxHpClamp_AndGeassGroup()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // #4: Effect 192 sets all 8 resistances to 100 in Unit.Resistance().
+            var u = new Unit("Boss", Unit.ENEMIES, 50, 1000, 0, new[] { 60, 60, 60, 60, 60, 60 }, new[] { -50, -50, -50, -50, -50, -50, -50, -50 }, 1.4, 0.0, T.NONE, Kind.Enemy);
+            u.SetStatus(new Status(192, 1.0, 3, u));
+            for (int i = 0; i < 8; i++) Assert.Equal(100, u.Resistance(i));
+
+            // #5: Barriers (101/102/181) are mutually exclusive; MaxHp buff (172) removal clamps Hp to MaxHp.
+            u.SetStatus(new Status(101, 2.0, 0, u));
+            u.SetStatus(new Status(181, 3.0, 0, u));
+            Assert.Null(u.St[101]);
+            Assert.NotNull(u.St[181]);
+            u.SetStatus(new Status(172, 0.5, 3, u));
+            u.Hp = u.MaxHp; // 1500
+            Assert.Equal(1500, u.Hp);
+            u.PopStatus(172);
+            Assert.Equal(1000, u.Hp);
+
+            // #3: Geass (335..341) has per-caster cap 1 (evicts oldest) and clears on Stun (118).
+            var hero = new Unit("Hero", Unit.PARTY, 50, 1000, 100, new[] { 60, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var caster = new Unit("GeassBoss", Unit.ENEMIES, 50, 1000, 0, new[] { 60, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var g1 = new EnemyAttack { Id = 827, Name = "GeassA", Target = T.SINGLE, Attr = T.NEUTRAL, Speed = 1.0, EffId = new[] { 335 }, EffKind = new[] { 5 }, EffValue = new[] { -0.2 }, EffIsInt = new[] { false } };
+            var g2 = new EnemyAttack { Id = 828, Name = "GeassB", Target = T.SINGLE, Attr = T.NEUTRAL, Speed = 1.0, EffId = new[] { 336 }, EffKind = new[] { 5 }, EffValue = new[] { -0.2 }, EffIsInt = new[] { false } };
+            var b = new Battle(data, new List<Unit> { hero }, new List<Unit> { caster }, new PyRandom(1), null, new BattleOptions(), null);
+            b.Perform(new Action(caster, AKind.Enemy, g1, 1) { Target = hero });
+            Assert.NotNull(hero.St[335]);
+            b.Perform(new Action(caster, AKind.Enemy, g2, 1) { Target = hero });
+            Assert.Null(hero.St[335]); // Oldest Geass evicted by slot cap 1
+            Assert.NotNull(hero.St[336]);
+            b.ApplyAilment(hero, caster, 118, 10.0, null); // Stun clears Geass
+            Assert.Null(hero.St[336]);
+            Assert.False(caster.HasGeass);
+        }
+
+        [Fact]
+        public void R3_Recheck_DamageRowFilters_Magic47_88_87_RaceGuard_ElbowGrease_AndArcaneCounter()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // #7 & #8 & #9: Magic Effect 47 (RES), Effect 88 (vs Undead/Apparition/Demon), Effect 87 (zero vs Race 5 & 6).
+            var caster = new Unit("Priest", Unit.PARTY, 50, 1000, 100, new[] { 50, 50, 60, 300, 100, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var living = new Unit("Beast", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 1.4, 0.0, 2, Kind.Enemy);
+            var undead = new Unit("Undead", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 1.4, 0.0, 5, Kind.Enemy);
+            var inorg = new Unit("Golem", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 1.4, 0.0, 6, Kind.Enemy);
+            var b = new Battle(data, new List<Unit> { caster }, new List<Unit> { living, undead, inorg }, new PyRandom(1), null, new BattleOptions(), null);
+
+            var eff47Spell = new Skill
+            {
+                Category = "Magic", Id = 9996, Name = "ResNuke", Levels = 1, Target = T.SINGLE, Attr = T.NEUTRAL, Group = 1, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 1, Kind = 4, Values = new[] { 200.0 }, IsInt = new[] { false } }, new Effect { Id = 47, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { false } } }
+            };
+            var intSpell = new Skill
+            {
+                Category = "Magic", Id = 9997, Name = "IntNuke", Levels = 1, Target = T.SINGLE, Attr = T.NEUTRAL, Group = 1, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 1, Kind = 4, Values = new[] { 200.0 }, IsInt = new[] { false } } }
+            };
+            Assert.True(b.MagicDamageExpected(new Action(caster, AKind.Skill, eff47Spell, 1, living), living)
+                      > b.MagicDamageExpected(new Action(caster, AKind.Skill, intSpell, 1, living), living) * 2.5);
+
+            var eff88Spell = new Skill
+            {
+                Category = "Magic", Id = 9998, Name = "ShineTest", Levels = 1, Target = T.SINGLE, Attr = T.NEUTRAL, Group = 1, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 1, Kind = 4, Values = new[] { 200.0 }, IsInt = new[] { false } }, new Effect { Id = 88, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { false } } }
+            };
+            double dmgLiving = b.MagicDamageExpected(new Action(caster, AKind.Skill, eff88Spell, 1, living), living);
+            double dmgUndead = b.MagicDamageExpected(new Action(caster, AKind.Skill, eff88Spell, 1, undead), undead);
+            Assert.Equal(dmgLiving * 2.0, dmgUndead, 4);
+
+            var eff87Magic = new Skill
+            {
+                Category = "Magic", Id = 9999, Name = "LivingOnlyMagic", Levels = 1, Target = T.SINGLE, Attr = T.NEUTRAL, Group = 1, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 1, Kind = 4, Values = new[] { 200.0 }, IsInt = new[] { false } }, new Effect { Id = 87, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { false } } }
+            };
+            Assert.True(b.MagicDamageExpected(new Action(caster, AKind.Skill, eff87Magic, 1, living), living) > 10);
+            Assert.Equal(0.0, b.MagicDamageExpected(new Action(caster, AKind.Skill, eff87Magic, 1, undead), undead));
+            Assert.Equal(0.0, b.MagicDamageExpected(new Action(caster, AKind.Skill, eff87Magic, 1, inorg), inorg));
+
+            var eff87Phys = new Skill
+            {
+                Category = "Technique", Id = 9994, Name = "LivingOnlyPhys", Levels = 1, Target = T.SINGLE, Attr = T.SLASH, Group = 1, IsTechnique = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 0, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } }, new Effect { Id = 87, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { false } } }
+            };
+            Assert.Equal(0.0, b.PhysicalDamageExpected(new Action(caster, AKind.Skill, eff87Phys, 1, inorg), inorg, 1.0));
+
+            // #13: Magic RaceGuard is additive with Limit Field (190): large guard = 10%, so 1 - 0.20 - 0.10 = 0.70 (not 0.80 * 0.90 = 0.72).
+            var mageFoe = new Unit("DemonCaster", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 200, 50, 50, 50 }, null, 1.4, 0.0, 8, Kind.Enemy);
+            var targetWithGuards = new Unit("Guarded", Unit.PARTY, 50, 1000, 100, new[] { 50, 50, 50, 50, 50, 50 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var rgEnch = new int[GameData.MaxEnchant]; rgEnch[F.RACE_GUARD[8].large] = 1; // 10% guard vs Demon (race 8)
+            var bRg = new Battle(data, new List<Unit> { targetWithGuards }, new List<Unit> { mageFoe }, new PyRandom(1), null, new BattleOptions(), null);
+            double baseMag = bRg.MagicDamageExpected(new Action(mageFoe, AKind.Skill, intSpell, 1, targetWithGuards), targetWithGuards);
+            targetWithGuards.SetEnchants(rgEnch);
+            targetWithGuards.SetStatus(new Status(190, -0.20, 3, targetWithGuards));
+            double guardedMag = bRg.MagicDamageExpected(new Action(mageFoe, AKind.Skill, intSpell, 1, targetWithGuards), targetWithGuards);
+            Assert.Equal(baseMag * 0.70, guardedMag, 4);
+
+            // #6 & #12: Demon Wall (356) protects same-row only; Imperial Guard (308) requires front row.
+            var frontWall = new Unit("FrontWall", Unit.PARTY, 50, 2000, 100, new[] { 60, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = true, Shield = true };
+            frontWall.SetPassive(356, 0.50); // Demon Wall 50%
+            var backAlly = new Unit("BackAlly", Unit.PARTY, 50, 2000, 100, new[] { 60, 60, 60, 60, 60, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = false, Shield = true };
+            backAlly.SetPassive(308, -0.30); // Back-row Imperial Guard should NOT apply
+            var demonAtk = new Unit("Demon", Unit.ENEMIES, 50, 2000, 0, new[] { 200, 60, 60, 60, 200, 60 }, null, 1.4, 0.0, 8, Kind.Enemy);
+            var bRow = new Battle(data, new List<Unit> { frontWall, backAlly }, new List<Unit> { demonAtk }, new PyRandom(1), null, new BattleOptions(), null);
+            double backNoIg = bRow.PhysicalDamageExpected(new Action(demonAtk, AKind.Attack) { Target = backAlly }, backAlly, 1.0);
+            frontWall.SetPassive(308, -0.30); // Front-row Imperial Guard SHOULD apply to backAlly
+            double backWithFrontIg = bRow.PhysicalDamageExpected(new Action(demonAtk, AKind.Attack) { Target = backAlly }, backAlly, 1.0);
+            Assert.True(backWithFrontIg < backNoIg * 0.80);
+
+            // Demon Wall in front row does NOT absorb damage dealt to backAlly.
+            bRow.Perform(new Action(demonAtk, AKind.Skill, intSpell, 1, backAlly));
+            Assert.Equal(2000, frontWall.Hp); // Front Demon Wall did not intercept back-row hit
+
+            // #10: Elbow Grease (443) does NOT add damage to plain attacks without Effect 26.
+            var egHero = new Unit("EG", Unit.PARTY, 50, 1000, 100, new[] { 150, 50, 50, 50, 100, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member)
+            { HasUnique = true, UniqueEffect = 443, UniqueValue = 2.0 };
+            var plainHero = new Unit("Plain", Unit.PARTY, 50, 1000, 100, new[] { 150, 50, 50, 50, 100, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var bEg = new Battle(data, new List<Unit> { egHero, plainHero }, new List<Unit> { living }, new PyRandom(1), null, new BattleOptions(), null);
+            Assert.Equal(
+                bEg.PhysicalDamageExpected(new Action(plainHero, AKind.Attack) { Target = living }, living, 1.0),
+                bEg.PhysicalDamageExpected(new Action(egHero, AKind.Attack) { Target = living }, living, 1.0), 4);
+            var skill26 = new Skill
+            {
+                Category = "Technique", Id = 9993, Name = "Pow26", Levels = 1, Target = T.SINGLE, Attr = T.SLASH, Group = 1, IsTechnique = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 0, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } }, new Effect { Id = 26, Kind = 2, Values = new[] { 0.5 }, IsInt = new[] { false } } }
+            };
+            Assert.True(
+                bEg.PhysicalDamageExpected(new Action(egHero, AKind.Skill, skill26, 1, living), living, 1.0)
+                > bEg.PhysicalDamageExpected(new Action(plainHero, AKind.Skill, skill26, 1, living), living, 1.0) * 1.2);
+
+            // #11: Arcane Shield (447) does NOT proc during a counter (!inCounter) and never self-hits bearer.
+            var arcaneHero = new Unit("Arcane", Unit.PARTY, 50, 2000, 100, new[] { 150, 50, 50, 50, 200, 60 }, null, 1.4, 0.0, T.NONE, Kind.Member)
+            { HasUnique = true, UniqueEffect = 447, UniqueValue = 1.0 };
+            var counterFoe = new Unit("CounterFoe", Unit.ENEMIES, 50, 5000, 0, new[] { 150, 50, 50, 50, 200, 60 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            counterFoe.SetPassive(250, 1.0); // 100% Counter
+            var bArc = new Battle(data, new List<Unit> { arcaneHero }, new List<Unit> { counterFoe }, new PyRandom(1), null, new BattleOptions { ArcaneChance = 100 }, null);
+            int hpBefore = arcaneHero.Hp;
+            bArc.Perform(new Action(arcaneHero, AKind.Attack) { Target = counterFoe });
+            // Counter dealt 1 hit to arcaneHero, NOT 2 hits (no self-reflected Arcane Shield hit!).
+            int counterDmg = hpBefore - arcaneHero.Hp;
+            Assert.True(counterDmg > 0 && counterDmg < 500, $"Expected single counter hit without Arcane Shield self-hit, got total loss {counterDmg}");
         }
     }
 }

@@ -100,16 +100,17 @@ namespace DtEngine
         const int ARCANE_CHANCE = 15;
         const int SHADOW_ATTACK = 2, SHADOW_LIFE = 3;
         const double DOLL_MAGIC_SCALE = 500.0;
-        // Exact 0x47b220 CCommand vtable flags: +0x6c (Song) = 210..223, +0x70 (Dance) = 195..205.
+        // Exact 0x47b220 CCommand vtable flags: +0x6c (Song) = 210..223, +0x70 (Dance) = 195..205, +0x78 (Geass) = 335..341.
         static readonly int[] SONG_EFFECTS = { 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223 };
         static readonly int[] DANCE_EFFECTS = { 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205 };
-        static readonly bool[] IsSongEffect = Flags(SONG_EFFECTS), IsDanceEffect = Flags(DANCE_EFFECTS);
+        static readonly int[] GEASS_EFFECTS = { 335, 336, 337, 338, 339, 340, 341 };
+        static readonly bool[] IsSongEffect = Flags(SONG_EFFECTS), IsDanceEffect = Flags(DANCE_EFFECTS), IsGeassEffect = Flags(GEASS_EFFECTS);
         static readonly bool[] StatusEffect = MakeStatusEffects();
         static readonly bool[] DispelAlways = Flags(new[] { 27, 171, 325, 326, 327, 328, 329, 101, 102, 181, 189, 191, 193, 194 });
         static readonly bool[] DispelIfRaised = Flags(new[] { 21, 26, 28, 31, 41, 42, 43, 44, 45, 46, 161, 162, 163, 164, 165, 166, 167, 168, 169, 172, 173, 174, 184, 185, 186 });
         // Exact CCommand vtable+0x54 (IsBuff) and vtable+0x5c (IsDebuff) classification (0x433b80, 0x481b12).
         static readonly bool[] SignedBuffDebuff = Flags(new[] { 21, 26, 28, 31, 41, 42, 43, 44, 45, 46, 161, 162, 163, 164, 165, 166, 167, 168, 169, 172, 173, 174, 184, 185, 186 });
-        static readonly bool[] AlwaysBuffStatus = Flags(new[] { 27, 171, 313, 314, 315, 316, 317, 319, 320, 321, 325, 326, 327, 328, 329 });
+        static readonly bool[] AlwaysBuffStatus = Flags(new[] { 27, 171, 325, 326, 327, 328, 329 });
         // Exact 22 stat buff/debuff effects counted by Effect 71 (Pursuit Stab / Stab Smash / Drill Lance Attack; 0x44c640..0x44c663).
         static readonly bool[] StatEffect71 = Flags(new[] { 41, 42, 43, 44, 45, 46, 161, 162, 163, 164, 165, 166, 167, 168, 169, 172, 173, 174, 184, 185, 186, 189 });
 
@@ -173,7 +174,7 @@ namespace DtEngine
         }
 
         [Flags]
-        enum PerfParts { None = 0, Chant = 1, Song = 2, Dance = 4, Doll = 8, All = Chant | Song | Dance | Doll }
+        enum PerfParts { None = 0, Chant = 1, Song = 2, Dance = 4, Doll = 8, Geass = 16, All = Chant | Song | Dance | Doll | Geass }
 
         static bool[] Flags(int[] ids)
         {
@@ -809,77 +810,99 @@ namespace DtEngine
             }
         }
 
+        void CompletePetrify(Unit unit)
+        {
+            // 0x48305a..0x4831eb, 0x4f99c1..0x4f9b6b, 0x4fa870:
+            // Stage-3 petrification leaves HP intact and Alive = true, ends performances/chant,
+            // and clears all other statuses while preserving Status(120) at Stage = 3.
+            EndParts(unit, PerfParts.All);
+            var pet = unit.St[120];
+            var effects = SnapshotStatuses(unit, statusScratch, out int sc);
+            for (int k = 0; k < sc; k++)
+            {
+                int e = effects[k];
+                if (e != 120) unit.PopStatus(e);
+            }
+            if (pet != null) pet.Stage = 3;
+        }
+
         void Turn(Unit unit)
         {
             Actions++;
             unit.TurnsTaken++;
             unit.Defending = false;
-            bool again = unit.ExtraTurn && unit.ExtraUnique;
-            // Esarhaddon (311)
-            if (unit.Has(311))
+            // 0x4365ff (mov eax,[esi+0xb0]; test eax,eax; jne 0x43875a): ALL extra turns (288 Double Action,
+            // 289 Triple Action, and 354 Unique) skip Turn-Start Phases 0..23 and go straight to Action selection.
+            bool extraTurn = unit.ExtraTurn;
+            Lost softLost = Lost.No;
+            if (!extraTurn)
             {
-                int n = PyMath.Int(unit.Value(311));
-                for (int i = 0; i < Math.Min(Math.Max(n, 0), ESARHADDON_ORDER.Length); i++)
-                    unit.PopStatus(ESARHADDON_ORDER[i]);
-            }
-            // Inner State 1: natural recovery of recovering ailments (113..117, 122) before Sleep/Paralysis turn-loss.
-            if (!again) RollAilmentRecovery(unit);
-            // Samsara (291)
-            if (unit.SamsaraState != 0 && (unit.SamsaraState == 2 || unit.Hp < unit.MaxHp / 2.0))
-            {
-                unit.Samsara = new int[8];
-                for (int i = 0; i < 8; i++) unit.Samsara[i] = (Rng.RandRange(2) + 1) * SAMSARA_STEP;
-                unit.SamsaraState = 2;
-            }
-            // Inner State 2: Third Eye Wide (345) of each opponent — initializes recovery chance at 0% (0x47ee00).
-            foreach (var other in OpponentsArray(unit))
-            {
-                if (other.HasUnique && other.UniqueEffect == 345 && Roll(other.UniqueValue))
+                // Esarhaddon (311)
+                if (unit.Has(311))
                 {
-                    int[] choices = { 113, 115, 116, 114, 117, 118, 74 };
-                    int effect = choices[Rng.ChoiceIndex(choices.Length)];
-                    // X16 (0x47ee73): vanilla skips buff dispel; Balance NOPs the jump (75% dispel chance).
-                    if (effect == 74) { if ((Options.ThirdEyeDispel ?? Data.ThirdEyeDispel) && Roll(0.75)) Dispel(unit); }
-                    else ApplyAilment(other, unit, effect, 0.75, null, 0);
+                    int n = PyMath.Int(unit.Value(311));
+                    for (int i = 0; i < Math.Min(Math.Max(n, 0), ESARHADDON_ORDER.Length); i++)
+                        unit.PopStatus(ESARHADDON_ORDER[i]);
                 }
-            }
-            // Inner State 4 (0x436be4 -> 0x48305a..0x483115): gradual petrification advances 1 -> 2 -> 3 with no natural recovery;
-            // at stage 3, barrier (101/102/181) blocks AND cures petrification (0x4830ad), otherwise lethal.
-            var petrify = unit.St[120];
-            if (petrify != null)
-            {
-                petrify.Stage++;
-                if (petrify.Stage == 3)
+                // Inner State 1: natural recovery of recovering ailments (113..117, 122) before Sleep/Paralysis turn-loss.
+                RollAilmentRecovery(unit);
+                // Samsara (291)
+                if (unit.SamsaraState != 0 && (unit.SamsaraState == 2 || unit.Hp < unit.MaxHp / 2.0))
                 {
-                    if (ConsumeBarrier(unit))
+                    unit.Samsara = new int[8];
+                    for (int i = 0; i < 8; i++) unit.Samsara[i] = (Rng.RandRange(2) + 1) * SAMSARA_STEP;
+                    unit.SamsaraState = 2;
+                }
+                // Inner State 2: Third Eye Wide (345) of each opponent — initializes recovery chance at 0% (0x47ee00).
+                foreach (var other in OpponentsArray(unit))
+                {
+                    if (other.HasUnique && other.UniqueEffect == 345 && Roll(other.UniqueValue))
                     {
-                        unit.PopStatus(120);
-                    }
-                    else
-                    {
-                        LoseHp(unit, unit.Hp, petrify.Source);
-                        if (!unit.Alive) return;
+                        int[] choices = { 113, 115, 116, 114, 117, 118, 74 };
+                        int effect = choices[Rng.ChoiceIndex(choices.Length)];
+                        // X16 (0x47ee73): vanilla skips buff dispel; Balance NOPs the jump (75% dispel chance).
+                        if (effect == 74) { if ((Options.ThirdEyeDispel ?? Data.ThirdEyeDispel) && Roll(0.75)) Dispel(unit); }
+                        else ApplyAilment(other, unit, effect, 0.75, null, 0);
                     }
                 }
+                // Inner State 4 (0x436be4 -> 0x48305a..0x4831eb): gradual petrification advances 1 -> 2 -> 3 with no natural recovery;
+                // at stage 3, barrier (101/102/181) blocks AND cures petrification (0x4830ad), otherwise unit stays Alive at Stage 3.
+                var petrify = unit.St[120];
+                if (petrify != null && petrify.Stage < 3)
+                {
+                    petrify.Stage++;
+                    if (petrify.Stage == 3)
+                    {
+                        if (ConsumeBarrier(unit))
+                            unit.PopStatus(120);
+                        else
+                            CompletePetrify(unit);
+                    }
+                }
+                // Inner States 5-7: hard turn loss (dead, Stage>=3 petrify, Sleep 116, Paralysis 115 30%).
+                Lost hardLost = LostTurnHard(unit);
+                if (hardLost != Lost.No)
+                {
+                    Rec?.TurnsLost.Add(new RecKey(unit), 1);
+                    EndOfTurn(unit, false, true);
+                    return;
+                }
+                // Inner State 8: decrement timed statuses before 259/283/203 turn-loss checks.
+                DecrementTimedStatuses(unit);
+                // Inner States 9-11: soft turn loss (Warning Shot 259 -> Empty, Magnificent Steps 283 -> Skip, Mesmerized 203 -> Skip).
+                softLost = LostTurnSoft(unit);
+                if (softLost != Lost.No) Rec?.TurnsLost.Add(new RecKey(unit), 1);
+                // Inner States 16-21: regen, dancer-turn dances (199/200/204/339), and Poison (113).
+                if (unit.Alive && softLost != Lost.Skip) TickRegenAndDances(unit);
+                if (!unit.Alive) return;
+                // Inner State 22 (0x43851e): Undaunted (355) runs on a living unit's turn for dead members on the same side.
+                Undaunted(unit.Side);
             }
-            // Inner States 5-7: hard turn loss (dead, Stage>=3 petrify, Sleep 116, Paralysis 115 30%).
-            Lost hardLost = LostTurnHard(unit);
-            if (hardLost != Lost.No)
+            else if (!CanFight(unit))
             {
-                Rec?.TurnsLost.Add(new RecKey(unit), 1);
-                EndOfTurn(unit, false, !again);
+                EndOfTurn(unit, false, false);
                 return;
             }
-            // Inner State 8: decrement timed statuses before 259/283/203 turn-loss checks.
-            if (!again) DecrementTimedStatuses(unit);
-            // Inner States 9-11: soft turn loss (Warning Shot 259 -> Empty, Magnificent Steps 283 -> Skip, Mesmerized 203 -> Skip).
-            Lost softLost = LostTurnSoft(unit);
-            if (softLost != Lost.No) Rec?.TurnsLost.Add(new RecKey(unit), 1);
-            // Inner States 16-21: regen, dancer-turn dances (199/200/204/339), and Poison (113).
-            if (unit.Alive && softLost != Lost.Skip && !again) TickRegenAndDances(unit);
-            if (!unit.Alive) return;
-            // Inner State 22 (0x43851e): Undaunted (355) runs on a living unit's turn for dead members on the same side.
-            Undaunted(unit.Side);
             bool acted = false;
             if (softLost == Lost.No && unit.Alive)
             {
@@ -891,7 +914,7 @@ namespace DtEngine
                     Perform(action);
                 }
             }
-            EndOfTurn(unit, acted, !again);
+            EndOfTurn(unit, acted, !extraTurn);
         }
 
         void BeforeAction(Unit unit)
@@ -1086,7 +1109,7 @@ namespace DtEngine
             if (unit.Chant != null) wait = Wait(unit, unit.Chant, true);
             else wait = Wait(unit, last);
             unit.NextTime = Time + wait;
-            if (unit.Extra > 0)
+            if (unit.Extra > 0 && unit.Chant == null && !Over())
             {
                 unit.Extra--;
                 unit.NextTime = Time;
@@ -1094,6 +1117,7 @@ namespace DtEngine
             }
             else if (unit.ExtraTurn)
             {
+                unit.Extra = 0;
                 unit.ExtraTurn = false;
                 unit.ExtraUnique = false;
             }
@@ -2010,16 +2034,15 @@ namespace DtEngine
             return amount;
         }
 
-        /// <summary>The first living unit of the target's side that has Demon Wall.</summary>
         /// <summary>Demon Wall (356) lowers only the blows of an enemy of race 5, 7 or 8 (0x44cb6c - 0x44cba2; races read at
-        /// 0x557e1c, 0x557e7c, 0x557eac); the wall is the first unit of the target's side that bears it.</summary>
+        /// 0x557e1c, 0x557e7c, 0x557eac); the wall is the first living same-row ally bearing 356 (0x44cbb9, 0x44ef26, 0x43e759).</summary>
         Unit DemonWallOf(Unit target, Unit attacker)
         {
             if (!anyDemonWall || attacker.Side != Unit.ENEMIES || attacker.Kind != Kind.Enemy || F.DEMON_WALL_RACES.IndexOf(attacker.Race) < 0) return null;
             for (int i = 0; i < Units.Count; i++)
             {
                 var u = Units[i];
-                if (u.Side == target.Side && u.Alive && u.Has(DEMON_WALL)) return u;
+                if (u.Side == target.Side && u.Alive && u.Front == target.Front && u.Has(DEMON_WALL)) return u;
             }
             return null;
         }
@@ -2073,8 +2096,8 @@ namespace DtEngine
             var unit = action.Actor;
             bool furious = action.Furious;
             double modifiers = First(action, unit, 26) + (action.Atk != null ? action.Atk.Power : 0.0) + SumStatus(unit, ATTACK_STATUS_MODIFIERS);
-            // Elbow Grease (443; 0x44b3db..0x44b427): 20% proc per hit.
-            if (unit.HasUnique && unit.UniqueEffect == 443)
+            // Elbow Grease (443; 0x44b3b4..0x44b434): gated on effect 26 (skill power / Berserk); 20% proc per hit.
+            if (unit.HasUnique && unit.UniqueEffect == 443 && (action.Has(26) || unit.Has(26)))
             {
                 if (expect) modifiers += 0.20 * unit.UniqueValue;
                 else if (Rng.RandRange(100) < 20) modifiers += unit.UniqueValue;
@@ -2096,7 +2119,8 @@ namespace DtEngine
             int resistIndex = T.ResistIndex(action.Attr);
             int resistance = resistIndex >= 0 ? target.Resistance(resistIndex) : 0;
             double raceBonus = (action.Has(88) && (target.Race == 5 || target.Race == 7 || target.Race == 8)) ? action.Val(88, 0) : 0.0;
-            if (action.Has(87) && target.Race == 5) { immediateZero = 1; return 0; }
+            // 0x44bf19..0x44bf44 -> 0x557ef0: effect 87 (only living targets) returns 0 against Race 5 (Undead) and Race 6 (Inorganic).
+            if (action.Has(87) && (target.Race == 5 || target.Race == 6)) { immediateZero = 1; return 0; }
             double race = (RaceFactor(unit, target) + raceBonus) * ElementFactor(unit, target, action.Attr);
             double other = target.Value(190) + unit.StatusValue(191) + FullHpBonus(unit) + LevelBonus(unit, target);
             var guard = target.St[MATERIAL_GUARD];
@@ -2106,8 +2130,9 @@ namespace DtEngine
                 bool any = false; double min = 0;
                 foreach (var m in AlliesArray(target))
                 {
-                    double g = m.Passive(308, 0.0);       // passives.get(308) truthy only when non-zero; requires shield (0x44c7c0)
-                    if (m.HasPassive(308) && (m.Kind != Kind.Member || m.Shield) && g != 0.0) { if (!any || g < min) { min = g; any = true; } }
+                    // 0x44c780..0x44c790 -> 0x43aef0(row=1): Imperial Guard (308) requires a front-row shield-bearer.
+                    double g = m.Passive(308, 0.0);
+                    if (m.Front && m.HasPassive(308) && (m.Kind != Kind.Member || m.Shield) && g != 0.0) { if (!any || g < min) { min = g; any = true; } }
                 }
                 if (any) other += min;
             }
@@ -2154,8 +2179,11 @@ namespace DtEngine
             return Math.Max((double)F.MIN_DAMAGE, value);
         }
 
-        double MagicValue(Action action, Unit target, bool expect, double critical, bool didCritical)
+        double MagicValue(Action action, Unit target, bool expect, double critical, bool didCritical, out int immediateZero)
         {
+            immediateZero = 0;
+            // 0x44eb25..0x44eb56 -> 0x557ef0: effect 87 (only living targets) zeroes magic damage against Race 5 (Undead) and Race 6 (Inorganic).
+            if (action.Has(87) && (target.Race == 5 || target.Race == 6)) { immediateZero = 1; return 0.0; }
             var unit = action.Actor;
             double power = action.Val(MAGIC_POWER, 0.0);
             if (IsPuppet(unit) && unit.Owner != null)
@@ -2189,18 +2217,23 @@ namespace DtEngine
             int resistance = resistIndex >= 0 ? target.Resistance(resistIndex) : 0;
             double powerBoost = First(action, unit, 27) + First(action, unit, 173);
             double cut = (target.HasEnchants ? Math.Max(-0.25, -(0.10 * target.Pieces(68) + 0.05 * target.Pieces(69) + 0.08 * target.Pieces(70) + 0.04 * target.Pieces(71))) : 0.0) + target.StatusValue(183);
-            double other = target.Value(190) + FullHpBonus(unit) + LevelBonus(unit, target);
+            // 0x44eabb..0x44eb20, 0x44eb59..0x44ebe1, 0x44ed53: RaceGuard (-guard), effect 88 (+bonus vs races 5/7/8),
+            // and Limit Field (190) are all additive inside [ebp+0x44] (other) before multiplying by (1 + other).
+            double other = target.Value(190) + (RaceGuard(unit, target) - 1.0) + FullHpBonus(unit) + LevelBonus(unit, target);
+            if (action.Has(88) && (target.Race == 5 || target.Race == 7 || target.Race == 8))
+                other += action.Val(88, 0.0);
             // 0x44ebe1: enchant 267 adds +0.10 * (5 - partyCount) per piece for small parties.
             if (unit.Kind == Kind.Member && unit.HasEnchants && unit.Pieces(267) != 0)
                 other += 0.10 * Math.Max(0, 5 - initialPartyCount) * unit.Pieces(267);
             double targetMods = SumValue(target, MAGIC_DEFENCE_MODIFIERS);
             // the swing of a spell is the spell's own (0x44dbc3 - 0x44dc18), never the caster's weapon; an enemy attack has none
             double swing = expect || action.Skill == null ? 0.0 : SwingOf(action.Skill.Swing);
-            // RaceGuard is multiplicative in the magic damage formula (0x44ee20: mulss xmm0, [ebp+0x5c]), matching physical.
-            return F.MagicDamage(unit.Stat(Unit.INT) * ZoneFactor(unit, action), power, target.Stat(Unit.RES), mastery, modifiers,
+            // 0x44dc50..0x44dc8e: effect 47 (Damage based on RES) switches magic stat from INT to RES (Prism Dawn).
+            double magicStat = action.Has(47) ? unit.Stat(Unit.RES) : unit.Stat(Unit.INT);
+            return F.MagicDamage(magicStat * ZoneFactor(unit, action), power, target.Stat(Unit.RES), mastery, modifiers,
                                  Math.Min(50, 4 * unit.Pieces(37) + 2 * unit.Pieces(38)), second, elementBoost, targetMods,
                                  Math.Min(50, 4 * target.Pieces(41) + 2 * target.Pieces(42)), swing, powerBoost, cut, resistance,
-                                 critical, other) * RaceGuard(unit, target);
+                                 critical, other);
         }
 
         bool spellMissed;       // the spell being dealt missed its roll (Hits): its damage is cut, it cannot be critical
@@ -2209,7 +2242,8 @@ namespace DtEngine
         {
             var unit = action.Actor;
             critical = !spellMissed && unit.Has(301) && Rng.RandRange(100) < F.MAGIC_CRIT_CHANCE;
-            double value = MagicValue(action, target, false, critical ? F.MAGIC_CRIT_FACTOR : 1.0, critical);
+            double value = MagicValue(action, target, false, critical ? F.MAGIC_CRIT_FACTOR : 1.0, critical, out int zero);
+            if (zero == 1) return 0;
             int amount = PyMath.Int(value);
             // a missed spell: half of it, three quarters with enchantment 272 (0x44ee33 - 0x44ee5d, divisions toward zero);
             // a spell at 0 or less strikes for 1 to 5 (0x44ee70 - 0x44ee81)
@@ -2222,7 +2256,8 @@ namespace DtEngine
         {
             var unit = action.Actor;
             double critical = unit.Has(301) ? 1.0 + (F.MAGIC_CRIT_FACTOR - 1.0) * F.MAGIC_CRIT_CHANCE / 100.0 : 1.0;
-            double value = MagicValue(action, target, true, critical, false);
+            double value = MagicValue(action, target, true, critical, false, out int zero);
+            if (zero == 1) return 0.0;
             double damage = value < 1.0 ? (F.SPELL_FLOOR_ROLL + 1) / 2.0 : value;      // the mean of the roll of 1 to 5
             if (action.TryVal(296, out double cap)) damage = Math.Min(damage, (double)PyMath.Int(cap));
             return damage;
@@ -2539,8 +2574,9 @@ namespace DtEngine
                 if (target.Chant != null || Performing(target))
                     Interrupt(target, amount, critical, action == null || !action.Magic);
             }
-            // Arcane Shield (447; 0x424747..0x42476e): rolls per hit (15% vanilla, 25% Balance via X13) and overwrites stored damage; fires once post-action.
-            if (target.Alive && target.HasUnique && target.UniqueEffect == 447 && unit != null && !NotACandidate(unit) && !unit.Has(307) && amount > 0)
+            // Arcane Shield (447; 0x424714, 0x424747..0x42476e): skipped during counters (!inCounter);
+            // rolls per hit (15% vanilla, 25% Balance via X13) and overwrites stored damage; fires once post-action.
+            if (!inCounter && target.Alive && target.HasUnique && target.UniqueEffect == 447 && unit != null && !NotACandidate(unit) && !unit.Has(307) && amount > 0)
             {
                 int arcaneSet = Options.HasArcaneChance ? Options.ArcaneChance : Data.ArcaneChance;
                 int arcane = arcaneSet != T.NONE && arcaneSet != 0 ? arcaneSet : ARCANE_CHANCE;
@@ -2569,7 +2605,7 @@ namespace DtEngine
 
         bool Performing(Unit unit)
         {
-            if (unit.HasSongs || unit.HasDances) return true;
+            if (unit.HasSongs || unit.HasDances || unit.HasGeass) return true;
             return HasOwnedDoll(unit);
         }
 
@@ -2789,11 +2825,12 @@ namespace DtEngine
                 }
                 if (effect == 121 && hostile && !target.Immune("petrification") && target.Resistance(6) < 100 && !Nullified(target, 120))
                 {
-                    // 0x4f9b27..0x4f9b54: Instant Petrify checks barrier (101/102/181) and attaches Status(120) directly at Stage = 3.
+                    // 0x4f99c1..0x4f9b6b: Instant Petrify checks barrier (101/102/181), attaches Status(120) at Stage = 3,
+                    // ends performances, and clears all other statuses while keeping Alive = true and HP intact.
                     if (!ConsumeBarrier(target))
                     {
                         target.SetStatus(new Status(120, 1, 0, unit) { Stage = 3 });
-                        EndParts(target, PartsFor(121));
+                        CompletePetrify(target);
                     }
                     continue;
                 }
@@ -2814,8 +2851,9 @@ namespace DtEngine
                 if (effect == 295 || effect == 296) continue;
                 if (kind == 4 || kind == 5 || StatusEffect[effect])
                 {
-                    bool isSong = IsSongEffect[effect], isDance = IsDanceEffect[effect];
+                    bool isSong = IsSongEffect[effect], isDance = IsDanceEffect[effect], isGeass = IsGeassEffect[effect];
                     if (isSong || isDance) PerformSong(unit, action, target, effect, value, isDance);
+                    else if (isGeass) PerformGeass(unit, action, target, effect, value);
                     else
                     {
                         var st = new Status(effect, value, action.Turns, unit, action.SourceName, kind, action.Atk != null ? action.Atk.Id : T.NONE) { IsInt = action.EffIsInt(i) };
@@ -2868,7 +2906,7 @@ namespace DtEngine
         {
             switch (effect)
             {
-                case 114: return PerfParts.Dance | PerfParts.Doll;
+                case 114: return PerfParts.Dance | PerfParts.Doll | PerfParts.Geass;
                 case 116: return PerfParts.All;
                 case 117: return PerfParts.Chant | PerfParts.Song;
                 case 118: return PerfParts.All;
@@ -2880,6 +2918,38 @@ namespace DtEngine
 
         public static bool PerformanceSlotsTwo(Unit unit, bool dance) => unit.Has(dance ? 284 : 287);
         public static int PerformanceSlots(Unit unit, bool dance) => unit.Has(dance ? 284 : 287) ? 2 : 1;
+
+        void PerformGeass(Unit caster, Action action, Unit target, int effect, double value)
+        {
+            // 0x43cb80..0x43ce30 (AddGeassCommand / DeleteGeassCommand): Geass effects 335..341 share a per-caster
+            // performance slot group (cap 1, or 2 with effect 284 at 0x43ccc8), evicting oldest Geass from all units.
+            int keep = caster.Has(284) ? 2 : 1;
+            var own = caster.Geass;
+            string name = action.Skill != null ? action.Skill.Name : action.Atk.Name;
+            if (!own.Contains(name))
+            {
+                own.Add(name);
+                while (own.Count > keep)
+                {
+                    string old = own[0];
+                    own.RemoveAt(0);
+                    foreach (var u in Units)
+                    {
+                        var effects = SnapshotStatuses(u, statusScratch, out int sc);
+                        for (int k = 0; k < sc; k++)
+                        {
+                            int e = effects[k];
+                            var s = u.St[e];
+                            if (s != null && s.Source == caster && s.Kind == Status.SongKind && s.Skill == old) u.PopStatus(e);
+                        }
+                    }
+                }
+            }
+            int atkId = action.Atk != null ? action.Atk.Id : T.NONE;
+            var st = new Status(effect, value, 0, caster, name, Status.SongKind, atkId);
+            if (effect == 339 && action.TryVal(296, out double cap)) st.WithData(cap);
+            target.SetStatus(st);
+        }
 
         void PerformSong(Unit singer, Action action, Unit target, int effect, double value, bool dance)
         {
@@ -2978,18 +3048,20 @@ namespace DtEngine
 
         void EndPerformances(Unit unit)
         {
-            EndParts(unit, PerfParts.Song | PerfParts.Dance | PerfParts.Doll);
+            EndParts(unit, PerfParts.Song | PerfParts.Dance | PerfParts.Doll | PerfParts.Geass);
         }
 
         void EndParts(Unit unit, PerfParts parts)
         {
             if (parts == PerfParts.None) return;
             if ((parts & PerfParts.Chant) != 0) unit.Chant = null;
-            for (int pass = 0; pass < 2; pass++)
+            for (int pass = 0; pass < 3; pass++)
             {
-                bool wanted = pass == 0 ? ((parts & PerfParts.Song) != 0 && unit.HasSongs) : ((parts & PerfParts.Dance) != 0 && unit.HasDances);
+                bool wanted = pass == 0 ? ((parts & PerfParts.Song) != 0 && unit.HasSongs)
+                            : pass == 1 ? ((parts & PerfParts.Dance) != 0 && unit.HasDances)
+                            : ((parts & PerfParts.Geass) != 0 && unit.HasGeass);
                 if (!wanted) continue;
-                var names = pass == 0 ? unit.Song : unit.Dance;
+                var names = pass == 0 ? unit.Song : pass == 1 ? unit.Dance : unit.Geass;
                 foreach (var other in Units)
                 {
                     var effects = SnapshotStatuses(other, statusScratch, out int sc);
@@ -3106,7 +3178,7 @@ namespace DtEngine
             }
             else if (effect == 132)
             {
-                Healed(unit, Restore(target, F.FractionRecovery(target.MaxHp, value, hasCap, cap)));
+                Healed(unit, Restore(target, F.FractionRecovery(target.MaxHp, value, hasCap, cap, unit.Passive(317, 0.0))));
             }
             else if (effect == 129)
             {
