@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace DtEngine
 {
@@ -22,23 +23,78 @@ namespace DtEngine
         // the effects at the level of the action: id, kind, value; the first of each id is what value() finds. The arrays are shared
         // between the actions that have the same effects (a skill at a level whose figures take nothing from the user, an enemy
         // attack, the plain attack of a unit): they are never changed once made.
-        int fxCount = -1;
-        int[] fxId, fxKind;
-        double[] fxVal;
-        bool[] fxInt;
+        FxSet fx;
 
-        /// <summary>The effects of a skill at a level, or of an attack, as arrays (built once).</summary>
+        /// <summary>The effects of a skill at a level, or of an attack, as arrays and a 512-bit presence mask (built once).</summary>
         public sealed class FxSet
         {
             public int Count;
             public int[] Id, Kind;
             public double[] Val;
             public bool[] IsInt;
+            public ulong M0, M1, M2, M3, M4, M5, M6, M7;
+            public bool IsPhysical, IsMagic, IsSpecial, HasRandomMove;
+            public int HitRoll;
+            public int MultiHitIndex = -1;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool HasBit(int effect)
+            {
+                if ((uint)effect >= 512u) return HasLinear(effect);
+                ulong bit = 1UL << (effect & 63);
+                switch (effect >> 6)
+                {
+                    case 0: return (M0 & bit) != 0;
+                    case 1: return (M1 & bit) != 0;
+                    case 2: return (M2 & bit) != 0;
+                    case 3: return (M3 & bit) != 0;
+                    case 4: return (M4 & bit) != 0;
+                    case 5: return (M5 & bit) != 0;
+                    case 6: return (M6 & bit) != 0;
+                    default: return (M7 & bit) != 0;
+                }
+            }
+
+            bool HasLinear(int effect)
+            {
+                for (int i = 0; i < Count; i++) if (Id[i] == effect) return true;
+                return false;
+            }
+
+            public void FinalizeMask()
+            {
+                ulong m0 = 0, m1 = 0, m2 = 0, m3 = 0, m4 = 0, m5 = 0, m6 = 0, m7 = 0;
+                for (int i = 0; i < Count; i++)
+                {
+                    int e = Id[i];
+                    if ((uint)e < 512u)
+                    {
+                        ulong bit = 1UL << (e & 63);
+                        switch (e >> 6)
+                        {
+                            case 0: m0 |= bit; break;
+                            case 1: m1 |= bit; break;
+                            case 2: m2 |= bit; break;
+                            case 3: m3 |= bit; break;
+                            case 4: m4 |= bit; break;
+                            case 5: m5 |= bit; break;
+                            case 6: m6 |= bit; break;
+                            case 7: m7 |= bit; break;
+                        }
+                    }
+                }
+                M0 = m0; M1 = m1; M2 = m2; M3 = m3; M4 = m4; M5 = m5; M6 = m6; M7 = m7;
+                IsPhysical = HasBit(PLAIN_HIT);
+                IsMagic = !IsPhysical && HasBit(MAGIC_POWER);
+                HitRoll = IsPhysical ? 1 : (HasBit(MAGIC_POWER) || HasBit(25)) ? 2 : 0;
+                IsSpecial = HasBit(8) || HasBit(12) || HasBit(138) || HasBit(140) || HasBit(141) || HasBit(142) || HasBit(434) || HasBit(435);
+                HasRandomMove = HasBit(152) || HasBit(153) || HasBit(154) || HasBit(155);
+                // Matches Battle.MULTI_HIT order: 89, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100
+                MultiHitIndex = HasBit(89) ? 0 : HasBit(90) ? 1 : HasBit(91) ? 2 : HasBit(92) ? 3
+                              : HasBit(94) ? 4 : HasBit(95) ? 5 : HasBit(96) ? 6 : HasBit(97) ? 7
+                              : HasBit(98) ? 8 : HasBit(99) ? 9 : HasBit(100) ? 10 : -1;
+            }
         }
-
-        // expected damage on each target, worked out once per action (a policy asks for it many times in one decision, and
-        // nothing changes between the questions)
-
 
         public Action(Unit actor, AKind kind, Skill skill = null, int level = 1, Unit target = null, int item = T.NONE, Unit[] fixedTargets = null)
         {
@@ -51,10 +107,11 @@ namespace DtEngine
         }
 
         /// <summary>Makes this object the action Action(actor, kind, skill, level) would be (to examine many options with one object).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset(Unit actor, AKind kind, Skill skill, int level)
         {
             Actor = actor; Kind = kind; Skill = skill; Atk = null; Level = level; Target = null; Item = T.NONE; FixedTargets = null;
-            Chanting = false; Furious = false; fxCount = -1;
+            Chanting = false; Furious = false; fx = null;
         }
 
         public bool HasSource => Skill != null || Atk != null;
@@ -109,6 +166,7 @@ namespace DtEngine
                 v = v + (bonus.Length == 0 ? 0.0 : sum.Result);
                 AddTo(set, e.Id, e.Kind, v, bonus.Length == 0 && e.IsInt[Math.Min(Level, e.Values.Length) - 1]);
             }
+            set.FinalizeMask();
             if (shareable && Level >= 1)
             {
                 lock (skill)
@@ -120,22 +178,32 @@ namespace DtEngine
             return set;
         }
 
-        void Refresh()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        FxSet GetFx()
+        {
+            var s = fx;
+            return s != null ? s : Refresh();
+        }
+
+        FxSet Refresh()
         {
             FxSet set;
             if (Skill != null) set = SkillEffects();
             else if (Atk != null) set = Atk.Fx ?? (Atk.Fx = MakeAttackSet(Atk));
             else if (Kind == AKind.Attack) set = Actor.PlainEffects ?? (Actor.PlainEffects = MakePlainSet(Actor));
             else set = Empty;
-            fxId = set.Id; fxKind = set.Kind; fxVal = set.Val; fxInt = set.IsInt; fxCount = set.Count;
+            fx = set;
+            return set;
         }
 
-        static readonly FxSet Empty = MakeSet(0);
+        static readonly FxSet Empty = MakeEmpty();
+        static FxSet MakeEmpty() { var s = MakeSet(0); s.FinalizeMask(); return s; }
 
         static FxSet MakeAttackSet(EnemyAttack atk)
         {
             var set = MakeSet(atk.EffId.Length);
             for (int i = 0; i < atk.EffId.Length; i++) AddTo(set, atk.EffId[i], atk.EffKind[i], atk.EffValue[i], atk.EffIsInt[i]);
+            set.FinalizeMask();
             return set;
         }
 
@@ -143,51 +211,59 @@ namespace DtEngine
         {
             var set = MakeSet(4);
             AddTo(set, PLAIN_HIT, 4, 1.0, false);
-            foreach (var (enchant, effect, value) in F.PLAIN_ATTACK_ENCHANTS)
+            if (actor.HasEnchants)
             {
-                if (actor.Pieces(enchant) != 0)
+                foreach (var (enchant, effect, value) in F.PLAIN_ATTACK_ENCHANTS)
                 {
-                    bool present = false;
-                    for (int i = 0; i < set.Count; i++) if (set.Id[i] == effect) { present = true; break; }
-                    if (!present) AddTo(set, effect, 4, value, false);
+                    if (actor.Pieces(enchant) != 0)
+                    {
+                        bool present = false;
+                        for (int i = 0; i < set.Count; i++) if (set.Id[i] == effect) { present = true; break; }
+                        if (!present) AddTo(set, effect, 4, value, false);
+                    }
                 }
             }
+            set.FinalizeMask();
             return set;
         }
 
-        public int Count { get { if (fxCount < 0) Refresh(); return fxCount; } }
-        public int EffId(int i) => fxId[i];
-        public bool EffIsInt(int i) => fxInt[i];
+        public int Count => GetFx().Count;
+        public int EffId(int i) => fx.Id[i];
+        public bool EffIsInt(int i) => fx.IsInt[i];
 
         /// <summary>Whether the first effect of that id carries a whole number written as an int.</summary>
         public bool ValIsInt(int effect)
         {
-            if (fxCount < 0) Refresh();
-            for (int i = 0; i < fxCount; i++) if (fxId[i] == effect) return fxInt[i];
+            var s = GetFx();
+            if (!s.HasBit(effect)) return false;
+            int n = s.Count; var ids = s.Id;
+            for (int i = 0; i < n; i++) if (ids[i] == effect) return s.IsInt[i];
             return false;
         }
-        public int EffKind(int i) => fxKind[i];
-        public double EffVal(int i) => fxVal[i];
+        public int EffKind(int i) => fx.Kind[i];
+        public double EffVal(int i) => fx.Val[i];
 
-        public bool Has(int effect)
-        {
-            if (fxCount < 0) Refresh();
-            for (int i = 0; i < fxCount; i++) if (fxId[i] == effect) return true;
-            return false;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Has(int effect) => GetFx().HasBit(effect);
 
         /// <summary>value(effect, default): the first effect of that id.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double Val(int effect, double dflt)
         {
-            if (fxCount < 0) Refresh();
-            for (int i = 0; i < fxCount; i++) if (fxId[i] == effect) return fxVal[i];
+            var s = GetFx();
+            if (!s.HasBit(effect)) return dflt;
+            int n = s.Count; var ids = s.Id;
+            for (int i = 0; i < n; i++) if (ids[i] == effect) return s.Val[i];
             return dflt;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryVal(int effect, out double value)
         {
-            if (fxCount < 0) Refresh();
-            for (int i = 0; i < fxCount; i++) if (fxId[i] == effect) { value = fxVal[i]; return true; }
+            var s = GetFx();
+            if (!s.HasBit(effect)) { value = 0; return false; }
+            int n = s.Count; var ids = s.Id;
+            for (int i = 0; i < n; i++) if (ids[i] == effect) { value = s.Val[i]; return true; }
             value = 0;
             return false;
         }
@@ -212,6 +288,7 @@ namespace DtEngine
             {
                 if (Skill == null && Atk == null)
                 {
+                    if (Actor.StCount == 0) return Actor.AttackAttr;
                     int count = 0, element = 0;
                     for (int e = 325; e <= 329; e++)
                         if (Actor.St[e] != null) { count++; element = WeaponElement(e); }
@@ -224,19 +301,14 @@ namespace DtEngine
             }
         }
 
-        public bool Physical => Has(PLAIN_HIT);
-        public bool Magic => !Has(PLAIN_HIT) && Has(MAGIC_POWER);
+        public bool Physical => GetFx().IsPhysical;
+        public bool Magic => GetFx().IsMagic;
+        public bool IsSpecial => GetFx().IsSpecial;
+        public bool HasRandomMove => GetFx().HasRandomMove;
+        public int MultiHitIndex => GetFx().MultiHitIndex;
 
         /// <summary>0 none, 1 physical, 2 magic</summary>
-        public int HitRoll
-        {
-            get
-            {
-                if (Has(PLAIN_HIT)) return 1;
-                if (Has(MAGIC_POWER) || Has(25)) return 2;
-                return 0;
-            }
-        }
+        public int HitRoll => GetFx().HitRoll;
 
         public bool Spell => (Skill != null && Skill.IsMagic) || (Atk != null && Atk.Spell);
 

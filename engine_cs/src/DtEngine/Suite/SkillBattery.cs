@@ -25,12 +25,86 @@ namespace DtEngine.Suite
             public int Book = T.NONE;            // sealbook-battery: the grand sealbook carried (its summon and its enchantments)
         }
 
+        readonly struct RunStats
+        {
+            public readonly bool Won;
+            public readonly double Time, HpLeft, TpLeft;
+            public readonly int Alive, Actions;
+
+            public RunStats(RunResult r)
+            {
+                Won = r.Won; Time = r.Time; HpLeft = r.HpLeft; TpLeft = r.TpLeft; Alive = r.Alive; Actions = r.Actions;
+            }
+        }
+
+        /// <summary>Deduplicates identical battery jobs and reuses run prefixes (e.g. 40 -> 400 -> 1600) across scan, confirm, settle,
+        /// and variant passes. Stores only the compact per-run metrics read by Judge so memory stays small.</summary>
+        sealed class BatteryCache
+        {
+            readonly Dictionary<string, RunStats[]> map = new Dictionary<string, RunStats[]>(StringComparer.Ordinal);
+            readonly Dictionary<string, HashSet<string>> rolePlans = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+
+            public bool TryGet(string key, out RunStats[] stats) => map.TryGetValue(key, out stats);
+            public void Set(string key, RunStats[] stats) => map[key] = stats;
+
+            bool RoleMentionsSkill(Setup setup, string roleName, string skillName)
+            {
+                if (!rolePlans.TryGetValue(roleName, out var set))
+                {
+                    set = new HashSet<string>(StringComparer.Ordinal);
+                    var role = setup.Roles[roleName];
+                    string plan = role.Truthy("Skill plan") ? role.Str("Skill plan") : null;
+                    if (plan != null)
+                    {
+                        foreach (var raw in plan.Split(';'))
+                        {
+                            string entry = raw.Trim();
+                            int p = entry.IndexOf(':');
+                            string n = (p >= 0 ? entry.Substring(0, p) : entry).Trim();
+                            if (n.Length > 0) set.Add(n);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var raw in role.Str("Skill priority").Split(';'))
+                        {
+                            string n = raw.Trim();
+                            if (n.Length > 0) set.Add(n);
+                        }
+                    }
+                    rolePlans[roleName] = set;
+                }
+                return set.Contains(skillName);
+            }
+
+            public string CanonicalKey(Ctx c, string side, Cell cell, bool use)
+            {
+                var e = cell.Entry;
+                if (e.Book != T.NONE)
+                    return "B|" + side + "|" + (use ? e.Book : T.NONE) + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                if (e.Guest != null)
+                    return "G|" + side + "|" + (use ? e.Guest : Scenario.NO_GUEST) + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                if (e.Girl != null)
+                    return "U|" + side + "|" + e.Girl + "|" + e.Role + "|" + (use ? 1 : 0) + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                if (!use)
+                {
+                    // Setting extra_skills = { id: 0 } is a no-op when the role's allocation plan never allocates that skill,
+                    // so all such unallocated skills on the same (role, weapon, cid, party, context, chain) share one baseline.
+                    if (!RoleMentionsSkill(c.Setup, e.Role, e.Skill.Name))
+                        return "S0|" + side + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                    return "S0|" + side + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + e.Skill.Id + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                }
+                int levels = e.Skill.Levels != 0 ? e.Skill.Levels : 1;
+                string setupName = e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
+                return "S1|" + side + "|" + e.Skill.Id + "|" + levels + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + (setupName ?? "") + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+            }
+        }
+
         sealed class Cell
         {
             public Entry Entry;
             public string Cid, Party, Context;
             public int Chain;
-            public JobResult Without, With;
             public double Wins, Length, Hp, Tp, Alive;      // with - without: share of wins, share by which the won fights are shorter, HP left, TP left, members alive
             public bool Same, Serves, Hurts;
             public bool Unclear;                            // neither shown to serve nor shown below every threshold: more runs can settle it
@@ -45,12 +119,29 @@ namespace DtEngine.Suite
                     Py.Sum(r.Runs.Select(x => x.HpLeft)) / n, Py.Sum(r.Runs.Select(x => x.TpLeft)) / n, (double)r.Runs.Sum(x => x.Alive) / n);
         }
 
-        static bool SameRuns(JobResult a, JobResult b)
+        static (double wins, double? time, double hp, double tp, double alive) Figures(RunStats[] runs, int n)
         {
-            if (a.Runs.Length != b.Runs.Length) return false;
-            for (int k = 0; k < a.Runs.Length; k++)
+            int wonCount = 0;
+            var wonTime = new PySum();
+            var hpSum = new PySum();
+            var tpSum = new PySum();
+            long aliveSum = 0;
+            for (int k = 0; k < n; k++)
             {
-                var x = a.Runs[k]; var y = b.Runs[k];
+                ref readonly var x = ref runs[k];
+                if (x.Won) { wonCount++; wonTime.AddFloat(x.Time); }
+                hpSum.AddFloat(x.HpLeft);
+                tpSum.AddFloat(x.TpLeft);
+                aliveSum += x.Alive;
+            }
+            return ((double)wonCount / n, wonCount > 0 ? wonTime.Result / wonCount : (double?)null, hpSum.Result / n, tpSum.Result / n, (double)aliveSum / n);
+        }
+
+        static bool SameRuns(RunStats[] a, RunStats[] b, int n)
+        {
+            for (int k = 0; k < n; k++)
+            {
+                ref readonly var x = ref a[k]; ref readonly var y = ref b[k];
                 if (x.Won != y.Won || x.Time != y.Time || x.HpLeft != y.HpLeft || x.TpLeft != y.TpLeft || x.Actions != y.Actions) return false;
             }
             return true;
@@ -79,34 +170,48 @@ namespace DtEngine.Suite
 
         /// <summary>The verdict of a cell. Every difference counts only above max(threshold of the configuration, z paired standard errors)
         /// (configuration "statistics"); the length is compared on the runs both sides won, and only when there are at least min_wins of them.</summary>
-        static void Judge(Cell cell, Obj cfg, double z, int minWins)
+        static void Judge(Cell cell, RunStats[] A, RunStats[] B, int n, Obj cfg, double z, int minWins)
         {
             double w = cfg.D("wins"), l = cfg.D("length"), h = cfg.D("hp"), tpGain = cfg.D("tp"), aliveGain = cfg.D("alive");
-            var A = cell.Without.Runs; var B = cell.With.Runs;
-            var a = Figures(cell.Without); var b = Figures(cell.With);
-            int n = Math.Min(A.Length, B.Length);
-            List<double> Of(RunResult[] runs, Func<RunResult, double> f) => runs.Take(n).Select(f).ToList();
+            var a = Figures(A, n); var b = Figures(B, n);
+            var aW = new List<double>(n); var bW = new List<double>(n);
+            var aH = new List<double>(n); var bH = new List<double>(n);
+            var aT = new List<double>(n); var bT = new List<double>(n);
+            var aA = new List<double>(n); var bA = new List<double>(n);
+            var both = new List<int>(n);
+            for (int k = 0; k < n; k++)
+            {
+                aW.Add(A[k].Won ? 1 : 0); bW.Add(B[k].Won ? 1 : 0);
+                aH.Add(A[k].HpLeft); bH.Add(B[k].HpLeft);
+                aT.Add(A[k].TpLeft); bT.Add(B[k].TpLeft);
+                aA.Add(A[k].Alive); bA.Add(B[k].Alive);
+                if (A[k].Won && B[k].Won) both.Add(k);
+            }
             cell.Wins = b.wins - a.wins;
             cell.Hp = b.hp - a.hp;
             cell.Tp = b.tp - a.tp;
             cell.Alive = b.alive - a.alive;
-            double seW = Noise.Paired(Of(A, x => x.Won ? 1 : 0), Of(B, x => x.Won ? 1 : 0)), seH = Noise.Paired(Of(A, x => x.HpLeft), Of(B, x => x.HpLeft));
-            double seT = Noise.Paired(Of(A, x => x.TpLeft), Of(B, x => x.TpLeft)), seA = Noise.Paired(Of(A, x => x.Alive), Of(B, x => x.Alive));
+            double seW = Noise.Paired(aW, bW), seH = Noise.Paired(aH, bH);
+            double seT = Noise.Paired(aT, bT), seA = Noise.Paired(aA, bA);
             double winsT = Math.Max(w, z * seW), hpT = Math.Max(h, z * seH), tpT = Math.Max(tpGain, z * seT), aliveT = Math.Max(aliveGain, z * seA);
-            var both = Enumerable.Range(0, n).Where(k => A[k].Won && B[k].Won).ToList();
             double lengthT = double.PositiveInfinity, seL = double.NaN;
             cell.Length = 0.0;
             if (both.Count >= minWins)
             {
-                double ta = both.Average(k => A[k].Time);
+                double sumA = 0, sumB = 0;
+                for (int i = 0; i < both.Count; i++) { int k = both[i]; sumA += A[k].Time; sumB += B[k].Time; }
+                double ta = sumA / both.Count;
                 if (ta > 0)
                 {
-                    cell.Length = 1 - both.Average(k => B[k].Time) / ta;
-                    seL = Noise.Paired(both.Select(k => B[k].Time / ta).ToList(), both.Select(k => A[k].Time / ta).ToList());
+                    cell.Length = 1 - (sumB / both.Count) / ta;
+                    var bScaled = new List<double>(both.Count);
+                    var aScaled = new List<double>(both.Count);
+                    for (int i = 0; i < both.Count; i++) { int k = both[i]; bScaled.Add(B[k].Time / ta); aScaled.Add(A[k].Time / ta); }
+                    seL = Noise.Paired(bScaled, aScaled);
                     lengthT = Math.Max(l, z * seL);
                 }
             }
-            cell.Same = SameRuns(cell.Without, cell.With);
+            cell.Same = SameRuns(A, B, n);
             EvaluateVerdict(cell.Same, cell.Wins, cell.Length, cell.Hp, cell.Tp, cell.Alive,
                             winsT, lengthT, hpT, tpT, aliveT, seW, seL, seH, seT, seA,
                             w, l, h, tpGain, aliveGain, z,
@@ -328,10 +433,14 @@ namespace DtEngine.Suite
                 if (cache.Map.TryGetValue(key, out name)) return name;
                 // a role whose own rows already use the action keeps them (an added row before her statuses would undo her order)
                 if (c.Setup.Policies.Any(r => r.Str("Role") == role && r.Str("Action") == act)) { cache.Map[key] = null; return null; }
-                var rows = SkillValue.RowsWithRule(c, role, cond, act, chain, true).Select(o =>
+                var rawRows = SkillValue.RowsWithRule(c, role, cond, act, chain, true);
+                var rows = new List<Row>(rawRows.Count);
+                for (int i = 0; i < rawRows.Count; i++)
                 {
-                    using (var doc = System.Text.Json.JsonDocument.Parse(PyJson.Dump(o))) return Snapshot.ToRow(doc.RootElement.Clone());
-                }).ToList();
+                    var r = new Row();
+                    foreach (var kv in (Obj)rawRows[i]) r.Cells[kv.Key] = kv.Value;
+                    rows.Add(r);
+                }
                 name = c.AddSetup(c.Setup.WithPolicies(rows));
                 cache.Map[key] = name;
                 return name;
@@ -340,7 +449,7 @@ namespace DtEngine.Suite
 
         /// <summary>The confirmed cells of an entry none of which serves while some is not settled (Cell.Unclear), played again at the
         /// runs of settle_runs: a small effect is then shown, or shown under every threshold, instead of being called dead on noise.</summary>
-        static void Settle<K>(Ctx c, string side, Dictionary<K, List<Cell>> again, int batch, Obj cfg)
+        static void Settle<K>(Ctx c, string side, Dictionary<K, List<Cell>> again, int batch, Obj cfg, BatteryCache cache)
         {
             int runs = (int)Py.Num(cfg.Get("settle_runs"));
             var redo = new List<Cell>();
@@ -357,30 +466,80 @@ namespace DtEngine.Suite
                     }
             }
             if (redo.Count == 0) return;
-            Play(c, side, redo, runs, batch, cfg);
+            Play(c, side, redo, runs, batch, cfg, cache);
             for (int k = 0; k < redo.Count; k++) again[at[k].key][at[k].i] = redo[k];
         }
 
-        static void Play(Ctx c, string side, List<Cell> cells, int runs, int batch, Obj cfg)
+        static void Play(Ctx c, string side, List<Cell> cells, int runs, int batch, Obj cfg, BatteryCache cache)
         {
+            double z = Noise.Z(c);
+            int minWins = Noise.MinWins(c);
             for (int start = 0; start < cells.Count; start += batch)
             {
-                var part = cells.Skip(start).Take(batch).ToList();
+                int count = Math.Min(batch, cells.Count - start);
+                var wKeys = new string[count];
+                var uKeys = new string[count];
+                var pending = new List<(string key, int existingLen)>();
                 var jobs = new List<JobSpec>();
-                foreach (var cell in part) { jobs.Add(Job(c, side, cell, false, runs)); jobs.Add(Job(c, side, cell, true, runs)); }
-                var done = c.Run(jobs);
-                for (int k = 0; k < part.Count; k++)
+                var scheduled = new HashSet<string>(StringComparer.Ordinal);
+                for (int k = 0; k < count; k++)
                 {
-                    part[k].Without = done[2 * k]; part[k].With = done[2 * k + 1];
-                    Judge(part[k], cfg, Noise.Z(c), Noise.MinWins(c));
-                    part[k].Without = null; part[k].With = null;
+                    var cell = cells[start + k];
+                    string wk = cache.CanonicalKey(c, side, cell, false);
+                    string uk = cache.CanonicalKey(c, side, cell, true);
+                    wKeys[k] = wk;
+                    uKeys[k] = uk;
+                    if (scheduled.Add(wk))
+                    {
+                        int have = cache.TryGet(wk, out var existing) ? existing.Length : 0;
+                        if (have < runs)
+                        {
+                            var job = Job(c, side, cell, false, runs);
+                            job.StartRun = have;
+                            pending.Add((wk, have));
+                            jobs.Add(job);
+                        }
+                    }
+                    if (scheduled.Add(uk))
+                    {
+                        int have = cache.TryGet(uk, out var existing) ? existing.Length : 0;
+                        if (have < runs)
+                        {
+                            var job = Job(c, side, cell, true, runs);
+                            job.StartRun = have;
+                            pending.Add((uk, have));
+                            jobs.Add(job);
+                        }
+                    }
                 }
-                done.Clear(); jobs.Clear();
+                if (jobs.Count > 0)
+                {
+                    var done = c.Run(jobs);
+                    for (int i = 0; i < pending.Count; i++)
+                    {
+                        var (key, existingLen) = pending[i];
+                        var merged = new RunStats[runs];
+                        if (existingLen > 0 && cache.TryGet(key, out var prev))
+                            Array.Copy(prev, merged, existingLen);
+                        var resRuns = done[i].Runs;
+                        for (int r = existingLen; r < runs; r++) merged[r] = new RunStats(resRuns[r]);
+                        cache.Set(key, merged);
+                    }
+                    done.Clear(); jobs.Clear();
+                }
+                for (int k = 0; k < count; k++)
+                {
+                    cache.TryGet(wKeys[k], out var a);
+                    cache.TryGet(uKeys[k], out var b);
+                    Judge(cells[start + k], a, b, runs, cfg, z, minWins);
+                }
                 c.Say("skill-battery: " + Math.Min(start + batch, cells.Count) + " of " + cells.Count + " cells at " + runs + " runs");
             }
         }
 
-        public static void Run(Ctx c, string[] args)
+        public static void Run(Ctx c, string[] args) => Run(c, args, new BatteryCache());
+
+        static void Run(Ctx c, string[] args, BatteryCache cache)
         {
             var cfg = c.In("skill_battery");
             var data = c.Data("variant");
@@ -477,7 +636,7 @@ namespace DtEngine.Suite
                             cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "walk_boss", Chain = (int)Py.Num(cfg.Get("walk")) });
                     }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, side, cells, scanRuns, batch, cfg);
+            Play(c, side, cells, scanRuns, batch, cfg, cache);
 
             // the best cells of each skill, played again at more runs; the best of them is the one the verdict reads
             var bySkill = cells.GroupBy(x => x.Entry.Skill.Id).ToDictionary(g => g.Key, g => g.ToList());
@@ -491,8 +650,8 @@ namespace DtEngine.Suite
                 again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
                 confirm.AddRange(again[kv.Key]);
             }
-            Play(c, side, confirm, confirmRuns, batch, cfg);
-            Settle(c, side, again, batch, cfg);
+            Play(c, side, confirm, confirmRuns, batch, cfg, cache);
+            Settle(c, side, again, batch, cfg, cache);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             double good = cfg.D("good_share");
@@ -581,13 +740,14 @@ namespace DtEngine.Suite
         /// a skill of situational use is read by its best rule.</summary>
         public static void RunWithVariants(Ctx c)
         {
-            Run(c, new[] { "*" });
+            var cache = new BatteryCache();
+            Run(c, new[] { "*" }, cache);
             var rows = (List<object>)c.ReadJson(c.Path("docs", "generated", "skill_battery", "part_1.json"));
             var rest = rows.Cast<Obj>().Where(r => r.S("verdict") == "dead" || r.S("verdict") == "unclear" || r.S("verdict") == "hurts" || r.S("verdict") == "no effect")
                            .Select(r => r.S("skill")).ToList();
             var cfg = c.In("skill_battery");
             if (rest.Count > 0)
-                Run(c, new[] { string.Join(",", rest), Py.Str(cfg.Get("scan_runs")), Py.Str(cfg.Get("confirm_runs")), "variants" });
+                Run(c, new[] { string.Join(",", rest), Py.Str(cfg.Get("scan_runs")), Py.Str(cfg.Get("confirm_runs")), "variants" }, cache);
         }
 
         /// <summary>How a mercenary plays in one cell, read from the recorder of the runs with her and without her: her actions per battle
@@ -601,68 +761,94 @@ namespace DtEngine.Suite
             public List<(string name, double share)> Uses = new List<(string, double)>();
         }
 
-        static Profile ProfileOf(JobResult without, JobResult with, string guest, int minWins)
+        readonly struct BaselineProfile
+        {
+            public readonly double Members, Summon, Time, Wins;
+            public readonly double? WonTime;
+            public readonly int WonCount;
+
+            public BaselineProfile(double members, double summon, double time, double wins, double? wonTime, int wonCount)
+            {
+                Members = members; Summon = summon; Time = time; Wins = wins; WonTime = wonTime; WonCount = wonCount;
+            }
+        }
+
+        static BaselineProfile SummarizeBaseline(JobResult without)
+        {
+            double m = 0, s = 0, t = 0;
+            foreach (var run in without.Runs)
+                foreach (var part in run.Parts)
+                {
+                    if (part.Record == null) continue;
+                    var rec = part.Record;
+                    t += part.Time;
+                    for (int i = 0; i < rec.Damage.Count; i++)
+                    {
+                        var u = rec.Damage.Keys[i].Unit; double v = rec.Damage.Values[i];
+                        if (u.Side != Unit.PARTY) continue;
+                        if (u.Kind == Kind.Summon) s += v; else if (u.Kind == Kind.Member || u.Kind == Kind.Doll) m += v;
+                    }
+                }
+            var fa = Figures(without);
+            int wonCount = 0;
+            foreach (var r in without.Runs) if (r.Won) wonCount++;
+            return new BaselineProfile(m, s, t, fa.wins, fa.time, wonCount);
+        }
+
+        static Profile ProfileOf(in BaselineProfile a, JobResult with, string guest, int minWins)
         {
             bool IsGuest(Unit u) => u.Kind == Kind.Summon && u.Name == guest;
             bool IsSummon(Unit u) => u.Kind == Kind.Summon && u.Name != guest;
             bool IsMember(Unit u) => u.Side == Unit.PARTY && (u.Kind == Kind.Member || u.Kind == Kind.Doll);
-            // per side of the cell: damage per time of the members and of the summon; with her, also her figures
-            (double members, double summon, double time, double battles, double guestActs, double summonActs, double guestDmg, double partyDmg,
-             double guestHeal, double partyMaxHp, Dictionary<string, double> uses) Sum(JobResult r)
-            {
-                double m = 0, s = 0, t = 0, b = 0, ga = 0, sa = 0, gd = 0, pd = 0, gh = 0, ph = 0;
-                var uses = new Dictionary<string, double>();
-                foreach (var run in r.Runs)
-                    foreach (var part in run.Parts)
+            double wm = 0, ws = 0, wt = 0, wb = 0, ga = 0, sa = 0, gd = 0, pd = 0, gh = 0, ph = 0;
+            var uses = new Dictionary<string, double>();
+            foreach (var run in with.Runs)
+                foreach (var part in run.Parts)
+                {
+                    if (part.Record == null) continue;
+                    var rec = part.Record;
+                    wt += part.Time; wb += 1; ph += part.PartyMaxHp;
+                    for (int i = 0; i < rec.Damage.Count; i++)
                     {
-                        if (part.Record == null) continue;
-                        var rec = part.Record;
-                        t += part.Time; b += 1; ph += part.PartyMaxHp;
-                        for (int i = 0; i < rec.Damage.Count; i++)
-                        {
-                            var u = rec.Damage.Keys[i].Unit; double v = rec.Damage.Values[i];
-                            if (u.Side != Unit.PARTY) continue;
-                            pd += v;
-                            if (IsGuest(u)) gd += v; else if (IsSummon(u)) s += v; else if (IsMember(u)) m += v;
-                        }
-                        for (int i = 0; i < rec.Healing.Count; i++)
-                        {
-                            var u = rec.Healing.Keys[i].Unit; double v = rec.Healing.Values[i];
-                            if (u.Side != Unit.PARTY) continue;
-                            if (IsGuest(u)) gh += v;
-                        }
-                        for (int i = 0; i < rec.Actions.Count; i++)
-                        {
-                            var u = rec.Actions.Keys[i].Unit;
-                            if (IsGuest(u)) ga += rec.Actions.Values[i]; else if (IsSummon(u)) sa += rec.Actions.Values[i];
-                        }
-                        for (int i = 0; i < rec.SkillUses.Count; i++)
-                        {
-                            var k = rec.SkillUses.Keys[i];
-                            if (IsGuest(k.Unit)) uses[k.Name ?? "?"] = uses.GetValueOrDefault(k.Name ?? "?") + rec.SkillUses.Values[i];
-                        }
+                        var u = rec.Damage.Keys[i].Unit; double v = rec.Damage.Values[i];
+                        if (u.Side != Unit.PARTY) continue;
+                        pd += v;
+                        if (IsGuest(u)) gd += v; else if (IsSummon(u)) ws += v; else if (IsMember(u)) wm += v;
                     }
-                return (m, s, t, b, ga, sa, gd, pd, gh, ph, uses);
-            }
-            var a = Sum(without); var w = Sum(with);
-            // wins and the length of the won fights as the scan reads them: a lost fight that lasts longer with her is not a slower win
-            var fa = Figures(without); var fw = Figures(with);
+                    for (int i = 0; i < rec.Healing.Count; i++)
+                    {
+                        var u = rec.Healing.Keys[i].Unit; double v = rec.Healing.Values[i];
+                        if (u.Side != Unit.PARTY) continue;
+                        if (IsGuest(u)) gh += v;
+                    }
+                    for (int i = 0; i < rec.Actions.Count; i++)
+                    {
+                        var u = rec.Actions.Keys[i].Unit;
+                        if (IsGuest(u)) ga += rec.Actions.Values[i]; else if (IsSummon(u)) sa += rec.Actions.Values[i];
+                    }
+                    for (int i = 0; i < rec.SkillUses.Count; i++)
+                    {
+                        var k = rec.SkillUses.Keys[i];
+                        if (IsGuest(k.Unit)) uses[k.Name ?? "?"] = uses.GetValueOrDefault(k.Name ?? "?") + rec.SkillUses.Values[i];
+                    }
+                }
+            var fw = Figures(with);
             double Rate(double x, double t) => t > 0 ? x / t : 0;
             double Change(double x, double y) => x > 0 ? y / x - 1 : 0;
             var p = new Profile
             {
-                Actions = w.battles > 0 ? w.guestActs / w.battles : 0,
-                SummonActions = w.battles > 0 ? w.summonActs / w.battles : 0,
-                DamageShare = w.partyDmg > 0 ? w.guestDmg / w.partyDmg : 0,
-                HealShare = w.partyMaxHp > 0 ? w.guestHeal / w.partyMaxHp : 0,
-                Members = Change(Rate(a.members, a.time), Rate(w.members, w.time)),
-                Summon = Change(Rate(a.summon, a.time), Rate(w.summon, w.time)),
-                LengthRead = without.Runs.Count(x => x.Won) >= minWins && with.Runs.Count(x => x.Won) >= minWins,
-                Length = fa.time.HasValue && fw.time.HasValue && fa.time.Value > 0 ? 1 - fw.time.Value / fa.time.Value : 0,
-                Wins = fw.wins - fa.wins,
+                Actions = wb > 0 ? ga / wb : 0,
+                SummonActions = wb > 0 ? sa / wb : 0,
+                DamageShare = pd > 0 ? gd / pd : 0,
+                HealShare = ph > 0 ? gh / ph : 0,
+                Members = Change(Rate(a.Members, a.Time), Rate(wm, wt)),
+                Summon = Change(Rate(a.Summon, a.Time), Rate(ws, wt)),
+                LengthRead = a.WonCount >= minWins && with.Runs.Count(x => x.Won) >= minWins,
+                Length = a.WonTime.HasValue && fw.time.HasValue && a.WonTime.Value > 0 ? 1 - fw.time.Value / a.WonTime.Value : 0,
+                Wins = fw.wins - a.Wins,
             };
-            double total = w.uses.Values.Sum();
-            if (total > 0) p.Uses = w.uses.OrderByDescending(kv => kv.Value).Select(kv => (kv.Key, kv.Value / total)).ToList();
+            double total = uses.Values.Sum();
+            if (total > 0) p.Uses = uses.OrderByDescending(kv => kv.Value).Select(kv => (kv.Key, kv.Value / total)).ToList();
             return p;
         }
 
@@ -703,7 +889,8 @@ namespace DtEngine.Suite
                     }
             }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, side, cells, scanRuns, batch, cfg);
+            var cache = new BatteryCache();
+            Play(c, side, cells, scanRuns, batch, cfg, cache);
             var byGuest = cells.GroupBy(x => x.Entry.Guest).ToDictionary(g => g.Key, g => g.ToList());
             int keep = (int)Py.Num(cfg.Get("confirm_cells"));
             var again = new Dictionary<string, List<Cell>>();
@@ -712,8 +899,8 @@ namespace DtEngine.Suite
                 var tops = kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).Take(keep).ToList();
                 if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
             }
-            Play(c, side, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
-            Settle(c, side, again, batch, cfg);
+            Play(c, side, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg, cache);
+            Settle(c, side, again, batch, cfg, cache);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             // how each one plays: the reference party at every boss of the story and the postgame where the bar offers her (not only the
@@ -734,17 +921,29 @@ namespace DtEngine.Suite
             int profileBatch = (int)Py.Num(cfg.Get("mercenary_profile_batch"));
             // a boss the party almost never wins gives the length of a handful of won fights: noise, so it is not read below this
             int minWins = (int)Py.Num(cfg.Get("mercenary_profile_min_wins"));
+            // Compute the NO_GUEST baseline once per distinct checkpoint (all mercenaries share the same reference baseline at a cid).
+            var baselines = new Dictionary<string, BaselineProfile>(StringComparer.Ordinal);
+            var distinctProfileCells = toProfile.GroupBy(x => x.Cid).Select(g => g.First()).ToList();
+            for (int start = 0; start < distinctProfileCells.Count; start += profileBatch)
+            {
+                var part = distinctProfileCells.Skip(start).Take(profileBatch).ToList();
+                var jobs = new List<JobSpec>(part.Count);
+                foreach (var cell in part) jobs.Add(Job(c, side, cell, false, profileRuns, true));
+                var done = c.Run(jobs);
+                for (int k = 0; k < part.Count; k++) baselines[part[k].Cid] = SummarizeBaseline(done[k]);
+                done.Clear(); jobs.Clear();
+            }
             for (int start = 0; start < toProfile.Count; start += profileBatch)
             {
                 var part = toProfile.Skip(start).Take(profileBatch).ToList();
-                var jobs = new List<JobSpec>();
-                foreach (var cell in part) { jobs.Add(Job(c, side, cell, false, profileRuns, true)); jobs.Add(Job(c, side, cell, true, profileRuns, true)); }
+                var jobs = new List<JobSpec>(part.Count);
+                foreach (var cell in part) jobs.Add(Job(c, side, cell, true, profileRuns, true));
                 var done = c.Run(jobs);
                 for (int k = 0; k < part.Count; k++)
                 {
                     string g = part[k].Entry.Guest;
                     if (!profiled.ContainsKey(g)) profiled[g] = new List<(string, Profile)>();
-                    profiled[g].Add((part[k].Cid, ProfileOf(done[2 * k], done[2 * k + 1], g, minWins)));
+                    profiled[g].Add((part[k].Cid, ProfileOf(baselines[part[k].Cid], done[k], g, minWins)));
                 }
                 done.Clear(); jobs.Clear();
                 c.Say("mercenary-battery: profile, " + Math.Min(start + profileBatch, toProfile.Count) + " of " + toProfile.Count + " cells at " + profileRuns + " runs");
@@ -891,7 +1090,7 @@ namespace DtEngine.Suite
                         cells.Add(new Cell { Entry = e, Cid = cid, Party = party, Context = "boss", Chain = 0 });
             }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, side, cells, runs, batch, cfg);
+            Play(c, side, cells, runs, batch, cfg, new BatteryCache());
             var rows = new List<object>();
             var lines = new List<string>();
             foreach (var (book, name, first) in books)
@@ -985,7 +1184,8 @@ namespace DtEngine.Suite
                             cells.Add(new Cell { Entry = e, Cid = cid, Party = b.name, Context = "random", Chain = chain });
                     }
             int batch = (int)Py.Num(cfg.Get("batch"));
-            Play(c, side, cells, scanRuns, batch, cfg);
+            var cache = new BatteryCache();
+            Play(c, side, cells, scanRuns, batch, cfg, cache);
             var byGirl = cells.GroupBy(x => x.Entry.Girl).ToDictionary(g => g.Key, g => g.ToList());
             int keep = (int)Py.Num(cfg.Get("confirm_cells"));
             var again = new Dictionary<string, List<Cell>>();
@@ -994,8 +1194,8 @@ namespace DtEngine.Suite
                 var tops = kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).Take(keep).ToList();
                 if (tops.Count > 0) again[kv.Key] = tops.Select(t => new Cell { Entry = t.Entry, Cid = t.Cid, Party = t.Party, Context = t.Context, Chain = t.Chain }).ToList();
             }
-            Play(c, side, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg);
-            Settle(c, side, again, batch, cfg);
+            Play(c, side, again.Values.SelectMany(x => x).ToList(), confirmRuns, batch, cfg, cache);
+            Settle(c, side, again, batch, cfg, cache);
             var best = again.ToDictionary(kv => kv.Key, kv => kv.Value.Where(x => !x.Same).OrderByDescending(x => x.Score).FirstOrDefault() ?? kv.Value[0]);
 
             double good = cfg.D("good_share");

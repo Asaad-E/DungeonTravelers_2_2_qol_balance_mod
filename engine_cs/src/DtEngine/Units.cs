@@ -60,17 +60,26 @@ namespace DtEngine
         static readonly Status[] NoStatuses = new Status[GameData.MaxEffect];
         static readonly double[] NoPassives = NewPassives();
         static readonly int[] NoEnchants = new int[GameData.MaxEnchant];
+        [ThreadStatic] static Stack<Status[]> statusPool;
         public Status[] St = NoStatuses;
         int[] stOrder = Array.Empty<int>();
         public int StCount;
+        int statModCount;               // count of active statuses affecting Stat(name)
+        bool hasElemResistPassive;      // true if any ElementResistBuffs passive is set
         // passives: NaN when the effect is not among them
         public double[] Pv = NoPassives;
         public Action.FxSet PlainEffects;     // the effects of the plain attack of this unit (made when first asked)
         public bool[] PvInt;          // null: no passive is a whole number written as an int
         public int[] Enchants = NoEnchants;
+        public bool HasEnchants;
+        public bool HasNullifyEnchant;
+        public bool HasRaceAttackEnchant;
+        public bool HasRaceGuardEnchant;
 
         public long ImmuneMask;
         public List<(int id, int level)> Skills = new List<(int, int)>();
+        internal (Skill skill, int level)[] UsableSkills;     // filtered battle-usable skills matching weapon, built lazily and shared by clones
+        public bool HasPassives => Pv != NoPassives;
         public int[] Attacks = Array.Empty<int>();
         public Script Script;
         public Piece Weapon;
@@ -84,19 +93,32 @@ namespace DtEngine
         }
         public double NextTime;
         public Action Chant;
-        public List<string> Song = new List<string>(), Dance = new List<string>();
+        List<string> song, dance;
+        public List<string> Song => song ?? (song = new List<string>());
+        public List<string> Dance => dance ?? (dance = new List<string>());
+        public bool HasSongs => song != null && song.Count > 0;
+        public bool HasDances => dance != null && dance.Count > 0;
+        public void ClearSongsAndDances() { song?.Clear(); dance?.Clear(); }
         public Unit Owner;
         public int TurnsTaken;
         public int LastSkillId = T.NONE;
-        public Dictionary<string, int> Uses = new Dictionary<string, int>();
-        public Dictionary<int, int> UsesById = new Dictionary<int, int>();
-        public HashSet<long> OnceDone = new HashSet<long>();
+        Dictionary<string, int> uses;
+        public Dictionary<string, int> Uses => uses ?? (uses = new Dictionary<string, int>());
+        Dictionary<int, int> usesById;
+        public Dictionary<int, int> UsesById => usesById ?? (usesById = new Dictionary<int, int>());
+        public int UsesOf(int id) => usesById != null && usesById.TryGetValue(id, out int n) ? n : 0;
+        public void RecordUseById(int id) { var d = UsesById; d.TryGetValue(id, out int n); d[id] = n + 1; }
+        HashSet<long> onceDone;
+        public HashSet<long> OnceDone => onceDone ?? (onceDone = new HashSet<long>());
+        public bool HasOnceDone(long key) => onceDone != null && onceDone.Contains(key);
         public bool EcstasyDone;
         public int SamsaraState;               // 0 None, 1 False, 2 a list
         public int[] Samsara;
         public int AiSet;
         public int Life;
-        public List<(Unit unit, double value)> ProvokedBy = new List<(Unit, double)>();
+        List<(Unit unit, double value)> provokedBy;
+        public List<(Unit unit, double value)> ProvokedBy => provokedBy ?? (provokedBy = new List<(Unit, double)>());
+        public bool HasProvokedBy => provokedBy != null && provokedBy.Count > 0;
         public double Pep = 100.0;
         public bool HasUnique;
         public int UniqueEffect;
@@ -146,32 +168,43 @@ namespace DtEngine
         }
 
         /// <summary>A unit as it was when it was built, made from a unit that has not been in a battle: what is only read (passives,
-        /// enchantments, skills, attacks, script) is shared, what a battle changes is made new. The bag of items is left to the caller.</summary>
-        public Unit CloneFresh()
+        /// enchantments, skills, attacks, script) is shared, what a battle changes is made new. The bag of items is copied unless copyItems is false.</summary>
+        public Unit CloneFresh(bool copyItems = true)
         {
             var c = (Unit)MemberwiseClone();
             c.Base = (int[])Base.Clone();
             c.ResistBase = (int[])ResistBase.Clone();
-            c.St = NoStatuses; c.stOrder = Array.Empty<int>(); c.StCount = 0;
+            c.St = NoStatuses; c.stOrder = Array.Empty<int>(); c.StCount = 0; c.statModCount = 0;
             pvShared = true; c.pvShared = true;
-            c.Song = new List<string>(); c.Dance = new List<string>();
-            c.Uses = new Dictionary<string, int>(); c.UsesById = new Dictionary<int, int>(); c.OnceDone = new HashSet<long>();
-            c.ProvokedBy = new List<(Unit, double)>();
-            c.Items = new Dictionary<int, int>(Items);
+            c.song = null; c.dance = null;
+            c.uses = null; c.usesById = null; c.onceDone = null;
+            c.provokedBy = null;
+            c.Items = copyItems ? new Dictionary<int, int>(Items) : Items;
             c.Chant = null; c.Owner = null; c.ShadowOf = null; c.AiTargets = null; c.Samsara = null; c.Roster = null;
             return c;
         }
 
         // --- statuses --------------------------------------------------------------------------------------
+        static bool IsStatModEffect(int e) => (e >= 41 && e <= 46) || e == 48 || e == 120 || e == 189 || e == 193 || e == 194;
+        static bool IsElemResistBuff(int e) => e == 169 || e == 202 || e == 248 || e == 341;
+
+        static Status[] RentStatusArray()
+        {
+            var pool = statusPool;
+            if (pool != null && pool.Count > 0) return pool.Pop();
+            return new Status[GameData.MaxEffect];
+        }
+
         public bool HasStatus(int e) => St[e] != null;
 
         public void SetStatus(Status s)
         {
-            if (St == NoStatuses) St = new Status[GameData.MaxEffect];
+            if (St == NoStatuses) St = RentStatusArray();
             if (St[s.Effect] == null)
             {
                 if (StCount == stOrder.Length) Array.Resize(ref stOrder, Math.Max(8, StCount * 2));
                 stOrder[StCount++] = s.Effect;
+                if (IsStatModEffect(s.Effect)) statModCount++;
             }
             St[s.Effect] = s;
         }
@@ -181,6 +214,7 @@ namespace DtEngine
             var s = St[e];
             if (s == null) return null;
             St[e] = null;
+            if (IsStatModEffect(e)) statModCount--;
             for (int i = 0; i < StCount; i++)
                 if (stOrder[i] == e)
                 {
@@ -195,6 +229,17 @@ namespace DtEngine
         {
             for (int i = 0; i < StCount; i++) St[stOrder[i]] = null;
             StCount = 0;
+            statModCount = 0;
+        }
+
+        /// <summary>Clears all statuses and returns the status backing array to the thread-local pool.</summary>
+        public void ReleaseStatuses()
+        {
+            if (St == NoStatuses) return;
+            ClearStatuses();
+            var pool = statusPool ?? (statusPool = new Stack<Status[]>(32));
+            if (pool.Count < 32) pool.Push(St);
+            St = NoStatuses;
         }
 
         /// <summary>The effects of the statuses, in order (a copy: list(unit.statuses)).</summary>
@@ -226,14 +271,40 @@ namespace DtEngine
                 pvShared = false;
             }
             Pv[e] = v;
+            if (IsElemResistBuff(e) && !double.IsNaN(v)) hasElemResistPassive = true;
             if (isInt) { if (PvInt == null) PvInt = new bool[GameData.MaxEffect]; PvInt[e] = true; }
             else if (PvInt != null) PvInt[e] = false;
         }
 
         /// <summary>The unit takes this array as its passives (NaN where there is none); the caller keeps no reference.</summary>
-        public void AdoptPassives(double[] values) { Pv = values; }
+        public void AdoptPassives(double[] values)
+        {
+            Pv = values;
+            hasElemResistPassive = !double.IsNaN(values[169]) || !double.IsNaN(values[202])
+                                || !double.IsNaN(values[248]) || !double.IsNaN(values[341]);
+        }
 
-        public void SetEnchants(int[] pieces) { Enchants = pieces; }
+        public void SetEnchants(int[] pieces)
+        {
+            Enchants = pieces;
+            HasEnchants = true;
+            bool nulli = false;
+            for (int e = 120; e <= 128; e++) if (pieces[e] != 0) { nulli = true; break; }
+            HasNullifyEnchant = nulli;
+            bool ra = false;
+            foreach (var list in F.RACE_ATTACK.Values)
+            {
+                foreach (var (e, _) in list) if (pieces[e] != 0) { ra = true; break; }
+                if (ra) break;
+            }
+            if (!ra)
+                foreach (var (e, _) in F.RACE_SPECIAL) if (pieces[e] != 0) { ra = true; break; }
+            HasRaceAttackEnchant = ra;
+            bool rg = false;
+            foreach (var g in F.RACE_GUARD.Values)
+                if (pieces[g.small] != 0 || pieces[g.large] != 0) { rg = true; break; }
+            HasRaceGuardEnchant = rg;
+        }
 
         public bool Has(int e) => St[e] != null || !double.IsNaN(Pv[e]);
 
@@ -254,14 +325,13 @@ namespace DtEngine
         public int Stat(int name)
         {
             int b = Base[name];
+            if (statModCount == 0) return b > 0 ? b : 0;
             int total = b;
             var s = St[StatBuff[name]];
             if (s != null) total += PyMath.Int(b * s.Value);
-            for (int i = 0; i < 3; i++)
-            {
-                s = St[AllStatBuffs[i]];
-                if (s != null) total += PyMath.Int(b * s.Value);
-            }
+            s = St[189]; if (s != null) total += PyMath.Int(b * s.Value);
+            s = St[193]; if (s != null) total += PyMath.Int(b * s.Value);
+            s = St[194]; if (s != null) total += PyMath.Int(b * s.Value);
             if (name == ATK && St[TRUMP_CARD] != null) total += PyMath.Int(Base[DEF] * St[TRUMP_CARD].Value);
             if (name == DEF && St[TRUMP_CARD] != null) total = 0;
             if (St[120] != null)
@@ -269,7 +339,7 @@ namespace DtEngine
                 if (name == DEF) total += b / 2;
                 if (name == AGI) total -= b / 2;
             }
-            return Math.Max(0, total);
+            return total > 0 ? total : 0;
         }
 
         public int MaxHp
@@ -277,6 +347,7 @@ namespace DtEngine
             get
             {
                 int hp = MaxHpBase;
+                if (StCount == 0) return hp;
                 var s = St[MAX_HP_BUFF];
                 if (s != null) hp += PyMath.Int(hp * s.Value);
                 return hp;
@@ -289,6 +360,7 @@ namespace DtEngine
             int value = ResistBase[index];
             if (index >= 3)
             {
+                if (StCount == 0 && !hasElemResistPassive) return value;
                 for (int i = 0; i < 4; i++)
                 {
                     int e = ElementResistBuffs[i];
@@ -297,6 +369,7 @@ namespace DtEngine
             }
             else
             {
+                if (StCount == 0) return value;
                 // PHYSICAL_RESIST_BUFFS {185: 0, 184: 1, 186: 2}
                 int e = index == 0 ? 185 : index == 1 ? 184 : 186;
                 var s = St[e];

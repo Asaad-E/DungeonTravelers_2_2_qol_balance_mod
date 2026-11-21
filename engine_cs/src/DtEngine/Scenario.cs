@@ -41,8 +41,11 @@ namespace DtEngine
         static readonly int[] ONE_PER_PIECE = { 6, 9, 12, 15, 18, 21 };
         const int NO_MAGIC = 2;
 
+        /// <summary>When true, PlayRun tracks BuildTicks and BuildBytes (disabled by default to avoid cross-core Interlocked contention).</summary>
+        public static bool TrackBuildStats;
         /// <summary>Time spent building parties and enemies, in Stopwatch ticks, over all runs (for the speed report).</summary>
         public static long BuildTicks;
+        [ThreadStatic] static PyRandom threadRng;
         /// <summary>Bytes allocated by the building of parties and enemies, over all runs (for the speed report).</summary>
         public static long BuildBytes;
 
@@ -492,8 +495,82 @@ namespace DtEngine
         // The party of a checkpoint is the same each time it is asked for with the same arguments: it is built once and each run gets a copy.
         readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<Unit>> partyTemplates = new System.Collections.Concurrent.ConcurrentDictionary<string, List<Unit>>();
         readonly System.Collections.Concurrent.ConcurrentDictionary<(int, bool), Unit> enemyTemplates = new System.Collections.Concurrent.ConcurrentDictionary<(int, bool), Unit>();
+        readonly System.Collections.Concurrent.ConcurrentDictionary<(string, string), Unit> guestTemplates = new System.Collections.Concurrent.ConcurrentDictionary<(string, string), Unit>();
+        readonly System.Collections.Concurrent.ConcurrentDictionary<FloorZone, (FormationRec[] formations, double[] cumWeights)> validFormations = new System.Collections.Concurrent.ConcurrentDictionary<FloorZone, (FormationRec[], double[])>();
+        readonly System.Collections.Concurrent.ConcurrentDictionary<(string, ulong, int), ChainCacheEntry> chainPickCache = new System.Collections.Concurrent.ConcurrentDictionary<(string, ulong, int), ChainCacheEntry>();
+        Dictionary<string, FloorZone> zonesByName;
 
-        const int MAX_PARTY_TEMPLATES = 256;
+        sealed class ChainCacheEntry
+        {
+            public readonly object Gate = new object();
+            public readonly FloorZone[] Zones;
+            public readonly PyRandom Rng;
+            public readonly int Count;
+            public readonly List<List<(FloorZone, int)>> Picks = new List<List<(FloorZone, int)>>();
+            public volatile List<(FloorZone, int)>[] Snapshot = Array.Empty<List<(FloorZone, int)>>();
+            public ChainCacheEntry(FloorZone[] zones, ulong seed, int count) { Zones = zones; Rng = new PyRandom(seed); Count = count; }
+        }
+
+        /// <summary>Valid formations and cumulative weights for a zone, computed once per Scenario.</summary>
+        internal (FormationRec[] formations, double[] cumWeights) ValidFormationsOf(FloorZone zone)
+        {
+            if (validFormations.TryGetValue(zone, out var cached)) return cached;
+            var list = new List<FormationRec>(zone.Formations.Length);
+            foreach (var f in zone.Formations)
+            {
+                bool ok = true;
+                foreach (var (enemy, _) in f.Enemies) if (!Data.Enemies.ContainsKey(enemy)) { ok = false; break; }
+                if (ok) list.Add(f);
+            }
+            var arr = list.ToArray();
+            var cum = new double[arr.Length];
+            double acc = 0;
+            for (int i = 0; i < arr.Length; i++) { acc += Math.Max(1, (int)arr[i].Chance); cum[i] = acc; }
+            return validFormations.GetOrAdd(zone, (arr, cum));
+        }
+
+        /// <summary>Cached chain picks shared across all jobs with identical (zones, seed, count); lazily extended if more runs are requested.</summary>
+        internal List<(FloorZone, int)>[] GetChainPicks(List<string> zoneNames, ulong chainSeed, int chainCount, int runs)
+        {
+            string key = string.Join("|", zoneNames);
+            var entry = chainPickCache.GetOrAdd((key, chainSeed, chainCount), _ =>
+            {
+                var z = new FloorZone[zoneNames.Count];
+                for (int i = 0; i < zoneNames.Count; i++) z[i] = FindZone(zoneNames[i]);
+                return new ChainCacheEntry(z, chainSeed, chainCount);
+            });
+            var snap = entry.Snapshot;
+            if (snap.Length >= runs) return snap;
+            lock (entry.Gate)
+            {
+                if (entry.Snapshot.Length >= runs) return entry.Snapshot;
+                while (entry.Picks.Count < runs)
+                {
+                    var picks = new List<(FloorZone, int)>(entry.Count);
+                    for (int i = 0; i < entry.Count; i++)
+                    {
+                        var zone = entry.Zones[entry.Rng.ChoiceIndex(entry.Zones.Length)];
+                        picks.Add((zone, RandomIndex(zone, entry.Rng)));
+                    }
+                    entry.Picks.Add(picks);
+                }
+                entry.Snapshot = entry.Picks.ToArray();
+                return entry.Snapshot;
+            }
+        }
+
+        /// <summary>Cached hired guest unit template for (guest, cid), or null if not offered at cid.</summary>
+        public Unit GuestUnit(string guest, string cid)
+        {
+            if (!guestTemplates.TryGetValue((guest, cid), out var template))
+            {
+                var stage = UnitFactory.GuestStageAt(Data, Setup, guest, cid);
+                template = guestTemplates.GetOrAdd((guest, cid), stage != null ? UnitFactory.BuildGuest(Data, stage) : null);
+            }
+            return template?.CloneFresh();
+        }
+
+        const int MAX_PARTY_TEMPLATES = 2048;
         int partyTemplateCount;
 
         static string PartyKey(List<string> composition, string chapter, int level, int upgrade, int crown, string floor, int? kit,
@@ -520,13 +597,36 @@ namespace DtEngine
 
         static List<Unit> CloneParty(List<Unit> template)
         {
-            var bags = new Dictionary<Dictionary<int, int>, Dictionary<int, int>>(ReferenceComparer.Instance);
             var party = new List<Unit>(template.Count);
-            foreach (var t in template)
+            if (template.Count == 0) return party;
+            // Fast path: most parties share one bag across all members (and empty bags on summons/guests).
+            Dictionary<int, int> firstSrc = null, firstCopy = null;
+            Dictionary<Dictionary<int, int>, Dictionary<int, int>> extraBags = null;
+            for (int i = 0; i < template.Count; i++)
             {
-                var c = t.CloneFresh();
-                if (!bags.TryGetValue(t.Items, out var bag)) bags[t.Items] = bag = c.Items;
-                c.Items = bag;
+                var t = template[i];
+                var c = t.CloneFresh(copyItems: false);
+                var srcBag = t.Items;
+                if (srcBag == null || srcBag.Count == 0)
+                {
+                    c.Items = new Dictionary<int, int>();
+                }
+                else if (firstSrc == null)
+                {
+                    firstSrc = srcBag;
+                    firstCopy = new Dictionary<int, int>(srcBag);
+                    c.Items = firstCopy;
+                }
+                else if (ReferenceEquals(srcBag, firstSrc))
+                {
+                    c.Items = firstCopy;
+                }
+                else
+                {
+                    if (extraBags == null) extraBags = new Dictionary<Dictionary<int, int>, Dictionary<int, int>>(ReferenceComparer.Instance);
+                    if (!extraBags.TryGetValue(srcBag, out var bag)) extraBags[srcBag] = bag = new Dictionary<int, int>(srcBag);
+                    c.Items = bag;
+                }
                 party.Add(c);
             }
             return party;
@@ -686,9 +786,8 @@ namespace DtEngine
 
         public Group RandomGroup(FloorZone zone, PyRandom rng)
         {
-            var formations = zone.Formations.Where(f => f.Enemies.All(e => Data.Enemies.ContainsKey(e.enemy))).ToList();
-            var weights = formations.Select(f => (double)Math.Max(1, (int)f.Chance)).ToArray();
-            var pick = formations[rng.ChoicesIndex(weights)];
+            var (formations, cum) = ValidFormationsOf(zone);
+            var pick = formations[rng.ChoicesIndexCumulative(cum)];
             var group = new Group();
             foreach (var (e, front) in pick.Enemies) group.Units.Add(EnemyUnit(e, front));
             for (int i = 0; i < Math.Min(group.Units.Count, pick.Slots.Length); i++) group.Units[i].Slot = pick.Slots[i];
@@ -698,7 +797,7 @@ namespace DtEngine
         /// <summary>measures.random_group with the formation drawn already (index among the formations whose enemies are all known).</summary>
         public Group RandomGroupAt(FloorZone zone, int index)
         {
-            var formations = zone.Formations.Where(f => f.Enemies.All(e => Data.Enemies.ContainsKey(e.enemy))).ToList();
+            var (formations, _) = ValidFormationsOf(zone);
             var pick = formations[index];
             var group = new Group();
             foreach (var (e, front) in pick.Enemies) group.Units.Add(EnemyUnit(e, front));
@@ -729,7 +828,14 @@ namespace DtEngine
 
         public FloorZone FindZone(string name)
         {
-            foreach (var z in Data.Floors) if (z.Name == name) return z;
+            var map = zonesByName;
+            if (map == null)
+            {
+                map = new Dictionary<string, FloorZone>(Data.Floors.Count, StringComparer.Ordinal);
+                foreach (var z in Data.Floors) if (!map.ContainsKey(z.Name)) map[z.Name] = z;
+                zonesByName = map;
+            }
+            if (map.TryGetValue(name, out var found)) return found;
             throw new InvalidOperationException("no floor zone " + name);
         }
 
@@ -894,29 +1000,54 @@ namespace DtEngine
         public RunResult PlayRun(Func<List<Unit>> partyFactory, Func<List<Group>> enemyFactory, ulong seed, BattleOptions options,
                                  Action<Battle, int> onBattle = null, PyRandom rngOverride = null)
         {
-            var rng = rngOverride ?? new PyRandom(seed);
-            long t0 = System.Diagnostics.Stopwatch.GetTimestamp(), b0 = GC.GetAllocatedBytesForCurrentThread();
-            var party = partyFactory();
-            var groups = enemyFactory();
-            System.Threading.Interlocked.Add(ref BuildTicks, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
-            System.Threading.Interlocked.Add(ref BuildBytes, GC.GetAllocatedBytesForCurrentThread() - b0);
+            PyRandom rng;
+            if (rngOverride != null) rng = rngOverride;
+            else
+            {
+                rng = threadRng;
+                if (rng == null) threadRng = rng = new PyRandom(seed);
+                else rng.Seed(seed);
+            }
+            List<Unit> party;
+            List<Group> groups;
+            if (TrackBuildStats)
+            {
+                long t0 = System.Diagnostics.Stopwatch.GetTimestamp(), b0 = GC.GetAllocatedBytesForCurrentThread();
+                party = partyFactory();
+                groups = enemyFactory();
+                System.Threading.Interlocked.Add(ref BuildTicks, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
+                System.Threading.Interlocked.Add(ref BuildBytes, GC.GetAllocatedBytesForCurrentThread() - b0);
+            }
+            else
+            {
+                party = partyFactory();
+                groups = enemyFactory();
+            }
             RunResult result = null;
             int index = 0;
             foreach (var enemies in groups)
             {
-                foreach (var unit in party)
+                for (int i = 0; i < party.Count; i++)
                 {
-                    unit.ClearStatuses();
-                    unit.Chant = null;
-                    unit.Song = new List<string>();
-                    unit.Dance = new List<string>();
+                    var unit = party[i];
+                    if (unit.Kind == Kind.Member || unit.Kind == Kind.Summon)
+                    {
+                        unit.ClearStatuses();
+                        unit.Chant = null;
+                        unit.ClearSongsAndDances();
+                    }
+                    else unit.ReleaseStatuses();
                 }
-                party = party.Where(u => u.Kind == Kind.Member || u.Kind == Kind.Summon).ToList();
+                int write = 0;
+                for (int i = 0; i < party.Count; i++)
+                    if (party[i].Kind == Kind.Member || party[i].Kind == Kind.Summon) party[write++] = party[i];
+                if (write < party.Count) party.RemoveRange(write, party.Count - write);
                 Prepare(party, enemies);
                 var battle = new Battle(Data, party, enemies.Units, rng, Policy, enemies.Boss ? options.NotRandom() : options, enemies.Zone, maxTime);
                 battle.Fixed = enemies.Number != T.NONE;
                 onBattle?.Invoke(battle, index++);
                 var part = battle.Run();
+                for (int i = 0; i < enemies.Units.Count; i++) enemies.Units[i].ReleaseStatuses();
                 if (result == null)
                 {
                     result = new RunResult
@@ -943,6 +1074,7 @@ namespace DtEngine
                 if (!part.Won) break;
                 RecoverAfterBattle(party);
             }
+            for (int i = 0; i < party.Count; i++) party[i].ReleaseStatuses();
             return result;
         }
 

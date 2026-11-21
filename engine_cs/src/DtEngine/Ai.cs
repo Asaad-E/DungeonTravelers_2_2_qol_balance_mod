@@ -22,7 +22,7 @@ namespace DtEngine
             var attacks = unit.Attacks;
             // the targets set by command 1 hold for the choice they were set in: the program empties the sixteen lists at the start of
             // every choice (0x430f8c - 0x430fa6)
-            unit.AiTargets = null;
+            unit.AiTargets?.Clear();
             if (attacks.Length == 0) return new Action(unit, AKind.Defend);
             var chosen = ChooseAttack(battle, unit);
             // the choice is then replaced by the unit's plain attack (0x4312b0 - 0x4313b5): always under shadow sew (123, slot 0xd0 of
@@ -43,15 +43,20 @@ namespace DtEngine
             Decided decided = Run(battle, unit, script.Opening, -1);
             // a set switch marks the set left as done; a switch to a set already done this choice, or to no set, ends the choice
             // (0x4311c8, 0x431054, 0x43105c): no limit on the number of switches
-            var done = new HashSet<int>();
+            ulong doneMask = 0;
+            HashSet<int> doneOverflow = null;
             bool first = true;
             while (decided.None || decided.Kind == 3)
             {
                 if (!decided.None)
                 {
-                    done.Add(unit.AiSet);
-                    if (done.Contains(decided.Value) || script.Get(decided.Value) == null) { decided = new Decided(0, 0); break; }
-                    unit.AiSet = decided.Value;
+                    int cur = unit.AiSet;
+                    if ((uint)cur < 64u) doneMask |= 1UL << cur;
+                    else (doneOverflow ?? (doneOverflow = new HashSet<int>())).Add(cur);
+                    int next = decided.Value;
+                    bool alreadyDone = (uint)next < 64u ? (doneMask & (1UL << next)) != 0 : (doneOverflow != null && doneOverflow.Contains(next));
+                    if (alreadyDone || script.Get(next) == null) { decided = new Decided(0, 0); break; }
+                    unit.AiSet = next;
                 }
                 var entry = script.Get(unit.AiSet) ?? (first ? script.Get(script.MinSet()) : null);
                 first = false;
@@ -110,7 +115,7 @@ namespace DtEngine
                 }
                 long key = ((long)list.Id << 20) | (uint)k;
                 bool once = command.HasOnce && command.Once;
-                if (once && unit.OnceDone.Contains(key)) continue;
+                if (once && unit.HasOnceDone(key)) continue;
                 if (!Passes(battle, unit, command, rolled)) continue;
                 var result = FinalResult(battle, unit, command, rolled);
                 if (result.None) continue;
@@ -177,17 +182,12 @@ namespace DtEngine
             {
                 int id = SkillOf(unit, args[0]);
                 var attack = id != T.NONE ? battle.Data.GetAttack(id) : null;
-                if (attack != null)
+                if (attack != null && attack.SummonsDoll)
                 {
                     // 0x432028..0x432156: when the attack carries effect 146 (0x92, doll summon), check active dolls owned by self with matching summon attack id.
-                    bool summonsDoll = false;
-                    for (int k = 0; k < attack.EffId.Length; k++) if (attack.EffId[k] == 146) { summonsDoll = true; break; }
-                    if (summonsDoll)
-                    {
-                        foreach (var u in battle.Units)
-                            if (u.Alive && u.Kind == Kind.Doll && u.Owner == unit && u.SummonAttackId == id) return true;
-                        return false;
-                    }
+                    foreach (var u in battle.Units)
+                        if (u.Alive && u.Kind == Kind.Doll && u.Owner == unit && u.SummonAttackId == id) return true;
+                    return false;
                 }
                 string name = attack != null ? attack.Name : null;
                 foreach (var u in battle.Units)
@@ -208,8 +208,7 @@ namespace DtEngine
                 if (attack == null) return false;
                 // with an attack already rolled, the command holds only when it names that attack (0x4321aa - 0x4321b7)
                 if (rolled >= 0 && rolled < unit.Attacks.Length && unit.Attacks[rolled] != id) return false;
-                unit.UsesById.TryGetValue(id, out int used);
-                return used >= args[1];
+                return unit.UsesOf(id) >= args[1];
             }
             if (cid == 9)
             {
@@ -244,8 +243,10 @@ namespace DtEngine
 
         static int AilmentCount(Unit u)
         {
+            if (u.StCount == 0) return 0;
             int n = 0;
-            foreach (int e in Battle.AILMENT_IDS) if (u.St[e] != null) n++;
+            var ids = Battle.AILMENT_IDS;
+            for (int i = 0; i < ids.Length; i++) if (u.St[ids[i]] != null) n++;
             return n;
         }
 
@@ -306,13 +307,14 @@ namespace DtEngine
         {
             var allies = battle.TargetableArray(unit.Side);
             var foes = battle.TargetableArray(1 - unit.Side);
-            var found = new List<Unit>();
+            var found = battle.PolicyScratch;
+            found.Clear();
             switch (kind)
             {
-                case 0: Lowest(allies, u => u.HpRatio, found); break;
-                case 1: Lowest(foes, u => u.HpRatio, found); break;
-                case 2: Lowest(allies, u => u.TpRatio, found); break;
-                case 3: Lowest(foes, u => u.TpRatio, found); break;
+                case 0: Lowest(allies, false, found); break;
+                case 1: Lowest(foes, false, found); break;
+                case 2: Lowest(allies, true, found); break;
+                case 3: Lowest(foes, true, found); break;
                 case 4: MostAilments(allies, found); break;
                 case 5: MostAilments(foes, found, skipPetrified: true); break;
                 case 9:
@@ -344,11 +346,11 @@ namespace DtEngine
             return found.Count == 0 ? null : found[battle.Rng.ChoiceIndex(found.Count)];
         }
 
-        static void Lowest(Unit[] list, Func<Unit, double> key, List<Unit> found)
+        static void Lowest(Unit[] list, bool tp, List<Unit> found)
         {
             double best = double.MaxValue;
-            foreach (var u in list) best = Math.Min(best, key(u));
-            foreach (var u in list) if (key(u) == best) found.Add(u);
+            foreach (var u in list) { double v = tp ? u.TpRatio : u.HpRatio; if (v < best) best = v; }
+            foreach (var u in list) if ((tp ? u.TpRatio : u.HpRatio) == best) found.Add(u);
         }
     }
 }

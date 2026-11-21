@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace DtEngine
 {
@@ -30,7 +32,7 @@ namespace DtEngine
             index = N;
         }
 
-        void InitByArray(uint[] key)
+        void InitByArray(ReadOnlySpan<uint> key)
         {
             InitGenrand(19650218u);
             int i = 1, j = 0;
@@ -55,9 +57,12 @@ namespace DtEngine
         public void Seed(ulong seed)
         {
             uint lo = (uint)(seed & 0xFFFFFFFFu), hi = (uint)(seed >> 32);
-            uint[] key = hi != 0 ? new[] { lo, hi } : new[] { lo };
-            InitByArray(key);
+            Span<uint> key = stackalloc uint[2];
+            key[0] = lo;
+            if (hi != 0) { key[1] = hi; InitByArray(key); }
+            else InitByArray(key.Slice(0, 1));
             Words = 0;
+            Log = null;
         }
 
         public uint GenrandUint32()
@@ -99,6 +104,7 @@ namespace DtEngine
         }
 
         /// <summary>getrandbits(k) for 0 &lt;= k &lt;= 32.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint GetRandBits(int k)
         {
             if (k == 0) return 0;
@@ -108,6 +114,7 @@ namespace DtEngine
         }
 
         /// <summary>_randbelow_with_getrandbits(n), n &gt; 0.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int RandBelow(int n)
         {
             int k = BitLength(n);
@@ -116,14 +123,11 @@ namespace DtEngine
             return (int)r;
         }
 
-        static int BitLength(int n)
-        {
-            int k = 0;
-            while (n != 0) { k++; n >>= 1; }
-            return k;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static int BitLength(int n) => 32 - BitOperations.LeadingZeroCount((uint)n);
 
         /// <summary>randrange(n), n &gt; 0 (raises when empty, like Python).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int RandRange(int n)
         {
             if (n <= 0) throw new InvalidOperationException("empty range for randrange()");
@@ -131,6 +135,7 @@ namespace DtEngine
         }
 
         /// <summary>randint(a, b) = randrange(a, b + 1).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int RandInt(int a, int b)
         {
             int width = b + 1 - a;
@@ -139,6 +144,7 @@ namespace DtEngine
         }
 
         /// <summary>choice(seq): the index chosen in a sequence of this length.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ChoiceIndex(int length)
         {
             if (length <= 0) throw new InvalidOperationException("Cannot choose from an empty sequence");
@@ -171,12 +177,20 @@ namespace DtEngine
             var cum = new double[n];
             double acc = 0;
             for (int i = 0; i < n; i++) { acc += weights[i]; cum[i] = acc; }
+            return ChoicesIndexCumulative(cum);
+        }
+
+        /// <summary>Same draw as ChoicesIndex using precomputed cumulative weights.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int ChoicesIndexCumulative(double[] cum)
+        {
+            int n = cum.Length;
             double total = cum[n - 1] + 0.0;
             double x = Random() * total;
             int lo = 0, hi = n - 1;
             while (lo < hi)
             {
-                int mid = (lo + hi) / 2;
+                int mid = (lo + hi) >> 1;
                 if (x < cum[mid]) hi = mid; else lo = mid + 1;
             }
             return lo;

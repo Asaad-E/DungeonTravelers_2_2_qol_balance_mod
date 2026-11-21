@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DtEngine
@@ -28,6 +31,7 @@ namespace DtEngine
         public List<List<EnemySpec>> Groups;                        // kind enemies: the battles, each a list of enemies
         public List<(string zone, int index)> Formations;           // kind formation: the battles, each one formation of a floor zone
         public int Runs = 1;
+        public int StartRun;                        // first run index to execute (for incremental prefix extension when Trace == 0)
         public ulong Seed;
         public int? Kit;
         public List<(int id, int level)> ExtraSkills = new List<(int, int)>();
@@ -54,7 +58,7 @@ namespace DtEngine
         public ulong ChainSeed;                    // kind chain: the generator shared by all the runs, in the order they play
         public int ChainCount;                     // kind chain: battles in a row
         public bool ChainThenCheckpoint;           // kind chain: the fixed battles of the checkpoint after the row (a walk, then its boss)
-        public List<List<(FloorZone zone, int index)>> ChainPicks;  // kind chain: the formations drawn for each run (made by JobRunner.Run)
+        public IReadOnlyList<List<(FloorZone zone, int index)>> ChainPicks;  // kind chain: the formations drawn for each run (made by JobRunner.Run)
         public MemberExtras More;                  // unique_level and passives given to every member built
 
         public static List<(int id, Dictionary<string, double> fields)> ParseEnemyChanges(JsonElement changes)
@@ -203,69 +207,142 @@ namespace DtEngine
 
     public static class JobRunner
     {
-        /// <summary>Runs one run of a job (run number k), with an optional trace.</summary>
-        public static RunResult RunOne(Snapshot snap, IDictionary<string, Scenario> scenarios, JobSpec job, int k, TextTrace trace)
+        sealed class PreparedJob
+        {
+            public JobSpec Job;
+            public Scenario Sc;
+            public Row Cp;
+            public BattleOptions Options;
+            public Lazy<List<Unit>> PartyTemplate;
+            public string CpFloor;
+            public int[] CpBattles;
+            public (FloorZone zone, int index)[] Formations;
+            public FloorZone Zone;
+        }
+
+        static PreparedJob Prepare(IDictionary<string, Scenario> scenarios, JobSpec job)
         {
             var sc = job.Own ?? scenarios[job.Side];
             var setup = sc.Setup;
             var cp = setup.Checkpoint(job.Cid);
-            ulong seed = job.Seed + (ulong)k;
             var options = Scenario.OptionsFrom(setup, job.Options);
             options.Record = job.Record || job.Trace > 0;
             options.SurvivalGuard = job.SurvivalGuard;
             options.InterruptProduct = job.InterruptProduct;
             options.HasArcaneChance = job.HasArcaneChance;
             options.ArcaneChance = job.ArcaneChance;
+            if (job.EnemyKind == "formation" || job.EnemyKind == "zone") options.RandomBattle = true;
+
             var roles = job.Roles ?? setup.Composition;
-            Func<List<Unit>> partyFactory = () =>
+            string guest = job.Guest ?? (job.EnemyKind == "checkpoint" ? setup.CheckpointGuest(job.Cid) : null);
+            var partyTemplate = new Lazy<List<Unit>>(() =>
             {
-                int level = job.Level ?? sc.ReferenceLevels()[job.Cid].level;
-                int gear = sc.CheckpointGear(job.Cid);
-                int crown = job.Crown ?? (cp.Truthy("Crown bonus") ? cp.Int("Crown bonus") : 0);
-                var built = job.RecipeTemplate != null ? Scenario.CloneOf(job.RecipeTemplate.Value)
-                          : sc.ReferenceParty(roles, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor"), job.Kit, job.ExtraSkills, job.Bag, job.ExtraEnchants, job.More);
-                // a boss a guide fights with a hired mercenary (sheet CheckpointGuests) gets her when the job names none
-                string guest = job.Guest ?? (job.EnemyKind == "checkpoint" ? setup.CheckpointGuest(job.Cid) : null);
+                List<Unit> built;
+                if (job.RecipeTemplate != null)
+                    built = Scenario.CloneOf(job.RecipeTemplate.Value);
+                else if (job.Recipe != null)
+                    built = sc.RecipeParty(job, job.Recipe, job.TestedNames);
+                else
+                {
+                    int level = job.Level ?? sc.ReferenceLevels()[job.Cid].level;
+                    int gear = sc.CheckpointGear(job.Cid);
+                    int crown = job.Crown ?? (cp.Truthy("Crown bonus") ? cp.Int("Crown bonus") : 0);
+                    built = sc.ReferenceParty(roles, cp.Str("Chapter"), level, gear, crown, cp.Str("Floor"), job.Kit, job.ExtraSkills, job.Bag, job.ExtraEnchants, job.More);
+                }
                 if (guest == "none")
                     built = built.Where(u => u.Kind == Kind.Member).ToList();
                 else if (guest != null && guest != Scenario.NO_GUEST)
                 {
                     // a hired guest ally stands beside the summon of the grand sealbook (units 3000 and 3001, 0x449771 and 0x449839), at the
                     // stage the bar offers at this point of the story
-                    var stage = UnitFactory.GuestStageAt(sc.Data, sc.Setup, guest, job.Cid);
-                    if (stage != null) built.Add(UnitFactory.BuildGuest(sc.Data, stage));
+                    var g = sc.GuestUnit(guest, job.Cid);
+                    if (g != null) built.Add(g);
                 }
                 return built;
-            };
+            }, LazyThreadSafetyMode.ExecutionAndPublication);
+
+            var p = new PreparedJob { Job = job, Sc = sc, Cp = cp, Options = options, PartyTemplate = partyTemplate };
+            if (job.EnemyKind == "checkpoint" || (job.EnemyKind == "chain" && job.ChainThenCheckpoint))
+            {
+                p.CpFloor = cp.Str("Floor");
+                p.CpBattles = Scenario.BattleNumbers(cp).ToArray();
+            }
+            if (job.EnemyKind == "formation")
+            {
+                p.Formations = new (FloorZone, int)[job.Formations.Count];
+                for (int i = 0; i < job.Formations.Count; i++)
+                    p.Formations[i] = (sc.FindZone(job.Formations[i].zone), job.Formations[i].index);
+            }
+            else if (job.EnemyKind == "zone")
+            {
+                p.Zone = sc.FindZone(job.ZoneName);
+            }
+            return p;
+        }
+
+        static RunResult RunPrepared(PreparedJob p, int k, TextTrace trace)
+        {
+            var job = p.Job;
+            var sc = p.Sc;
+            ulong seed = job.Seed + (ulong)k;
+            Func<List<Unit>> partyFactory = () => Scenario.CloneOf(p.PartyTemplate.Value);
             Func<List<Group>> enemyFactory;
             if (job.EnemyKind == "checkpoint")
-                enemyFactory = () => Scenario.BattleNumbers(cp).Select(n => sc.FixedBattle(cp.Str("Floor"), n)).ToList();
-            else if (job.EnemyKind == "fixed")
-                enemyFactory = () => job.Battles.Select(b => sc.FixedBattle(b.floor, b.number)).ToList();
-            else if (job.EnemyKind == "enemies")
-                enemyFactory = () => job.Groups.Select(g => sc.CustomGroup(g)).ToList();
-            else if (job.EnemyKind == "chain")
+            {
                 enemyFactory = () =>
                 {
-                    var groups = job.ChainPicks[k].Select(p => sc.RandomGroupAt(p.zone, p.index)).ToList();
-                    if (job.ChainThenCheckpoint)
-                        foreach (int n in Scenario.BattleNumbers(cp)) { var g = sc.FixedBattle(cp.Str("Floor"), n); g.Boss = true; groups.Add(g); }
+                    var groups = new List<Group>(p.CpBattles.Length);
+                    for (int i = 0; i < p.CpBattles.Length; i++) groups.Add(sc.FixedBattle(p.CpFloor, p.CpBattles[i]));
                     return groups;
                 };
+            }
+            else if (job.EnemyKind == "fixed")
+            {
+                enemyFactory = () =>
+                {
+                    var groups = new List<Group>(job.Battles.Count);
+                    for (int i = 0; i < job.Battles.Count; i++) groups.Add(sc.FixedBattle(job.Battles[i].floor, job.Battles[i].number));
+                    return groups;
+                };
+            }
+            else if (job.EnemyKind == "enemies")
+            {
+                enemyFactory = () =>
+                {
+                    var groups = new List<Group>(job.Groups.Count);
+                    for (int i = 0; i < job.Groups.Count; i++) groups.Add(sc.CustomGroup(job.Groups[i]));
+                    return groups;
+                };
+            }
+            else if (job.EnemyKind == "chain")
+            {
+                enemyFactory = () =>
+                {
+                    var picks = job.ChainPicks[k];
+                    int extra = p.CpBattles != null ? p.CpBattles.Length : 0;
+                    var groups = new List<Group>(picks.Count + extra);
+                    for (int i = 0; i < picks.Count; i++) groups.Add(sc.RandomGroupAt(picks[i].zone, picks[i].index));
+                    if (p.CpBattles != null)
+                        for (int i = 0; i < p.CpBattles.Length; i++) { var g = sc.FixedBattle(p.CpFloor, p.CpBattles[i]); g.Boss = true; groups.Add(g); }
+                    return groups;
+                };
+            }
             else if (job.EnemyKind == "formation")
             {
-                options.RandomBattle = true;
-                enemyFactory = () => job.Formations.Select(f => sc.RandomGroupAt(sc.FindZone(f.zone), f.index)).ToList();
+                enemyFactory = () =>
+                {
+                    var groups = new List<Group>(p.Formations.Length);
+                    for (int i = 0; i < p.Formations.Length; i++) groups.Add(sc.RandomGroupAt(p.Formations[i].zone, p.Formations[i].index));
+                    return groups;
+                };
             }
             else
             {
-                var zone = sc.FindZone(job.ZoneName);
                 var picks = new PyRandom(seed);
-                options.RandomBattle = true;
                 enemyFactory = () =>
                 {
-                    var groups = new List<Group>();
-                    for (int i = 0; i < job.ZoneBattles; i++) groups.Add(sc.RandomGroup(zone, picks));
+                    var groups = new List<Group>(job.ZoneBattles);
+                    for (int i = 0; i < job.ZoneBattles; i++) groups.Add(sc.RandomGroup(p.Zone, picks));
                     return groups;
                 };
             }
@@ -275,8 +352,12 @@ namespace DtEngine
                 trace.Run = k;
                 onBattle = (b, i) => { trace.BattleIndex = i; b.Trace = trace; };
             }
-            return sc.PlayRun(partyFactory, enemyFactory, seed, options, onBattle);
+            return sc.PlayRun(partyFactory, enemyFactory, seed, p.Options, onBattle);
         }
+
+        /// <summary>Runs one run of a job (run number k), with an optional trace.</summary>
+        public static RunResult RunOne(Snapshot snap, IDictionary<string, Scenario> scenarios, JobSpec job, int k, TextTrace trace)
+            => RunPrepared(Prepare(scenarios, job), k, trace);
 
         static string DigestOf(List<string> lines)
         {
@@ -293,12 +374,14 @@ namespace DtEngine
             var scenarios = shared;
             if (scenarios == null)
             {
-                scenarios = new System.Collections.Concurrent.ConcurrentDictionary<string, Scenario>();
+                scenarios = new ConcurrentDictionary<string, Scenario>();
                 foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
             }
             var named = new Dictionary<(string, string), Scenario>();
-            foreach (var j in jobs)
+            var prepared = new PreparedJob[jobs.Count];
+            for (int i = 0; i < jobs.Count; i++)
             {
+                var j = jobs[i];
                 try
                 {
                     if ((j.Policies != null && j.Policies.Count > 0) || (j.Settings != null && j.Settings.Count > 0) || j.PolicyRows != null || j.EnemyChanges != null)
@@ -315,62 +398,84 @@ namespace DtEngine
                         j.Own = sc0;
                     }
                     var own = j.Own ?? scenarios[j.Side];
-                    if (j.Recipe != null) j.RecipeTemplate = new Lazy<List<Unit>>(() => own.RecipeParty(j, j.Recipe, j.TestedNames));
+                    if (j.Recipe != null) j.RecipeTemplate = new Lazy<List<Unit>>(() => own.RecipeParty(j, j.Recipe, j.TestedNames), LazyThreadSafetyMode.ExecutionAndPublication);
                     if (j.EnemyKind == "chain")
-                    {
-                        // one generator for all the runs, drawn in the order the runs are played (the tools make the enemies of a run one after the other)
-                        var zones = j.ChainZones.Select(own.FindZone).ToList();
-                        var rng = new PyRandom(j.ChainSeed);
-                        j.ChainPicks = new List<List<(FloorZone, int)>>();
-                        for (int run = 0; run < j.Runs; run++)
-                        {
-                            var picks = new List<(FloorZone, int)>();
-                            for (int i = 0; i < j.ChainCount; i++)
-                            {
-                                var zone = zones[rng.ChoiceIndex(zones.Count)];
-                                picks.Add((zone, own.RandomIndex(zone, rng)));
-                            }
-                            j.ChainPicks.Add(picks);
-                        }
-                    }
+                        j.ChainPicks = own.GetChainPicks(j.ChainZones, j.ChainSeed, j.ChainCount, j.Runs);
+                    prepared[i] = Prepare(scenarios, j);
                 }
                 catch (Exception ex) { j.OwnError = ex; }
             }
-            var results = jobs.Select(j => new JobResult { Spec = j, Runs = new RunResult[j.Runs] }).ToList();
-            // work items: (job, run); traced jobs run whole, in one piece, so that their lines stay in order
-            var items = new List<(int job, int run)>();
+            var results = new List<JobResult>(jobs.Count);
+            var workEnd = new int[jobs.Count];
+            var workIsTrace = new bool[jobs.Count];
+            var workStartRun = new int[jobs.Count];
+            int totalWork = 0;
             for (int i = 0; i < jobs.Count; i++)
             {
-                if (jobs[i].Trace > 0) items.Add((i, -1));
-                else for (int k = 0; k < jobs[i].Runs; k++) items.Add((i, k));
+                var j = jobs[i];
+                results.Add(new JobResult { Spec = j, Runs = new RunResult[j.Runs] });
+                if (j.Trace > 0)
+                {
+                    workIsTrace[i] = true;
+                    totalWork += 1;
+                }
+                else
+                {
+                    int start = Math.Max(0, Math.Min(j.StartRun, j.Runs));
+                    workStartRun[i] = start;
+                    totalWork += j.Runs - start;
+                }
+                workEnd[i] = totalWork;
             }
-            var clocks = new double[jobs.Count];
-            var options = new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, threads) };
-            Parallel.ForEach(items, options, item =>
+            var elapsedTicks = new long[jobs.Count];
+            if (totalWork > 0)
             {
-                var job = jobs[item.job];
-                var res = results[item.job];
-                var started = System.Diagnostics.Stopwatch.StartNew();
-                try
+                int par = Math.Max(1, threads);
+                int chunk = Math.Max(1, Math.Min(32, totalWork / (par * 16 + 1)));
+                var options = new ParallelOptions { MaxDegreeOfParallelism = par };
+                Parallel.ForEach(Partitioner.Create(0, totalWork, chunk), options, range =>
                 {
-                    if (job.OwnError != null) throw job.OwnError;
-                    if (item.run < 0)
+                    int jobIdx = Array.BinarySearch(workEnd, range.Item1);
+                    if (jobIdx < 0) jobIdx = ~jobIdx;
+                    else jobIdx++;
+                    for (int w = range.Item1; w < range.Item2; w++)
                     {
-                        var trace = new TextTrace(job.Trace);
-                        for (int k = 0; k < job.Runs; k++) res.Runs[k] = RunOne(snap, scenarios, job, k, trace);
-                        if (digestOnly) res.TraceDigest = DigestOf(trace.Lines);
-                        else res.TraceLines = trace.Lines;
+                        while (w >= workEnd[jobIdx]) jobIdx++;
+                        int jobStart = jobIdx == 0 ? 0 : workEnd[jobIdx - 1];
+                        var job = jobs[jobIdx];
+                        var res = results[jobIdx];
+                        long t0 = Stopwatch.GetTimestamp();
+                        try
+                        {
+                            if (job.OwnError != null) throw job.OwnError;
+                            if (workIsTrace[jobIdx])
+                            {
+                                var trace = new TextTrace(job.Trace);
+                                for (int k = 0; k < job.Runs; k++) res.Runs[k] = RunPrepared(prepared[jobIdx], k, trace);
+                                if (digestOnly) res.TraceDigest = DigestOf(trace.Lines);
+                                else res.TraceLines = trace.Lines;
+                            }
+                            else
+                            {
+                                int k = workStartRun[jobIdx] + (w - jobStart);
+                                res.Runs[k] = RunPrepared(prepared[jobIdx], k, null);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            lock (res) res.Error = ex.GetType().Name + ": " + ex.Message + " " + ex.StackTrace;
+                        }
+                        Interlocked.Add(ref elapsedTicks[jobIdx], Stopwatch.GetTimestamp() - t0);
                     }
-                    else res.Runs[item.run] = RunOne(snap, scenarios, job, item.run, null);
-                }
-                catch (Exception ex)
-                {
-                    lock (res) res.Error = ex.GetType().Name + ": " + ex.Message + " " + ex.StackTrace;
-                }
-                lock (res) res.Seconds += started.Elapsed.TotalSeconds;
-            });
-            foreach (var r in results)
+                });
+            }
+            double invFreq = 1.0 / Stopwatch.Frequency;
+            for (int i = 0; i < results.Count; i++)
+            {
+                var r = results[i];
+                r.Seconds = elapsedTicks[i] * invFreq;
                 if (r.Error == null) foreach (var run in r.Runs) if (run != null) r.Battles += run.Parts.Count;
+            }
             return results;
         }
 

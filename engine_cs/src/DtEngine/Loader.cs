@@ -111,9 +111,18 @@ namespace DtEngine
         public double SettingDouble(string key) => ToDouble(Settings[key]);
         public int SettingInt(string key) => ToInt(Settings[key]);
 
+        Dictionary<string, Row> checkpointsById;
+
         public Row Checkpoint(string cid)
         {
-            foreach (var c in Checkpoints) if (c.Str("ID") == cid) return c;
+            var map = checkpointsById;
+            if (map == null)
+            {
+                map = new Dictionary<string, Row>(Checkpoints.Count, StringComparer.Ordinal);
+                foreach (var c in Checkpoints) map[c.Str("ID")] = c;
+                checkpointsById = map;
+            }
+            if (map.TryGetValue(cid, out var row)) return row;
             throw new InvalidOperationException("no checkpoint " + cid);
         }
     }

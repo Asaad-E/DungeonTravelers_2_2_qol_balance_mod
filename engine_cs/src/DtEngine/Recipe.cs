@@ -119,9 +119,8 @@ namespace DtEngine
         /// <summary>The index random_group draws among the formations of a zone whose enemies are all known (rng.choices over their chances).</summary>
         public int RandomIndex(FloorZone zone, PyRandom rng)
         {
-            var formations = zone.Formations.Where(f => f.Enemies.All(e => Data.Enemies.ContainsKey(e.enemy))).ToList();
-            var weights = formations.Select(f => (double)Math.Max(1, (int)f.Chance)).ToArray();
-            return rng.ChoicesIndex(weights);
+            var (_, cum) = ValidFormationsOf(zone);
+            return rng.ChoicesIndexCumulative(cum);
         }
 
         /// <summary>A copy of a party built once, for one run: the same sharing of the bags of items as in the party it was made from.</summary>

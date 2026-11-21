@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace DtEngine
 {
@@ -73,10 +74,14 @@ namespace DtEngine
     public static class PyMath
     {
         /// <summary>int(x): truncation toward zero.</summary>
-        public static int Int(double x) => (int)Math.Truncate(x);
-        public static long Long(double x) => (long)Math.Truncate(x);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Int(double x) => (int)x;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Long(double x) => (long)x;
 
         /// <summary>round(x) with half to even, as an int.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Round(double x) => (int)Math.Round(x, MidpointRounding.ToEven);
 
         /// <summary>round(x, ndigits) of a float, as CPython does it: the exact value of x rounded half to even at ndigits decimals,
@@ -105,6 +110,7 @@ namespace DtEngine
             return double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int FloorDiv(int a, int b)
         {
             int q = a / b;
@@ -112,9 +118,11 @@ namespace DtEngine
             return q;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Clamp(double v, double low, double high) => Math.Max(low, Math.Min(high, v));
 
         /// <summary>struct.unpack('&lt;f', struct.pack('&lt;f', v)): the value rounded to a 32-bit float.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Single(double v) => (double)(float)v;
     }
 }

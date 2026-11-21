@@ -123,6 +123,52 @@ namespace DtEngine
             (100, 4, new[] { 0, 1, 2, 3 }, new double[] { 20, 20, 30, 30 }, new double[] { 0, 20, 30, 50 }),
         };
 
+        static readonly double[] MultiHitMeanNormal = BuildMultiHitMeans(false);
+        static readonly double[] MultiHitMeanRondo = BuildMultiHitMeans(true);
+        static readonly double[] MultiHitWeightSum = BuildMultiHitWeightSums(false);
+        static readonly double[] MultiHitRondoSum = BuildMultiHitWeightSums(true);
+        static readonly int[] NullifyEnchantOfAilment = BuildNullifyEnchantTable();
+
+        static double[] BuildMultiHitMeans(bool rondo)
+        {
+            var r = new double[MULTI_HIT.Length];
+            for (int m = 0; m < MULTI_HIT.Length; m++)
+            {
+                var entry = MULTI_HIT[m];
+                var table = rondo ? entry.rondo : entry.weights;
+                var s = new PySum();
+                for (int i = 0; i < table.Length; i++) s.AddFloat(entry.picks[i] * table[i]);
+                var t = new PySum();
+                foreach (var w in table) t.AddFloat(w);
+                r[m] = entry.baseHits + s.Result / t.Result;
+            }
+            return r;
+        }
+
+        static double[] BuildMultiHitWeightSums(bool rondo)
+        {
+            var r = new double[MULTI_HIT.Length];
+            for (int m = 0; m < MULTI_HIT.Length; m++)
+            {
+                var table = rondo ? MULTI_HIT[m].rondo : MULTI_HIT[m].weights;
+                var s = new PySum();
+                foreach (var w in table) s.AddFloat(w);
+                r[m] = s.Result;
+            }
+            return r;
+        }
+
+        static int[] BuildNullifyEnchantTable()
+        {
+            var a = new int[GameData.MaxEffect];
+            Array.Fill(a, -1);
+            foreach (var (e, ail) in F.ENCHANT_NULLIFY_AILMENT) a[ail] = e;
+            return a;
+        }
+
+        [Flags]
+        enum PerfParts { None = 0, Chant = 1, Song = 2, Dance = 4, Doll = 8, All = Chant | Song | Dance | Doll }
+
         static bool[] Flags(int[] ids)
         {
             var a = new bool[GameData.MaxEffect];
@@ -164,6 +210,34 @@ namespace DtEngine
         public static bool IsSong(int e) => IsSongEffect[e];
         public static bool IsDance(int e) => IsDanceEffect[e];
 
+        /// <summary>Per-thread reusable buffers shared across sequential battles on the same worker thread.</summary>
+        sealed class ThreadScratch
+        {
+            public bool InUse;
+            public int[] RecDamage = new int[64], RecActions = new int[64];
+            public Action[] LastAction = new Action[64];
+            public bool[] Reprisal = new bool[64];
+            public readonly HashSet<(Unit, int)> Spent = new HashSet<(Unit, int)>();
+            public readonly List<(Unit unit, int count)> Covered = new List<(Unit, int)>(8);
+            public readonly List<Unit> Guarding = new List<Unit>(8);
+            public readonly Action ScratchAction = new Action(null, AKind.Attack);
+            public readonly List<Unit> PolicyScratch = new List<Unit>(8);
+            public readonly List<Unit> RedirectScratch = new List<Unit>(8);
+            public readonly List<Unit> DelayOrderScratch = new List<Unit>(16);
+            public readonly int[] StatusScratch = new int[GameData.MaxEffect];
+            public readonly int[] DispelRemoveScratch = new int[GameData.MaxEffect];
+            public readonly int[] TickScratch = new int[GameData.MaxEffect];
+            public Skill[] CandidateSkills = new Skill[32];
+            public int[] CandidateLevels = new int[32];
+            public OptionEntry[] OptionCache = new OptionEntry[16];
+            public Unit[] PickOrdered = new Unit[16];
+            public int[] PickWeights = new int[16];
+        }
+
+        [ThreadStatic] static ThreadScratch threadScratch;
+        readonly ThreadScratch scratch;
+        bool scratchRented;
+
         // --- state -----------------------------------------------------------------------------------------
         public GameData Data;
         public PyRandom Rng;
@@ -178,53 +252,127 @@ namespace DtEngine
         public bool Fixed;
         public double LowestHp;
         public IBattleTrace Trace;
-        readonly HashSet<(Unit, int)> spent = new HashSet<(Unit, int)>();
+        readonly HashSet<(Unit, int)> spent;
         // Recorder, by position
-        public int[] RecDamage = new int[64], RecActions = new int[64];
+        public int[] RecDamage, RecActions;
+        Action[] lastAction;
+        bool[] reprisal;
+        bool reprisalDirty;
         // the full recorder (null when nobody asks for it)
         public Recorder Rec;
         Dictionary<Unit, int> damageByTarget;
         // Cover: units with Cover that took a hit in place of another, in the order they did
-        readonly List<(Unit unit, int count)> covered = new List<(Unit, int)>();
-        readonly List<Unit> guarding = new List<Unit>();
+        readonly List<(Unit unit, int count)> covered;
+        readonly List<Unit> guarding;
         // the "mean" mode of the policies: the random term of the wait is the mean of the six values
         public bool MeanWait;
+        int activeDolls;
+        bool anyDemonWall;
 
         public Battle(GameData data, List<Unit> party, List<Unit> enemies, PyRandom rng, Policy choose, BattleOptions options, Zone zone,
                       double maxTime = 400.0)
         {
+            var ts = threadScratch ?? (threadScratch = new ThreadScratch());
+            if (!ts.InUse) { ts.InUse = true; scratch = ts; scratchRented = true; }
+            else scratch = new ThreadScratch();
+
+            spent = scratch.Spent; spent.Clear();
+            covered = scratch.Covered; covered.Clear();
+            guarding = scratch.Guarding; guarding.Clear();
+            ScratchAction = scratch.ScratchAction;
+            PolicyScratch = scratch.PolicyScratch; PolicyScratch.Clear();
+            redirectScratch = scratch.RedirectScratch; redirectScratch.Clear();
+            delayOrderScratch = scratch.DelayOrderScratch; delayOrderScratch.Clear();
+            statusScratch = scratch.StatusScratch;
+            dispelRemoveScratch = scratch.DispelRemoveScratch;
+            tickScratch = scratch.TickScratch;
+            CandidateSkills = scratch.CandidateSkills;
+            CandidateLevels = scratch.CandidateLevels;
+            OptionCache = scratch.OptionCache;
+            pickOrdered = scratch.PickOrdered;
+            pickWeights = scratch.PickWeights;
+            RecDamage = scratch.RecDamage;
+            RecActions = scratch.RecActions;
+            lastAction = scratch.LastAction;
+            reprisal = scratch.Reprisal;
+
             Data = data; Rng = rng;
             Units = new List<Unit>(party.Count + enemies.Count + 16);
             Units.AddRange(party);
             Units.AddRange(enemies);
-            for (int k = 0; k < Units.Count; k++) { Units[k].Position = k; Units[k].Roster = roster; }
+            Grow(Units.Count + 15);
+            Array.Clear(RecDamage, 0, Units.Count);
+            Array.Clear(RecActions, 0, Units.Count);
+            Array.Clear(lastAction, 0, Units.Count);
+            Array.Clear(reprisal, 0, Units.Count);
+            int ocClear = Math.Min(OptionCache.Length, Units.Count);
+            for (int k = 0; k < ocClear; k++) OptionCache[k].Owner = null;
+            for (int k = 0; k < Units.Count; k++)
+            {
+                var u = Units[k];
+                u.Position = k; u.Roster = roster;
+                if (u.Kind == Kind.Doll && u.Alive) activeDolls++;
+                if (u.Has(DEMON_WALL)) anyDemonWall = true;
+            }
             roster.Version++;
             ChooseMember = choose;
             Options = options ?? new BattleOptions();
             ZoneInfo = zone;
             MaxTime = maxTime;
             if (Options.Record) Rec = new Recorder();
-            if (RecDamage.Length < Units.Count + 16) { RecDamage = new int[Units.Count + 32]; RecActions = new int[Units.Count + 32]; }
+        }
+
+        void ReleaseScratch()
+        {
+            if (!scratchRented) return;
+            scratchRented = false;
+            int n = Units.Count;
+            Array.Clear(lastAction, 0, Math.Min(n, lastAction.Length));
+            int ocClear = Math.Min(n, OptionCache.Length);
+            for (int k = 0; k < ocClear; k++) { OptionCache[k].Owner = null; OptionCache[k].List?.Clear(); }
+            Array.Clear(pickOrdered, 0, pickOrdered.Length);
+            Array.Clear(CandidateSkills, 0, CandidateSkills.Length);
+            ScratchAction.Reset(null, AKind.Attack, null, 1);
+            spent.Clear();
+            covered.Clear();
+            guarding.Clear();
+            PolicyScratch.Clear();
+            redirectScratch.Clear();
+            delayOrderScratch.Clear();
+            scratch.RecDamage = RecDamage;
+            scratch.RecActions = RecActions;
+            scratch.LastAction = lastAction;
+            scratch.Reprisal = reprisal;
+            scratch.CandidateSkills = CandidateSkills;
+            scratch.CandidateLevels = CandidateLevels;
+            scratch.OptionCache = OptionCache;
+            scratch.PickOrdered = pickOrdered;
+            scratch.PickWeights = pickWeights;
+            scratch.InUse = false;
         }
 
         void Grow(int position)
         {
             if (position >= RecDamage.Length)
             {
-                Array.Resize(ref RecDamage, position * 2 + 8);
-                Array.Resize(ref RecActions, position * 2 + 8);
+                int size = position * 2 + 8;
+                Array.Resize(ref RecDamage, size);
+                Array.Resize(ref RecActions, size);
+                Array.Resize(ref lastAction, size);
+                Array.Resize(ref reprisal, size);
             }
         }
 
         /// <summary>Objects the policy uses to examine the options of a decision one after the other (it makes the action it chooses afresh).</summary>
-        public readonly Action ScratchAction = new Action(null, AKind.Attack);
-        public readonly List<Unit> PolicyScratch = new List<Unit>(8);
-        readonly List<Unit> redirectScratch = new List<Unit>(8);
-        readonly List<Unit> delayOrderScratch = new List<Unit>(16);
-        readonly int[] statusScratch = new int[GameData.MaxEffect];
-        readonly int[] dispelRemoveScratch = new int[GameData.MaxEffect];
-        public Skill[] CandidateSkills = new Skill[32];
-        public int[] CandidateLevels = new int[32];
+        public readonly Action ScratchAction;
+        public readonly List<Unit> PolicyScratch;
+        readonly List<Unit> redirectScratch;
+        readonly List<Unit> delayOrderScratch;
+        readonly int[] statusScratch;
+        readonly int[] dispelRemoveScratch;
+        readonly int[] tickScratch;
+        public Skill[] CandidateSkills;
+        public int[] CandidateLevels;
 
         public struct OptionEntry
         {
@@ -235,7 +383,7 @@ namespace DtEngine
         }
 
         /// <summary>The skills each unit could use at her last decision, by position (Policy.Options).</summary>
-        public OptionEntry[] OptionCache = new OptionEntry[16];
+        public OptionEntry[] OptionCache;
 
         // --- sides -----------------------------------------------------------------------------------------
         // The lists of the units of one side are worked out again only when a unit has fallen, risen or joined since they were made.
@@ -312,6 +460,13 @@ namespace DtEngine
             Units.Add(unit);
             roster.Version++;
             Grow(unit.Position);
+            RecDamage[unit.Position] = 0;
+            RecActions[unit.Position] = 0;
+            lastAction[unit.Position] = null;
+            reprisal[unit.Position] = false;
+            if (unit.Position < OptionCache.Length) OptionCache[unit.Position] = default;
+            if (unit.Kind == Kind.Doll && unit.Alive) activeDolls++;
+            if (unit.Has(DEMON_WALL)) anyDemonWall = true;
         }
 
         public List<Unit> Side(int side, bool aliveOnly = true)
@@ -345,8 +500,12 @@ namespace DtEngine
 
         bool HasOwnedDoll(Unit owner)
         {
-            foreach (var u in Units)
+            if (activeDolls == 0) return false;
+            for (int i = 0; i < Units.Count; i++)
+            {
+                var u = Units[i];
                 if (u.Alive && u.Kind == Kind.Doll && u.Owner == owner) return true;
+            }
             return false;
         }
 
@@ -355,13 +514,11 @@ namespace DtEngine
         {
             int statName = Unit.AGI;
             double f1 = 1.0, f2 = 1.0;
-            var s = new PySum();
-            foreach (int e in SPEED_BUFFS) AddStatus(ref s, unit, e);
             // _SetTime (0x44a23d..0x44a303): 276 (Self Session) and 277 (On Stage) apply on acting turns;
             // 316 (Double Puppet) applies to the acting puppeteer while her puppet vector [unit+0xd4..0xd8] is non-empty.
-            double bonus = s.Result + unit.Value(276) + unit.Value(277) + (HasOwnedDoll(unit) ? unit.Value(316) : 0.0);
+            double bonus = SumStatus(unit, SPEED_BUFFS) + unit.Value(276) + unit.Value(277) + (HasOwnedDoll(unit) ? unit.Value(316) : 0.0);
             if (unit.Hp <= 0.4 * unit.MaxHp && unit.Has(261)) bonus += unit.Value(261);
-            double enchant = F.SpeedEnchantBonus(unit.Pieces(51), unit.Pieces(52), unit.Pieces(53));
+            double enchant = unit.HasEnchants ? F.SpeedEnchantBonus(unit.Pieces(51), unit.Pieces(52), unit.Pieces(53)) : 0.0;
             if (action != null)
             {
                 if (chanting)
@@ -370,10 +527,8 @@ namespace DtEngine
                     statName = cs == 1 ? Unit.INT : cs == 2 ? Unit.RES : Unit.AGI;
                     double? cspeed = action.ChantSpeed;
                     f2 = cspeed.HasValue && cspeed.Value != 0 ? cspeed.Value : 1.0;
-                    var c = new PySum();
-                    foreach (int e in CHANT_SPEED_BUFFS) AddStatus(ref c, unit, e);
-                    bonus = c.Result + unit.Passive(265, 0.0) + unit.Passive(281, 0.0);
-                    enchant = F.SpeedEnchantBonus(unit.Pieces(54), unit.Pieces(55), unit.Pieces(56), 0.20, 0.10, 0.20);
+                    bonus = SumStatus(unit, CHANT_SPEED_BUFFS) + unit.Passive(265, 0.0) + unit.Passive(281, 0.0);
+                    enchant = unit.HasEnchants ? F.SpeedEnchantBonus(unit.Pieces(54), unit.Pieces(55), unit.Pieces(56), 0.20, 0.10, 0.20) : 0.0;
                 }
                 else if (action.Kind == AKind.Skill || action.Kind == AKind.Enemy)
                 {
@@ -387,7 +542,7 @@ namespace DtEngine
             double random = MeanWait ? F.SPEED_RANDOM_MEAN : F.SPEED_RANDOM[Rng.ChoiceIndex(F.SPEED_RANDOM.Length)];
             double value = F.TurnValue(stat, unit.Weight, unit.Level, f1 * f2, bonus + enchant, unit.St[122] != null,
                                        action != null && action.Kind == AKind.Defend, false, random);
-            if (chanting && unit.Pieces(298) != 0) value = Math.Min(F.VALUE_CAP, value + 0.25);
+            if (chanting && unit.HasEnchants && unit.Pieces(298) != 0) value = Math.Min(F.VALUE_CAP, value + 0.25);
             return Math.Max(1.0 - F.VALUE_CAP, 1.0 - value);
         }
 
@@ -439,27 +594,35 @@ namespace DtEngine
         // --- the battle ------------------------------------------------------------------------------------
         public BattleResult Run()
         {
-            Trace?.Begin(this);
-            Start();
-            Trace?.Started(this);
-            LowestHp = PartyHpShare();
-            while (!Over() && Time < MaxTime && Actions < MaxActions)
+            try
             {
-                Unit unit = null;
-                foreach (var u in Units)
+                Trace?.Begin(this);
+                Start();
+                Trace?.Started(this);
+                LowestHp = PartyHpShare();
+                while (!Over() && Time < MaxTime && Actions < MaxActions)
                 {
-                    if (!u.Alive) continue;
-                    if (unit == null || u.NextTime < unit.NextTime || (u.NextTime == unit.NextTime && u.TieKey > unit.TieKey)) unit = u;
+                    Unit unit = null;
+                    for (int i = 0; i < Units.Count; i++)
+                    {
+                        var u = Units[i];
+                        if (!u.Alive) continue;
+                        if (unit == null || u.NextTime < unit.NextTime || (u.NextTime == unit.NextTime && u.TieKey > unit.TieKey)) unit = u;
+                    }
+                    Time = unit.NextTime;
+                    Trace?.TurnStart(this, unit);
+                    Turn(unit);
+                    Trace?.TurnEnd(this, unit);
+                    LowestHp = Math.Min(LowestHp, PartyHpShare());
                 }
-                Time = unit.NextTime;
-                Trace?.TurnStart(this, unit);
-                Turn(unit);
-                Trace?.TurnEnd(this, unit);
-                LowestHp = Math.Min(LowestHp, PartyHpShare());
+                var result = Result();
+                Trace?.Ended(this, result);
+                return result;
             }
-            var result = Result();
-            Trace?.Ended(this, result);
-            return result;
+            finally
+            {
+                ReleaseScratch();
+            }
         }
 
         public double PartyHpShare()
@@ -716,14 +879,11 @@ namespace DtEngine
             Rec?.TpSpent.Add(new RecKey(unit), cost);
         }
 
-        readonly Dictionary<Unit, Action> lastAction = new Dictionary<Unit, Action>();
-
         void EndOfTurn(Unit unit, bool acted, bool ticks)
         {
             if (unit.Alive && ticks) Tick(unit);
             if (!unit.Alive) return;
-            Action last = null;
-            if (acted) lastAction.TryGetValue(unit, out last);
+            Action last = acted ? lastAction[unit.Position] : null;
             double wait;
             if (unit.Chant != null) wait = Wait(unit, unit.Chant, true);
             else wait = Wait(unit, last);
@@ -756,8 +916,6 @@ namespace DtEngine
                 }
             }
         }
-
-        readonly int[] tickScratch = new int[GameData.MaxEffect];
 
         void Tick(Unit unit)
         {
@@ -861,14 +1019,14 @@ namespace DtEngine
         public void Perform(Action action)
         {
             var unit = action.Actor;
-            lastAction[unit] = action;
             Grow(unit.Position);
+            lastAction[unit.Position] = action;
             RecActions[unit.Position]++;
             Rec?.Actions.Add(new RecKey(unit), 1);
             Trace?.Perform(this, action);
             if (action.Kind == AKind.Chant)
             {
-                lastAction[unit] = null;
+                lastAction[unit.Position] = null;
                 return;
             }
             if (action.Kind == AKind.Defend)
@@ -890,22 +1048,18 @@ namespace DtEngine
                 return;
             }
             if (!action.Chanting && action.Kind == AKind.Skill && !action.ChantSpeed.HasValue) Pay(action);
-            string key = action.SourceName ?? "Attack";
-            Rec?.SkillUses.Add(new RecKey(unit, key), 1);
+            if (Rec != null) Rec.SkillUses.Add(new RecKey(unit, action.SourceName ?? "Attack"), 1);
             unit.LastSkillId = action.SourceId;
-            unit.Uses.TryGetValue(key, out int used);
-            unit.Uses[key] = used + 1;
-            if (action.Atk != null)
+            if (action.Atk != null) unit.RecordUseById(action.Atk.Id);
+            if (action.HasRandomMove)
             {
-                unit.UsesById.TryGetValue(action.Atk.Id, out int usedId);
-                unit.UsesById[action.Atk.Id] = usedId + 1;
-            }
-            foreach (int randomEffect in RANDOM_MOVES)
-            {
-                if (action.Has(randomEffect))
+                foreach (int randomEffect in RANDOM_MOVES)
                 {
-                    action = RandomMove(action, randomEffect);
-                    if (action == null) return;
+                    if (action.Has(randomEffect))
+                    {
+                        action = RandomMove(action, randomEffect);
+                        if (action == null) return;
+                    }
                 }
             }
             if (action.Has(228) || action.Has(229) || action.Has(230) || action.Has(231) || action.Has(232) || action.Has(233) || action.Has(146))
@@ -963,7 +1117,7 @@ namespace DtEngine
                 }
             }
             int index = 0;
-            reprisal.Clear();
+            if (reprisalDirty) { Array.Clear(reprisal, 0, Units.Count); reprisalDirty = false; }
             damageByTarget = Rec != null ? new Dictionary<Unit, int>() : null;
             foreach (var target in targets)
             {
@@ -986,15 +1140,19 @@ namespace DtEngine
             guarding.Clear();
             // Reprisal after the action: the first target, in order, whose record is set and who still bears it and stands (0x424d50 -
             // 0x424de7); one counter for the whole action
-            foreach (var target in targets)
+            if (reprisalDirty)
             {
-                if (reprisal.TryGetValue(target, out bool set) && set && target.Has(249) && target.Alive)
+                foreach (var target in targets)
                 {
-                    Counter(target, unit);
-                    break;
+                    if (reprisal[target.Position] && target.Has(249) && target.Alive)
+                    {
+                        Counter(target, unit);
+                        break;
+                    }
                 }
+                Array.Clear(reprisal, 0, Units.Count);
+                reprisalDirty = false;
             }
-            reprisal.Clear();
             if (action.Has(SACRIFICE) && unit.Alive) LoseHp(unit, unit.MaxHp, unit);
             if (damageByTarget != null)
             {
@@ -1024,7 +1182,6 @@ namespace DtEngine
         }
 
         static readonly Unit[] NoUnits = new Unit[0];
-        readonly Dictionary<Unit, bool> reprisal = new Dictionary<Unit, bool>();
 
         /// <summary>A doll, the summon or a guest: numbered 2000 or more, never a candidate (0x43e6d0), never answered by a counter
         /// (0x43b5f0, 0x43b610).</summary>
@@ -1195,28 +1352,28 @@ namespace DtEngine
             return r;
         }
 
-        static readonly Dictionary<(int, int), int> ShareRows = new Dictionary<(int, int), int>
+        static readonly int[] ShareRowEmpty = { 100 };
+        // ShareRowTable[size, front]: row index into F.TARGET_SHARE for size 1..5, front 1..3 (size 5 front 1 falls back to max front=3 -> row 9).
+        static readonly int[,] ShareRowTable =
         {
-            { (1, 1), 0 }, { (1, 0), 0 }, { (2, 2), 1 }, { (2, 1), 2 }, { (3, 3), 3 }, { (3, 2), 4 }, { (3, 1), 5 }, { (4, 3), 6 },
-            { (4, 2), 7 }, { (4, 1), 8 }, { (5, 3), 9 }, { (5, 2), 10 },
+            { 0, 0, 0, 0 },
+            { 0, 0, 0, 0 },  // size 1: front 1 -> 0
+            { 0, 2, 1, 1 },  // size 2: front 1 -> 2, front 2 -> 1
+            { 0, 5, 4, 3 },  // size 3: front 1 -> 5, front 2 -> 4, front 3 -> 3
+            { 0, 8, 7, 6 },  // size 4: front 1 -> 8, front 2 -> 7, front 3 -> 6
+            { 0, 9, 10, 9 }, // size 5: front 1 -> fallback max front(3)=9, front 2 -> 10, front 3 -> 9
         };
 
         static int[] TargetShareRow(int size, int front)
         {
-            if (size == 0) return new[] { 100 };
+            if (size == 0) return ShareRowEmpty;
+            if (size > 5) return F.TARGET_SHARE[9];
             front = Math.Max(1, Math.Min(Math.Min(front, 3), size));
-            if (!ShareRows.TryGetValue((size, front), out int row))
-            {
-                int best = int.MinValue;
-                foreach (var k in ShareRows.Keys) if (k.Item1 == size && k.Item2 > best) best = k.Item2;
-                if (best == int.MinValue) throw new InvalidOperationException("max() of an empty sequence");
-                row = ShareRows[(size, best)];
-            }
-            return size <= 5 ? F.TARGET_SHARE[row] : F.TARGET_SHARE[9];
+            return F.TARGET_SHARE[ShareRowTable[size, front]];
         }
 
-        Unit[] pickOrdered = new Unit[16];
-        int[] pickWeights = new int[16];
+        Unit[] pickOrdered;
+        int[] pickWeights;
 
         Unit WeightedPick(Unit enemy, Unit[] party)
         {
@@ -1228,13 +1385,15 @@ namespace DtEngine
             var row = TargetShareRow(count, frontCount);
             var weights = pickWeights;
             long total = 0;
+            bool enemyProvoked = enemy.St[170] != null && enemy.HasProvokedBy;
+            var provokedList = enemyProvoked ? enemy.ProvokedBy : null;
             for (int k = 0; k < count; k++)
             {
                 var u = ordered[k];
                 int share = k < row.Length ? row[k] : row[row.Length - 1];
                 double provoked = 0.0;
-                if (enemy.St[170] != null)
-                    foreach (var (pu, pv) in enemy.ProvokedBy) if (pu == u) { provoked = pv; break; }
+                if (provokedList != null)
+                    for (int pi = 0; pi < provokedList.Count; pi++) if (provokedList[pi].unit == u) { provoked = provokedList[pi].value; break; }
                 weights[k] = F.TargetWeight(share, provoked, u.Pieces(49), u.Pieces(50));
                 total += weights[k];
             }
@@ -1249,20 +1408,17 @@ namespace DtEngine
 
         int NumberOfHits(Action action)
         {
-            bool rondo = action.Has(210) || action.Actor.Has(210);
-            int hits = 0;
-            bool found = false;
-            foreach (var m in MULTI_HIT)
+            int hits;
+            int mhIdx = action.MultiHitIndex;
+            if (mhIdx >= 0)
             {
-                if (action.Has(m.effect))
-                {
-                    var table = rondo ? m.rondo : m.weights;
-                    hits = m.baseHits + Weighted(m.picks, table);
-                    found = true;
-                    break;
-                }
+                bool rondo = action.Has(210) || action.Actor.Has(210);
+                var m = MULTI_HIT[mhIdx];
+                var table = rondo ? m.rondo : m.weights;
+                double sum = rondo ? MultiHitRondoSum[mhIdx] : MultiHitWeightSum[mhIdx];
+                hits = m.baseHits + WeightedWithSum(m.picks, table, sum);
             }
-            if (!found)
+            else
             {
                 double v = action.Val(93, 1);
                 hits = PyMath.Int(v != 0 ? v : 1);
@@ -1276,6 +1432,17 @@ namespace DtEngine
             }
             if (action.Has(178)) hits += PyMath.Int(action.Val(178, 0)) + 1;
             return Math.Max(1, hits);
+        }
+
+        int WeightedWithSum(int[] picks, double[] weights, double total)
+        {
+            double roll = Rng.Random() * total;
+            for (int i = 0; i < picks.Length && i < weights.Length; i++)
+            {
+                roll -= weights[i];
+                if (roll < 0) return picks[i];
+            }
+            return picks[picks.Length - 1];
         }
 
         int Weighted(int[] picks, double[] weights)
@@ -1368,14 +1535,17 @@ namespace DtEngine
         {
             var unit = action.Actor;
             int attr = action.Attr;
-            // NULLIFY_ENCHANTS in the order of the dict: 120 slash, 121 stab, 122 bash, 123 every blow, 124 fire ... 128 lightning
-            for (int enchant = 120; enchant <= 128; enchant++)
+            if (target.HasNullifyEnchant)
             {
-                if (target.Pieces(enchant) != 0)
+                // NULLIFY_ENCHANTS in the order of the dict: 120 slash, 121 stab, 122 bash, 123 every blow, 124 fire ... 128 lightning
+                for (int enchant = 120; enchant <= 128; enchant++)
                 {
-                    bool attrMatch = enchant == 123 ? T.Physical(attr) : enchant <= 122 ? attr == enchant - 119 : attr == enchant - 120;
-                    bool blowsOnly = enchant <= 123;
-                    if (attrMatch && (action.Physical || !blowsOnly)) return true;
+                    if (target.Pieces(enchant) != 0)
+                    {
+                        bool attrMatch = enchant == 123 ? T.Physical(attr) : enchant <= 122 ? attr == enchant - 119 : attr == enchant - 120;
+                        bool blowsOnly = enchant <= 123;
+                        if (attrMatch && (action.Physical || !blowsOnly)) return true;
+                    }
                 }
             }
             if (target.Has(192) && attr != T.NEUTRAL) return true;
@@ -1486,17 +1656,26 @@ namespace DtEngine
             else AddValue(ref s, unit, e);
         }
 
+        static double SumStatus(Unit u, int[] effects)
+        {
+            if (u.StCount == 0) return 0.0;
+            var s = new PySum();
+            for (int i = 0; i < effects.Length; i++) AddStatus(ref s, u, effects[i]);
+            return s.Result;
+        }
+
         double SumFirst(Action action, Unit unit, int[] effects)
         {
             var s = new PySum();
-            foreach (int e in effects) AddFirst(ref s, action, unit, e);
+            for (int i = 0; i < effects.Length; i++) AddFirst(ref s, action, unit, effects[i]);
             return s.Result;
         }
 
         static double SumValue(Unit u, int[] effects)
         {
+            if (u.StCount == 0 && !u.HasPassives) return 0.0;
             var s = new PySum();
-            foreach (int e in effects) AddValue(ref s, u, e);
+            for (int i = 0; i < effects.Length; i++) AddValue(ref s, u, effects[i]);
             return s.Result;
         }
 
@@ -1521,11 +1700,7 @@ namespace DtEngine
             return Rng.RandRange(100) < PyMath.Int(rate);
         }
 
-        public bool Special(Action action)
-        {
-            return action.Has(8) || action.Has(12) || action.Has(138) || action.Has(140) || action.Has(141) || action.Has(142) ||
-                   action.Has(434) || action.Has(435);
-        }
+        public bool Special(Action action) => action.IsSpecial;
 
         int Damage(Action action, Unit target, int index)
         {
@@ -1581,21 +1756,29 @@ namespace DtEngine
         /// 0x557e1c, 0x557e7c, 0x557eac); the wall is the first unit of the target's side that bears it.</summary>
         Unit DemonWallOf(Unit target, Unit attacker)
         {
-            if (attacker.Side != Unit.ENEMIES || attacker.Kind != Kind.Enemy || F.DEMON_WALL_RACES.IndexOf(attacker.Race) < 0) return null;
-            foreach (var u in Units) if (u.Side == target.Side && u.Alive && u.Has(DEMON_WALL)) return u;
+            if (!anyDemonWall || attacker.Side != Unit.ENEMIES || attacker.Kind != Kind.Enemy || F.DEMON_WALL_RACES.IndexOf(attacker.Race) < 0) return null;
+            for (int i = 0; i < Units.Count; i++)
+            {
+                var u = Units[i];
+                if (u.Side == target.Side && u.Alive && u.Has(DEMON_WALL)) return u;
+            }
             return null;
         }
 
         static bool AnyAilment(Unit u)
         {
-            foreach (int e in AILMENT_IDS) if (u.St[e] != null) return true;
+            if (u.StCount == 0) return false;
+            var ids = AILMENT_IDS;
+            for (int i = 0; i < ids.Length; i++) if (u.St[ids[i]] != null) return true;
             return false;
         }
 
         int CountAilments(Unit u)
         {
+            if (u.StCount == 0) return 0;
             int n = 0;
-            foreach (int e in AILMENT_IDS) if (u.St[e] != null) n++;
+            var ids = AILMENT_IDS;
+            for (int i = 0; i < ids.Length; i++) if (u.St[ids[i]] != null) n++;
             return n;
         }
 
@@ -1604,12 +1787,7 @@ namespace DtEngine
             immediateZero = 0;
             var unit = action.Actor;
             bool furious = action.Furious;
-            double modifiers = First(action, unit, 26) + (action.Atk != null ? action.Atk.Power : 0.0);
-            {
-                var s = new PySum();
-                foreach (int e in ATTACK_STATUS_MODIFIERS) AddStatus(ref s, unit, e);
-                modifiers += s.Result;
-            }
+            double modifiers = First(action, unit, 26) + (action.Atk != null ? action.Atk.Power : 0.0) + SumStatus(unit, ATTACK_STATUS_MODIFIERS);
             if (unit.HasUnique && unit.UniqueEffect == 443) modifiers += unit.UniqueValue;
             if (unit.Kind == Kind.Doll && unit.Owner != null)
                 modifiers += unit.Owner.Passive(286, 0.0) + Math.Min(0.05, 0.02 * unit.Owner.Pieces(304) + 0.01 * unit.Owner.Pieces(305));
@@ -1619,17 +1797,12 @@ namespace DtEngine
             if (action.Has(49)) atk = unit.Stat(Unit.INT);
             if (action.Has(47)) atk = unit.Stat(Unit.RES);
             if (action.Has(50)) atk = atk * action.Val(50, 0);
-            double targetMods;
-            {
-                var s = new PySum();
-                foreach (int e in DEFENCE_MODIFIERS) AddStatus(ref s, target, e);
-                targetMods = s.Result;
-            }
+            double targetMods = SumStatus(target, DEFENCE_MODIFIERS);
             double times = action.Val(73, 1.0); if (times == 0) times = 1.0;
             int reach = action.Reach;
             int dist = F.Distance(!unit.Front, !target.Front);
-            double cut = 1.0 - (0.10 * target.Pieces(66) + 0.05 * target.Pieces(67) + 0.08 * target.Pieces(70) + 0.04 * target.Pieces(71));
-            bool defending = target.Defending || guarding.Contains(target);
+            double cut = target.HasEnchants ? 1.0 - (0.10 * target.Pieces(66) + 0.05 * target.Pieces(67) + 0.08 * target.Pieces(70) + 0.04 * target.Pieces(71)) : 1.0;
+            bool defending = target.Defending || (guarding.Count > 0 && guarding.Contains(target));
             int resistIndex = T.ResistIndex(action.Attr);
             int resistance = resistIndex >= 0 ? target.Resistance(resistIndex) : 0;
             double raceBonus = (action.Has(88) && (target.Race == 5 || target.Race == 7 || target.Race == 8)) ? action.Val(88, 0) : 0.0;
@@ -1721,14 +1894,9 @@ namespace DtEngine
             int resistIndex = T.ResistIndex(attr);
             int resistance = resistIndex >= 0 ? target.Resistance(resistIndex) : 0;
             double powerBoost = First(action, unit, 27) + First(action, unit, 173);
-            double cut = Math.Max(-0.25, -(0.10 * target.Pieces(68) + 0.05 * target.Pieces(69) + 0.08 * target.Pieces(70) + 0.04 * target.Pieces(71))) + target.StatusValue(183);
+            double cut = (target.HasEnchants ? Math.Max(-0.25, -(0.10 * target.Pieces(68) + 0.05 * target.Pieces(69) + 0.08 * target.Pieces(70) + 0.04 * target.Pieces(71))) : 0.0) + target.StatusValue(183);
             double other = target.Value(190) + FullHpBonus(unit) + LevelBonus(unit, target);
-            double targetMods;
-            {
-                var s = new PySum();
-                foreach (int e in MAGIC_DEFENCE_MODIFIERS) AddValue(ref s, target, e);
-                targetMods = s.Result;
-            }
+            double targetMods = SumValue(target, MAGIC_DEFENCE_MODIFIERS);
             // the swing of a spell is the spell's own (0x44dbc3 - 0x44dc18), never the caster's weapon; an enemy attack has none
             double swing = expect || action.Skill == null ? 0.0 : SwingOf(action.Skill.Swing);
             // RaceGuard is multiplicative in the magic damage formula (0x44ee20: mulss xmm0, [ebp+0x5c]), matching physical.
@@ -1866,15 +2034,16 @@ namespace DtEngine
 
         double ExpectedDamageUncached(Action action, Unit target)
         {
-            if (action.Has(25) || !(action.Physical || action.Magic || Special(action))) return 0.0;
+            bool special = action.IsSpecial;
+            if (action.Has(25) || !(action.Physical || action.Magic || special)) return 0.0;
             if (VisiblyVoided(action, target)) return 0.0;
             double hits = MeanHits(action);
             double chance = HitChance(action, target);
             // a missed spell still strikes for half (three quarters with enchantment 272)
-            if (action.Magic && !Special(action))
+            if (action.Magic && !special)
                 chance += (1 - chance) * (action.Actor.Pieces(F.MISSED_SPELL_ENCHANT) != 0 ? 0.75 : 0.5);
             if (action.Has(139) && target.St[116] != null && !target.Immune("instant death")) return chance * target.Hp;
-            if (Special(action)) return chance * Math.Min(target.Hp, SpecialDamage(action, target));
+            if (special) return chance * Math.Min(target.Hp, SpecialDamage(action, target));
             double perHit;
             if (action.Magic) perHit = MagicDamageExpected(action, target);
             else
@@ -1883,13 +2052,10 @@ namespace DtEngine
                 double rate = CriticalRateOf(action, unit, target, 0);
                 perHit = PhysicalDamageExpected(action, target, F.ExpectedCriticalFactor(rate));
             }
-            if (target.St[116] != null && !Special(action)) perHit = perHit * F.SLEEP_NUM / F.SLEEP_DEN;
-            if (!Special(action))
-            {
-                Unit wall = DemonWallOf(target, action.Actor);
-                if (wall != null) perHit = Math.Max(0.0, perHit + perHit * wall.Value(DEMON_WALL));
-            }
-            if (!Special(action) && action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) perHit += perHit * F.AILING_SHARE;
+            if (target.St[116] != null) perHit = perHit * F.SLEEP_NUM / F.SLEEP_DEN;
+            Unit wall = DemonWallOf(target, action.Actor);
+            if (wall != null) perHit = Math.Max(0.0, perHit + perHit * wall.Value(DEMON_WALL));
+            if (action.Actor.Pieces(F.AILING_ENCHANT) != 0 && AnyAilment(target)) perHit += perHit * F.AILING_SHARE;
             if (action.Has(86) && target.Kind == Kind.Member && target.ClassId >= F.MAGIC_USER_LOW && target.ClassId < F.MAGIC_USER_HIGH) perHit += perHit;
             if (action.Magic)
             {
@@ -1905,24 +2071,14 @@ namespace DtEngine
 
         public double MeanHits(Action action)
         {
-            bool rondo = action.Has(210) || action.Actor.Has(210);
-            double hits = 0.0;
-            bool multi = false;
-            foreach (var m in MULTI_HIT)
+            double hits;
+            int mhIdx = action.MultiHitIndex;
+            if (mhIdx >= 0)
             {
-                if (action.Has(m.effect))
-                {
-                    var table = rondo ? m.rondo : m.weights;
-                    var s = new PySum();
-                    for (int i = 0; i < table.Length; i++) s.AddFloat(m.picks[i] * table[i]);
-                    var t = new PySum();
-                    foreach (var w in table) t.AddFloat(w);
-                    hits = m.baseHits + s.Result / t.Result;
-                    multi = true;
-                    break;
-                }
+                bool rondo = action.Has(210) || action.Actor.Has(210);
+                hits = rondo ? MultiHitMeanRondo[mhIdx] : MultiHitMeanNormal[mhIdx];
             }
-            if (!multi)
+            else
             {
                 hits = action.Val(93, 1);
                 if (hits == 0) hits = 1;
@@ -1976,6 +2132,7 @@ namespace DtEngine
         {
             if (unit.Side == Unit.PARTY && target.Side == Unit.ENEMIES)
             {
+                if (!unit.HasRaceAttackEnchant) return 1.0;
                 var s = new PySum();
                 if (target.Race != T.NONE && F.RACE_ATTACK.TryGetValue(target.Race, out var list))
                     foreach (var (e, share) in list) s.AddFloat(unit.Pieces(e) * share);
@@ -1990,13 +2147,14 @@ namespace DtEngine
 
         static double RaceGuard(Unit unit, Unit target)
         {
-            if (unit.Side == Unit.ENEMIES && target.Side == Unit.PARTY && unit.Race != T.NONE && F.RACE_GUARD.TryGetValue(unit.Race, out var g))
+            if (target.HasRaceGuardEnchant && unit.Side == Unit.ENEMIES && target.Side == Unit.PARTY && unit.Race != T.NONE && F.RACE_GUARD.TryGetValue(unit.Race, out var g))
                 return 1.0 - F.RACE_GUARD_SHARE_SMALL * target.Pieces(g.small) - F.RACE_GUARD_SHARE_LARGE * target.Pieces(g.large);
             return 1.0;
         }
 
         static double ElementFactor(Unit unit, Unit target, int attr)
         {
+            if (!unit.HasEnchants && !target.HasEnchants) return 1.0;
             int enchant = F.BothSidesElement(attr);
             if (enchant < 0) return 1.0;
             return 1.0 + F.ELEMENT_ENCHANT_SHARE * (unit.Pieces(enchant) + target.Pieces(enchant));
@@ -2092,9 +2250,8 @@ namespace DtEngine
 
         bool Performing(Unit unit)
         {
-            if (unit.Song.Count > 0 || unit.Dance.Count > 0) return true;
-            foreach (var u in Units) if (u.Owner == unit && u.Alive && u.Kind == Kind.Doll) return true;
-            return false;
+            if (unit.HasSongs || unit.HasDances) return true;
+            return HasOwnedDoll(unit);
         }
 
         public void LoseHp(Unit unit, int amount, Unit source)
@@ -2117,13 +2274,19 @@ namespace DtEngine
                 unit.Hp = Math.Max(1, PyMath.Int(unit.MaxHp * value));
                 return;
             }
+            if (unit.Kind == Kind.Doll && unit.Alive) activeDolls--;
             unit.Alive = false;
             unit.Chant = null;
             unit.ClearStatuses();
             if (Rec != null) { Rec.Deaths.Add(new RecKey(unit), 1); if (unit.Side == Unit.ENEMIES) Rec.Kills++; }
-            var dolls = new List<Unit>();
-            foreach (var u in Units) if (u.Owner == unit && u.Kind == Kind.Doll) dolls.Add(u);
-            foreach (var d in dolls) RemoveDoll(d);
+            if (activeDolls > 0)
+            {
+                for (int i = 0; i < Units.Count; i++)
+                {
+                    var u = Units[i];
+                    if (u.Owner == unit && u.Kind == Kind.Doll) RemoveDoll(u);
+                }
+            }
             foreach (var ally in Units)
             {
                 var effects = SnapshotStatuses(ally, statusScratch, out int count);
@@ -2239,7 +2402,7 @@ namespace DtEngine
                 }
                 if (effect == 425)
                 {
-                    EndParts(target, PartsAll);
+                    EndParts(target, PerfParts.All);
                     continue;
                 }
                 if (effect == MAX_HP_DRAIN && hostile && dealt != 0)
@@ -2332,22 +2495,24 @@ namespace DtEngine
                 // Reprisal rolls on every hit and writes the result on the target's record, the last hit's roll standing
                 // (0x424711); one counter at most is set up after the whole action (0x4247e0)
                 if (target.Has(249) && action.Physical && (action.Reach == T.SHORT || action.Reach == T.MID) && !unit.Has(307))
-                    reprisal[target] = Roll(target.Value(249));
+                {
+                    reprisal[target.Position] = Roll(target.Value(249));
+                    reprisalDirty = true;
+                }
             }
         }
 
-        static readonly string[] PartsAll = { "chant", "song", "dance", "doll" };
-        static string[] PartsFor(int effect)
+        static PerfParts PartsFor(int effect)
         {
             switch (effect)
             {
-                case 114: return new[] { "dance", "doll" };
-                case 116: return PartsAll;
-                case 117: return new[] { "chant", "song" };
-                case 118: return PartsAll;
-                case 121: return PartsAll;
-                case 123: return PartsAll;
-                default: return Array.Empty<string>();
+                case 114: return PerfParts.Dance | PerfParts.Doll;
+                case 116: return PerfParts.All;
+                case 117: return PerfParts.Chant | PerfParts.Song;
+                case 118: return PerfParts.All;
+                case 121: return PerfParts.All;
+                case 123: return PerfParts.All;
+                default: return PerfParts.None;
             }
         }
 
@@ -2438,8 +2603,13 @@ namespace DtEngine
 
         public static bool Nullified(Unit target, int ailment)
         {
+            if (!target.HasEnchants) return false;
             if (target.Pieces(F.ENCHANT_NULLIFY_ALL) != 0) return true;
-            foreach (var (e, a) in F.ENCHANT_NULLIFY_AILMENT) if (a == ailment && target.Pieces(e) != 0) return true;
+            if ((uint)ailment < (uint)NullifyEnchantOfAilment.Length)
+            {
+                int e = NullifyEnchantOfAilment[ailment];
+                if (e >= 0 && target.Pieces(e) != 0) return true;
+            }
             return false;
         }
 
@@ -2453,17 +2623,16 @@ namespace DtEngine
 
         void EndPerformances(Unit unit)
         {
-            EndParts(unit, new[] { "song", "dance", "doll" });
+            EndParts(unit, PerfParts.Song | PerfParts.Dance | PerfParts.Doll);
         }
 
-        void EndParts(Unit unit, string[] parts)
+        void EndParts(Unit unit, PerfParts parts)
         {
-            bool chant = false, song = false, dance = false, doll = false;
-            foreach (var p in parts) { if (p == "chant") chant = true; if (p == "song") song = true; if (p == "dance") dance = true; if (p == "doll") doll = true; }
-            if (chant) unit.Chant = null;
+            if (parts == PerfParts.None) return;
+            if ((parts & PerfParts.Chant) != 0) unit.Chant = null;
             for (int pass = 0; pass < 2; pass++)
             {
-                bool wanted = pass == 0 ? song : dance;
+                bool wanted = pass == 0 ? ((parts & PerfParts.Song) != 0 && unit.HasSongs) : ((parts & PerfParts.Dance) != 0 && unit.HasDances);
                 if (!wanted) continue;
                 var names = pass == 0 ? unit.Song : unit.Dance;
                 foreach (var other in Units)
@@ -2478,12 +2647,13 @@ namespace DtEngine
                 }
                 names.Clear();
             }
-            if (doll)
+            if ((parts & PerfParts.Doll) != 0 && activeDolls > 0)
             {
-                var list = new List<Unit>();
-                foreach (var u in Units)
-                    if (u.Owner == unit && u.Kind == Kind.Doll && u.Alive && !u.Arrow && !u.Genjimaru) list.Add(u);
-                foreach (var d in list) RemoveDoll(d);
+                for (int i = 0; i < Units.Count; i++)
+                {
+                    var u = Units[i];
+                    if (u.Owner == unit && u.Kind == Kind.Doll && u.Alive && !u.Arrow && !u.Genjimaru) RemoveDoll(u);
+                }
             }
         }
 
@@ -2771,6 +2941,7 @@ namespace DtEngine
 
         void RemoveDoll(Unit doll)
         {
+            if (doll.Alive) activeDolls--;
             doll.Alive = false;
             doll.Chant = null;
         }

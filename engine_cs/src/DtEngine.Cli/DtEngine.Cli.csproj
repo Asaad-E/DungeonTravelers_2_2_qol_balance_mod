@@ -7,8 +7,8 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>DtEngine.Cli</RootNamespace>
     <AssemblyName>dtcli</AssemblyName>
-    <ServerGarbageCollector>true</ServerGarbageCollector>
-    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>

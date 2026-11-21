@@ -88,6 +88,19 @@ namespace DtEngine
         public int ChantStat;
         public bool Chanted => ChantSpeed != 0;
         public Action.FxSet Fx;       // the effects as arrays shared by the actions (made when first asked)
+        int summonsDollState;         // 0 unknown, 1 false, 2 true
+        public bool SummonsDoll
+        {
+            get
+            {
+                if (summonsDollState != 0) return summonsDollState == 2;
+                bool found = false;
+                if (EffId != null)
+                    for (int k = 0; k < EffId.Length; k++) if (EffId[k] == 146) { found = true; break; }
+                summonsDollState = found ? 2 : 1;
+                return found;
+            }
+        }
     }
 
     public sealed class Command
@@ -120,8 +133,17 @@ namespace DtEngine
         public int Id;
         public CommandList Opening;
         public AiSet[] Sets;
-        public AiSet Get(int number) { foreach (var s in Sets) if (s.Number == number) return s; return null; }
-        public int MinSet() { int m = int.MaxValue; foreach (var s in Sets) m = Math.Min(m, s.Number); return Sets.Length == 0 ? 0 : m; }
+        int minSet = int.MinValue;
+        public AiSet Get(int number) { for (int i = 0; i < Sets.Length; i++) if (Sets[i].Number == number) return Sets[i]; return null; }
+        public int MinSet()
+        {
+            if (minSet != int.MinValue) return minSet;
+            if (Sets.Length == 0) { minSet = 0; return 0; }
+            int m = Sets[0].Number;
+            for (int i = 1; i < Sets.Length; i++) if (Sets[i].Number < m) m = Sets[i].Number;
+            minSet = m;
+            return m;
+        }
     }
 
     public sealed class EnemyRec
@@ -341,17 +363,70 @@ namespace DtEngine
             return copy;
         }
 
+        Dictionary<(string, int), FixedBattle> fixedIndex;
+        Skill[] skillByIdArr;
+        EnemyAttack[] attackByIdArr;
+
         /// <summary>A copy that shares every table; a trial replaces the tables it changes in the copy.</summary>
-        public GameData ShallowCopy() => (GameData)MemberwiseClone();
+        public GameData ShallowCopy()
+        {
+            var copy = (GameData)MemberwiseClone();
+            copy.skillByIdArr = null;
+            copy.attackByIdArr = null;
+            copy.fixedIndex = null;
+            return copy;
+        }
 
         public Skill GetSkill(string category, int id) => Skills.TryGetValue((category, id), out var s) ? s : null;
-        public Skill ById(int id) => SkillById.TryGetValue(id, out var s) ? s : null;
+
+        public Skill ById(int id)
+        {
+            var arr = skillByIdArr;
+            if (arr == null && SkillById.Count > 0)
+            {
+                int max = 0;
+                foreach (int k in SkillById.Keys) if (k > max) max = k;
+                if (max < 4096)
+                {
+                    arr = new Skill[max + 1];
+                    foreach (var kv in SkillById) if (kv.Key >= 0) arr[kv.Key] = kv.Value;
+                    skillByIdArr = arr;
+                }
+            }
+            if (arr != null && (uint)id < (uint)arr.Length) return arr[id];
+            return SkillById.TryGetValue(id, out var s) ? s : null;
+        }
+
         public bool IsPassiveId(int id) => Skills.ContainsKey(("Passive", id));
-        public EnemyAttack GetAttack(int id) => Attacks.TryGetValue(id, out var a) ? a : null;
+
+        public EnemyAttack GetAttack(int id)
+        {
+            var arr = attackByIdArr;
+            if (arr == null && Attacks.Count > 0)
+            {
+                int max = 0;
+                foreach (int k in Attacks.Keys) if (k > max) max = k;
+                if (max < 8192)
+                {
+                    arr = new EnemyAttack[max + 1];
+                    foreach (var kv in Attacks) if (kv.Key >= 0) arr[kv.Key] = kv.Value;
+                    attackByIdArr = arr;
+                }
+            }
+            if (arr != null && (uint)id < (uint)arr.Length) return arr[id];
+            return Attacks.TryGetValue(id, out var a) ? a : null;
+        }
 
         public FixedBattle FindFixed(string floor, int number)
         {
-            foreach (var b in Fixed) if (b.Floor == floor && b.Number == number) return b;
+            var map = fixedIndex;
+            if (map == null)
+            {
+                map = new Dictionary<(string, int), FixedBattle>(Fixed.Count);
+                foreach (var b in Fixed) if (!map.ContainsKey((b.Floor, b.Number))) map[(b.Floor, b.Number)] = b;
+                fixedIndex = map;
+            }
+            if (map.TryGetValue((floor, number), out var found)) return found;
             throw new InvalidOperationException("no fixed battle " + floor + " " + number);
         }
 

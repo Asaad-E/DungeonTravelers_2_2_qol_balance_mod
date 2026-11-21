@@ -27,7 +27,8 @@ namespace DtEngine.Suite
         public Ctx(Snapshot snap, string root, int threads, Obj inputs)
         {
             Snap = snap; Root = root; Threads = Math.Max(1, threads); Inputs = inputs;
-            jobGate = new SemaphoreSlim(Math.Max(1, Math.Min(2, (Threads + 3) / 4)));
+            // One parallel JobRunner batch owns all Threads cleanly while other measures overlap on setup/JSON/markdown I/O.
+            jobGate = new SemaphoreSlim(1);
             foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
         }
 

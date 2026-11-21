@@ -13,6 +13,10 @@ namespace DtEngine
         static readonly int[] ITEM_TP_KINDS = { 1 };
         static readonly int[] ITEM_REVIVE_KINDS = { 8 };
         static readonly int[] ITEM_CURE_KINDS = { Battle.ITEM_CURE_ALL, Battle.ITEM_CURE_ONE };
+        static readonly int[] RANDOM_HARM_EFFECTS = { 0, 1, 8, 113, 114, 115, 116, 117, 118, 119, 120, 122, 123, 140, 143, 435 };
+        static readonly int[] RANDOM_HEAL_EFFECTS = { 9, 103, 104, 128, 132 };
+        static readonly int[] RANDOM_BAD_EFFECTS = { 425, 143 };
+        static readonly int[] RANDOM_GOOD_EFFECTS = { 427 };
         const string EVERY_ROLE = "*";
 
         enum Cond { Always, AllyHpBelow, PartyHpBelow, AllyDown, AllyTpBelow, SelfTpBelow, SelfHpBelow, EnemyBuffed, AllyAiling, TurnAtMost, EnemiesAtLeast, Boss, NoDoll, DollSlotFree, FoesAttack, FoesCast, EnemyNamed, NoFoeDispels }
@@ -25,10 +29,24 @@ namespace DtEngine
             public Act Action;
             public string AArg;
             public string ActionName;
+            // Pre-parsed arguments (avoid repeated string parsing/splitting in hot loops)
+            public double CNum;
+            public int CInt;
+            public int CAttr;
+            public string[] CNames;
+            public int[] CAilments;
+            public int AEffect;
+            public double ANum;
+            public int[] AAilments;
+            public double AilmentFloor;
+            public bool HasOwnFloor;
+            public string[] DollNames;
         }
 
         readonly Dictionary<string, List<Rule>> rules = new Dictionary<string, List<Rule>>();
+        readonly HashSet<string> rolesWithHeal = new HashSet<string>(StringComparer.Ordinal);
         readonly double tpWeight, tpReserve, punishedBlowFloor, healReserveCasts, partyBuffRecastShare, ailmentMinChance;
+        readonly double[] ailmentFloorByEffect = new double[GameData.MaxEffect];
 
         readonly Setup policySetup;              // for the settings read per effect (ailment_min_chance_<effect>)
 
@@ -47,6 +65,12 @@ namespace DtEngine
             healReserveCasts = Get("heal_reserve_casts", 0);
             partyBuffRecastShare = Get("party_buff_recast_share", 0);
             ailmentMinChance = Get("ailment_min_chance", 0.5);
+            Array.Fill(ailmentFloorByEffect, double.NaN);
+            foreach (int e in Battle.AILMENT_IDS)
+            {
+                object own = setup.Setting("ailment_min_chance_" + e);
+                if (own != null) ailmentFloorByEffect[e] = Setup.ToDouble(own) * 100.0;
+            }
             var sorted = policyRows.OrderBy(r => r.Str("Role"), StringComparer.Ordinal).ThenBy(r => r.Dbl("Order")).ToList();
             foreach (var r in sorted)
             {
@@ -56,8 +80,77 @@ namespace DtEngine
                 if (p >= 0) { cond = c.Substring(0, p); cArg = c.Substring(p + 1); }
                 p = a.IndexOf(':');
                 if (p >= 0) { act = a.Substring(0, p); aArg = a.Substring(p + 1); }
-                var rule = new Rule { Condition = ParseCond(cond, r), CArg = cArg == "" ? null : cArg, Action = ParseAct(act, r), AArg = aArg == "" ? null : aArg, ActionName = act };
+                var parsedCond = ParseCond(cond, r);
+                var parsedAct = ParseAct(act, r);
+                string ca = cArg == "" ? null : cArg;
+                string aa = aArg == "" ? null : aArg;
+                var rule = new Rule { Condition = parsedCond, CArg = ca, Action = parsedAct, AArg = aa, ActionName = act };
+                switch (parsedCond)
+                {
+                    case Cond.AllyHpBelow: rule.CNum = Fraction(ca, 0.5); break;
+                    case Cond.PartyHpBelow: rule.CNum = Fraction(ca, 0.6); break;
+                    case Cond.AllyTpBelow: rule.CNum = Fraction(ca, 0.3); break;
+                    case Cond.SelfTpBelow: rule.CNum = Fraction(ca, 0.3); break;
+                    case Cond.SelfHpBelow: rule.CNum = Fraction(ca, 0.5); break;
+                    case Cond.TurnAtMost: rule.CInt = PyMath.Int(Fraction(ca, 1)); break;
+                    case Cond.EnemiesAtLeast: rule.CInt = PyMath.Int(Fraction(ca, 2)); break;
+                    case Cond.FoesCast: rule.CNum = Fraction(ca, 0.3); break;
+                    case Cond.FoesAttack:
+                        {
+                            var parts = (ca ?? "").Split(':');
+                            rule.CAttr = int.Parse(parts[0].Trim());
+                            rule.CNum = parts.Length > 1 ? Fraction(parts[1], 0.3) : 0.3;
+                            break;
+                        }
+                    case Cond.EnemyNamed:
+                        {
+                            var raw = (ca ?? "").Split('|');
+                            rule.CNames = new string[raw.Length];
+                            for (int i = 0; i < raw.Length; i++) rule.CNames[i] = raw[i].Trim();
+                            break;
+                        }
+                    case Cond.AllyAiling: rule.CAilments = AilmentsOf(ca); break;
+                }
+                switch (parsedAct)
+                {
+                    case Act.Heal: rule.ANum = Fraction(aa, 0.6); break;
+                    case Act.Status: rule.AEffect = int.Parse(aa); break;
+                    case Act.Tp: rule.ANum = Fraction(aa, 0.5); break;
+                    case Act.Cure: rule.AAilments = AilmentsOf(aa); break;
+                    case Act.Ailment:
+                        {
+                            double floor = ailmentMinChance * 100.0;
+                            bool ownFloor = false;
+                            string ailArg = aa;
+                            int at = (ailArg ?? "").IndexOf('@');
+                            if (at >= 0)
+                            {
+                                floor = double.Parse(ailArg.Substring(at + 1), System.Globalization.CultureInfo.InvariantCulture) * 100.0;
+                                ailArg = ailArg.Substring(0, at);
+                                ownFloor = true;
+                            }
+                            rule.AilmentFloor = floor;
+                            rule.HasOwnFloor = ownFloor;
+                            rule.AAilments = AilmentsOf(ailArg);
+                            foreach (int e in rule.AAilments)
+                                if (e >= 0 && e < ailmentFloorByEffect.Length && double.IsNaN(ailmentFloorByEffect[e]))
+                                {
+                                    object own = setup.Setting("ailment_min_chance_" + e);
+                                    if (own != null) ailmentFloorByEffect[e] = Setup.ToDouble(own) * 100.0;
+                                }
+                            break;
+                        }
+                    case Act.Doll:
+                        if (!string.IsNullOrEmpty(aa))
+                        {
+                            var raw = aa.Split('|');
+                            rule.DollNames = new string[raw.Length];
+                            for (int i = 0; i < raw.Length; i++) rule.DollNames[i] = raw[i].Trim();
+                        }
+                        break;
+                }
                 string role = r.Str("Role");
+                if (parsedAct == Act.Heal) rolesWithHeal.Add(role);
                 if (!rules.TryGetValue(role, out var list)) rules[role] = list = new List<Rule>();
                 list.Add(rule);
             }
@@ -140,25 +233,44 @@ namespace DtEngine
             ref var entry = ref cache[at];
             bool silenced = unit.St[117] != null, frozen = unit.St[114] != null;
             if (entry.List != null && entry.Owner == unit && entry.Tp == unit.Tp && entry.Silenced == silenced && entry.Frozen == frozen) return entry.List;
-            var list = ComputeOptions(battle, unit);
+            var list = entry.List ?? new List<(Skill, int)>(16);
+            ComputeOptions(battle, unit, silenced, frozen, list);
             entry = new Battle.OptionEntry { Owner = unit, Tp = unit.Tp, Silenced = silenced, Frozen = frozen, List = list };
             return list;
         }
 
-        static List<(Skill skill, int level)> ComputeOptions(Battle battle, Unit unit)
+        static (Skill skill, int level)[] GetUsableSkills(GameData data, Unit unit)
         {
-            var found = new List<(Skill, int)>();
-            foreach (var (skillId, lv) in unit.Skills)
+            var cached = unit.UsableSkills;
+            if (cached != null) return cached;
+            var skills = unit.Skills;
+            var buf = new List<(Skill, int)>(skills.Count);
+            for (int i = 0; i < skills.Count; i++)
             {
-                var skill = battle.Data.ById(skillId);
+                var (skillId, lv) = skills[i];
+                var skill = data.ById(skillId);
                 if (skill == null || !UsableInBattle(skill) || !WeaponAllows(unit, skill)) continue;
-                if (skill.IsMagic && (unit.St[117] != null || (battle.ZoneInfo != null && battle.ZoneInfo.NoMagic))) continue;
-                if (skill.IsTechnique && unit.St[114] != null) continue;
-                int level = Math.Max(1, Math.Min(lv, skill.Levels));
-                if (Battle.EffectiveTpCost(unit, skill, level) > unit.Tp) continue;
+                buf.Add((skill, Math.Max(1, Math.Min(lv, skill.Levels))));
+            }
+            var arr = buf.ToArray();
+            unit.UsableSkills = arr;
+            return arr;
+        }
+
+        static void ComputeOptions(Battle battle, Unit unit, bool silenced, bool frozen, List<(Skill skill, int level)> found)
+        {
+            found.Clear();
+            bool noMagic = silenced || (battle.ZoneInfo != null && battle.ZoneInfo.NoMagic);
+            int tp = unit.Tp;
+            var usable = GetUsableSkills(battle.Data, unit);
+            for (int i = 0; i < usable.Length; i++)
+            {
+                var (skill, level) = usable[i];
+                if (skill.IsMagic && noMagic) continue;
+                if (skill.IsTechnique && frozen) continue;
+                if (Battle.EffectiveTpCost(unit, skill, level) > tp) continue;
                 found.Add((skill, level));
             }
-            return found;
         }
 
         static bool Gives(Skill skill, int effect) => skill.HasEffect(effect);
@@ -181,30 +293,32 @@ namespace DtEngine
             string role = unit.HasRole ? unit.Role : "attacker";
             rules.TryGetValue(EVERY_ROLE, out var common);
             if (!rules.TryGetValue(role, out var own)) rules.TryGetValue("attacker", out own);
-            if (common != null) foreach (var rule in common) { var chosen = TryRule(battle, unit, rule); if (chosen != null) return chosen; }
-            if (own != null) foreach (var rule in own) { var chosen = TryRule(battle, unit, rule); if (chosen != null) return chosen; }
-            var attack = new Action(unit, AKind.Attack);
+            if (common != null)
+                for (int i = 0; i < common.Count; i++) { var chosen = TryRule(battle, unit, common[i]); if (chosen != null) return chosen; }
+            if (own != null)
+                for (int i = 0; i < own.Count; i++) { var chosen = TryRule(battle, unit, own[i]); if (chosen != null) return chosen; }
+            var attack = battle.ScratchAction;
+            attack.Reset(unit, AKind.Attack, null, 1);
             var target = BestSingleTarget(battle, unit, attack);
             if (target == null || battle.ExpectedDamage(attack, target) <= 0) return new Action(unit, AKind.Defend);
             if (Punished(unit, attack, target) && (Heals(battle, unit) || WeakBlow(battle, attack, target))) return new Action(unit, AKind.Defend);
-            attack.Target = target;
-            return attack;
+            return new Action(unit, AKind.Attack, null, 1, target);
         }
 
         Action TryRule(Battle battle, Unit unit, Rule rule)
         {
-            if (!Check(rule.Condition, battle, unit, rule.CArg)) return null;
+            if (!Check(rule, battle, unit)) return null;
             switch (rule.Action)
             {
                 case Act.Damage: return ActDamage(battle, unit);
-                case Act.Heal: return ActHeal(battle, unit, rule.AArg);
+                case Act.Heal: return ActHeal(battle, unit, rule.ANum);
                 case Act.Revive: return ActRevive(battle, unit);
-                case Act.Status: return ActStatus(battle, unit, rule.AArg);
+                case Act.Status: return ActStatus(battle, unit, rule.AEffect);
                 case Act.Dispel: return ActDispel(battle, unit);
-                case Act.Doll: return ActDoll(battle, unit, rule.AArg);
-                case Act.Tp: return ActTp(battle, unit, rule.AArg);
-                case Act.Cure: return ActCure(battle, unit, rule.AArg);
-                case Act.Ailment: return ActAilment(battle, unit, rule.AArg);
+                case Act.Doll: return ActDoll(battle, unit, rule.DollNames);
+                case Act.Tp: return ActTp(battle, unit, rule.ANum);
+                case Act.Cure: return ActCure(battle, unit, rule.AAilments);
+                case Act.Ailment: return ActAilment(battle, unit, rule);
                 case Act.Item: return ActItem(battle, unit, rule.AArg, null);
                 case Act.Skill: return ActSkill(battle, unit, rule.AArg);
                 default: return new Action(unit, AKind.Defend);
@@ -213,27 +327,29 @@ namespace DtEngine
 
         /// <summary>foes_cast[:SHARE]: the attacks the living foes can use are spells (magic damage, met by the RES of the party) in SHARE or more
         /// of them (default 0.3): a song of magic defence is sung where the foes cast.</summary>
-        static bool FoesCast(Battle b, Unit u, string a)
+        static bool FoesCast(Battle b, Unit u, double share)
         {
-            double share = string.IsNullOrEmpty(a) ? 0.3 : Fraction(a, 0.3);
             int all = 0, mine = 0;
             foreach (var t in EnemiesOf(b, u))
                 foreach (int id in t.Attacks)
-                    if (b.Data.Attacks.TryGetValue(id, out var k) && !k.Passive) { all++; if (k.Spell) mine++; }
+                {
+                    var k = b.Data.GetAttack(id);
+                    if (k != null && !k.Passive) { all++; if (k.Spell) mine++; }
+                }
             return all > 0 && mine >= share * all;
         }
 
         /// <summary>foes_attack:ATTR[:SHARE]: the attacks the living foes can use are of attribute ATTR (1 slash, 2 stab, 3 bash, 4 - 8 the
         /// elements) in SHARE or more of them (default 0.3): a guard against one kind of blow is cast where the foes strike with it.</summary>
-        static bool FoesAttack(Battle b, Unit u, string a)
+        static bool FoesAttack(Battle b, Unit u, int attr, double share)
         {
-            var parts = (a ?? "").Split(':');
-            int attr = int.Parse(parts[0].Trim());
-            double share = parts.Length > 1 ? Fraction(parts[1], 0.3) : 0.3;
             int all = 0, mine = 0;
             foreach (var t in EnemiesOf(b, u))
                 foreach (int id in t.Attacks)
-                    if (b.Data.Attacks.TryGetValue(id, out var k) && !k.Passive) { all++; if (k.Attr == attr) mine++; }
+                {
+                    var k = b.Data.GetAttack(id);
+                    if (k != null && !k.Passive) { all++; if (k.Attr == attr) mine++; }
+                }
             return all > 0 && mine >= share * all;
         }
 
@@ -243,20 +359,23 @@ namespace DtEngine
         {
             foreach (var t in EnemiesOf(b, u))
                 foreach (int id in t.Attacks)
-                    if (b.Data.Attacks.TryGetValue(id, out var k) && !k.Passive && k.EffId != null && Array.IndexOf(k.EffId, 74) >= 0) return false;
+                {
+                    var k = b.Data.GetAttack(id);
+                    if (k != null && !k.Passive && k.EffId != null && Array.IndexOf(k.EffId, 74) >= 0) return false;
+                }
             return true;
         }
 
         static double Fraction(string arg, double dflt) => !string.IsNullOrEmpty(arg) ? double.Parse(arg.Trim(), System.Globalization.CultureInfo.InvariantCulture) : dflt;
 
-        bool Check(Cond cond, Battle b, Unit u, string a)
+        bool Check(Rule rule, Battle b, Unit u)
         {
-            switch (cond)
+            switch (rule.Condition)
             {
                 case Cond.Always: return true;
                 case Cond.AllyHpBelow:
                     {
-                        double f = Fraction(a, 0.5);
+                        double f = rule.CNum;
                         foreach (var m in b.AlliesArray(u)) if (m.Kind == Kind.Member && m.HpRatio < f) return true;
                         return false;
                     }
@@ -264,32 +383,33 @@ namespace DtEngine
                     {
                         long hp = 0, max = 0;
                         foreach (var m in b.AlliesArray(u)) if (m.Kind == Kind.Member) { hp += m.Hp; max += m.MaxHp; }
-                        return hp < Fraction(a, 0.6) * max;
+                        return hp < rule.CNum * max;
                     }
                 case Cond.AllyDown:
                     foreach (var m in b.SideArray(Unit.PARTY, false)) if (m.Kind == Kind.Member && !m.Alive) return true;
                     return false;
                 case Cond.AllyTpBelow:
                     {
-                        double f = Fraction(a, 0.3);
+                        double f = rule.CNum;
                         foreach (var m in b.AlliesArray(u)) if (m.Kind == Kind.Member && m != u && m.MaxTp != 0 && m.TpRatio < f) return true;
                         return false;
                     }
-                case Cond.SelfTpBelow: return u.MaxTp != 0 && u.TpRatio < Fraction(a, 0.3);
-                case Cond.SelfHpBelow: return u.HpRatio < Fraction(a, 0.5);
+                case Cond.SelfTpBelow: return u.MaxTp != 0 && u.TpRatio < rule.CNum;
+                case Cond.SelfHpBelow: return u.HpRatio < rule.CNum;
                 case Cond.EnemyBuffed:
                     foreach (var t in EnemiesOf(b, u)) if (Battle.Dispellable(t)) return true;
                     return false;
-                case Cond.AllyAiling: return AnyAiling(b, u, a);
-                case Cond.TurnAtMost: return u.TurnsTaken <= PyMath.Int(Fraction(a, 1));
-                case Cond.EnemiesAtLeast: return EnemiesOf(b, u).Length >= PyMath.Int(Fraction(a, 2));
+                case Cond.AllyAiling: return AnyAiling(b, u, rule.CAilments);
+                case Cond.TurnAtMost: return u.TurnsTaken <= rule.CInt;
+                case Cond.EnemiesAtLeast: return EnemiesOf(b, u).Length >= rule.CInt;
                 case Cond.Boss: return b.Fixed || b.Options.Boss;
-                case Cond.FoesAttack: return FoesAttack(b, u, a);
-                case Cond.FoesCast: return FoesCast(b, u, a);
+                case Cond.FoesAttack: return FoesAttack(b, u, rule.CAttr, rule.CNum);
+                case Cond.FoesCast: return FoesCast(b, u, rule.CNum);
                 case Cond.NoFoeDispels: return NoFoeDispels(b, u);
                 case Cond.EnemyNamed:
                     // a strategy of a guide for one boss: the rule holds while an enemy of that name stands (names split by |)
-                    foreach (var t in EnemiesOf(b, u)) foreach (var name in (a ?? "").Split('|')) if (t.Name == name.Trim()) return true;
+                    foreach (var t in EnemiesOf(b, u))
+                        for (int i = 0; i < rule.CNames.Length; i++) if (t.Name == rule.CNames[i]) return true;
                     return false;
                 case Cond.NoDoll:
                     foreach (var x in b.Units) if (x.Owner == u && x.Alive && x.Kind == Kind.Doll) return false;
@@ -322,24 +442,28 @@ namespace DtEngine
             finally { battle.MeanWait = saved; }
         }
 
-        List<int> HealCosts(Battle battle, Unit unit)
+        static int MinHealCost(Battle battle, Unit unit)
         {
-            var costs = new List<int>();
-            foreach (var (skillId, level) in unit.Skills)
+            int min = int.MaxValue;
+            var skills = unit.Skills;
+            for (int i = 0; i < skills.Count; i++)
             {
+                var (skillId, level) = skills[i];
                 var skill = battle.Data.ById(skillId);
                 if (skill != null && UsableInBattle(skill) && GivesAny(skill, HEAL_EFFECTS))
-                    costs.Add(Battle.EffectiveTpCost(unit, skill, Math.Max(1, Math.Min(level, skill.Levels))));
+                {
+                    int cost = Battle.EffectiveTpCost(unit, skill, Math.Max(1, Math.Min(level, skill.Levels)));
+                    if (cost < min) min = cost;
+                }
             }
-            return costs;
+            return min == int.MaxValue ? -1 : min;
         }
 
         bool Heals(Battle battle, Unit unit)
         {
+            if (unit.Front) return false;
             string role = unit.HasRole ? unit.Role : "attacker";
-            bool anyHeal = false;
-            if (rules.TryGetValue(role, out var list)) foreach (var r in list) if (r.ActionName == "heal") anyHeal = true;
-            return !unit.Front && anyHeal && HealCosts(battle, unit).Count > 0;
+            return rolesWithHeal.Contains(role) && MinHealCost(battle, unit) >= 0;
         }
 
         bool WeakBlow(Battle battle, Action action, Unit target)
@@ -351,11 +475,11 @@ namespace DtEngine
         double HealReserve(Battle battle, Unit unit)
         {
             double casts = healReserveCasts;
-            if (casts == 0 || !Heals(battle, unit)) return 0.0;
-            var costs = HealCosts(battle, unit);
-            int min = costs[0];
-            foreach (int c in costs) if (c < min) min = c;
-            return casts * min;
+            if (casts == 0 || unit.Front) return 0.0;
+            string role = unit.HasRole ? unit.Role : "attacker";
+            if (!rolesWithHeal.Contains(role)) return 0.0;
+            int min = MinHealCost(battle, unit);
+            return min >= 0 ? casts * min : 0.0;
         }
 
         public double TpPenalty(Unit unit, Action action)
@@ -411,11 +535,14 @@ namespace DtEngine
             return best;
         }
 
-        static bool HasAnyEffect(int[] effects, params int[] ids)
+        static bool HasAnyEffect(int[] effects, int[] ids)
         {
-            foreach (int e in effects)
-                foreach (int id in ids)
-                    if (e == id) return true;
+            for (int i = 0; i < effects.Length; i++)
+            {
+                int e = effects[i];
+                for (int j = 0; j < ids.Length; j++)
+                    if (e == ids[j]) return true;
+            }
             return false;
         }
 
@@ -439,8 +566,8 @@ namespace DtEngine
                 int tc = sub.TargetCode;
                 bool targetsFoes = tc == T.SINGLE || tc == T.RANDOM || tc == T.ROW || tc == T.PIERCE || tc == T.ALL;
                 bool targetsAllies = T.OwnSide(tc);
-                bool harms = HasAnyEffect(r.Effects, 0, 1, 8, 113, 114, 115, 116, 117, 118, 119, 120, 122, 123, 140, 143, 435);
-                bool heals = HasAnyEffect(r.Effects, 9, 103, 104, 128, 132);
+                bool harms = HasAnyEffect(r.Effects, RANDOM_HARM_EFFECTS);
+                bool heals = HasAnyEffect(r.Effects, RANDOM_HEAL_EFFECTS);
                 if (targetsFoes)
                 {
                     if (heals)
@@ -468,8 +595,8 @@ namespace DtEngine
                 }
                 else
                 {
-                    if (heals || HasAnyEffect(r.Effects, 425, 143)) total -= w * unitScale * 0.5;
-                    else if (HasAnyEffect(r.Effects, 427)) total += w * unitScale;
+                    if (heals || HasAnyEffect(r.Effects, RANDOM_BAD_EFFECTS)) total -= w * unitScale * 0.5;
+                    else if (HasAnyEffect(r.Effects, RANDOM_GOOD_EFFECTS)) total += w * unitScale;
                 }
             }
             return weight != 0 ? total / weight : 0.0;
@@ -481,12 +608,7 @@ namespace DtEngine
             if (dmg < hp) sum.AddFloat(dmg); else sum.AddInt(hp);
         }
 
-        static bool IsRandomMove(Action action)
-        {
-            if (action.Skill == null) return false;
-            foreach (int e in Battle.RANDOM_MOVES) if (action.Has(e)) return true;
-            return false;
-        }
+        static bool IsRandomMove(Action action) => action.Skill != null && action.HasRandomMove;
 
         /// <summary>Expected damage the action deals over its targets (each capped at the target's HP) and the target it is aimed at.</summary>
         public static double DamageValue(Battle battle, Action action, out Unit targetOut)
@@ -518,26 +640,40 @@ namespace DtEngine
             }
             if (code == T.ROW)
             {
-                var first = new List<Unit>(); var second = new List<Unit>();
                 bool firstFront = foes[0].Front;
-                foreach (var t in foes) { if (t.Front == firstFront) first.Add(t); else second.Add(t); }
-                var best = first;
-                double bestSum = RowSum(battle, action, first);
-                if (second.Count > 0)
+                Unit firstRep = null, secondRep = null;
+                var firstSum = new PySum();
+                var secondSum = new PySum();
+                for (int i = 0; i < foes.Length; i++)
                 {
-                    double s2 = RowSum(battle, action, second);
-                    if (s2 > bestSum) { best = second; bestSum = s2; }
+                    var t = foes[i];
+                    if (t.Front == firstFront)
+                    {
+                        if (firstRep == null) firstRep = t;
+                        AddMin(ref firstSum, t.Hp, battle.ExpectedDamage(action, t));
+                    }
+                    else
+                    {
+                        if (secondRep == null) secondRep = t;
+                        AddMin(ref secondSum, t.Hp, battle.ExpectedDamage(action, t));
+                    }
                 }
-                targetOut = best[0];
-                return RowSum(battle, action, best);
+                double s1 = firstSum.Result;
+                if (secondRep != null)
+                {
+                    double s2 = secondSum.Result;
+                    if (s2 > s1) { targetOut = secondRep; return s2; }
+                }
+                targetOut = firstRep;
+                return s1;
             }
             if (code == T.RANDOM)
             {
                 double hits = battle.MeanHits(action);
-                var single = new Action(action.Actor, action.Kind, action.Skill, action.Level);
-                if (action.Atk != null) single = new Action(action.Actor, action.Kind, action.Atk, action.Level);
+                double denom = Math.Max(1.0, hits);
                 var sum = new PySum();
-                foreach (var t in foes) sum.AddFloat(battle.ExpectedDamage(single, t) / Math.Max(1.0, battle.MeanHits(single)));
+                for (int i = 0; i < foes.Length; i++)
+                    sum.AddFloat(battle.ExpectedDamage(action, foes[i]) / denom);
                 double mean = sum.Result / foes.Length;
                 return hits * mean;
             }
@@ -546,13 +682,6 @@ namespace DtEngine
         }
 
         static double RowSum(Battle battle, Action action, Unit[] row)
-        {
-            var sum = new PySum();
-            foreach (var t in row) AddMin(ref sum, t.Hp, battle.ExpectedDamage(action, t));
-            return sum.Result;
-        }
-
-        static double RowSum(Battle battle, Action action, List<Unit> row)
         {
             var sum = new PySum();
             foreach (var t in row) AddMin(ref sum, t.Hp, battle.ExpectedDamage(action, t));
@@ -581,13 +710,14 @@ namespace DtEngine
             var candidateSkills = battle.CandidateSkills;
             var candidateLevels = battle.CandidateLevels;
             int candidates = 0;
-            foreach (var (skill, level) in options)
+            for (int i = 0; i < options.Count; i++)
             {
+                var (skill, level) = options[i];
                 scratch.Reset(unit, AKind.Skill, skill, level);
                 int code = scratch.TargetCode;
                 bool hits = (code == T.SINGLE || code == T.RANDOM || code == T.ROW || code == T.PIERCE || code == T.ALL || code == T.EVERYONE) &&
-                            (scratch.Physical || scratch.Magic || battle.Special(scratch));
-                if (hits || IsRandomMoveAny(scratch)) { candidateSkills[candidates] = skill; candidateLevels[candidates] = level; candidates++; }
+                            (scratch.Physical || scratch.Magic || scratch.IsSpecial);
+                if (hits || scratch.HasRandomMove) { candidateSkills[candidates] = skill; candidateLevels[candidates] = level; candidates++; }
             }
             double reserve = HealReserve(battle, unit);
             scratch.Reset(unit, AKind.Attack, null, 1);
@@ -657,13 +787,9 @@ namespace DtEngine
 
         static bool ProvokedByUnit(Unit enemy, Unit unit)
         {
-            foreach (var p in enemy.ProvokedBy) if (p.unit == unit) return true;
-            return false;
-        }
-
-        static bool IsRandomMoveAny(Action action)
-        {
-            foreach (int e in Battle.RANDOM_MOVES) if (action.Has(e)) return true;
+            if (!enemy.HasProvokedBy) return false;
+            var list = enemy.ProvokedBy;
+            for (int i = 0; i < list.Count; i++) if (list[i].unit == unit) return true;
             return false;
         }
 
@@ -687,9 +813,8 @@ namespace DtEngine
             return 0;
         }
 
-        Action ActHeal(Battle battle, Unit unit, string arg)
+        Action ActHeal(Battle battle, Unit unit, double threshold)
         {
-            double threshold = Fraction(arg, 0.6);
             var hurt = battle.PolicyScratch;
             hurt.Clear();
             foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && m.HpRatio < threshold) hurt.Add(m);
@@ -843,22 +968,31 @@ namespace DtEngine
             return new Action(unit, AKind.Item, null, 1, target, bestId);
         }
 
-        Action ActStatus(Battle battle, Unit unit, string arg)
+        Action ActStatus(Battle battle, Unit unit, int effect)
         {
-            int effect = int.Parse(arg);
             double reserve = HealReserve(battle, unit);
-            foreach (var (skill, level) in Options(battle, unit))
+            var scratch = battle.ScratchAction;
+            bool isDance = Battle.IsDance(effect);
+            bool isPerf = Battle.IsSong(effect) || isDance;
+            var options = Options(battle, unit);
+            for (int oi = 0; oi < options.Count; oi++)
             {
+                var (skill, level) = options[oi];
                 if (!Puts(skill, effect)) continue;
-                var action = new Action(unit, AKind.Skill, skill, level);
-                int tpCost = Battle.EffectiveTpCost(action);
+                int tpCost = Battle.EffectiveTpCost(unit, skill, level);
                 if (tpCost > 0 && unit.Tp - tpCost < reserve) continue;
-                bool dance = Battle.IsDance(effect);
-                if ((Battle.IsSong(effect) || dance))
+                if (isPerf)
                 {
-                    var own = dance ? unit.Dance : unit.Song;
-                    if (!own.Contains(skill.Name) && own.Count >= Battle.PerformanceSlots(unit, dance)) continue;
+                    bool hasAny = isDance ? unit.HasDances : unit.HasSongs;
+                    if (hasAny)
+                    {
+                        var own = isDance ? unit.Dance : unit.Song;
+                        if (!own.Contains(skill.Name) && own.Count >= Battle.PerformanceSlots(unit, isDance)) continue;
+                    }
+                    else if (Battle.PerformanceSlots(unit, isDance) <= 0) continue;
                 }
+                scratch.Reset(unit, AKind.Skill, skill, level);
+                var action = scratch;
                 int code = action.TargetCode;
                 if (code == T.SELF || code == T.NO_TARGET)
                 {
@@ -869,7 +1003,7 @@ namespace DtEngine
                         var foes = EnemiesOf(battle, unit);
                         if (foes.Length == 1 && foes[0].Hp < Math.Max(100.0, unit.Stat(Unit.ATK) * 1.5)) continue;
                     }
-                    return action;
+                    return new Action(unit, AKind.Skill, skill, level);
                 }
                 if (code == T.ALLY)
                 {
@@ -877,6 +1011,7 @@ namespace DtEngine
                     lacking.Clear();
                     foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && Lacks(m, effect, action)) lacking.Add(m);
                     if (lacking.Count == 0) continue;
+                    Unit chosenTarget;
                     if (effect == 171)
                     {
                         Unit best = null; int b0 = 0, b1 = 0, b2 = 0;
@@ -885,14 +1020,14 @@ namespace DtEngine
                             int k0 = m.Chant != null ? 0 : 1, k1 = m.HpRatio < 0.4 ? 0 : 1, k2 = m.Stat(Unit.DEF);
                             if (best == null || k0 < b0 || (k0 == b0 && (k1 < b1 || (k1 == b1 && k2 < b2)))) { best = m; b0 = k0; b1 = k1; b2 = k2; }
                         }
-                        action.Target = best;
+                        chosenTarget = best;
                     }
                     else if (effect == 162 && ProvokingAnyEnemy(battle, unit))
                     {
                         // a defence buff of a unit that draws the blows (Provoke up) goes on herself, the one hit, and on nobody else:
                         // the buff raises the DEF of the target by a share, so it is worth the turn on the highest DEF only
                         if (!lacking.Contains(unit)) continue;
-                        action.Target = unit;
+                        chosenTarget = unit;
                     }
                     else
                     {
@@ -904,9 +1039,9 @@ namespace DtEngine
                                   : effect == 168 ? Math.Max(m.Stat(Unit.ATK), m.Stat(Unit.INT)) : 0;
                             if (best == null || k > bk) { best = m; bk = k; }
                         }
-                        action.Target = best;
+                        chosenTarget = best;
                     }
-                    return action;
+                    return new Action(unit, AKind.Skill, skill, level, chosenTarget);
                 }
                 if (code == T.ALLY_ROW)
                 {
@@ -922,8 +1057,7 @@ namespace DtEngine
                         }
                     }
                     if (frontMembers == 0 || frontLacking == 0) continue;
-                    action.Target = frontTarget;
-                    return action;
+                    return new Action(unit, AKind.Skill, skill, level, frontTarget);
                 }
                 // EVERYONE (Limit Field): a status on every unit of the field, kept up as a party buff is
                 if (code == T.ALLIES || code == T.EVERYONE)
@@ -932,7 +1066,7 @@ namespace DtEngine
                     foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member) { members++; if (Lacks(m, effect, action)) lackingN++; }
                     double share = partyBuffRecastShare;
                     if (lackingN == 0 || lackingN < share * members) continue;
-                    return action;
+                    return new Action(unit, AKind.Skill, skill, level);
                 }
                 if (code == T.SINGLE || code == T.ALL || code == T.ROW)
                 {
@@ -951,8 +1085,7 @@ namespace DtEngine
                         int k0 = t.Chant != null ? 1 : 0, k1 = (battle.Fixed && t.MaxHp > 3000) ? 1 : 0, k2 = t.Stat(Unit.ATK);
                         if (best == null || k0 > b0 || (k0 == b0 && (k1 > b1 || (k1 == b1 && k2 > b2)))) { best = t; b0 = k0; b1 = k1; b2 = k2; }
                     }
-                    action.Target = best;
-                    return action;
+                    return new Action(unit, AKind.Skill, skill, level, best);
                 }
             }
             return null;
@@ -975,79 +1108,73 @@ namespace DtEngine
         }
 
         /// <summary>Whether a member of the party carries one of the ailments named (the test of the condition ally_ailing).</summary>
-        static bool AnyAiling(Battle battle, Unit unit, string arg)
+        static bool AnyAiling(Battle battle, Unit unit, int[] wanted)
         {
-            var wanted = AilmentsOf(arg);
             foreach (var m in battle.AlliesArray(unit))
             {
-                if (m.Kind != Kind.Member) continue;
-                foreach (int e in wanted) if (m.St[e] != null) return true;
+                if (m.Kind != Kind.Member || m.StCount == 0) continue;
+                for (int i = 0; i < wanted.Length; i++) if (m.St[wanted[i]] != null) return true;
             }
             return false;
         }
 
-        static List<Unit> AilingMembers(Battle battle, Unit unit, string arg)
+        static List<Unit> AilingMembers(Battle battle, Unit unit, int[] wanted)
         {
-            var wanted = AilmentsOf(arg);
-            var r = new List<Unit>();
+            var r = battle.PolicyScratch;
+            r.Clear();
             foreach (var m in battle.AlliesArray(unit))
             {
-                if (m.Kind != Kind.Member) continue;
-                foreach (int e in wanted) if (m.St[e] != null) { r.Add(m); break; }
+                if (m.Kind != Kind.Member || m.StCount == 0) continue;
+                for (int i = 0; i < wanted.Length; i++) if (m.St[wanted[i]] != null) { r.Add(m); break; }
             }
             return r;
         }
 
-        Action ActAilment(Battle battle, Unit unit, string arg)
+        Action ActAilment(Battle battle, Unit unit, Rule rule)
         {
-            double floor = ailmentMinChance * 100;
-            // "117;115@0.25": a floor of the rule's own (a guide's strategy against one boss tries a lower chance)
-            bool ownFloor = false;
-            int at = (arg ?? "").IndexOf('@');
-            if (at >= 0)
-            {
-                floor = double.Parse(arg.Substring(at + 1), System.Globalization.CultureInfo.InvariantCulture) * 100;
-                arg = arg.Substring(0, at);
-                ownFloor = true;
-            }
-            Action best = null;
+            double floor = rule.AilmentFloor;
+            bool ownFloor = rule.HasOwnFloor;
+            var ailments = rule.AAilments;
+            Skill bestSkill = null; int bestLevel = 0; Unit bestTarget = null;
             bool haveKey = false; int bestMax = 0; double bestChance = 0;
-            foreach (int effect in AilmentsOf(arg))
+            var options = Options(battle, unit);
+            var foes = EnemiesOf(battle, unit);
+            var action = battle.ScratchAction;
+            for (int ai = 0; ai < ailments.Length; ai++)
             {
+                int effect = ailments[ai];
                 string name = Battle.AilmentNameOf(effect);
-                foreach (var (skill, level) in Options(battle, unit))
+                double ownEffFloor = (uint)effect < (uint)ailmentFloorByEffect.Length ? ailmentFloorByEffect[effect] : double.NaN;
+                double floorOf = (double.IsNaN(ownEffFloor) || ownFloor) ? floor : ownEffFloor;
+                int index = effect == 123 ? T.NONE : Battle.AilmentResistOf(effect);
+                for (int oi = 0; oi < options.Count; oi++)
                 {
-                    var action = battle.ScratchAction;
+                    var (skill, level) = options[oi];
+                    if (!skill.HasEffect(effect)) continue;
                     action.Reset(unit, AKind.Skill, skill, level);
+                    int code = action.TargetCode;
+                    if (!(code == T.SINGLE || code == T.RANDOM || code == T.ROW || code == T.PIERCE || code == T.ALL)) continue;
                     bool has = false; double value = 0;
                     int n = action.Count;
                     for (int i = 0; i < n; i++) if (action.EffId(i) == effect && action.EffKind(i) != 2) { has = true; value = action.EffVal(i); break; }
-                    int code = action.TargetCode;
-                    if (!has || !(code == T.SINGLE || code == T.RANDOM || code == T.ROW || code == T.PIERCE || code == T.ALL)) continue;
-                    foreach (var target in EnemiesOf(battle, unit))
+                    if (!has) continue;
+                    for (int fi = 0; fi < foes.Length; fi++)
                     {
+                        var target = foes[fi];
                         if (target.Immune(name) || target.St[effect] != null || Battle.Nullified(target, effect)) continue;
                         double chance;
                         if (effect == 123) chance = unit.Level > target.Level ? value * 100 : 0.0;
-                        else
-                        {
-                            int index = Battle.AilmentResistOf(effect);
-                            chance = F.AilmentChance(value, index != T.NONE ? target.Resistance(index) : 0);
-                        }
+                        else chance = F.AilmentChance(value, index != T.NONE ? target.Resistance(index) : 0);
                         int maxHp = target.MaxHp;
                         bool greater = !haveKey || maxHp > bestMax || (maxHp == bestMax && chance > bestChance);
-                        // a floor of its own for an ailment whose roll is a fixed chance (Settings ailment_min_chance_<effect>)
-                        object own = policySetup.Setting("ailment_min_chance_" + effect);
-                        double floorOf = own == null || ownFloor ? floor : Setup.ToDouble(own) * 100;
                         if (chance >= floorOf && greater)
                         {
-                            best = new Action(unit, AKind.Skill, skill, level);
+                            bestSkill = skill; bestLevel = level; bestTarget = target;
                             haveKey = true; bestMax = maxHp; bestChance = chance;
-                            best.Target = target;
                         }
                     }
                 }
-                if (best != null) return best;
+                if (bestSkill != null) return new Action(unit, AKind.Skill, bestSkill, bestLevel, bestTarget);
             }
             return null;
         }
@@ -1093,24 +1220,33 @@ namespace DtEngine
             return false;
         }
 
-        Action ActDoll(Battle battle, Unit unit, string arg)
+        Action ActDoll(Battle battle, Unit unit, string[] dollNames)
         {
-            var dolls = new List<(Skill, int)>();
-            foreach (var (s, lv) in Options(battle, unit))
-                if (GivesAny(s, DOLL_EFFECTS) && !DollActiveOnSide(battle, unit, s)) dolls.Add((s, lv));
-            if (dolls.Count == 0) return null;
-            if (!string.IsNullOrEmpty(arg))
+            var options = Options(battle, unit);
+            if (dollNames != null)
             {
-                foreach (var name in arg.Split('|'))
+                for (int ni = 0; ni < dollNames.Length; ni++)
                 {
-                    foreach (var (s, lv) in dolls)
-                        if (s.Name == name.Trim()) return new Action(unit, AKind.Skill, s, lv);
+                    string name = dollNames[ni];
+                    for (int i = 0; i < options.Count; i++)
+                    {
+                        var (s, lv) = options[i];
+                        if (s.Name == name && GivesAny(s, DOLL_EFFECTS) && !DollActiveOnSide(battle, unit, s))
+                            return new Action(unit, AKind.Skill, s, lv);
+                    }
                 }
                 return null;
             }
-            var bestD = dolls[0];
-            foreach (var d in dolls) if (d.Item2 > bestD.Item2) bestD = d;
-            return new Action(unit, AKind.Skill, bestD.Item1, bestD.Item2);
+            Skill bestSkill = null; int bestLevel = -1;
+            for (int i = 0; i < options.Count; i++)
+            {
+                var (s, lv) = options[i];
+                if (GivesAny(s, DOLL_EFFECTS) && !DollActiveOnSide(battle, unit, s) && (bestSkill == null || lv > bestLevel))
+                {
+                    bestSkill = s; bestLevel = lv;
+                }
+            }
+            return bestSkill != null ? new Action(unit, AKind.Skill, bestSkill, bestLevel) : null;
         }
 
         static bool ProvokingAnyEnemy(Battle battle, Unit unit)
@@ -1118,7 +1254,11 @@ namespace DtEngine
             foreach (var f in EnemiesOf(battle, unit))
             {
                 if (f.St[170] != null && f.St[170].Source == unit) return true;
-                foreach (var p in f.ProvokedBy) if (p.unit == unit) return true;
+                if (f.HasProvokedBy)
+                {
+                    var list = f.ProvokedBy;
+                    for (int i = 0; i < list.Count; i++) if (list[i].unit == unit) return true;
+                }
             }
             return false;
         }
@@ -1130,9 +1270,8 @@ namespace DtEngine
             "kunoichi", "mistress", "joker"
         };
 
-        Action ActTp(Battle battle, Unit unit, string arg)
+        Action ActTp(Battle battle, Unit unit, double f)
         {
-            double f = Fraction(arg, 0.5);
             Unit target = null; int bp = 0; double bt = 0;
             foreach (var m in battle.AlliesArray(unit))
             {
@@ -1150,33 +1289,36 @@ namespace DtEngine
             return ActItem(battle, unit, "tp", target);
         }
 
-        Action ActCure(Battle battle, Unit unit, string arg)
+        Action ActCure(Battle battle, Unit unit, int[] wanted)
         {
-            var wanted = AilmentsOf(arg);
-            var ailing = AilingMembers(battle, unit, arg);
+            var ailing = AilingMembers(battle, unit, wanted);
             if (ailing.Count == 0) return null;
             Unit target = null; int bk = 0;
-            foreach (var m in ailing)
+            for (int ai = 0; ai < ailing.Count; ai++)
             {
+                var m = ailing[ai];
                 int k = 0;
-                foreach (int e in wanted) if (m.St[e] != null) k++;
+                for (int i = 0; i < wanted.Length; i++) if (m.St[wanted[i]] != null) k++;
                 if (target == null || k > bk) { target = m; bk = k; }
             }
-            var carried = new List<int>();
-            foreach (int e in wanted) if (target.St[e] != null) carried.Add(e);
-            foreach (var (skill, level) in Options(battle, unit))
+            var scratch = battle.ScratchAction;
+            var options = Options(battle, unit);
+            for (int oi = 0; oi < options.Count; oi++)
             {
+                var (skill, level) = options[oi];
                 if (!Gives(skill, 106)) continue;
-                var action = new Action(unit, AKind.Skill, skill, level);
-                double v = action.Val(106, 0); int n = v != 0 ? PyMath.Int(v) : 0;
+                scratch.Reset(unit, AKind.Skill, skill, level);
+                double v = scratch.Val(106, 0); int n = v != 0 ? PyMath.Int(v) : 0;
+                int limit = Math.Min(Math.Max(n, 0), Battle.CURE_ORDER.Length);
                 bool any = false;
-                for (int i = 0; i < Math.Min(Math.Max(n, 0), Battle.CURE_ORDER.Length); i++)
-                    foreach (int e in carried) if (e == Battle.CURE_ORDER[i]) any = true;
-                if (any)
+                for (int i = 0; i < limit && !any; i++)
                 {
-                    action.Target = action.TargetCode == T.ALLY ? target : null;
-                    return action;
+                    int ce = Battle.CURE_ORDER[i];
+                    if (target.St[ce] != null)
+                        for (int w = 0; w < wanted.Length; w++) if (wanted[w] == ce) { any = true; break; }
                 }
+                if (any)
+                    return new Action(unit, AKind.Skill, skill, level, scratch.TargetCode == T.ALLY ? target : null);
             }
             if (unit.Items.Count > 0) return ActItem(battle, unit, "cure", target);
             return null;
