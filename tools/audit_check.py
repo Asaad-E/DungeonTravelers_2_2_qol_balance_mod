@@ -33,6 +33,11 @@ with open(os.path.join(ROOT, 'data_tables', 'audit_rules.json'), encoding='utf-8
     RULES = json.load(f)
 PROGRAM_LINE = re.compile(r'^\s*([0-9a-f]{8})\s{2,}(\S.*?)\s*$')
 ENGINE_REF = re.compile(r'(engine_cs/[\w/.\-]+\.cs):(\d+)')
+ANY_CODE_REF = re.compile(r'((?:engine_cs|tools|gamedata)/[\w/.\-]+\.(?:cs|py)):(\d+)')
+SPEC_ITEM = re.compile(r'^### (M\d+[a-z]?\.[A-Z0-9_]+)\b(.*)$')
+DIFF_ITEM = re.compile(r'^### (M\d+[a-z]?\.[A-Z0-9_]+|ENGINE-ONLY[A-Z0-9_.\-]*)\b(.*)$')
+SPEC_FORBIDDEN = ('engine_cs/', 'Battle.cs', 'Units.cs', 'Formulas.cs', 'Action.cs', 'Policy.cs', 'gamedata/', 'FORMULAS.md', 'ENGINE_AUDIT.md', 'engine_conformity.json')
+DIFF_VERDICTS = {'MATCH', 'S0', 'S1', 'S2', 'MODEL-LIMIT', 'ENGINE-ONLY'}
 ITEM = re.compile(r'^### (P\d+\.\d+)\b(.*)$')
 PLAN_ID = re.compile(r'^\| (P\d+\.\d+) \|')
 
@@ -149,8 +154,165 @@ def check_item(item_id, text, files):
     return verdict, errors, warnings
 
 
+def check_spec_files(paths):
+    """Verify Phase 1 clean-room binary spec files (--spec): required metadata, verbatim exe disassembly, zero C#/quarantine leaks."""
+    failed, total_rules, total_lines = 0, 0, 0
+    for raw_path in paths:
+        full = raw_path if os.path.isabs(raw_path) else os.path.join(ROOT, raw_path)
+        if not os.path.exists(full):
+            print(f'FAIL {raw_path}: file not found')
+            failed += 1
+            continue
+        with open(full, encoding='utf-8') as f:
+            text = f.read()
+        # Quarantine leak check across whole clean-room spec file
+        for bad in SPEC_FORBIDDEN:
+            if bad in text:
+                print(f'FAIL {raw_path}: quarantine leak — forbidden reference {bad!r}')
+                failed += 1
+        rules = []
+        cur, buf = None, []
+        for ln in text.splitlines():
+            m = SPEC_ITEM.match(ln)
+            if m:
+                if cur:
+                    rules.append((cur, '\n'.join(buf)))
+                cur, buf = m.group(1), [ln]
+            elif cur:
+                if ln.startswith('## '):
+                    rules.append((cur, '\n'.join(buf)))
+                    cur, buf = None, []
+                else:
+                    buf.append(ln)
+        if cur:
+            rules.append((cur, '\n'.join(buf)))
+        if not rules:
+            print(f'FAIL {raw_path}: no ### MXX.YY rules found')
+            failed += 1
+            continue
+        for rid, body in rules:
+            total_rules += 1
+            errs = []
+            for req in ('**Binary VA(s):**', '**Calls:**', '**CalledBy:**', '**Typed Pseudocode:**', '**Program Evidence:**'):
+                if req not in body:
+                    errs.append(f'missing field {req}')
+            prog_ok = 0
+            for _, blines in blocks(body):
+                for ln in blines:
+                    pm = PROGRAM_LINE.match(ln)
+                    if not pm:
+                        continue
+                    addr, quoted = int(pm.group(1), 16), norm(pm.group(2))
+                    real = instruction_at(addr)
+                    if real is None:
+                        errs.append(f'{pm.group(1)}: no instruction starts at this address')
+                    elif real != quoted:
+                        errs.append(f'{pm.group(1)}: quoted {quoted!r}, program holds {real!r}')
+                    else:
+                        prog_ok += 1
+            is_table_only = 'data-table' in body.lower() or 'rtti-only' in body.lower()
+            if prog_ok < (0 if is_table_only else 2):
+                errs.append(f'only {prog_ok} verified program lines (need >= 2)')
+            total_lines += prog_ok
+            if errs:
+                failed += 1
+                print(f'FAIL {rid} ({raw_path})')
+                for e in errs:
+                    print('       error:', e)
+            else:
+                print(f'ok   {rid} ({prog_ok} verified exe lines)')
+    print(f'\nspec check: {total_rules} rules, {total_lines} verified exe lines, {failed} failing')
+    return 1 if failed else 0
+
+
+def check_diff_files(paths):
+    """Verify Phase 2/4 diff files (--diff): verdicts, verbatim exe lines, and verbatim .cs/.py source lines."""
+    failed, total_items, files = 0, 0, {}
+    for raw_path in paths:
+        full = raw_path if os.path.isabs(raw_path) else os.path.join(ROOT, raw_path)
+        if not os.path.exists(full):
+            print(f'FAIL {raw_path}: file not found')
+            failed += 1
+            continue
+        with open(full, encoding='utf-8') as f:
+            text = f.read()
+        items = []
+        cur, buf = None, []
+        for ln in text.splitlines():
+            m = DIFF_ITEM.match(ln)
+            if m:
+                if cur:
+                    items.append((cur, '\n'.join(buf)))
+                cur, buf = m.group(1), [ln]
+            elif cur:
+                if ln.startswith('## '):
+                    items.append((cur, '\n'.join(buf)))
+                    cur, buf = None, []
+                else:
+                    buf.append(ln)
+        if cur:
+            items.append((cur, '\n'.join(buf)))
+        for rid, body in items:
+            total_items += 1
+            errs = []
+            vtxt = field(body, '**Verdict:**') or field(body, '**Verdict.**') or ''
+            verdict = vtxt.split()[0].strip('`*.') if vtxt.split() else None
+            if verdict not in DIFF_VERDICTS:
+                errs.append(f'verdict {verdict!r} not in {sorted(DIFF_VERDICTS)}')
+            prog_ok, code_ok = 0, 0
+            for before, blines in blocks(body):
+                refs = ANY_CODE_REF.findall(before)
+                if refs:
+                    path, line_no = refs[-1]
+                    src_full = os.path.join(ROOT, path)
+                    if path not in files:
+                        files[path] = [ln.strip() for ln in open(src_full, encoding='utf-8').read().splitlines()] if os.path.exists(src_full) else None
+                    source = files[path]
+                    if source is None:
+                        errs.append(f'{path}: no such file')
+                        continue
+                    if int(line_no) > len(source):
+                        errs.append(f'{path}:{line_no}: file has {len(source)} lines')
+                    for ln in blines:
+                        s = ln.strip()
+                        if not s or s == '...':
+                            continue
+                        if s in source:
+                            code_ok += 1
+                        else:
+                            errs.append(f'{path}: quoted line not in file: {s[:100]!r}')
+                    continue
+                for ln in blines:
+                    pm = PROGRAM_LINE.match(ln)
+                    if not pm:
+                        continue
+                    addr, quoted = int(pm.group(1), 16), norm(pm.group(2))
+                    real = instruction_at(addr)
+                    if real is None:
+                        errs.append(f'{pm.group(1)}: no instruction starts at this address')
+                    elif real != quoted:
+                        errs.append(f'{pm.group(1)}: quoted {quoted!r}, program holds {real!r}')
+                    else:
+                        prog_ok += 1
+            if verdict == 'MATCH' and (prog_ok < 1 or code_ok < 1):
+                errs.append(f'MATCH requires >=1 verified exe line ({prog_ok}) and >=1 verified code line ({code_ok})')
+            if errs:
+                failed += 1
+                print(f'FAIL {rid} {verdict} ({raw_path})')
+                for e in errs:
+                    print('       error:', e)
+            else:
+                print(f'ok   {rid} {verdict} (exe={prog_ok}, code={code_ok})')
+    print(f'\ndiff check: {total_items} items, {failed} failing')
+    return 1 if failed else 0
+
+
 def main(args):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if args and args[0] == '--spec':
+        return check_spec_files(args[1:])
+    if args and args[0] == '--diff':
+        return check_diff_files(args[1:])
     with open(os.path.join(ROOT, RULES['plan']), encoding='utf-8') as f:
         plan_ids = [m.group(1) for ln in f
                     for m in [PLAN_ID.match(ln)] if m]
