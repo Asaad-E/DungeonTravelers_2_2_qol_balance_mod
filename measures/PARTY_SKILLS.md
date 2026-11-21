@@ -4,23 +4,23 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 
 | Party skill | Members | Bonus at every proof | Wins | Fights shorter | HP left |
 |---|---|---|---|---|---|
-| Vigor Trio | 3 | atk +32 | +19 | +18% | +17 |
-| Board Members | 3 | dex +20, agi +20 | +21 | +16% | +17 |
-| Vagabonds | 3 | agi +20 | +21 | +13% | +17 |
-| Eccentrics | 3 | agi +20 | +21 | +13% | +17 |
+| Vigor Trio | 3 | atk +32 | +20 | +18% | +17 |
+| Board Members | 3 | dex +20, agi +20 | +21 | +17% | +17 |
+| Vagabonds | 3 | agi +20 | +21 | +13% | +16 |
+| Eccentrics | 3 | agi +20 | +21 | +13% | +16 |
 | Mission Ongoing | 4 | fire +10, atk +20 | +16 | +14% | +13 |
-| Sales Experience | 4 | wind +20, agi +10 | +16 | +9% | +15 |
-| NegaPosi | 4 | hp +50, tp +50 | +10 | +9% | +9 |
-| Kindred Spirits | 4 | tp +50, fire +20 | +7 | +9% | +6 |
-| The New Magi | 3 | tp +50, fire +20 | +9 | +7% | +7 |
-| Full of Guts | 4 | hp +100 | +6 | +4% | +7 |
-| Graceful Agers | 4 | lightning +20, hp +50 | +7 | +2% | +7 |
-| Libra Guard | 3 | def +25 | +5 | +1% | +4 |
-| Attentive | 3 | int +20 | +2 | +3% | +3 |
-| Dark and Light | 3 | res +20 | +1 | +1% | +2 |
-| Celebrities | 3 | lightning +50 | +2 | +1% | +1 |
+| Sales Experience | 4 | wind +20, agi +10 | +18 | +9% | +15 |
+| Kindred Spirits | 4 | tp +50, fire +20 | +10 | +9% | +7 |
+| NegaPosi | 4 | hp +50, tp +50 | +11 | +8% | +9 |
+| The New Magi | 3 | tp +50, fire +20 | +8 | +7% | +6 |
+| Full of Guts | 4 | hp +100 | +9 | +4% | +9 |
+| Graceful Agers | 4 | lightning +20, hp +50 | +7 | +3% | +7 |
+| Attentive | 3 | int +20 | +4 | +3% | +4 |
+| Celebrities | 3 | lightning +50 | +3 | +0% | +3 |
+| Libra Guard | 3 | def +25 | +2 | +1% | +2 |
 | Beyond Human | 3 | stab +20 | +0 | +2% | +1 |
-| Natural Klutzes | 2 | bash +20 | +1 | -0% | +1 |
-| Flawless Poise | 3 | water +20, earth +20 | -1 | +2% | +1 |
+| Royal Squadron | 4 | bash +10, earth +20 | +1 | +0% | +2 |
 | Veteran Soldiers | 2 | slash +25 | +0 | +0% | +0 |
-| Royal Squadron | 4 | bash +10, earth +20 | +0 | +0% | +1 |
+| Flawless Poise | 3 | water +20, earth +20 | -2 | +2% | +1 |
+| Dark and Light | 3 | res +20 | -1 | +1% | -0 |
+| Natural Klutzes | 2 | bash +20 | -0 | -0% | -0 |

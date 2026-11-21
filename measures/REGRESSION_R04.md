@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 18 of 30 such pairs on the variant, 16 of 26 in vanilla.**
+**A party without the class reaches the floor at 17 of 27 such pairs on the variant, 16 of 26 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -45,7 +45,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C29 | variant | Diva | 50% | Meta with etoile for diva | 78% |
 | C30 | vanilla | Diva | 50% | Meta with etoile for diva | 95% |
 | C30 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 75% |
-| C30 | variant | Diva | 50% | Meta with etoile for diva | 100% |
+| C30 | variant | Diva | 50% | Meta with etoile for diva | 98% |
 | C36 | vanilla | Diva | 50% | Mage-Heavy with etoile for maid | 47% **below** |
 | C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 52% |
 | C36 | variant | Dark Lord | 50% | Dual-Support with attacker for dark lord | 82% |
@@ -59,6 +59,3 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C40 | vanilla | Bishop | 50% | Dual-Support with etoile for healer | 42% **below** |
 | C40 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 50% |
 | C40 | vanilla | Valkyrie | 50% | Dual-Support with attacker for tank | 28% **below** |
-| C40 | variant | Bishop | 50% | Dual-Support with etoile for healer | 45% **below** |
-| C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 73% |
-| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 22% **below** |

@@ -20,7 +20,6 @@ To install the mod, refer to the main [README.md](../README.md).
 | [SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Rationale behind the simulation engine's optimal AI policy for A/B testing. |
 | [dungeontravelers2-2.md](dungeontravelers2-2.md) | Technical reference for binary container formats, memory layouts, and struct offsets. |
 | [QOL_ROADMAP.md](QOL_ROADMAP.md) | Verification checklist and package breakdown for the QoL variant. |
-| [BALANCE_PLAN.md](BALANCE_PLAN.md) | Balance methodology, complaint triage, and progression milestones. |
 | [CREDITS.md](CREDITS.md) | Data sources, community references, and external walkthrough citations. |
 | [generated/](generated/) | Automated benchmark reports, coverage audits, and balance test results. |
 

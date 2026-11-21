@@ -23,7 +23,7 @@ Crown: the least bonus at which the vanilla party reaches the floor (the prepara
 | P15 Aradia (4th fight) | normal | 30 | 75% > 85% | 14.3 > 15.4 | 23% > 23% |
 | P16 Aradia (5th fight) | normal | 0 | 90% > 95% | 7.3 > 6.5 | 30% > 33% |
 | P17 Last Judgment | normal | 20 | 70% > 62% | 6.9 > 6.0 | 23% > 21% |
-| P18 Aradia (6th fight) | normal | 0 | 100% > 100% | 5.3 > 5.0 | 43% > 52% |
+| P18 Aradia (6th fight) | normal | 0 | 100% > 100% | 5.3 > 5.5 | 43% > 43% |
 | P19 Three goddesses | hard | 10 | 57% > 68% | 7.2 > 6.6 | 18% > 19% |
 | P20 Crom Cruach (weakened superboss) | hard | 10 | 22% > 90% | 12.1 > 6.8 | 9% > 47% |
 | P21 Ria the Farsighted | easy | 10 | 88% > 52% | 5.1 > 4.9 | 42% > 18% |

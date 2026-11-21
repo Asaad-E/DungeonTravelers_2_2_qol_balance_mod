@@ -31,7 +31,7 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P1.3 | EnemyAIData and NPCAIData structure and interpretation | 0x430c40, 0x431690, 0x431900 | Loader.cs:LoadCommand | MATCH |  |
 | P1.4 | NPCData fields and guest ally construction | 0x4feeb0, 0x4ff2bb, 0x4fed7f, 0x58ae86 | Loader.cs:LoadSide, Units.cs:BuildGuest | MATCH |  |
 | P1.5 | Summon forms fields and scaling | 0x4ffc90, 0x5001d0, 0x4ffe4d, 0x5001c0 | Units.cs:BuildSummon | MATCH |  |
-| P1.6 | Dolls creation, owner stats, and 9,999 HP | 0x4fd919, 0x4fd867, 0x4fdfdc, 0x4843f0 | Units.cs:BuildDoll | MATCH |  |
+| P1.6 | Dolls creation, owner stats, and 9,999 HP | 0x4fd919, 0x4fd867, 0x4fdfdc, 0x4843f0 | Units.cs:BuildDoll | MATCH | CGamePlayerStatusETCDoll copies characterStats (including crownBonus), equipment, class modifiers, and personal/grand sealbook enchants (0x4f3586..0x4f35fc); Soul Seal (314) applies only to the 6 puppets (0x4fdfd0). |
 | P1.7 | Skills of the player (`SKILL_LAYOUTS` in `tools/extract_vanilla.py`) | 0x5718a0, 0x449cb0, 0x449d9a, 0x4fd250 | Loader.cs:LoadSide | MATCH |  |
 | P1.8 | Items, equipment, enchantments, unique skills, party skills: fields in `Loader.cs` | 0x4e12c6, 0x50c596, 0x4f5499, 0x4f615e | Loader.cs:LoadSide | MATCH |  |
 | P1.9 | The variant: `balance_changes.xlsx` in `gamedata/variant.py` vs `tools/balance_values.py` | 0x4fd26c, 0x4f2661, 0x4f615e | Loader.cs:Load | MATCH |  |
@@ -44,7 +44,7 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P2.1 | Stats of a member: growth row, class modifiers, equipment, crown, weapon rank weight | 0x5545b0, 0x4e1304, 0x4f7c7c, 0x4feeb0 | Units.cs:BuildMember, Units.cs:PieceStats | MATCH |  |
 | P2.2 | The summon of the grand sealbook: scaling, level, rank, script, passive, number 3000 | 0x449771, 0x4497ce, 0x4497df, 0x449822 | Units.cs:BuildSummon | MATCH |  |
 | P2.3 | A hired guest and her HP | 0x449839, 0x58adb0, 0x43e72a, 0x71fc24, 0x449879 | Units.cs:BuildGuest, Battle.cs:LoseHp, Battle.cs:Restore | FIXED (43ec275) | A guest is never a candidate (lists of units below 2000), so her HP is never read; no counter is set up against her. |
-| P2.4 | Dolls at creation: stats, HP, number, inheritance | 0x4fd922, 0x4fdfdc, 0x43b5f9 | Units.cs:BuildDoll | MATCH |  |
+| P2.4 | Dolls at creation: stats, HP, number, inheritance | 0x4fd922, 0x4fdfdc, 0x43b5f9 | Units.cs:BuildDoll | MATCH | Player dolls inherit characterStats (including crownBonus) plus equipment, class modifiers, and personal/grand sealbook enchants (0x4f3586..0x4f35fc); newly summoned dolls start at gauge = RandRange(92)/100 (0x43a2a3..0x43a2bf). |
 | P2.5 | Rows and formation: who is front and back, and the share table | 0x43da60, 0x439d20, 0x449760, 0x43a280, 0x46af00 | Battle.cs:Targetable | MATCH |  |
 | P2.6 | Start of battle: initial gauges, random order, ambush, effect 300 | 0x449130, 0x4499d0, 0x44917d | Battle.cs:Start | FIXED (43ec275) | Members, enemies and dolls start at the value of a plain action; the summon and a guest at a random gauge unless the enemy flag (bit 1, byte 0x33) is set. |
 
@@ -58,7 +58,7 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P3.4 | Defend, escape, and plain actions | 0x4499d0, 0x44a31c, 0x44a33d, 0x4392b0, 0x43bcba | Formulas.cs:TurnValue | MATCH |  |
 | P3.5 | The weight of an enemy, a summon, and a guest | 0x4f2150, 0x4feeb0, 0x5001d0 | Units.cs:BuildEnemy | MATCH |  |
 | P3.6 | Turn order ties: who acts when two units are due at the same time | 0x440a80, 0x440b5c, 0x440ba0, 0x43da60, 0x43db23 | Battle.cs:Battle | FIXED (43ec275) | Ties are broken by the order units were inserted (TieKey), as the program's list. |
-| P3.7 | Turn denial: petrify, sleep, paralysis, Warning Shot, Magnificent Steps | 0x436c40, 0x436ee0, 0x436f8b | Battle.cs:LostTurn | MATCH |  |
+| P3.7 | Turn denial: petrify, sleep, paralysis, Warning Shot, Magnificent Steps | 0x436c40, 0x436ee0, 0x436f8b | Battle.cs:LostTurnHard, Battle.cs:LostTurnSoft | MATCH | Natural ailment recovery (State 1) runs before hard turn loss (States 5-7: Stage>=3 Petrify, Sleep, Paralysis 30%); timed status countdown (State 8) runs before soft turn loss (States 9-11: Warning Shot 259, Magnificent Steps 283, Mesmerized 203). |
 
 ## Phase 4
 
@@ -82,9 +82,9 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P5.2 | Scope 6 (random ally) with a target given | 0x43f450, 0x43f56e, 0x43f5df, 0x43f8a2 | Battle.cs:Targets | FIXED (43ec275) | Scope 6 keeps the target given when it is still valid. |
 | P5.3 | Weighted pick of an enemy on the party (0x43f7e9, 0x505ad0) | 0x505ad0, 0x490790, 0x44a630, 0x6517a0 | Battle.cs:WeightedPick | MODEL-LIMIT | The binary (0x505ad0) builds cumulative integer weights (0x505b20) and rolls uniform integer r < total via 0x490790, scanning linearly for r < cum_weight. The engine uses a float roll on the same integer weights to preserve CPython RNG stream compatibility. |
 | P5.4 | Piercing (0x43fa64, lists at 0x43def0) and rows | 0x43fa64, 0x43f450, 0x43def0, 0x43e830 | Battle.cs:Targets, Battle.cs:Behind | MATCH |  |
-| P5.5 | Cover (171) and redirections | 0x420b60, 0x4249a1, 0x43af10, 0x43b1d0 | Battle.cs:Redirect, Battle.cs:Perform | FIXED (43ec275) | Cover and redirections choose among units below 2000. |
+| P5.5 | Cover (171) and redirections | 0x420b60, 0x4249a1, 0x43af10, 0x43b1d0 | Battle.cs:Redirect, Battle.cs:Perform | FIXED (43ec275) | Cover (171; 0x420b70) redirects only physical actions (effect ID 0) among targetable units below 2000; never redirects magic or pure status attacks. |
 | P5.6 | Target death between choice and hit, and mid-action multi-hit | 0x41ee10, 0x420500, 0x420560, 0x43b580, 0x4fbd90 | Battle.cs:Perform, Battle.cs:Targets | MATCH |  |
-| P5.7 | Effects that list targets themselves (EXTRA_TARGETS, random moves, songs and dances) | 0x42017a, 0x43ad50, 0x43faf6, 0x43f450, 0x4202f3 | Battle.cs:Targets, Battle.cs:RandomMove | MATCH |  |
+| P5.7 | Effects that list targets themselves (EXTRA_TARGETS, random moves, songs and dances) | 0x42017a, 0x43ad50, 0x43faf6, 0x43f450, 0x4202f3 | Battle.cs:Targets, Battle.cs:RandomMove | MATCH | EXTRA_TARGETS (137; 0x4201e0..0x4202f3) sorts all living targetable units of both sides by turn order, steps forward from chosen, and breaks immediately when an opposite-side unit intervenes. |
 | P5.8 | Scope 12 (T.ALLY_MOST_TP_LOST) | 0x43fc71, 0x43f450 | Battle.cs:Targets | MATCH |  |
 
 ## Phase 6
@@ -117,13 +117,13 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 
 | Item | Mechanic | Program | Engine | Verdict | Note |
 |---|---|---|---|---|---|
-| P8.1 | Application of a status (kind 5): duration and source | 0x48d590, 0x41853b, 0x485d42 | Battle.cs:AfterHit, Battle.cs:Tick, Units.cs:Status | MATCH |  |
+| P8.1 | Application of a status (kind 5): duration and source | 0x48d590, 0x41853b, 0x485d42 | Battle.cs:AfterHit, Battle.cs:DecrementTimedStatuses, Units.cs:Status | MATCH | Timed status durations decrement in State 8 before 259/283/203 turn-loss checks (0x436d4c); Poison/Regen/Dances run in States 16-21. |
 | P8.2 | Stacking and replacement of statuses | 0x4f9b72, 0x4f9930 | Units.cs:SetStatus, Battle.cs:ApplyAilment | MATCH |  |
-| P8.3 | Turn ticks and status countdown | 0x437b0c, 0x48d590, 0x48bc50, 0x48d5b5 | Battle.cs:Turn, Battle.cs:EndOfTurn, Battle.cs:Tick | MATCH |  |
-| P8.4 | Ailments against resistance (5b) | 0x481ea0, 0x5580c0 | Formulas.cs:AilmentThreshold, Battle.cs:MakeAilmentResist, Battle.cs:ApplyAilment | MATCH |  |
-| P8.5 | Recovery from an ailment (16.5) | 0x47bc08, 0x48d1e0, 0x47bc03, 0x48d211 | Battle.cs:Tick, Battle.cs:ApplyAilment | MATCH |  |
-| P8.6 | Poison (16.4, 12.5) | 0x482186 | Battle.cs, Battle.cs:Tick | MATCH |  |
-| P8.7 | Stun, sleep, paralysis, petrify stages, freeze, silence, slow, shadow sew, turn delay (5c) | 0x436c40, 0x4fa185, 0x423a41, 0x436f8b, 0x436d4c | Battle.cs:LostTurn, Battle.cs:Stun, Battle.cs:Delay, Ai.cs:Choose | MATCH |  |
+| P8.3 | Turn ticks and status countdown | 0x437b0c, 0x48d590, 0x48bc50, 0x48d5b5 | Battle.cs:Turn, Battle.cs:EndOfTurn, Battle.cs:RollAilmentRecovery, Battle.cs:DecrementTimedStatuses | MATCH | Turn phase order matches 0x43692f..0x4386e7: State 1 natural recovery, State 4 Petrify stage++ (barrier blocks and cures 120), States 5-7 hard turn loss, State 8 timed status countdown, States 9-11 soft turn loss, States 16-21 regen/dancer-turn dances (200 uses MaxTp)/Poison, State 22 same-side Undaunted (355). |
+| P8.4 | Ailments against resistance (5b) | 0x481ea0, 0x5580c0 | Formulas.cs:AilmentThreshold, Battle.cs:MakeAilmentResist, Battle.cs:ApplyAilment | MATCH | Recovering ailments (113..117, 122) can be re-applied (stripping barriers or resetting recovery chance); Petrify (120) and Shadow Sew (123) do not overwrite an existing instance; 192 is checked in Voided. |
+| P8.5 | Recovery from an ailment (16.5) | 0x47bc08, 0x48d1e0, 0x47bc03, 0x48d211 | Battle.cs:RollAilmentRecovery, Battle.cs:ApplyAilment | MATCH | Action-inflicted recovering ailments (113..117, 122) start at 5% natural recovery (0x4185b7, 0x418812, 0x418a9b) and rise by +10% each turn in State 1 before LostTurnHard; Third Eye Wide (345) explicitly initializes at 0%. |
+| P8.6 | Poison (16.4, 12.5) | 0x482186 | Battle.cs, Battle.cs:TickRegenAndDances | MATCH |  |
+| P8.7 | Stun, sleep, paralysis, petrify stages, freeze, silence, slow, shadow sew, turn delay (5c) | 0x436c40, 0x4fa185, 0x423a41, 0x436f8b, 0x436d4c | Battle.cs:LostTurnHard, Battle.cs:LostTurnSoft, Battle.cs:Stun, Battle.cs:Delay | MATCH |  |
 | P8.8 | Dispel and strip buffs (74; Dispellable, Dispel) | 0x4226c4, 0x4fb1f0, 0x479df0 | Battle.cs, Battle.cs:AfterHit, Battle.cs:Dispellable | MATCH |  |
 | P8.9 | Statuses that change stats (12.6, 0x4fbdd0) | 0x4fbdd0 | Units.cs:Stat | MATCH |  |
 
@@ -143,20 +143,20 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P10.1 | Songs and dances (12.8, 16.6): slots, passives, what ends them | 0x43bfb8, 0x43c479, 0x43c91b, 0x4f9f8e | Battle.cs:PartsFor | MATCH |  |
 | P10.2 | Chants: start, speed (F2), interruption, ailment effects | 0x4499d0, 0x449a97, 0x449b58, 0x44d001, 0x44d02b | Battle.cs:NextAction | MATCH |  |
 | P10.3 | Dolls: creation, actions, magic scale, and removal | 0x4376e9, 0x4359e0 | Battle.cs:MakeDoll, Battle.cs:DollAction, Battle.cs:BeforeAction, Battle.cs:MagicValue | FIXED (43ec275) | Effect 350 removes one random doll of the other side. |
-| P10.4 | Guest dolls: creation, numbering, and stats | 0x4852ca, 0x4fd3d0, 0x4f0530, 0x43a274 | Battle.cs:MakeGuestDoll | FIXED (5e78354) | A guest doll (Catalina 307, Spartan 308, Oracles 310, Musiy 311) is instantiated at 0x4852ca via constructor 0x4fd3d0 / 0x4f0530 using its EnemyStatusData monster record from Data.Enemies rather than inheriting owner stats. |
+| P10.4 | Guest dolls: creation, numbering, and stats | 0x4852ca, 0x4fd3d0, 0x4f0530, 0x43a274 | Battle.cs:MakeGuestDoll | FIXED (5e78354) | Guest and enemy dolls (Catalina 307, Spartan 308, Oracles 310, Musiy 311) are instantiated at 0x48490a..0x485c17 via CGamePlayerStatusOtherETCDoll (0x4fe5f0) / CGameEnemyStatusETCDoll (0x4fd3d0), both of which copy owner stats, HP=9999, and weight=0.0 (0x4fd630), matching MakeGuestDoll. |
 
 ## Phase 11
 
 | Item | Mechanic | Program | Engine | Verdict | Note |
 |---|---|---|---|---|---|
-| P11.1 | Items in battle (15, 0x50c596): who can use them, targets, effects | 0x55b550, 0x55b5b0, 0x50e6f0, 0x50fb30, 0x50fe20 | Battle.cs:UseItem | FIXED (43ec275) | The effects of an item are read in pairs by side: the first two for the own side, the next two for the other. |
+| P11.1 | Items in battle (15, 0x50c596): who can use them, targets, effects | 0x55b550, 0x55b5b0, 0x50e6f0, 0x50fb30, 0x50fe20 | Battle.cs:UseItem | FIXED (43ec275) | Fixed 4-slot layout preserved (slots 0-1 ally, 2-3 enemy, -1 empty; 0x55b550); supports HP/TP/HP+TP single and party kinds (0..5) with Item Mastery (275), true-ailment cures (6/7 excluding Shadow Sew 123), and all 41 item-cast skill specs (0x50b030/0x511790). |
 | P11.2 | Random moves (12.10) | 0x41e060, 0x42db00, 0x505ad0 | Battle.cs:RandomMove | MATCH |  |
 | P11.3 | Steal (12.16) | 0x44fde0, 0x4503c5 | Battle.cs:AfterHit | FIXED (43ec275) | Steal keeps its gold and item flags apart (bit 15 of the result). |
 | P11.4 | Unique skills (12.19, 16.3) | 0x4f615e, 0x4176a0, 0x439100, 0x4376ea | Battle.cs:BeforeAction | FIXED (43ec275) | Effect 350 removes one random doll of the other side (as P10.3). |
 | P11.5 | Passives outside the damage formulas (12.11) | 0x4e4dd0, 0x4fd250 | Battle.cs:Pay | MATCH |  |
 | P11.6 | Sealbooks (16.1) and zones that forbid magic (16.2) | 0x44a359, 0x4f7b5d, 0x41a486, 0x4e4560, 0x4f7bdd | Battle.cs:Wait, Battle.cs:Perform, Units.cs:BuildMember | MATCH |  |
 | P11.7 | End of a battle and safety caps | 0x436133, 0x436358 | Battle.cs:Over, Battle.cs:Run, Battle.cs:Result | MODEL-LIMIT | Battle victory/defeat (0x436133, 0x436358) in the binary only verifies living units via 0x43e6d0 with no turn or action limits. MaxTime = 400.0 and MaxActions = 3000 are intentional headless simulator safety caps to prevent infinite stall loops. |
-| P11.8 | Effects with turns counted in actions of the source versus the bearer | 0x437b0c, 0x437b5a, 0x437ba4, 0x437b9e, 0x48d160 | Battle.cs:EndOfTurn, Battle.cs:Tick | MATCH |  |
+| P11.8 | Effects with turns counted in actions of the source versus the bearer | 0x437b0c, 0x437b5a, 0x437ba4, 0x437b9e, 0x48d160 | Battle.cs:EndOfTurn, Battle.cs:DecrementTimedStatuses, Battle.cs:TickRegenAndDances | MATCH | Dances 199, 200, 204, 339 tick on the dancer turn across all living units bearing that dancer status (0x42b5b5), with 200 scaling target.MaxTp. |
 
 ## Phase 12
 
@@ -190,7 +190,7 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 
 | Item | Mechanic | Program | Engine | Verdict | Note |
 |---|---|---|---|---|---|
-| P15.1 | A missed spell deals part of its damage; spells deal at least 1 to 5 | 0x44ed8c, 0x44ee33, 0x44ee70, 0x423257 | Battle.cs:MagicDamageActual, Battle.cs:Damage | FIXED (d8fd32b) | A missed spell deals half its damage, three quarters with enchantment 272, never a critical; any spell at 0 or less deals 1 to 5. Its other effects are not applied (not read). |
+| P15.1 | A missed spell deals part of its damage; spells deal at least 1 to 5 | 0x44ed8c, 0x44ee33, 0x44ee70, 0x423257 | Battle.cs:MagicDamageActual, Battle.cs:Damage, Battle.cs:Resolve | FIXED (d8fd32b) | A missed damaging spell (including special-damage magic) checks Voided, deals grazed (half, or 3/4 with enchant 272; full for special damage) with 1-5 floor, and still runs AfterHit (ailments, drains, reactive triggers; 0x421ab9..0x421ade). |
 | P15.2 | Enchantments 219 and 220: bonus by level gap | 0x44ca01, 0x44ecc1 | Battle.cs:LevelBonus | FIXED (d8fd32b) | +0.1 a piece to the other bonus when the target is of a higher (219) or lower (220) level. |
 | P15.3 | Enchantment 264: class weapon modifier | 0x4f7fb0 | Units.cs:BuildMember | FIXED (d8fd32b) | +0.02 to the class weapon modifier when carried. |
 | P15.4 | Enchantments 257 and 292: recovery when defending | 0x4197ae, 0x419843 | Battle.cs:Perform | FIXED (d8fd32b) | Defending recovers max(10, 20% max HP) and max(5, 10% max TP). |

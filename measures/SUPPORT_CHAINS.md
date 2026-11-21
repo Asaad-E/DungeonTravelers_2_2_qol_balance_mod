@@ -19,14 +19,14 @@ Balance variant. 8 random battles of the floor of each checkpoint in a row, HP a
 | Role | Class | Kind | C10 | C13 | C18 | HP left against the control | TP left against the control |
 |---|---|---|---|---|---|---|---|
 | tank | Paladin | tank | 100% / 99% / 49% | 100% / 99% / 47% | 100% / 97% / 40% | +0 | -3 |
-| attacker | Berserker | control | 100% / 99% / 50% | 100% / 98% / 49% | 100% / 97% / 47% | +0 | +0 |
-| maid | Bard | support | 100% / 99% / 55% | 100% / 99% / 51% | 100% / 98% / 47% | +1 | +3 |
-| healer | Priestess | support | 100% / 100% / 45% | 100% / 98% / 45% | 100% / 98% / 35% | +0 | -7 |
-| diva | Bard | support | 100% / 99% / 56% | 100% / 99% / 54% | 100% / 97% / 46% | +0 | +3 |
+| attacker | Berserker | control | 100% / 99% / 50% | 100% / 98% / 49% | 100% / 98% / 47% | +0 | +0 |
+| maid | Bard | support | 100% / 99% / 55% | 100% / 99% / 51% | 100% / 99% / 48% | +1 | +3 |
+| healer | Priestess | support | 100% / 100% / 45% | 100% / 98% / 45% | 100% / 98% / 34% | +0 | -8 |
+| diva | Bard | support | 100% / 99% / 56% | 100% / 99% / 54% | 100% / 96% / 47% | -0 | +3 |
 | valkyrie | Paladin | tank | 100% / 99% / 52% | 100% / 99% / 49% | 100% / 98% / 42% | +0 | -1 |
 | sage | Enchantress | support | 100% / 99% / 46% | 100% / 99% / 41% | 100% / 98% / 24% | +1 | -11 |
 | mistress | Bard | support | 100% / 99% / 56% | 100% / 98% / 53% | 100% / 97% / 44% | -0 | +2 |
-| etoile | Dancer | support | 100% / 99% / 56% | 100% / 99% / 54% | 100% / 99% / 46% | +1 | +3 |
+| etoile | Dancer | support | 100% / 99% / 56% | 100% / 99% / 54% | 100% / 99% / 45% | +1 | +3 |
 
 ## advanced (C22, C30, C34, C40)
 

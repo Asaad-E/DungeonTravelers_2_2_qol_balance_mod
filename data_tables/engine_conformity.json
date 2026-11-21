@@ -1996,7 +1996,7 @@
    "verdict": "FIXED",
    "fixed_in": "13c4e2f",
    "note": "The components of the mercenary, guest and unique-skill tables are printed to one decimal, so their sum reads as the ranking.",
-   "reach": "Tabular reports in `docs/generated/MERCENARY_BATTERY.md`, `measures/MERCENARIES.md`, and `measures/UNIQUE_SKILLS.md`."
+   "reach": "Tabular reports in `docs/generated/MERCENARY_BATTERY.md` and `docs/generated/UNIQUE_BATTERY.md`."
   },
   {
    "id": "P14.5",
