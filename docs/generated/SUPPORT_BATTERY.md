@@ -8,58 +8,58 @@ Each figure is the mean over the cells of the role minus the control in the same
 
 | Role | Class | Kind | Context | Cells | Wins | Reached | Length | Lowest HP | HP left | TP left | Deaths | Items | Healing | Taken | Serve | Worse | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| maid | Maid | support | boss | 30 | -4 | +0 | +235 | -15 | -8 | +1 | +0.71 | +1.14 | +35 | +149 | 0% | 80% |  |
-| maid | Maid | support | walk | 30 | -5 | -5 | +166 | -5 | -1 | +4 | +0.90 | +1.47 | +65 | +100 | 23% | 73% |  |
-| maid | Maid | support | walk_boss | 30 | -8 | -5 | +90 | -6 | -3 | +4 | +1.17 | +1.92 | +88 | +100 | 7% | 87% |  |
-| maid | Maid | support | all | 90 | -6 | -3 | +165 | -9 | -4 | +3 | +0.93 | +1.51 | +63 | +117 | 10% | 80% | niche |
+| maid | Maid | support | boss | 30 | -4 | +0 | +250 | -14 | -8 | +1 | +0.68 | +1.12 | +39 | +158 | 0% | 80% |  |
+| maid | Maid | support | walk | 30 | -5 | -5 | +170 | -5 | -1 | +4 | +0.91 | +1.48 | +67 | +100 | 23% | 73% |  |
+| maid | Maid | support | walk_boss | 30 | -8 | -5 | +86 | -7 | -3 | +4 | +1.16 | +1.92 | +89 | +100 | 10% | 90% |  |
+| maid | Maid | support | all | 90 | -6 | -3 | +170 | -9 | -4 | +3 | +0.91 | +1.50 | +65 | +119 | 11% | 81% | niche |
 
 ## intermediate (12 bosses: C07, C08, C09, C10, C11, C12, C13, C14, C15, C16, C17, C18)
 
 | Role | Class | Kind | Context | Cells | Wins | Reached | Length | Lowest HP | HP left | TP left | Deaths | Items | Healing | Taken | Serve | Worse | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| tank | Paladin | tank | boss | 60 | -0 | +0 | +49 | -1 | +0 | -2 | +0.15 | +1.55 | +61 | +35 | 7% | 73% |  |
-| tank | Paladin | tank | walk | 50 | +0 | +0 | +29 | -1 | +1 | -8 | +0.00 | +0.73 | +33 | +28 | 18% | 54% |  |
-| tank | Paladin | tank | walk_boss | 50 | +0 | +0 | +34 | -1 | -0 | -4 | +0.24 | +1.73 | +70 | +33 | 10% | 74% |  |
-| tank | Paladin | tank | all | 160 | +0 | +0 | +38 | -1 | +0 | -5 | +0.13 | +1.35 | +55 | +32 | 11% | 68% | niche |
-| maid | Bard | support | boss | 60 | +2 | +0 | +44 | +0 | +4 | +1 | -0.12 | +1.85 | -122 | +39 | 10% | 65% |  |
-| maid | Bard | support | walk | 50 | -1 | -1 | +27 | -0 | +1 | +6 | +0.01 | +0.85 | -99 | +26 | 32% | 44% |  |
-| maid | Bard | support | walk_boss | 50 | -1 | -1 | +32 | +0 | +1 | +9 | +0.02 | +1.37 | -127 | +32 | 28% | 64% |  |
-| maid | Bard | support | all | 160 | +0 | -0 | +35 | -0 | +2 | +5 | -0.03 | +1.38 | -116 | +33 | 22% | 58% | niche |
-| healer | Priestess | support | boss | 60 | +1 | +0 | +34 | +0 | +3 | -6 | -0.13 | +1.12 | +419 | +32 | 8% | 62% |  |
-| healer | Priestess | support | walk | 50 | -0 | -0 | +20 | +1 | +1 | -7 | -0.18 | +1.34 | +476 | +21 | 8% | 80% |  |
-| healer | Priestess | support | walk_boss | 50 | -1 | -0 | +35 | +0 | +0 | -5 | +0.16 | +3.43 | +1129 | +43 | 6% | 92% |  |
-| healer | Priestess | support | all | 160 | -0 | -0 | +30 | +0 | +2 | -6 | -0.05 | +1.91 | +659 | +32 | 8% | 77% | niche |
-| sage | Enchantress | support | boss | 60 | -1 | +0 | +44 | -2 | -0 | -3 | +0.26 | +1.64 | +128 | +29 | 5% | 73% |  |
-| sage | Enchantress | support | walk | 50 | -2 | -2 | +30 | -2 | -1 | -9 | +0.06 | +1.25 | +175 | +30 | 6% | 60% |  |
-| sage | Enchantress | support | walk_boss | 50 | -5 | -2 | +43 | -4 | -4 | -4 | +0.57 | +3.59 | +270 | +44 | 4% | 78% |  |
-| sage | Enchantress | support | all | 160 | -2 | -1 | +40 | -3 | -2 | -5 | +0.30 | +2.13 | +187 | +34 | 5% | 71% | niche |
-| etoile | Dancer | support | boss | 60 | +2 | +0 | +40 | +3 | +4 | +1 | -0.40 | +0.24 | +14 | +6 | 30% | 33% |  |
-| etoile | Dancer | support | walk | 50 | -1 | -1 | +21 | +1 | +0 | +6 | -0.13 | -0.47 | -22 | -0 | 60% | 14% |  |
-| etoile | Dancer | support | walk_boss | 50 | +1 | -1 | +25 | +3 | +3 | +11 | -0.45 | -1.13 | +117 | +2 | 58% | 28% |  |
-| etoile | Dancer | support | all | 160 | +1 | -0 | +30 | +2 | +2 | +6 | -0.33 | -0.41 | +35 | +3 | 48% | 26% | serves |
+| tank | Paladin | tank | boss | 60 | -0 | +0 | +54 | -1 | +0 | -2 | +0.18 | +1.82 | +73 | +41 | 8% | 80% |  |
+| tank | Paladin | tank | walk | 50 | -0 | -0 | +32 | -0 | +1 | -9 | -0.00 | +0.88 | +44 | +29 | 14% | 72% |  |
+| tank | Paladin | tank | walk_boss | 50 | -0 | -0 | +40 | -0 | -0 | -6 | +0.18 | +1.71 | +77 | +33 | 8% | 78% |  |
+| tank | Paladin | tank | all | 160 | -0 | -0 | +43 | -1 | +0 | -5 | +0.12 | +1.49 | +65 | +35 | 10% | 77% | niche |
+| maid | Bard | support | boss | 60 | +1 | +0 | +51 | -1 | +3 | +0 | +0.01 | +2.27 | -114 | +44 | 7% | 75% |  |
+| maid | Bard | support | walk | 50 | -1 | -1 | +29 | +1 | +1 | +6 | +0.02 | +0.98 | -105 | +27 | 32% | 44% |  |
+| maid | Bard | support | walk_boss | 50 | -2 | -1 | +34 | +1 | +1 | +8 | +0.02 | +1.51 | -135 | +33 | 24% | 62% |  |
+| maid | Bard | support | all | 160 | -0 | -1 | +39 | +0 | +2 | +4 | +0.02 | +1.63 | -118 | +35 | 20% | 61% | niche |
+| healer | Priestess | support | boss | 60 | +1 | +0 | +41 | -0 | +3 | -6 | -0.07 | +1.40 | +400 | +36 | 8% | 75% |  |
+| healer | Priestess | support | walk | 50 | -1 | -1 | +22 | +1 | +1 | -7 | -0.14 | +1.68 | +493 | +23 | 6% | 76% |  |
+| healer | Priestess | support | walk_boss | 50 | -2 | -1 | +37 | +1 | +1 | -6 | +0.16 | +3.70 | +1129 | +44 | 4% | 92% |  |
+| healer | Priestess | support | all | 160 | -1 | -1 | +34 | +1 | +2 | -6 | -0.02 | +2.21 | +657 | +34 | 6% | 81% | niche |
+| sage | Enchantress | support | boss | 60 | -1 | +0 | +50 | -3 | -0 | -3 | +0.27 | +1.83 | +124 | +33 | 2% | 80% |  |
+| sage | Enchantress | support | walk | 50 | -2 | -2 | +33 | -2 | -1 | -9 | +0.09 | +1.45 | +180 | +31 | 0% | 76% |  |
+| sage | Enchantress | support | walk_boss | 50 | -5 | -2 | +45 | -3 | -4 | -5 | +0.50 | +3.62 | +279 | +44 | 4% | 80% |  |
+| sage | Enchantress | support | all | 160 | -2 | -1 | +43 | -2 | -1 | -6 | +0.29 | +2.27 | +190 | +36 | 2% | 79% | niche |
+| etoile | Dancer | support | boss | 60 | +2 | +0 | +46 | +3 | +3 | +1 | -0.36 | +0.50 | +21 | +8 | 27% | 38% |  |
+| etoile | Dancer | support | walk | 50 | -1 | -1 | +23 | +2 | +0 | +6 | -0.17 | -0.37 | -15 | +0 | 50% | 20% |  |
+| etoile | Dancer | support | walk_boss | 50 | +0 | -1 | +28 | +4 | +2 | +10 | -0.45 | -0.88 | +134 | +3 | 64% | 12% |  |
+| etoile | Dancer | support | all | 160 | +0 | -1 | +33 | +3 | +2 | +5 | -0.33 | -0.20 | +45 | +4 | 46% | 24% | serves |
 
 ## advanced (22 bosses: C19, C20, C21, C22, C24, C25, C26, C27, C28, C29, C29a, C30, C31, C32, C33, C34, C35, C36, C37, C38, C39, C40)
 
 | Role | Class | Kind | Context | Cells | Wins | Reached | Length | Lowest HP | HP left | TP left | Deaths | Items | Healing | Taken | Serve | Worse | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| tank | Valkyrie | tank | boss | 110 | -2 | +0 | +31 | -0 | -0 | -4 | +0.63 | +2.27 | +1137 | +22 | 15% | 75% |  |
-| tank | Valkyrie | tank | walk | 95 | +3 | +3 | +21 | +2 | +4 | -2 | +0.07 | +1.58 | +826 | +19 | 22% | 63% |  |
-| tank | Valkyrie | tank | walk_boss | 95 | +0 | +3 | +25 | +1 | +2 | -2 | +0.45 | +2.68 | +1373 | +27 | 12% | 82% |  |
-| tank | Valkyrie | tank | all | 300 | +0 | +2 | +26 | +1 | +2 | -3 | +0.40 | +2.18 | +1113 | +23 | 16% | 74% | niche |
-| maid | Diva | support | boss | 110 | +11 | +0 | +33 | +7 | +15 | +0 | -0.44 | +1.98 | -443 | +47 | 45% | 48% |  |
-| maid | Diva | support | walk | 95 | +22 | +22 | +10 | +14 | +27 | +8 | -2.16 | -0.26 | -1448 | +46 | 66% | 32% |  |
-| maid | Diva | support | walk_boss | 95 | +14 | +22 | +21 | +8 | +16 | +8 | -0.99 | +1.47 | -1106 | +89 | 47% | 51% |  |
-| maid | Diva | support | all | 300 | +15 | +14 | +22 | +9 | +19 | +5 | -1.16 | +1.11 | -971 | +60 | 53% | 44% | serves |
-| healer | Bishop | support | boss | 110 | +9 | +0 | +44 | +6 | +14 | -5 | +0.27 | +3.22 | +5347 | +73 | 40% | 52% |  |
-| healer | Bishop | support | walk | 95 | +19 | +19 | +25 | +12 | +23 | -4 | -1.02 | +1.29 | +6381 | +75 | 49% | 45% |  |
-| healer | Bishop | support | walk_boss | 95 | +9 | +19 | +31 | +5 | +11 | -4 | +0.82 | +3.91 | +11181 | +140 | 31% | 67% |  |
-| healer | Bishop | support | all | 300 | +12 | +12 | +34 | +8 | +16 | -5 | +0.04 | +2.83 | +7522 | +95 | 40% | 55% | serves |
-| sage | Sage | support | boss | 110 | -4 | +0 | +34 | +0 | +0 | +10 | +0.82 | +2.35 | +1415 | +25 | 23% | 71% |  |
-| sage | Sage | support | walk | 95 | +5 | +5 | +26 | +2 | +6 | +11 | +0.01 | +1.57 | +2348 | +37 | 35% | 58% |  |
-| sage | Sage | support | walk_boss | 95 | -1 | +5 | +33 | -0 | +0 | +11 | +0.66 | +3.71 | +2921 | +50 | 21% | 73% |  |
-| sage | Sage | support | all | 300 | -0 | +3 | +31 | +1 | +2 | +10 | +0.51 | +2.53 | +2188 | +37 | 26% | 67% | serves |
-| etoile | Etoile | support | boss | 110 | +15 | +0 | +13 | +11 | +15 | +2 | -1.55 | +0.28 | -35 | -17 | 72% | 20% |  |
-| etoile | Etoile | support | walk | 95 | +12 | +12 | +15 | +8 | +12 | +4 | -1.41 | +0.32 | -591 | -13 | 78% | 15% |  |
-| etoile | Etoile | support | walk_boss | 95 | +12 | +12 | +5 | +7 | +13 | +5 | -1.58 | -0.17 | -341 | -6 | 63% | 32% |  |
-| etoile | Etoile | support | all | 300 | +13 | +8 | +12 | +9 | +13 | +4 | -1.51 | +0.15 | -308 | -12 | 71% | 22% | serves |
+| tank | Valkyrie | tank | boss | 110 | -4 | +0 | +38 | -1 | -1 | -4 | +0.83 | +2.61 | +1242 | +26 | 9% | 82% |  |
+| tank | Valkyrie | tank | walk | 95 | +1 | +1 | +22 | +1 | +3 | -2 | +0.19 | +1.77 | +646 | +18 | 11% | 83% |  |
+| tank | Valkyrie | tank | walk_boss | 95 | +0 | +1 | +24 | +1 | +2 | -2 | +0.35 | +2.68 | +1027 | +24 | 15% | 81% |  |
+| tank | Valkyrie | tank | all | 300 | -1 | +0 | +29 | +0 | +1 | -3 | +0.48 | +2.37 | +985 | +23 | 11% | 82% | niche |
+| maid | Diva | support | boss | 110 | +8 | +0 | +40 | +6 | +14 | -1 | -0.32 | +2.24 | -215 | +45 | 38% | 55% |  |
+| maid | Diva | support | walk | 95 | +19 | +19 | +13 | +13 | +26 | +8 | -1.94 | +0.07 | -1313 | +47 | 67% | 26% |  |
+| maid | Diva | support | walk_boss | 95 | +12 | +19 | +21 | +9 | +18 | +8 | -1.23 | +1.32 | -1292 | +81 | 55% | 43% |  |
+| maid | Diva | support | all | 300 | +13 | +12 | +27 | +9 | +19 | +5 | -1.12 | +1.26 | -904 | +57 | 53% | 42% | serves |
+| healer | Bishop | support | boss | 110 | +8 | +0 | +50 | +6 | +13 | -6 | +0.22 | +3.25 | +4923 | +69 | 38% | 55% |  |
+| healer | Bishop | support | walk | 95 | +16 | +16 | +28 | +12 | +22 | -5 | -0.96 | +1.67 | +5807 | +73 | 49% | 46% |  |
+| healer | Bishop | support | walk_boss | 95 | +7 | +16 | +31 | +8 | +14 | -4 | +0.34 | +3.74 | +9387 | +125 | 34% | 65% |  |
+| healer | Bishop | support | all | 300 | +10 | +10 | +38 | +8 | +16 | -5 | -0.12 | +2.90 | +6616 | +88 | 40% | 56% | serves |
+| sage | Sage | support | boss | 110 | -4 | +0 | +44 | -0 | -0 | +9 | +0.95 | +2.65 | +1588 | +29 | 17% | 77% |  |
+| sage | Sage | support | walk | 95 | +4 | +4 | +28 | +2 | +7 | +10 | +0.09 | +1.84 | +2345 | +39 | 32% | 63% |  |
+| sage | Sage | support | walk_boss | 95 | -1 | +4 | +32 | +1 | +2 | +10 | +0.58 | +3.91 | +2828 | +53 | 24% | 72% |  |
+| sage | Sage | support | all | 300 | -1 | +2 | +36 | +1 | +2 | +10 | +0.56 | +2.79 | +2220 | +40 | 24% | 71% | niche |
+| etoile | Etoile | support | boss | 110 | +12 | +0 | +22 | +9 | +13 | +0 | -1.14 | +0.88 | +247 | -13 | 66% | 26% |  |
+| etoile | Etoile | support | walk | 95 | +9 | +9 | +17 | +8 | +11 | +4 | -1.26 | +0.57 | -574 | -12 | 69% | 19% |  |
+| etoile | Etoile | support | walk_boss | 95 | +10 | +9 | +9 | +8 | +13 | +5 | -1.64 | +0.03 | -544 | -7 | 67% | 27% |  |
+| etoile | Etoile | support | all | 300 | +10 | +6 | +18 | +8 | +12 | +3 | -1.34 | +0.51 | -263 | -11 | 68% | 24% | serves |
 

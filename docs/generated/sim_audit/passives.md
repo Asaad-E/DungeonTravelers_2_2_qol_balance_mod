@@ -1,6 +1,6 @@
 ## passives
 
-49 act, 16 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
+46 act, 19 no effect seen, 6 outside battle, 0 with no role, of 71 passive skills.
 
 | Passive | Effects | Tested as | Result |
 |---|---|---|---|
@@ -21,12 +21,12 @@
 | 255 Mini Auto-Recovery | 246 | tank (Alisia, 29, C18) | no effect seen |
 | 256 Auto-Refresh | 247 | tank (Alisia, 62, C38) | acts |
 | 257 Mini Auto-Refresh | 247 | sage (Fiora, 29, C18) | acts |
-| 258 Adaptation | 248 | attacker (Yae, 29, C18) | acts |
+| 258 Adaptation | 248 | attacker (Yae, 29, C18) | no effect seen |
 | 259 Avenger | 249 | tank (Alisia, 14, C11) | acts |
 | 260 Mind's Eye | 250 | attacker (Yae, 62, C38) | acts |
 | 261 Double Attack | 251 | tank (Alisia, 14, C11) | acts |
 | 262 Triple Attack | 252 | attacker (Yae, 62, C38) | acts |
-| 263 Flowing Water Stance | 253 | attacker (Yae, 62, C38) | acts |
+| 263 Flowing Water Stance | 253 | attacker (Yae, 62, C38) | no effect seen |
 | 264 Knock Down | 305 | mistress (Conette, 62, C38) | no effect seen |
 | 265 Guts | 254 | tank (Alisia, 62, C38) | acts |
 | 266 Auto-Guard | 255 | tank (Alisia, 29, C18) | acts |
@@ -62,7 +62,7 @@
 | 296 Double Puppet | 316, 313 | soul summoner (Lizerietta, 62, C38) | acts |
 | 297 Soul Seal | 314 | soul summoner (Lizerietta, 62, C38) | acts |
 | 298 Maid Mastery | 278 | maid (Conette, 14, C11) | acts |
-| 299 Song Mastery | 279 | maid (Conette, 29, C18) | acts |
+| 299 Song Mastery | 279 | maid (Conette, 29, C18) | no effect seen |
 | 300 Dance Mastery | 280 | etoile (Ist, 29, C18) | acts |
 | 301 Doll Mastery | 286 | dolls (Lizerietta, 29, C18) | acts |
 | 302 Barrage | 251 | kunoichi (Tsurara, 62, C38) | no effect seen |

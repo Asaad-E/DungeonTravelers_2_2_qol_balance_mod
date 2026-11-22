@@ -24,58 +24,58 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | C14 | Oh-So-Hime | normal | 18 | 100% | 50% | within |
 | C15 | Warden of the Wall | normal | 18 | 100% | 50% | within |
 | C16 | Molle | normal | 21 | 100% | 50% | within |
-| C17 | Agent M | normal | 25 | 100% | 50% | within |
+| C17 | Agent M | normal | 25 | 98% | 50% | within |
 | C18 | True Queen Eltricia | hard | 27 | 100% | 20% | within |
-| C19 | Siesta | normal | 30 | 95% | 50% | within |
+| C19 | Siesta | normal | 30 | 100% | 50% | within |
 | C20 | Big Bad Beard (miniboss) | easy | 30 | 100% | 80% | within |
 | C21 | Trafficker Twinny | easy | 30 | 100% | 80% | within |
-| C22 | Therian wave, Maerchen Little | normal | 33 | 100% | 50% | within |
+| C22 | Therian wave, Maerchen Little | normal | 33 | 90% | 50% | within |
 | C24 | Afanc | easy | 35 | 100% | 80% | within |
 | C25 | Martial Artist | easy | 36 | 100% | 80% | within |
 | C26 | Michelle, Beatrice | easy | 38 | 98% | 80% | within |
 | C27 | Forest Guardian x2 (miniboss) | easy | 40 | 100% | 80% | within |
-| C28 | Spirit of Mag Mell | normal | 40 | 55% | 50% | within |
-| C29 | Calliope | normal | 44 | 95% | 50% | within |
+| C28 | Spirit of Mag Mell | normal | 40 | 32% | 50% | **below, unread** |
+| C29 | Calliope | normal | 44 | 100% | 50% | within |
 | C29a | Dragon Papi | hard | 44 | 100% | 20% | within |
-| C30 | Heartless Avenger x2 | normal | 44 | 98% | 50% | within |
+| C30 | Heartless Avenger x2 | normal | 44 | 90% | 50% | within |
 | C31 | Tres Durian, Mangos Queen | normal | 44 | 100% | 50% | within |
-| C32 | Moby Dick | easy | 44 | 80% | 80% | within |
-| C33 | Death Cataphract | easy | 44 | 90% | 80% | within |
-| C34 | Queen of Darkness (weakened) | easy | 50 | 38% | 80% | **below, unread** |
-| C35 | Scanner | hard | 52 | 68% | 20% | within |
-| C36 | Demon God Fried | normal | 53 | 88% | 50% | within |
-| C37 | Iron Maiden | normal | 55 | 100% | 50% | within |
-| C38 | Samael | easy | 62 | 60% | 80% | read: near the floor |
-| C39 | Melek Taus | normal | 62 | 48% | 50% | **below, unread** |
+| C32 | Moby Dick | easy | 44 | 45% | 80% | **below, unread** |
+| C33 | Death Cataphract | easy | 44 | 95% | 80% | within |
+| C34 | Queen of Darkness (weakened) | easy | 50 | 62% | 80% | **below, unread** |
+| C35 | Scanner | hard | 52 | 50% | 20% | within |
+| C36 | Demon God Fried | normal | 53 | 78% | 50% | within |
+| C37 | Iron Maiden | normal | 55 | 98% | 50% | within |
+| C38 | Samael | easy | 62 | 22% | 80% | read: near the floor |
+| C39 | Melek Taus | normal | 62 | 70% | 50% | within |
 | C40 | Demiurge, Atialuco | normal | 64 | 40% | 50% | **below, unread** |
 | P01 | Aradia (1st fight) | easy | 64 | 100% | 80% | within |
-| P02 | Iktomi | easy | 66 | 18% | 80% | **below, unread** |
+| P02 | Iktomi | easy | 66 | 48% | 80% | **below, unread** |
 | P03 | Aradia (2nd fight) | normal | 66 | 0% | 50% | read: preparation gap |
-| P04 | Sukuna-Hikona | easy | 67 | 75% | 80% | **below, unread** |
+| P04 | Sukuna-Hikona | easy | 67 | 80% | 80% | within |
 | P05 | Euthys | normal | 67 | 0% | 50% | read: preparation gap |
-| P06 | Overdue | hard | 67 | 22% | 20% | within |
-| P07 | Royal Villa, three bosses | easy | 67 | 20% | 80% | **below, unread** |
-| P08 | Qitian Dasheng | easy | 72 | 98% | 80% | within |
-| P09 | Azathoth | normal | 74 | 18% | 50% | read: preparation gap |
-| P10 | Kuchinawa | normal | 74 | 8% | 50% | read: preparation gap |
-| P11 | Aradia (3rd fight) | normal | 74 | 52% | 50% | within |
+| P06 | Overdue | hard | 67 | 25% | 20% | within |
+| P07 | Royal Villa, three bosses | easy | 67 | 42% | 80% | **below, unread** |
+| P08 | Qitian Dasheng | easy | 72 | 100% | 80% | within |
+| P09 | Azathoth | normal | 74 | 30% | 50% | read: preparation gap |
+| P10 | Kuchinawa | normal | 74 | 5% | 50% | read: preparation gap |
+| P11 | Aradia (3rd fight) | normal | 74 | 60% | 50% | within |
 | P12 | Genbu | normal | 78 | 0% | 50% | read: preparation gap |
 | P13 | Nuwa | normal | 79 | 0% | 50% | read: preparation gap |
 | P14 | Murasaki Shikibu | normal | 79 | 98% | 50% | within |
-| P15 | Aradia (4th fight) | normal | 79 | 0% | 50% | read: preparation gap |
-| P16 | Aradia (5th fight) | normal | 79 | 90% | 50% | within |
-| P17 | Last Judgment | normal | 84 | 18% | 50% | **below, unread** |
+| P15 | Aradia (4th fight) | normal | 79 | 5% | 50% | read: preparation gap |
+| P16 | Aradia (5th fight) | normal | 79 | 100% | 50% | within |
+| P17 | Last Judgment | normal | 84 | 30% | 50% | **below, unread** |
 | P18 | Aradia (6th fight) | normal | 84 | 100% | 50% | within |
-| P19 | Three goddesses | hard | 84 | 5% | 20% | **below, unread** |
-| P20 | Crom Cruach (weakened superboss) | hard | 84 | 5% | 20% | **below, unread** |
-| P21 | Ria the Farsighted | easy | 84 | 57% | 80% | **below, unread** |
-| P22 | Chika the Impenetrable | hard | 84 | 0% | 20% | read: known limit |
-| P23 | Samael (Dreamscape) | normal | 84 | 8% | 50% | read: preparation gap |
-| P24 | Aradia (7th fight) | normal | 90 | 57% | 50% | within |
-| P25 | Mil the Overlord | easy | 90 | 22% | 80% | read: preparation gap |
-| P26 | Lina the Statuesque | easy | 90 | 68% | 80% | **below, unread** |
+| P19 | Three goddesses | hard | 84 | 25% | 20% | within |
+| P20 | Crom Cruach (weakened superboss) | hard | 84 | 0% | 20% | **below, unread** |
+| P21 | Ria the Farsighted | easy | 84 | 45% | 80% | **below, unread** |
+| P22 | Chika the Impenetrable | hard | 84 | 2% | 20% | read: known limit |
+| P23 | Samael (Dreamscape) | normal | 84 | 2% | 50% | read: preparation gap |
+| P24 | Aradia (7th fight) | normal | 90 | 35% | 50% | **below, unread** |
+| P25 | Mil the Overlord | easy | 90 | 15% | 80% | read: preparation gap |
+| P26 | Lina the Statuesque | easy | 90 | 70% | 80% | **below, unread** |
 | P27 | Melek Taus (Gruneworth) | normal | 90 | 0% | 50% | read: preparation gap |
-| P28 | Hell's Angel | normal | 95 | 22% | 50% | read: preparation gap |
+| P28 | Hell's Angel | normal | 95 | 12% | 50% | read: preparation gap |
 | P29 | Panagia (weakened) | easy | 95 | 0% | 80% | read: preparation gap |
 | P30 | Lolo and Tenerezza (weakened superboss) | hard | 95 | 0% | 20% | read: preparation gap |
 | P31 | Matrix superboss, weakened (Magna Meretrix) | hard | 95 | 0% | 20% | read: preparation gap |
@@ -83,23 +83,23 @@ Vanilla data; the reference party at the reference level of each checkpoint. Cla
 | P33 | Final boss after the 8th Aradia (Panagia, then Radiant Being) | normal | 99 | 0% | 50% | read: known limit |
 | P34 | Casino VIP, 1st (Tama the Red) | hard | 99 | 0% | 20% | read: preparation gap |
 | P35 | Casino VIP, 2nd (Riko the Reclusive) | hard | 99 | 0% | 20% | read: preparation gap |
-| P36 | Casino VIP, 3rd (Rai the Sweltering) | hard | 99 | 0% | 20% | read: preparation gap |
-| P37 | Casino VIP, 4th (Mor the Drunken) | hard | 99 | 8% | 20% | **below, unread** |
-| P38 | Casino VIP, 5th (Gam the Wise) | hard | 99 | 0% | 20% | **below, unread** |
+| P36 | Casino VIP, 3rd (Rai the Sweltering) | hard | 99 | 5% | 20% | read: preparation gap |
+| P37 | Casino VIP, 4th (Mor the Drunken) | hard | 99 | 15% | 20% | **below, unread** |
+| P38 | Casino VIP, 5th (Gam the Wise) | hard | 99 | 2% | 20% | **below, unread** |
 | P39 | Casino VIP, 6th (Ruu the Woodsy) | hard | 99 | 0% | 20% | read: preparation gap |
 | P40 | Casino VIP, 7th (five bosses with Mandra Prince and Princess) | hard | 99 | 0% | 20% | read: preparation gap |
 | P41 | Wandering Brigade (Citlalinicue) | normal | 99 | 0% | 50% | read: known limit |
 | P42 | Wandering Brigade (Marduk) | hard | 99 | 0% | 20% | read: preparation gap |
-| P43 | Wandering Brigade (Arjuna) | normal | 99 | 0% | 50% | read: preparation gap |
-| P44 | Wandering Brigade (Yoshitsune) | normal | 99 | 10% | 50% | read: preparation gap |
+| P43 | Wandering Brigade (Arjuna) | normal | 99 | 5% | 50% | read: preparation gap |
+| P44 | Wandering Brigade (Yoshitsune) | normal | 99 | 22% | 50% | read: preparation gap |
 | P45 | Four Therian Kings (Zouchou Kuma) | hard | 99 | 0% | 20% | read: preparation gap |
-| P46 | Four Therian Kings (Jikoku Peggin) | hard | 99 | 0% | 20% | read: preparation gap |
+| P46 | Four Therian Kings (Jikoku Peggin) | hard | 99 | 2% | 20% | read: preparation gap |
 | P47 | Four Therian Kings (Koumoku Mary) | hard | 99 | 0% | 20% | read: known limit |
 | P48 | Four Therian Kings (Bishamon Peggy) | hard | 99 | 0% | 20% | read: preparation gap |
 | P49 | Hell's Hole superboss (Crom Cruach, two fights) | hard | 99 | 0% | 20% | read: known limit |
 | P50 | Casino superboss (Lolo and Tenerezza) | hard | 99 | 0% | 20% | read: known limit |
 | P51 | Matrix superboss (Adon, Magna Meretrix, Samson) | hard | 99 | 0% | 20% | read: known limit |
-| P52 | First Sealbook afterword (Bearerophon) | hard | 99 | 45% | 20% | within |
-| P53 | First Sealbook afterword (Magical Mary) | hard | 99 | 68% | 20% | within |
-| P54 | First Sealbook afterword (Beard Master) | hard | 99 | 65% | 20% | within |
+| P52 | First Sealbook afterword (Bearerophon) | hard | 99 | 48% | 20% | within |
+| P53 | First Sealbook afterword (Magical Mary) | hard | 99 | 88% | 20% | within |
+| P54 | First Sealbook afterword (Beard Master) | hard | 99 | 95% | 20% | within |
 | P55 | First Sealbook afterword (Mul the Mechanical) | hard | 99 | 95% | 20% | within |
