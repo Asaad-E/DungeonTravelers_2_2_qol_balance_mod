@@ -317,7 +317,13 @@ namespace DtEngine
             get
             {
                 if (Skill == null && Atk == null) return Actor.AttackAttr;
-                int a = Skill != null ? Skill.Attr : Atk.Attr;
+                if (Atk != null)
+                {
+                    // 0x416193 (M04.01a): EnemyAttack Attr == 0 (WEAPON_ATTR) has no equipped weapon and stays Neutral (never falls back to Attacks[0].Attr).
+                    int ea = Atk.Attr;
+                    return (ea == T.NONE || ea == -1 || ea == T.WEAPON_ATTR) ? T.NEUTRAL : ea;
+                }
+                int a = Skill.Attr;
                 if (a == T.NONE || a == -1 || a == T.WEAPON_ATTR) return Actor.AttackAttr;
                 return a;
             }

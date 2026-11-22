@@ -838,9 +838,23 @@ namespace DtEngine
             return unit;
         }
 
+        static void ApplyLeaderSealbookEnchants(GameData data, Unit unit, int leaderSealbook)
+        {
+            // 0x4ff530 (M09.06a): CGamePlayerStatusSummon and CGamePlayerStatusNPC inherit Party Slot 0's equipped Sealbook enchants.
+            if (data == null || leaderSealbook == T.NONE) return;
+            if (!data.SealbookEnchants.TryGetValue(leaderSealbook, out var sbe) || sbe.Length == 0) return;
+            var pieces = new int[GameData.MaxEnchant];
+            foreach (int e in sbe)
+            {
+                if ((uint)e < (uint)pieces.Length)
+                    pieces[e] = data.EnchantStacks.Contains(e) ? pieces[e] + 1 : 1;
+            }
+            unit.SetEnchants(pieces);
+        }
+
         /// <summary>measures/mercenaries.py build: a guest ally as a unit of the party side, with the stats, the attacks and the
         /// script of her record; the attack of her field 0x98 is taken as a passive when it is one.</summary>
-        public static Unit BuildGuest(GameData data, NpcRec record)
+        public static Unit BuildGuest(GameData data, NpcRec record, int leaderSealbook = T.NONE)
         {
             double weight = data.WeaponRanks.TryGetValue(record.Rank, out var w) ? w : 2.0;
             // a guest ally has no HP and is never a target (0x43e6d0); the figure only keeps the unit standing
@@ -852,6 +866,7 @@ namespace DtEngine
             foreach (int id in record.Passives)
                 if (data.Attacks.TryGetValue(id, out var extra) && extra.Passive)
                     for (int k = 0; k < extra.EffId.Length; k++) unit.SetPassive(extra.EffId[k], extra.EffValue[k], extra.EffIsInt[k]);
+            ApplyLeaderSealbookEnchants(data, unit, leaderSealbook);
             return unit;
         }
 
@@ -946,6 +961,11 @@ namespace DtEngine
             foreach (int pid in passives)
                 if (pid != T.NONE && data.Attacks.TryGetValue(pid, out var pa))
                     for (int k = 0; k < pa.EffId.Length; k++) unit.SetPassive(pa.EffId[k], pa.EffValue[k], pa.EffIsInt[k]);
+            if (party != null)
+            {
+                foreach (var m in party)
+                    if (m.Kind == Kind.Member) { ApplyLeaderSealbookEnchants(data, unit, m.Sealbook); break; }
+            }
             return unit;
         }
 

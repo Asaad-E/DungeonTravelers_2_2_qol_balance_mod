@@ -515,11 +515,12 @@ namespace DtEngine.Tests
             var snap = LoadSnapshot();
             var data = snap.Sides["variant"];
 
-            // 2A #1 & #2: All items preserve 4 slots; ItemSkillSpecs holds all 41 specs incl. kinds 42 & 45.
+            // 2A #1 & #2 + M05.09a: All items preserve 4 slots; ItemSkillSpecs holds all 44 specs (41 thunks + 3 party-buff wrappers 35, 36, 39).
             Assert.True(data.Items.Values.All(it => it.Kinds.Length == 4));
             Assert.True(data.ItemSkillSpecs.ContainsKey(42));
             Assert.True(data.ItemSkillSpecs.ContainsKey(45));
-            Assert.Equal(41, data.ItemSkillSpecs.Count);
+            Assert.True(data.ItemSkillSpecs.ContainsKey(35) && data.ItemSkillSpecs.ContainsKey(36) && data.ItemSkillSpecs.ContainsKey(39));
+            Assert.Equal(44, data.ItemSkillSpecs.Count);
 
             // 2A #4: EnchantOffhand loaded from bit 7 (0x80).
             Assert.True(data.EnchantOffhand.Count > 0 && data.EnchantOffhand.Count < 300);
@@ -1123,6 +1124,109 @@ namespace DtEngine.Tests
             Assert.Equal(0.15, dUnit.Swing, 6);
             Assert.NotNull(dUnit.St[41]);
             Assert.Null(dUnit.St[171]);
+        }
+
+        [Fact]
+        public void Phase3_Wave2C_AutoGuardCover_Barriers_Arrows_Items_And_LeaderSealbook()
+        {
+            var snap = LoadSnapshot();
+            var vanilla = snap.Sides["vanilla"];
+
+            // M04.01a: EnemyAttack with Attr == 0 (WEAPON_ATTR) stays Neutral instead of inheriting Attacks[0]'s Stab.
+            var stabEnemy = new Unit("Stabber", Unit.ENEMIES, 50, 1000, 0, new[] { 100, 100, 100, 100, 100, 100 }, null, 2.0, 0.0, T.NONE, Kind.Enemy) { AttackAttr = T.STAB };
+            var neutralAtk = new EnemyAttack { Id = 99901, Name = "NeutralHit", Target = T.SINGLE, Attr = T.WEAPON_ATTR, Range = T.SHORT, Accuracy = 1.0, EffId = new[] { 0 }, EffKind = new[] { 4 }, EffValue = new[] { 0.0 }, EffIsInt = new[] { false } };
+            Assert.Equal(T.NEUTRAL, new Action(stabEnemy, AKind.Enemy, neutralAtk, 1).PhysicalAttr);
+
+            // M04.02c: Cmd 72 (Physical Accuracy Fixed) does NOT override Magic hit chance.
+            var caster = new Unit("Mage", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var target = new Unit("Foe", Unit.ENEMIES, 50, 2000, 0, new[] { 100, 100, 100, 100, 100, 100 }, null, 2.0, 0.0, T.NONE, Kind.Enemy);
+            var mag72 = new Skill
+            {
+                Category = "Magic", Id = 9959, Name = "Mag72", Levels = 1, Target = T.SINGLE, Attr = T.FIRE, Group = 0x08, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Accuracy = new[] { 0.5 }, Turns = new[] { 0.0 },
+                Effects = new[]
+                {
+                    new Effect { Id = 1, Kind = 4, Values = new[] { 100.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 72, Kind = 4, Values = new[] { 0.10 }, IsInt = new[] { false } }
+                }
+            };
+            var b0 = new Battle(vanilla, new List<Unit> { caster }, new List<Unit> { target }, new PyRandom(1), null, new BattleOptions(), null);
+            Assert.True(b0.HitChance(new Action(caster, AKind.Skill, mag72, 1, target), target) > 0.25);
+
+            // M05.01a / M07.01a: Stage-3 Petrified target cannot be healed by Restore or afflicted by ApplyAilment.
+            var pet = new Unit("Pet", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Hp = 100 };
+            pet.SetStatus(new Status(120, 1.0, 0, target) { Stage = 3 });
+            var bPet = new Battle(vanilla, new List<Unit> { pet }, new List<Unit> { target }, new PyRandom(1), null, new BattleOptions(), null);
+            Assert.Equal(0, bPet.Restore(pet, 500));
+            Assert.False(bPet.ApplyAilment(target, pet, 113, 1.0, null));
+
+            // M07.10a/b/c: Single exclusive barrier (101) blocks multi-ailment hit with 1 charge, blocks Special damage, and wakes Sleep (116).
+            var victim = new Unit("Victim", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            victim.SetStatus(new Status(101, 2, 5, victim)); // 2 barrier charges
+            var multiAil = new EnemyAttack
+            {
+                Id = 99902, Name = "DualAil", Target = T.SINGLE, Attr = T.NEUTRAL, Range = T.LONG, Accuracy = 1.0,
+                EffId = new[] { 113, 115 }, EffKind = new[] { 4, 4 }, EffValue = new[] { 1.0, 1.0 }, EffIsInt = new[] { false, false }
+            };
+            var bBar = new Battle(vanilla, new List<Unit> { victim }, new List<Unit> { target }, new PyRandom(1), null, new BattleOptions(), null);
+            bBar.Perform(new Action(target, AKind.Enemy, multiAil, 1) { Target = victim });
+            Assert.Null(victim.St[113]);
+            Assert.Null(victim.St[115]);
+            Assert.Equal(1.0, victim.St[101].Value); // only ONE charge consumed for both ailments!
+            // Now Sleep victim + Special damage (effect 8 fixed 200): barrier absorbs Special damage AND wakes Sleep!
+            victim.SetStatus(new Status(116, 1.0, 0, target).WithData(5));
+            var specHit = new EnemyAttack
+            {
+                Id = 99903, Name = "Spec200", Target = T.SINGLE, Attr = T.NEUTRAL, Range = T.LONG, Accuracy = 1.0,
+                EffId = new[] { 0, 8 }, EffKind = new[] { 4, 4 }, EffValue = new[] { 1.0, 200.0 }, EffIsInt = new[] { false, true }
+            };
+            bBar.Perform(new Action(target, AKind.Enemy, specHit, 1) { Target = victim });
+            Assert.Equal(1000, victim.Hp); // blocked by barrier
+            Assert.Null(victim.St[101]);   // 2nd charge consumed
+            Assert.Null(victim.St[116]);   // Sleep woken!
+
+            // M09.02a: Star Dust Arrow stacks on recast instead of self-evicting.
+            DollRec arrowDoll = null;
+            foreach (var d in vanilla.Dolls) if (d.Effect == T.NONE) { arrowDoll = d; break; }
+            Assert.NotNull(arrowDoll);
+            var arrowSkill = vanilla.ById(arrowDoll.Skill);
+            Assert.NotNull(arrowSkill);
+            var archer = new Unit("Archer", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var bArr = new Battle(vanilla, new List<Unit> { archer }, new List<Unit> { target }, new PyRandom(1), null, new BattleOptions(), null);
+            bArr.Perform(new Action(archer, AKind.Skill, arrowSkill, 1, archer) { Paid = true });
+            int afterFirst = 0;
+            foreach (var u in bArr.Units) if (u.Kind == Kind.Doll && u.Arrow && u.Alive) afterFirst++;
+            Assert.True(afterFirst >= 1);
+            bArr.Perform(new Action(archer, AKind.Skill, arrowSkill, 1, archer) { Paid = true });
+            int arrowCount = 0;
+            foreach (var u in bArr.Units) if (u.Kind == Kind.Doll && u.Arrow && u.Alive) arrowCount++;
+            Assert.Equal(afterFirst * 2, arrowCount);
+
+            // M09.06a: BuildSummon and BuildGuest inherit Party Slot 0's Sealbook enchants.
+            int sbId = -1;
+            int sbEnch = -1;
+            foreach (var kv in vanilla.SealbookEnchants) if (kv.Value.Length > 0) { sbId = kv.Key; sbEnch = kv.Value[0]; break; }
+            Assert.True(sbId != -1);
+            var leader = new Unit("Leader", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Sealbook = sbId };
+            var sumUnit = UnitFactory.BuildSummon(vanilla, vanilla.Summons[0], new List<Unit> { leader }, 500);
+            Assert.True(sumUnit.Pieces(sbEnch) >= 1);
+            var guestUnit = UnitFactory.BuildGuest(vanilla, vanilla.Npcs[0], sbId);
+            Assert.True(guestUnit.Pieces(sbEnch) >= 1);
+
+            // M05.10/11/12: Item handlers 62 (10%-step HP + Passive 275), 23 (debuff purge), and 52 (non-lethal damage clamped to CurHP - 1).
+            var user = new Unit("ItemUser", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Hp = 100 };
+            user.SetPassive(275, 0.50);
+            user.SetStatus(new Status(41, -0.20, 5, target)); // debuff
+            var lowFoe = new Unit("LowFoe", Unit.ENEMIES, 50, 100, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 2.0, 0.0, T.NONE, Kind.Enemy) { Hp = 50 };
+            vanilla.Items[99950] = new Item { Id = 99950, Name = "PctHealPurge", TargetType = 16, Kinds = new[] { 62, 23, 52, -1 }, Values = new[] { 3.0, 0.0, 500.0, 0.0 } };
+            var bItem = new Battle(vanilla, new List<Unit> { user }, new List<Unit> { lowFoe }, new PyRandom(1), null, new BattleOptions(), null);
+            bItem.UseItemFree(user, 99950, user); // 30% of 1000 = 300, +50% mastery = 450 -> Hp 550, debuff purged
+            Assert.Equal(550, user.Hp);
+            Assert.Null(user.St[41]);
+            bItem.UseItemFree(user, 99950, lowFoe); // Type 52 (500 dmg) clamped to CurHP - 1 -> leaves foe at 1 HP!
+            Assert.Equal(1, lowFoe.Hp);
+            Assert.True(lowFoe.Alive);
+            vanilla.Items.Remove(99950);
         }
     }
 }

@@ -978,7 +978,9 @@ namespace DtEngine
             string guest = Setup.CheckpointGuest(cid);
             if (guest == null) return party;
             var stage = UnitFactory.GuestStageAt(Data, Setup, guest, cid);
-            if (stage != null) party.Add(UnitFactory.BuildGuest(Data, stage));
+            int leaderSealbook = T.NONE;
+            foreach (var m in party) if (m.Kind == Kind.Member) { leaderSealbook = m.Sealbook; break; }
+            if (stage != null) party.Add(UnitFactory.BuildGuest(Data, stage, leaderSealbook));
             return party;
         }
 
