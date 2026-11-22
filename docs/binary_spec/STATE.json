@@ -65,8 +65,8 @@
     "M03": {
       "file": "M03_MAGICAL_DAMAGE.md",
       "title": "Magical Damage, Elements & Missed Spells",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (5 rules, 168 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -87,7 +87,7 @@
     "M05": {
       "file": "M05_HEALING_RECOVERY_AND_ITEMS.md",
       "title": "Healing, Recovery, After-Battle & ItemResult (0..106)",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -171,17 +171,17 @@
       "status": "in_progress"
     },
     {
-      "module": "M03",
-      "owner": "spec-m03-magdmg",
-      "model": "gemini-4-neon-high",
-      "output": "docs/binary_spec/M03_MAGICAL_DAMAGE.md",
-      "status": "in_progress"
-    },
-    {
       "module": "M04",
       "owner": "spec-m04-hit-target",
       "model": "gemini-4-neon-high",
       "output": "docs/binary_spec/M04_HIT_EVASION_AND_TARGETING.md",
+      "status": "in_progress"
+    },
+    {
+      "module": "M05",
+      "owner": "spec-m05-heal-items",
+      "model": "gemini-4-neon-high",
+      "output": "docs/binary_spec/M05_HEALING_RECOVERY_AND_ITEMS.md",
       "status": "in_progress"
     }
   ],
