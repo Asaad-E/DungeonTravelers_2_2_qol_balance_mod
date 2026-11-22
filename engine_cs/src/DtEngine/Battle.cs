@@ -651,11 +651,11 @@ namespace DtEngine
             // 0x449184: noTurnJitterFlag (enemy 0x3C bit 1) suppresses the 20% battle-start order scramble.
             if (!ambush && !flagged && Rng.RandRange(100) < RANDOM_ORDER)
                 foreach (var u in Units) u.NextTime = 1.0 - Rng.RandRange(93) / 100.0;
-            // 0x4491f2..0x44949e: Preemptive Strike (300) is skipped after an ambush and stops after the first unit that procs.
+            // 0x4491f2..0x44949e: Preemptive Strike (300) is skipped after an ambush, scans living candidates (<2000) only, and stops on first proc.
             if (!ambush)
             {
                 foreach (var u in Units)
-                    if (u.Has(300) && Roll(u.Value(300))) { u.NextTime = 0.0; break; }
+                    if (CanFight(u) && !NotACandidate(u) && u.Has(300) && Roll(u.Value(300))) { u.NextTime = 0.0; break; }
             }
         }
 
@@ -908,14 +908,10 @@ namespace DtEngine
                         else ApplyAilment(other, unit, effect, 0.75, null, 0);
                     }
                 }
-                // Inner State 3 (0x436bb0): Overstock Clearance (446) runs BEFORE Petrify/Hard CC inside !extraTurn.
-                if (unit.Alive && unit.HasUnique && unit.UniqueEffect == 446 && unit.Items.Count > 0 && Roll(unit.UniqueValue) && ChooseMember != null)
-                {
-                    bool hurt = false;
-                    foreach (var m in AlliesArray(unit)) if (m.Kind == Kind.Member && m.HpRatio < 0.6) { hurt = true; break; }
-                    var item = Policy.ActItem(this, unit, hurt ? "heal" : "tp", null);
-                    if (item != null) UseItem(item);
-                }
+                // Inner State 3 (0x436a9b..0x436be3 -> CActionPatternU0008 0x42fb60): Overstock Clearance (446) casts a free
+                // weighted item from [1, 6, 45, 49, 55, 56] (weights [20, 20, 20, 15, 15, 15], total 105) without consuming inventory.
+                if (unit.Alive && unit.Side == Unit.PARTY && unit.HasUnique && unit.UniqueEffect == 446 && Roll(unit.UniqueValue))
+                    RunOverstockClearance(unit);
                 // Inner State 4 (0x436be4 -> 0x48305a..0x4831eb): gradual petrification advances 1 -> 2 -> 3 with no natural recovery;
                 // at stage 3, barrier (101/102/181) blocks AND cures petrification (0x4830ad), otherwise CompletePetrify.
                 var petrify = unit.St[120];
@@ -973,6 +969,50 @@ namespace DtEngine
                 }
             }
             EndOfTurn(unit, acted, !extraTurn);
+        }
+
+        void RunOverstockClearance(Unit unit)
+        {
+            // CActionPatternU0008::_Task (0x42fb60..0x4302cf): Rand(105) over [20,40,60,75,90,105] -> items [1,6,45,49,55,56], free cast.
+            int r = Rng.RandRange(105);
+            int itemId = r < 20 ? 1 : r < 40 ? 6 : r < 60 ? 45 : r < 75 ? 49 : r < 90 ? 55 : 56;
+            if (!Data.Items.ContainsKey(itemId)) return;
+            var allies = TargetableArray(unit.Side);
+            var enemies = TargetableArray(1 - unit.Side);
+            Unit target = null;
+            if (itemId == 1 && allies.Length > 0)
+            {
+                target = allies[0];
+                for (int i = 1; i < allies.Length; i++) if (allies[i].HpRatio < target.HpRatio) target = allies[i];
+            }
+            else if (itemId == 6 && allies.Length > 0)
+            {
+                target = allies[0];
+            }
+            else if (itemId == 45 && allies.Length > 0)
+            {
+                target = allies[0];
+                for (int i = 1; i < allies.Length; i++) if (allies[i].TpRatio < target.TpRatio) target = allies[i];
+            }
+            else if (itemId == 49 && allies.Length > 0)
+            {
+                var pool = PolicyScratch; pool.Clear();
+                foreach (var a in allies) if (HasTrueAilment(a)) pool.Add(a);
+                target = pool.Count > 0 ? pool[Rng.ChoiceIndex(pool.Count)] : allies[Rng.ChoiceIndex(allies.Length)];
+            }
+            else if (itemId == 55 && enemies.Length > 0)
+            {
+                target = enemies[Rng.ChoiceIndex(enemies.Length)];
+            }
+            else if (itemId == 56 && enemies.Length > 0)
+            {
+                var front = new List<Unit>(enemies.Length);
+                var back = new List<Unit>(enemies.Length);
+                foreach (var e in enemies) if (e.Front) front.Add(e); else back.Add(e);
+                var row = front.Count == 0 ? back : back.Count == 0 ? front : (Rng.RandRange(2) == 0 ? front : back);
+                if (row.Count > 0) target = row[0];
+            }
+            if (target != null) UseItemFree(unit, itemId, target);
         }
 
         void RunTurnStartProcs(Unit unit)
@@ -1940,6 +1980,8 @@ namespace DtEngine
             }
             int preHp = target.Hp;
             int dealt = 0;
+            // 0x44bf19 / 0x44eb25: Effect 87 (Only Damages Living) voids damage AND AfterHit/Murder against Undead (5) and Inorganic/Magic Being (6, incl. Ist).
+            if (action.Has(87) && (target.Race == 5 || target.Race == 6)) return;
             if (Aimed(action, target) && !action.Has(25) && (action.Physical || action.Magic))
             {
                 dealt = Damage(action, target, index);
@@ -2153,7 +2195,12 @@ namespace DtEngine
         double CriticalRateOf(Action action, Unit unit, Unit target, int earlier)
         {
             var s = new PySum();
-            foreach (int e in CRIT_TERMS) AddFirst(ref s, action, unit, e);
+            foreach (int e in CRIT_TERMS)
+            {
+                // 0x43e970: merged action+unit command list sums skill effect 31 with unit status/passive effect 31 (Last Stand).
+                if (e == 31) { if (action.Has(31)) s.AddFloat(action.Val(31, 0.0)); AddValue(ref s, unit, 31); }
+                else AddFirst(ref s, action, unit, e);
+            }
             double skill = s.Result + target.Value(32);
             bool hasFixed = action.TryVal(70, out double fixedValue);
             return F.CriticalRate(unit.Stat(Unit.DEX), target.Stat(Unit.AGI), unit.Level, target.Level, skill,
@@ -2309,7 +2356,8 @@ namespace DtEngine
             // 0x44bf19..0x44bf44 -> 0x557ef0: effect 87 (only living targets) returns 0 against Race 5 (Undead) and Race 6 (Inorganic).
             if (action.Has(87) && (target.Race == 5 || target.Race == 6)) { immediateZero = 1; return 0; }
             double race = (RaceFactor(unit, target) + raceBonus) * ElementFactor(unit, target, action.Attr);
-            double other = target.Value(190) + unit.StatusValue(191) + FullHpBonus(unit) + LevelBonus(unit, target);
+            // 0x44c720: Power Charge (191) does NOT apply during counterattacks (!inCounter).
+            double other = target.Value(190) + (inCounter ? 0.0 : unit.StatusValue(191)) + FullHpBonus(unit) + LevelBonus(unit, target);
             var guard = target.St[MATERIAL_GUARD];
             if (guard != null && (guard.Source == null || (guard.Source.Alive && guard.Source.Shield))) other += guard.Value;
             if (target.Side == Unit.PARTY && !target.Front)
@@ -2720,11 +2768,13 @@ namespace DtEngine
             if (ZoneInfo == null) return factor;
             bool physical = !action.Magic;
             var f = ZoneInfo.Factors;
+            // 0x44fbb0: each zone condition (Up, Down, Element match) applies at most ONCE per hit (dedup duplicate slots e.g. St02_0070 (9,9)).
+            bool didUp = false, didDown = false, didElem = false;
             foreach (int slot in ZoneInfo.Slots)
             {
-                if (slot == (physical ? 3 : 4)) factor *= f != null ? (physical ? f.UpA : f.UpB) : 1.0;
-                if (slot == (physical ? 5 : 6)) factor *= f != null ? (physical ? f.DownA : f.DownB) : 1.0;
-                if (slot >= 7 && slot <= 11 && action.Attr == slot - 3) factor *= f != null ? f.Element : 1.0;
+                if (!didUp && slot == (physical ? 3 : 4)) { factor *= f != null ? (physical ? f.UpA : f.UpB) : 1.0; didUp = true; }
+                if (!didDown && slot == (physical ? 5 : 6)) { factor *= f != null ? (physical ? f.DownA : f.DownB) : 1.0; didDown = true; }
+                if (!didElem && slot >= 7 && slot <= 11 && action.Attr == slot - 3) { factor *= f != null ? f.Element : 1.0; didElem = true; }
             }
             return factor;
         }
@@ -3743,6 +3793,12 @@ namespace DtEngine
             return v + PyMath.Int(v * mastery);
         }
 
+        public void UseItemFree(Unit unit, int itemId, Unit primaryTarget)
+        {
+            if (!Data.Items.TryGetValue(itemId, out var item)) return;
+            ExecuteItemEffects(unit, item, primaryTarget ?? unit);
+        }
+
         public void UseItem(Action action)
         {
             var unit = action.Actor;
@@ -3756,7 +3812,11 @@ namespace DtEngine
                 if (unit.Has(274) && Roll(unit.Value(274))) unit.Items[action.Item] += 1;
             }
             Rec?.ItemsUsed.Add(new RecKey(unit, item.Name), 1);
-            var primaryTarget = action.Target ?? unit;
+            ExecuteItemEffects(unit, item, action.Target ?? unit);
+        }
+
+        void ExecuteItemEffects(Unit unit, Item item, Unit primaryTarget)
+        {
             // ItemData w_0x5c (0x456ff0): 16 Single, 17 Row, 18 SideAll.
             Unit[] itemTargets;
             if (item.TargetType == 18)
@@ -3848,7 +3908,7 @@ namespace DtEngine
                         {
                             int lv = spec.UseValAsLevel ? Math.Max(1, Math.Min(skill.Levels, PyMath.Int(value)))
                                    : (spec.FixedLevel > 0 ? Math.Min(skill.Levels, spec.FixedLevel) : skill.Levels);
-                            Perform(new Action(unit, AKind.Skill, skill, lv, action.Target) { Paid = true });
+                            Perform(new Action(unit, AKind.Skill, skill, lv, primaryTarget) { Paid = true });
                         }
                     }
                 }
@@ -3856,7 +3916,7 @@ namespace DtEngine
                 {
                     var skill = Data.ById(skillId);
                     // 0x50b136: item-invoked skills do not spend TP.
-                    if (skill != null) Perform(new Action(unit, AKind.Skill, skill, skill.Levels, action.Target) { Paid = true });
+                    if (skill != null) Perform(new Action(unit, AKind.Skill, skill, skill.Levels, primaryTarget) { Paid = true });
                 }
             }
         }

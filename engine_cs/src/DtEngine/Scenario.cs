@@ -1083,7 +1083,8 @@ namespace DtEngine
         /// <summary>docs/FORMULAS.md 12.14: the living members with Generous Heart give the party a share, capped at 0.30.</summary>
         public static void RecoverAfterBattle(List<Unit> party)
         {
-            var living = party.Where(u => u.Alive && u.Kind == Kind.Member).ToList();
+            // 0x43d6bc (vtable+0xe8): Stage-3 Petrified members do not contribute to or receive after-battle recovery.
+            var living = party.Where(u => u.CanFight && u.Kind == Kind.Member).ToList();
             for (int pass = 0; pass < 2; pass++)
             {
                 int effect = pass == 0 ? 272 : 273;

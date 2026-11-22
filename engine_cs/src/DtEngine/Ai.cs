@@ -349,10 +349,12 @@ namespace DtEngine
                 case 2: Lowest(allies, true, found); break;
                 case 3: Lowest(foes, true, found); break;
                 case 4: MostAilments(allies, found); break;
-                case 5: MostAilments(foes, found, skipPetrified: true); break;
+                // 0x4338ec: Target Mode 5 keeps petrified foes in consideration (no skipPetrified filter).
+                case 5: MostAilments(foes, found); break;
                 case 9: PickCurePriority(allies, found); break;
-                case 13: foreach (var u in allies) if (HasAilmentOrDebuff(u)) found.Add(u); break;
-                case 14: foreach (var u in foes) if (HasAilmentOrDebuff(u)) found.Add(u); break;
+                // 0x43453a (vtable+0x7c): Target Modes 13 & 14 check true ailments ONLY (excluding stat debuffs).
+                case 13: foreach (var u in allies) if (Battle.HasTrueAilment(u)) found.Add(u); break;
+                case 14: foreach (var u in foes) if (Battle.HasTrueAilment(u)) found.Add(u); break;
                 case 6: foreach (var u in foes) if (u.Chant != null) found.Add(u); break;
                 case 7: foreach (var u in foes) if (!u.Front) found.Add(u); break;
                 case 8:

@@ -1054,5 +1054,75 @@ namespace DtEngine.Tests
             b3.Perform(new Action(singer, AKind.Skill, barc, 1, singer));
             Assert.Equal(0.25, singer.St[221].Value, 6);
         }
+
+        [Fact]
+        public void Phase3_Wave2B_OverstockU0008_ZoneDedup_PowerChargeCounter_And_X13_X14_X16_X17_Paired()
+        {
+            var snap = LoadSnapshot();
+            var vanilla = snap.Sides["vanilla"];
+            var variant = snap.Sides["variant"];
+
+            // X13 (Arcane Shield 447 chance): vanilla = 15% (NONE/default), variant = patched value (25%).
+            Assert.Equal(T.NONE, vanilla.ArcaneChance);
+            Assert.True(variant.ArcaneChance > 15, $"Expected variant X13 ArcaneChance > 15, got {variant.ArcaneChance}");
+
+            // X14 (Interrupt Product): vanilla = false (additive), variant = true (multiplicative); verify F.InterruptionChance diverges.
+            Assert.False(vanilla.InterruptProduct);
+            Assert.True(variant.InterruptProduct);
+            double intVan = F.InterruptionChance(100, 1000, 0.5, 0.0, false, true, false);
+            double intMod = F.InterruptionChance(100, 1000, 0.5, 0.0, false, true, true);
+            Assert.NotEqual(intVan, intMod);
+
+            // X16 (Third Eye Wide Dispel): vanilla = false, variant = true.
+            Assert.False(vanilla.ThirdEyeDispel);
+            Assert.True(variant.ThirdEyeDispel);
+
+            // X17 (Positive Trance threshold): vanilla = 100, variant <= 100 (70).
+            Assert.Equal(100, vanilla.PositiveTranceThreshold);
+            Assert.True(variant.PositiveTranceThreshold < 100, $"Expected variant X17 threshold < 100, got {variant.PositiveTranceThreshold}");
+
+            // ENGINE-ONLY-02 / M08.11: Overstock Clearance (446, CActionPatternU0008) casts free item without consuming bag!
+            var hero = new Unit("Overstock", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member)
+            { HasUnique = true, UniqueEffect = 446, UniqueValue = 1.0, Hp = 200, Tp = 10 };
+            hero.Items[1] = 1; // bag untouched even when U0008 casts item 1/6/45/49/55/56
+            var foe = new Unit("Foe", Unit.ENEMIES, 50, 2000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 3.0, 0.0, T.NONE, Kind.Enemy);
+            var bU = new Battle(vanilla, new List<Unit> { hero }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions { MaxTime = 0.05 }, null);
+            hero.NextTime = 0.01; foe.NextTime = 10.0;
+            bU.Run();
+            Assert.Equal(1, hero.Items[1]); // U0008 NEVER consumes inventory!
+
+            // M02.03a / M03.01a: ZoneFactor deduplicates duplicate slots (e.g. (9, 9) Wind zone must not square factor).
+            var z1 = new Zone { Slots = new[] { 9 }, Factors = new ZoneFactors { Element = 2.0, UpA = 1.0, UpB = 1.0, DownA = 1.0, DownB = 1.0 } };
+            var z2 = new Zone { Slots = new[] { 9, 9 }, Factors = new ZoneFactors { Element = 2.0, UpA = 1.0, UpB = 1.0, DownA = 1.0, DownB = 1.0 } };
+            var windSpell = new Skill
+            {
+                Category = "Magic", Id = 9958, Name = "WindTest", Levels = 1, Target = T.SINGLE, Attr = T.WIND, Group = 0x08, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Accuracy = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 1, Kind = 4, Values = new[] { 100.0 }, IsInt = new[] { false } } }
+            };
+            var bZ1 = new Battle(vanilla, new List<Unit> { hero }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), z1);
+            var bZ2 = new Battle(vanilla, new List<Unit> { hero }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), z2);
+            Assert.Equal(
+                bZ1.MagicDamageExpected(new Action(hero, AKind.Skill, windSpell, 1, foe), foe),
+                bZ2.MagicDamageExpected(new Action(hero, AKind.Skill, windSpell, 1, foe), foe), 6);
+
+            // M00.09a / M05.07b: RecoverAfterBattle skips Stage-3 Petrified members.
+            var petHero = new Unit("PetHero", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Hp = 100 };
+            petHero.SetStatus(new Status(120, 1.0, 0, foe) { Stage = 3 });
+            var healthy = new Unit("Healer", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Hp = 500 };
+            healthy.SetPassive(272, 0.20);
+            Scenario.RecoverAfterBattle(new List<Unit> { petHero, healthy });
+            Assert.Equal(100, petHero.Hp); // Stage-3 Petrified member must NOT recover after battle!
+            Assert.Equal(700, healthy.Hp);
+
+            // M09.01a / M02.01b: BuildDoll copies 12-cmd status whitelist (e.g. ATK buff 41) & owner Swing.
+            var dm = new Unit("DM", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.15, T.NONE, Kind.Member);
+            dm.SetStatus(new Status(41, 0.25, 5, dm));
+            dm.SetStatus(new Status(171, 0.50, 5, dm)); // Cover 171 NOT in 12-cmd whitelist
+            var dUnit = UnitFactory.BuildDoll(dm, vanilla.Dolls[0], 1, vanilla);
+            Assert.Equal(0.15, dUnit.Swing, 6);
+            Assert.NotNull(dUnit.St[41]);
+            Assert.Null(dUnit.St[171]);
+        }
     }
 }

@@ -976,9 +976,18 @@ namespace DtEngine
                 for (int s = 0; s < 6; s++) baseStats[s] += PyMath.Int(sealed_.Stats[s] * owner.Value(SOUL_SEAL));
             }
             // All three doll vtables (0x6d4768, 0x6d4dd8, 0x6d434c) map weight slot +0xf4 to 0x4fd630 (fldz; ret => 0.0),
-            // initialize MaxTP = 9999, and copy owner's enchantments (0x4fd867 -> 0x4f3290).
-            var unit = new Unit(doll.Name, owner.Side, owner.Level, DOLL_HP, 9999, baseStats, null, 0.0, 0.0, T.NONE, Kind.Doll);
+            // initialize MaxTP = 9999, copy owner's enchantments (0x4fd867 -> 0x4f3290), inherit owner Swing (M02.01b),
+            // and copy the 12-command caster status whitelist 0x6cc7b8 ([41..46, 48, 189, 193, 194, 256, 286]).
+            var unit = new Unit(doll.Name, owner.Side, owner.Level, DOLL_HP, 9999, baseStats, null, 0.0, owner.Swing, T.NONE, Kind.Doll);
             if (owner.HasEnchants) unit.SetEnchants((int[])owner.Enchants.Clone());
+            int[] dollStatusWhitelist = { 41, 42, 43, 44, 45, 46, 48, 189, 193, 194, 256, 286 };
+            for (int wi = 0; wi < dollStatusWhitelist.Length; wi++)
+            {
+                int cmd = dollStatusWhitelist[wi];
+                var ost = owner.St[cmd];
+                if (ost != null)
+                    unit.SetStatus(new Status(ost.Effect, ost.Value, ost.Turns, ost.Source, ost.Skill, ost.Kind, ost.AttackId) { HasData = ost.HasData, Data = ost.Data, IsInt = ost.IsInt });
+            }
             unit.Owner = owner;
             unit.Life = doll.Turns[level - 1];
             unit.Doll = doll;

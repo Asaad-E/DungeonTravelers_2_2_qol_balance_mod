@@ -291,9 +291,9 @@ namespace DtEngine
 
         int WeaponAttrWithOverrides()
         {
-            // 0x416193..0x416e49: non-players return Actor.AttackAttr directly; players check 325..329 (1 active -> element; >=2 -> weapon physical,
+            // 0x416193..0x416e49: players and Dolls check 325..329 (1 active -> element; >=2 -> weapon physical,
             // NOT falling through to enchants 78..82); if 0 statuses, first active weapon-element enchant in Fire..Lightning order (78..82) wins.
-            if (Actor.Kind != DtEngine.Kind.Member) return Actor.AttackAttr;
+            if (Actor.Kind != DtEngine.Kind.Member && Actor.Kind != DtEngine.Kind.Doll) return Actor.AttackAttr;
             if (Actor.StCount > 0)
             {
                 int count = 0, element = 0;
