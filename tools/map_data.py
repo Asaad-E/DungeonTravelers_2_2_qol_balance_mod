@@ -40,7 +40,9 @@ HEADER, CELL = _M['header'], _M['cell']
 NO_MAGIC = 2
 
 
-EVENT_CELL, CHEST_CELL = 1, 2
+EVENT_CELL, CHEST_CELL, FIXED_TILE_CELL = 1, 2, 5
+FIXED_TILE = 'fixed tile'      # key of the cells of kind 5 in battle_cells(include_fixed_tiles=True): no number names their group
+BATTLE_OPCODE = 0x1F
 SCRIPT_COUNT, SCRIPT_POINTER = _M['script_count'], _M['script_pointer']
 BATTLE_COMMAND = bytes((0x1F, 0x01, 0x00))
 
@@ -69,15 +71,56 @@ def script_names(params):
     return names
 
 
+def _skip_string(b, pos):
+    """After a string argument's id (u32): u16be string id, u8 flag, NUL-terminated text (0x4d2970)."""
+    return b.index(b'\x00', pos + 3) + 1
+
+
+def instructions_of_script(blob):
+    """Walks an .adv.bin by its instruction framing (0x4d2570 / 0x4d2a10): u8 opcode, u8 argument count, then per
+    argument a type byte: 0 -> u32 integer, 0x0A / 0x12 -> u32 id + string record, any other type -> no payload.
+    Returns [(opcode, [int or None])]. Raises ValueError when the bytes do not frame."""
+    b, pos, found = bytes(blob), 0, []
+    try:
+        while pos < len(b):
+            opcode, count = b[pos], b[pos + 1]
+            pos += 2
+            args = []
+            for _ in range(count):
+                kind = b[pos]
+                pos += 1
+                if kind == 0:
+                    args.append(struct.unpack_from('<i', b, pos)[0])
+                    pos += 4
+                elif kind in (0x0A, 0x12):
+                    pos = _skip_string(b, pos + 4)
+                    args.append(None)
+                else:
+                    args.append(None)
+            found.append((opcode, args))
+    except (IndexError, ValueError, struct.error) as e:
+        raise ValueError(f'script does not frame at byte {pos}') from e
+    return found
+
+
 def battles_of_script(blob):
-    """The fixed battle numbers a script starts (command 0x1F)."""
-    b, found, pos = bytes(blob), [], 0
-    while True:
-        pos = b.find(BATTLE_COMMAND, pos)
-        if pos < 0 or pos + 7 > len(b):
-            return found
-        found.append(struct.unpack_from('<i', b, pos + 3)[0])
-        pos += 1
+    """The fixed battle numbers a script starts (command 0x1F, 1-based group argument). Walks the instructions, so the
+    bytes 1F 01 00 inside a string id or an integer are not taken for the command (M10.11a: they gave -256 on 37
+    scripts); arguments below 1 are not battles (the game subtracts 1, 0x4cc32a)."""
+    try:
+        return [args[0] for opcode, args in instructions_of_script(blob)
+                if opcode == BATTLE_OPCODE and len(args) == 1 and args[0] is not None and args[0] >= 1]
+    except ValueError:
+        # a script that does not frame: only accept the wire pattern when it is followed by a sane group argument
+        b, found, pos = bytes(blob), [], 0
+        while True:
+            pos = b.find(BATTLE_COMMAND, pos)
+            if pos < 0 or pos + 7 > len(b):
+                return found
+            number = struct.unpack_from('<i', b, pos + 3)[0]
+            if 1 <= number < 0x10000:
+                found.append(number)
+            pos += 1
 
 
 def collect(game_dir=GAME_DUNGEON_DIR, path=MAP_ZIP):
@@ -111,9 +154,11 @@ def maps(path=MAP_ZIP):
     return found
 
 
-def battle_cells(path=MAP_ZIP):
+def battle_cells(path=MAP_ZIP, include_fixed_tiles=False):
     """{(floor, fixed battle number): [{'x', 'y', 'slots', 'script'}]}: the event cells whose script starts that battle.
-    A battle started by an event elsewhere (a town, a story scene) has no cell here."""
+    A battle started by an event elsewhere (a town, a story scene) has no cell here.
+    include_fixed_tiles: also list the cells of kind 5 (0x4bc6e2: stepping on one starts a fixed-tile battle; the cell
+    names no group, its byte 1 is 0) under the key (floor, FIXED_TILE), each with 'script' None and 'kind' 5."""
     import floor_data
     found = {}
     params = zipfile.ZipFile(floor_data.FLOOR_ZIP)
@@ -129,6 +174,11 @@ def battle_cells(path=MAP_ZIP):
             except KeyError:
                 continue
             for cell in read_map(archive.read(entry))['cells']:
+                if cell['kind'] == FIXED_TILE_CELL and include_fixed_tiles:
+                    found.setdefault((floor, FIXED_TILE), []).append(
+                        {'x': cell['x'], 'y': cell['y'], 'slots': cell['slots'], 'zone': cell['zone'],
+                         'script': None, 'kind': FIXED_TILE_CELL})
+                    continue
                 if cell['kind'] != EVENT_CELL or cell['index'] >= len(names):
                     continue
                 script = names[cell['index']]

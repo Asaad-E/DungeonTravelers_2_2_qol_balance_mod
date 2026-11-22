@@ -9,11 +9,24 @@ Read from the code (docs/FORMULAS.md 6c):
 Nothing here is fitted. The table of EXP per level is LvExpSkptData (a step per level).
 """
 
+import struct
+
 # (lowest gap, highest gap, factor, factor with enchantment 270). gap = level of the member - level of the enemy.
 # 0x450734 - 0x45080d
 LEVEL_GAP = ((10, None, 0.85, 0.85), (5, 9, 0.90, 0.90), (0, 4, 1.00, 1.00), (-4, -1, 1.00, 1.15),
              (-9, -5, 1.10, 1.30), (-19, -10, 1.25, 1.50), (None, -20, 1.25, 1.75))
 DOUBLE = 2.0                   # 0x4459ed (effect 157) and 0x445a1e (enchantment 275)
+
+
+def f32(x):
+    """Rounds to IEEE-754 single precision, as the registers of the program hold it (mulss, 0x450815)."""
+    return struct.unpack('<f', struct.pack('<f', x))[0]
+
+
+def gap_exp(exp, factor):
+    """EXP an enemy banks at one factor: int(f32(exp) * f32(factor)), the product rounded to single precision (mulss at
+    0x450815) and truncated toward zero (__ftoui3, 0x61e650). M11.11a: in double precision 151 enemies were off by one."""
+    return int(f32(f32(exp) * f32(factor)))
 
 
 def level_gap_factor(member_level, enemy_level, more_from_higher=False, gap_table=LEVEL_GAP):
@@ -29,7 +42,7 @@ def battle_exp(member_level, enemies, living, bonus=0.0, doubled=False, double_e
                gap_table=LEVEL_GAP):
     """EXP one member receives from a battle. enemies: [(level, EXP)] of the enemies defeated.
     living: members alive at the end. bonus: the party-wide fraction the result code is handed."""
-    banked = sum(int(exp * level_gap_factor(member_level, level, more_from_higher, gap_table)) for level, exp in enemies)
+    banked = sum(gap_exp(exp, level_gap_factor(member_level, level, more_from_higher, gap_table)) for level, exp in enemies)
     gained = banked / float(living)
     gained += gained * bonus
     if doubled:

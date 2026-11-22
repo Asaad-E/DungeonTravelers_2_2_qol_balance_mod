@@ -48,12 +48,14 @@ SKILL_ITEMS_FALLBACK = {
 SKILL_ITEM_SPECS_FALLBACK = {
     **{k: (sid, flag, -1) for k, (sid, flag) in SKILL_ITEMS_FALLBACK.items()},
     42: (200, 0, 1), 45: (216, 0, 1),
+    # the battle-usable party-buff wrappers (0x511600, 0x511670, ...): push -1; push 0; push skill id -> level = max (M05.09a)
+    35: (226, 0, -1), 36: (227, 0, -1), 39: (195, 0, -1),
 }
 
 MEAL_BUFFS_FALLBACK = {
     73: (179, 5), 74: (180, 5), 75: (181, 5), 76: (182, 5), 77: (183, 5),
-    80: (184, 5), 81: (201, 5), 82: (197, 5), 83: (35, 10), 84: (36, 10),
-    85: (198, 10), 86: (202, 5), 35: (193, 5), 36: (194, 5), 39: (195, 5)
+    78: (184, 5), 79: (185, 5), 80: (186, 5), 81: (201, 5), 82: (197, 5), 83: (35, 10), 84: (36, 10),
+    85: (198, 10), 86: (202, 5), 35: (226, 5), 36: (227, 5), 39: (195, 5)      # M05.09b
 }
 
 
@@ -106,6 +108,18 @@ def skill_item_specs(exe=None):
             use_val = m.group(2)[0]
             skill_id = m.group(3)[0] if m.group(3) else struct.unpack('<I', m.group(4))[0]
             found[kind] = (skill_id, use_val, fixed_lv)
+    # The three party-buff wrappers (35, 36, 39) are not 5-instruction thunks: they push -1; push 0; push skill id
+    # (the level is the last one of the skill, 0x56c690) and perform the skill the same way (M05.09a).
+    for kind in MAX_LEVEL_TYPES:
+        if kind in found:
+            continue
+        stores = [struct.unpack('<I', m.group(1))[0] for m in re.finditer(rb'\xc7[\x00-\x07](....)', exe.read(cases[kind], 0x4c), re.S)]
+        vtables = [v for v in stores if RDATA[0] <= v < RDATA[1]]
+        if not vtables:
+            continue
+        skill = NO_LEVEL_SKILL.search(exe.read(exe.u32(vtables[-1] + 4 * APPLY_SLOT), 0x30))
+        if skill:
+            found[kind] = (skill.group(1)[0] if skill.group(1) else struct.unpack('<I', skill.group(2))[0], 0, -1)
     return found
 
 

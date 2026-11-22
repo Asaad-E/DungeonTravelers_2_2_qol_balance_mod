@@ -9,6 +9,8 @@ and textures); `python tools/floor_data.py --collect` rebuilds that file from an
 Parameter file of a floor (little endian), as far as it is read:
     0x28        number of fixed battles of the floor (the ones events start: bosses, quest targets)
     0x30        pointer (8 bytes) to them: the same 88-byte record as a formation, with chance 0
+    0x38        number of boss / FOE groups (script group ids from 60) and 0x40 the pointer to them (same record;
+                record + 0x50 is the isBossOrNoEscape flag): read_bosses(), boss_groups() (0x4d3180)
     0x98        number of zones of the floor (one to seven)
     0xA0        pointer (8 bytes) to the zones, 0xD0 bytes each
     zone+0x5C   number of formations of the zone
@@ -54,6 +56,11 @@ ZONE_COUNT, ZONE_POINTER, ZONE_SIZE = _F['zone_count'], _F['zone_pointer'], _F['
 COUNT, FORMATIONS, RECORD = _F['count'], _F['formations'], _F['record']
 FIXED_COUNT, FIXED_POINTER = _F['fixed_count'], _F['fixed_pointer']
 ENEMY_SLOTS = _F['enemy_slots']
+# bossGroups of the floor (0x4d3180 / 0x555560, M10.09a): group ids from 60 on (0x3c), same 88-byte record as a formation;
+# the record's +0x50 is isBossOrNoEscape. record_layouts.json may override the offsets.
+BOSS_COUNT, BOSS_POINTER = _F.get('boss_count', 0x38), _F.get('boss_pointer', 0x40)
+BOSS_FLAG = _F.get('boss_flag', 0x50)
+FIRST_FIXED_GROUP, FIRST_BOSS_GROUP, DIRECT_GROUP = 0x28, 0x3c, 0x80000000     # 3-tier group namespace (0x4b4e30)
 ZONE_FACTORS, FACTOR_NAMES = _F['zone_factors'], ('up_a', 'up_b', 'down_a', 'down_b', 'element')
 ENCOUNTER = _F['encounter']               # the chance of a random battle per step, then the five special chances
 EQUIPMENT_COUNT, EQUIPMENT_POINTER = _F['equipment_count'], _F['equipment_pointer']
@@ -88,6 +95,31 @@ def read_fixed(blob):
     blob = bytes(blob)
     start = struct.unpack_from('<Q', blob, FIXED_POINTER)[0]
     return [read_formation(blob, start + RECORD * k) for k in range(struct.unpack_from('<i', blob, FIXED_COUNT)[0])]
+
+
+def read_bosses(blob):
+    """Boss / FOE groups of a floor (bossGroups, +0x38 count, +0x40 pointer), in the shape of formations plus
+    'boss': the isBossOrNoEscape flag of the record (+0x50) and 'group': the id the script namespace gives it (60 + index)."""
+    blob = bytes(blob)
+    count = struct.unpack_from('<i', blob, BOSS_COUNT)[0]
+    start = struct.unpack_from('<Q', blob, BOSS_POINTER)[0]
+    found = []
+    for k in range(count):
+        base = start + RECORD * k
+        battle = read_formation(blob, base)
+        battle['boss'] = struct.unpack_from('<i', blob, base + BOSS_FLAG)[0] != 0
+        battle['group'] = FIRST_BOSS_GROUP + k
+        found.append(battle)
+    return found
+
+
+def group_tier(group_id):
+    """Tier of a script group id (0x4b4e30): 'normal' 0..39, 'fixed' 40..59, 'boss' 60.., 'direct' from 0x80000000."""
+    if group_id >= DIRECT_GROUP:
+        return 'direct'
+    if group_id >= FIRST_BOSS_GROUP:
+        return 'boss'
+    return 'fixed' if group_id >= FIRST_FIXED_GROUP else 'normal'
 
 
 def read_floor(blob):
@@ -155,6 +187,18 @@ def fixed_battles(path=FLOOR_ZIP):
             for battle in read_fixed(archive.read(entry)):
                 found.append({'dungeon': dungeon, 'floor': name[:-4], 'number': battle['number'], 'enemies': battle['enemies'],
                               'slots': battle['slots']})
+    return found
+
+
+def boss_groups(path=FLOOR_ZIP):
+    """Every boss / FOE group (bossGroups): [{'dungeon', 'floor', 'number', 'group', 'boss', 'enemies', 'slots'}]."""
+    found = []
+    with zipfile.ZipFile(path) as archive:
+        for entry in sorted(archive.namelist()):
+            dungeon, name = entry.split('/')
+            for battle in read_bosses(archive.read(entry)):
+                found.append({'dungeon': dungeon, 'floor': name[:-4], 'number': battle['number'], 'group': battle['group'],
+                              'boss': battle['boss'], 'enemies': battle['enemies'], 'slots': battle['slots']})
     return found
 
 

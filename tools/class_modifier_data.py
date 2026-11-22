@@ -246,11 +246,22 @@ def class_modifiers(exe=None):
     return found
 
 
-def specialty_gain(character_stat, piece_stat, modifier, yearning=0):
-    """What one stat gains from one specialised piece (0x4f8025 - 0x4f8044). yearning: the value of effect 449."""
+def _f32(x):
+    """Rounds to IEEE-754 single precision (the program computes in x87/SSE single: mulss, addss, cvttss2si)."""
+    return struct.unpack('<f', struct.pack('<f', x))[0]
+
+
+def specialty_gain(character_stat, piece_stat, modifier, yearning=0.0, enchant_264=False):
+    """What one stat gains from one specialised piece (0x4f7f6f - 0x4f8044). yearning: the value of effect 449;
+    enchant_264: the character wears a piece with enchantment 264 (+0.02, 0x4f7fb0). In single precision:
+    rate = f32(modifier) + f32(yearning) * 0.01f (+ 0.02f), gain = max(int(yearning), int(f32(stat) * rate)) (cmovge)."""
     if piece_stat <= 0:
         return 0
-    return max(0, int((character_stat + piece_stat) * (modifier + 0.01 * yearning)))
+    rate = _f32(_f32(modifier) + _f32(_f32(yearning) * _f32(0.01)))
+    if enchant_264:
+        rate = _f32(rate + _f32(0.02))
+    combined = _f32(character_stat + piece_stat)
+    return max(int(yearning), int(_f32(combined * rate)))
 
 
 def main():
