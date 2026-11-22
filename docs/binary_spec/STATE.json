@@ -87,8 +87,8 @@
     "M05": {
       "file": "M05_HEALING_RECOVERY_AND_ITEMS.md",
       "title": "Healing, Recovery, After-Battle & ItemResult (0..106)",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (13 rules, 322 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -131,7 +131,7 @@
     "M09": {
       "file": "M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md",
       "title": "Dolls, Summons, Guests & Enchantments",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -164,13 +164,6 @@
   },
   "claims": [
     {
-      "module": "M05",
-      "owner": "spec-m05-heal-items",
-      "model": "gemini-4-neon-high",
-      "output": "docs/binary_spec/M05_HEALING_RECOVERY_AND_ITEMS.md",
-      "status": "in_progress"
-    },
-    {
       "module": "M07",
       "owner": "spec-m07-ailments",
       "model": "gemini-4-neon-high",
@@ -182,6 +175,13 @@
       "owner": "spec-m08-procs-patterns",
       "model": "gemini-4-neon-high",
       "output": "docs/binary_spec/M08_PROCS_COUNTERS_AND_AFTERHIT.md",
+      "status": "in_progress"
+    },
+    {
+      "module": "M09",
+      "owner": "spec-m09-dolls-enchants",
+      "model": "gemini-4-neon-high",
+      "output": "docs/binary_spec/M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md",
       "status": "in_progress"
     }
   ],
