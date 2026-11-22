@@ -1033,7 +1033,8 @@ namespace DtEngine
                     var unit = party[i];
                     if (unit.Kind == Kind.Member || unit.Kind == Kind.Summon)
                     {
-                        unit.ClearStatuses();
+                        // 0x4fa960 (ClearBattleStatuses): preserve true ailments (113..122) across consecutive battles in a chain.
+                        unit.ClearBattleStatuses();
                         unit.Chant = null;
                         unit.ClearSongsAndDances();
                     }

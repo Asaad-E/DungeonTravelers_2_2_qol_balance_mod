@@ -119,7 +119,8 @@ namespace DtEngine.Tests
             bEsc.Perform(new Action(runner, AKind.Enemy, escAtk, 1) { Target = runner });
             Assert.False(runner.Alive);
 
-            // Murder License (319) executes linked Head Shot (413) before bearer's own action.
+            // Murder License (319; CActionPatternE1580, 0x437364..0x437488) deterministically applies raw CCommand_0119 (1.0f)
+            // Instakill to a random living opponent at Inner State 12 (NOT EnemyAttack 413 Head Shot).
             var killer = new Unit("Carmilla", Unit.ENEMIES, 50, 2000, 100, new[] { 300, 80, 80, 80, 200, 100 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
             killer.SetPassive(319, 1.0);
             killer.Attacks = new[] { 0 };
@@ -128,7 +129,8 @@ namespace DtEngine.Tests
             killer.NextTime = 0.01;
             victim.NextTime = 10.0;
             bMl.Run();
-            Assert.True(killer.UsesById.ContainsKey(413), "Expected Murder License bearer to execute linked attack 413 (Head Shot)");
+            Assert.False(victim.Alive, "Expected Murder License (319) CActionPatternE1580 to apply raw Instakill (119, 1.0f) to victim");
+            Assert.False(killer.UsesById.ContainsKey(413), "Murder License must NOT execute EnemyAttack 413 (ENGINE-ONLY-01)");
         }
 
         [Fact]

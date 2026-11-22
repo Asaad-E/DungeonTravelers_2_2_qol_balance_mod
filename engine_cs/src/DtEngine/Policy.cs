@@ -210,10 +210,10 @@ namespace DtEngine
             return false;
         }
 
-        /// <summary>Weapon/shield requirement check matching CGamePlayerStatus::vtable+0x12c (0x4f4910):
+        /// <summary>Weapon/shield/armor requirement check matching CGamePlayerStatus::vtable+0x12c (0x4f4910):
         /// -1 any, 0 short-range weapon, 1..14 weapon type (code - 1), 15 special weapon types 14..20,
-        /// 16 shield in off-hand, 19 any weapon equipped in slot 0.</summary>
-        public static bool WeaponAllows(Piece weapon, bool shield, Skill skill)
+        /// 16 shield in off-hand, 17 head armor equipped, 18 body armor equipped, 19 any weapon equipped in slot 0.</summary>
+        public static bool WeaponAllows(Piece weapon, bool shield, Skill skill, bool hasHead = false, bool hasBody = false)
         {
             if (skill.Weapons.Length == 0) return true;
             foreach (int code in skill.Weapons)
@@ -222,27 +222,29 @@ namespace DtEngine
                 if (code == 0 && weapon != null && weapon.Range == 0) return true;
                 if (code == 15 && weapon != null && weapon.Type >= 14 && weapon.Type <= 20) return true;
                 if (code == 16 && shield) return true;
+                if (code == 17 && hasHead) return true;
+                if (code == 18 && hasBody) return true;
                 if (code == 19 && weapon != null) return true;
                 if (code >= 1 && code <= 14 && weapon != null && weapon.Type + 1 == code) return true;
             }
             return false;
         }
 
-        public static bool WeaponAllows(Unit unit, Skill skill) => WeaponAllows(unit.Weapon, unit.Shield, skill);
+        public static bool WeaponAllows(Unit unit, Skill skill) => WeaponAllows(unit.Weapon, unit.Shield, skill, unit.HasHead, unit.HasBody);
 
-        /// <summary>The skills the member can use now. The list is made again only when the TP of the member, a silence or a freeze on her, or the
-        /// battle has changed what it depends on; callers only read it.</summary>
+        /// <summary>The skills the member can use now. The list is made again only when the TP of the member, a silence, freeze, or
+        /// shadow sew on her, or the battle has changed what it depends on; callers only read it.</summary>
         public static List<(Skill skill, int level)> Options(Battle battle, Unit unit)
         {
             var cache = battle.OptionCache;
             int at = unit.Position;
             if (at >= cache.Length) { Array.Resize(ref battle.OptionCache, Math.Max(at + 1, cache.Length * 2)); cache = battle.OptionCache; }
             ref var entry = ref cache[at];
-            bool silenced = unit.St[117] != null, frozen = unit.St[114] != null;
-            if (entry.List != null && entry.Owner == unit && entry.Tp == unit.Tp && entry.Silenced == silenced && entry.Frozen == frozen) return entry.List;
+            bool silenced = unit.St[117] != null, frozen = unit.St[114] != null, shadowSewed = unit.St[123] != null;
+            if (entry.List != null && entry.Owner == unit && entry.Tp == unit.Tp && entry.Silenced == silenced && entry.Frozen == frozen && entry.ShadowSewed == shadowSewed) return entry.List;
             var list = entry.List ?? new List<(Skill, int)>(16);
-            ComputeOptions(battle, unit, silenced, frozen, list);
-            entry = new Battle.OptionEntry { Owner = unit, Tp = unit.Tp, Silenced = silenced, Frozen = frozen, List = list };
+            ComputeOptions(battle, unit, silenced, frozen, shadowSewed, list);
+            entry = new Battle.OptionEntry { Owner = unit, Tp = unit.Tp, Silenced = silenced, Frozen = frozen, ShadowSewed = shadowSewed, List = list };
             return list;
         }
 
@@ -264,9 +266,11 @@ namespace DtEngine
             return arr;
         }
 
-        static void ComputeOptions(Battle battle, Unit unit, bool silenced, bool frozen, List<(Skill skill, int level)> found)
+        static void ComputeOptions(Battle battle, Unit unit, bool silenced, bool frozen, bool shadowSewed, List<(Skill skill, int level)> found)
         {
             found.Clear();
+            // 0x455d94: Shadow Sew (123) blocks both Technique and Magic skills.
+            if (shadowSewed) return;
             bool noMagic = silenced || (battle.ZoneInfo != null && battle.ZoneInfo.NoMagic);
             int tp = unit.Tp;
             var usable = GetUsableSkills(battle.Data, unit);

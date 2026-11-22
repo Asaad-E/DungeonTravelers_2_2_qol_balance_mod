@@ -818,5 +818,191 @@ namespace DtEngine.Tests
             int counterDmg = hpBefore - arcaneHero.Hp;
             Assert.True(counterDmg > 0 && counterDmg < 500, $"Expected single counter hit without Arcane Shield self-hit, got total loss {counterDmg}");
         }
+
+        [Fact]
+        public void Phase3_S0_Barriers179_183_ConsumeOnHit_And_Effect26Sums_And_VoidedPhysicalOnly()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["vanilla"];
+
+            // M00.06a: Material Guard (179) pops after 1 non-voided physical hit; Magic Barrier (183) pops after 1 magical hit.
+            var hero = new Unit("Hero", Unit.PARTY, 50, 2000, 100, new[] { 200, 80, 200, 80, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Shield = true };
+            var foe = new Unit("Foe", Unit.ENEMIES, 50, 5000, 100, new[] { 200, 80, 200, 80, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            hero.SetStatus(new Status(179, -0.5, 5, hero));
+            hero.SetStatus(new Status(183, -0.5, 5, hero));
+            var b = new Battle(data, new List<Unit> { hero }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            b.Perform(new Action(foe, AKind.Attack) { Target = hero });
+            Assert.Null(hero.St[179]);
+            Assert.NotNull(hero.St[183]);
+            var magSkill = new Skill
+            {
+                Category = "Magic", Id = 9951, Name = "Bolt", Levels = 1, Target = T.SINGLE, Attr = T.FIRE, Group = 0x08, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Accuracy = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Range = T.SHORT,
+                Effects = new[] { new Effect { Id = 1, Kind = 4, Values = new[] { 100.0 }, IsInt = new[] { false } } }
+            };
+            b.Perform(new Action(foe, AKind.Skill, magSkill, 1, hero));
+            Assert.Null(hero.St[183]);
+
+            // M03.05a / M08.01a / M08.04b: 182 & 250 do NOT block magic; 253/305/310 never launch phantom counters.
+            hero.SetStatus(new Status(182, 1.0, 5, hero));
+            hero.SetPassive(250, 1.0);
+            int hpBeforeMag = hero.Hp;
+            int foeHpBeforeMag = foe.Hp;
+            b.Perform(new Action(foe, AKind.Skill, magSkill, 1, hero));
+            Assert.True(hero.Hp < hpBeforeMag, "182/250 must not void/parry Magic attacks (M03.05a)");
+            Assert.Equal(foeHpBeforeMag, foe.Hp);
+
+            var pretender = new Unit("Pretender", Unit.PARTY, 50, 2000, 100, new[] { 200, 80, 80, 80, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            pretender.SetPassive(310, 1.0); // 100% Pretend (no counterattack)
+            var bNoCnt = new Battle(data, new List<Unit> { pretender }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            int foeHpPre = foe.Hp;
+            bNoCnt.Perform(new Action(foe, AKind.Attack) { Target = pretender });
+            Assert.Equal(2000, pretender.Hp);
+            Assert.Equal(foeHpPre, foe.Hp); // No phantom counterattack!
+
+            // M02.01a: Effect 26 merges skill + unit status (Berserk/Defender on Techniques with effect 26).
+            var tech26 = new Skill
+            {
+                Category = "Technique", Id = 9952, Name = "Slash26", Levels = 1, Target = T.SINGLE, Attr = T.SLASH, Group = 0x10, IsTechnique = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 }, Range = T.SHORT,
+                Effects = new[] { new Effect { Id = 0, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } }, new Effect { Id = 26, Kind = 2, Values = new[] { 0.5 }, IsInt = new[] { false } } }
+            };
+            var atkHero = new Unit("Berserker", Unit.PARTY, 50, 2000, 100, new[] { 200, 80, 80, 80, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var b26 = new Battle(data, new List<Unit> { atkHero }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            double baseExp = b26.PhysicalDamageExpected(new Action(atkHero, AKind.Skill, tech26, 1, foe), foe, 1.0);
+            atkHero.SetStatus(new Status(26, 0.6, 5, atkHero)); // Berserk +60%
+            double berserkExp = b26.PhysicalDamageExpected(new Action(atkHero, AKind.Skill, tech26, 1, foe), foe, 1.0);
+            Assert.True(berserkExp > baseExp * 1.3, $"Expected Berserk 26 to sum with skill 26 ({berserkExp} vs {baseExp})");
+        }
+
+        [Fact]
+        public void Phase3_S0_MidMultiHitRetarget_Counter250Flag10_And_4StageOrder()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["vanilla"];
+
+            // M04.09a / M08.09a: multi-hit retargets when primary target dies mid-action.
+            var striker = new Unit("Striker", Unit.PARTY, 50, 2000, 100, new[] { 500, 80, 80, 80, 300, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var f1 = new Unit("WeakFoe", Unit.ENEMIES, 50, 10, 0, new[] { 50, 10, 50, 10, 50, 50 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var f2 = new Unit("SpareFoe", Unit.ENEMIES, 50, 5000, 0, new[] { 50, 10, 50, 10, 50, 50 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var multi = new Skill
+            {
+                Category = "Technique", Id = 9953, Name = "Triple", Levels = 1, Target = T.SINGLE, Attr = T.SLASH, Group = 0x10, IsTechnique = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 }, Range = T.SHORT, Pattern = 1,
+                Effects = new[] { new Effect { Id = 0, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } }, new Effect { Id = 93, Kind = 2, Values = new[] { 3.0 }, IsInt = new[] { true } } }
+            };
+            var b = new Battle(data, new List<Unit> { striker }, new List<Unit> { f1, f2 }, new PyRandom(1), null, new BattleOptions(), null);
+            b.Perform(new Action(striker, AKind.Skill, multi, 1, f1));
+            Assert.False(f1.Alive);
+            Assert.True(f2.Hp < 5000, "Remaining multi-hits must retarget living foe when primary target dies (M04.09a)");
+
+            // M08.04a / M08.06a: AoE Counter 250 defers to Stage 2 (1 counter max) and suppresses Stage 3 Reprisal (249).
+            var aoe = new Skill
+            {
+                Category = "Technique", Id = 9954, Name = "Sweep", Levels = 1, Target = T.ALL, Attr = T.SLASH, Group = 0x10, IsTechnique = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 }, Range = T.SHORT, Pattern = 4,
+                Effects = new[] { new Effect { Id = 0, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } } }
+            };
+            var attacker = new Unit("Attacker", Unit.PARTY, 50, 5000, 100, new[] { 200, 50, 50, 50, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var c1 = new Unit("Counter1", Unit.ENEMIES, 50, 2000, 0, new[] { 150, 50, 50, 50, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            var c2 = new Unit("Reprisal2", Unit.ENEMIES, 50, 2000, 0, new[] { 150, 50, 50, 50, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            c1.SetPassive(250, 1.0); // AoE deferred counter
+            c2.SetPassive(249, 1.0); // Reprisal (must be suppressed when Stage 2 fires)
+            var bAoe = new Battle(data, new List<Unit> { attacker }, new List<Unit> { c1, c2 }, new PyRandom(1), null, new BattleOptions(), null);
+            int atkHpBefore = attacker.Hp;
+            bAoe.Perform(new Action(attacker, AKind.Skill, aoe, 1, c1));
+            int totalLoss = atkHpBefore - attacker.Hp;
+            Assert.True(totalLoss > 0 && totalLoss < 500, $"Expected single deferred Counter 250 suppressing Reprisal 249, got loss {totalLoss}");
+        }
+
+        [Fact]
+        public void Phase3_S0_SleepStrips36_Stage3Petrify_Dolls_AiVM_ShadowSew_Perf_Items()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["vanilla"];
+
+            // M06.01b / M07.09a: Sleep (116) strips CommandData flags38 bit 1 (36 IDs: e.g. 171 Cover, 180 Parry, 190 Limit Field).
+            Assert.Equal(36, data.SleepClearedCommands.Count);
+            Assert.Equal(8, data.DeathExemptCommands.Count);
+            var u = new Unit("Sleeper", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var foe = new Unit("Foe", Unit.ENEMIES, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Enemy);
+            u.SetStatus(new Status(171, 0.5, 5, u));
+            u.SetStatus(new Status(180, 0.5, 5, u));
+            u.SetStatus(new Status(41, 0.25, 5, u)); // ATK buff NOT in sleep-cleared list
+            var b = new Battle(data, new List<Unit> { u }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            Assert.True(b.ApplyAilment(foe, u, 116, 2.0, null));
+            Assert.Null(u.St[171]);
+            Assert.Null(u.St[180]);
+            Assert.NotNull(u.St[41]);
+
+            // M06.01a / M04.06a / M07.06a: Stage-3 Petrify blocks new statuses, excludes from TargetableArray, and defeats Enemy.
+            u.PopStatus(116);
+            u.SetStatus(new Status(120, 1.0, 0, foe) { Stage = 3 });
+            u.SetStatus(new Status(42, 0.5, 5, u)); // Blocked by Stage-3 guard
+            Assert.Null(u.St[42]);
+            Assert.Empty(b.TargetableArray(Unit.PARTY));
+
+            // M05.07a: ClearBattleStatuses preserves true ailments (113..122) while stripping battle buffs.
+            var u2 = new Unit("Carry", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            u2.SetStatus(new Status(113, 1.0, 0, foe));
+            u2.SetStatus(new Status(41, 0.3, 5, u2));
+            u2.ClearBattleStatuses();
+            Assert.NotNull(u2.St[113]);
+            Assert.Null(u2.St[41]);
+
+            // M09.03a: BuildDoll copies owner.Enchants and sets MaxTp = 9999.
+            var owner = new Unit("DM", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var ench = new int[GameData.MaxEnchant]; ench[29] = 3;
+            owner.SetEnchants(ench);
+            var doll = UnitFactory.BuildDoll(owner, data.Dolls[0], 1, data);
+            Assert.Equal(3, doll.Pieces(29));
+            Assert.Equal(9999, doll.MaxTp);
+
+            // M10.04a: AI SourceValue returns -1 on empty/false boolean sources so opcode 3 (<= N) fails cleanly.
+            var aiFoe = new Unit("AiEnemy", Unit.ENEMIES, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Enemy)
+            {
+                Attacks = new[] { 0, 1 },
+                Script = new Script
+                {
+                    Id = 1,
+                    Opening = new CommandList { Id = 9901, Commands = new[] { new Command { Cmd = 3, Args = new[] { 10, 0 }, HasResult = true, Result = 0x4001, ListId = 9901 } } },
+                    Sets = new[] { new AiSet { Number = 0, Weights = new[] { 100, 0 }, Commands = new CommandList { Id = 9902, Commands = Array.Empty<Command>() } } }
+                }
+            };
+            var bAi = new Battle(data, new List<Unit> { u2 }, new List<Unit> { aiFoe }, new PyRandom(1), null, new BattleOptions(), null);
+            var chosen = Ai.Choose(bAi, aiFoe);
+            Assert.Equal(0, chosen.Atk.Id); // Source 10 (foe has buff) is false (-1) -> <= 0 must NOT trigger slot 1!
+
+            // M04.15a / M07.08b: Shadow Sew (123) blocks skills in Policy.Options and Battle.IsLegalAction.
+            var tech = data.SkillList.First(s => s.IsTechnique && Policy.UsableInBattle(s) && s.Weapons.Length == 0);
+            u2.Skills.Add((tech.Id, 1));
+            var legalAct = new Action(u2, AKind.Skill, tech, 1, foe);
+            Assert.True(bAi.IsLegalAction(legalAct));
+            u2.SetStatus(new Status(123, 1.0, 0, foe));
+            Assert.False(bAi.IsLegalAction(legalAct));
+            Assert.Empty(Policy.Options(bAi, u2));
+
+            // M06.08a: PerformSong evicts same cmdId from another ally on the same side.
+            var s1 = new Unit("Diva1", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var s2 = new Unit("Diva2", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            var songSkill = data.SkillList.First(s => s.HasEffect(210)); // Barrage Rondo
+            var bSong = new Battle(data, new List<Unit> { s1, s2 }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            bSong.Perform(new Action(s1, AKind.Skill, songSkill, 1, s1));
+            Assert.Contains(210, s1.SongIds);
+            bSong.Perform(new Action(s2, AKind.Skill, songSkill, 1, s2));
+            Assert.DoesNotContain(210, s1.SongIds);
+            Assert.Contains(210, s2.SongIds);
+
+            // M04.08a: Item TargetType 18 (SideAll) heals entire side and Flags & 0x100 (infinite) does not consume count.
+            var infAllItem = new Item { Id = 9998, Name = "InfAllHeal", Flags = 0x104, TargetType = 18, Kinds = new[] { 0, -1, -1, -1 }, Values = new[] { 100.0, 0, 0, 0 } };
+            data.Items[9998] = infAllItem;
+            s1.Hp = 500; s2.Hp = 500; s1.Items[9998] = 1;
+            bSong.UseItem(new Action(s1, AKind.Item, null, 1, s1, 9998));
+            Assert.Equal(600, s1.Hp);
+            Assert.Equal(600, s2.Hp);
+            Assert.Equal(1, s1.Items[9998]); // Infinite item not decremented!
+            data.Items.Remove(9998);
+        }
     }
 }

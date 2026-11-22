@@ -32,9 +32,9 @@ namespace DtEngine
             unit.AiTargets?.Clear();
             if (attacks.Length == 0) return new Action(unit, AKind.Defend);
             var chosen = ChooseAttack(battle, unit);
-            // 0x431257..0x4313b5: Shadow Sew (123) replaces any attack with plain attack; Breath (effect ID 3) bypasses
-            // Silence (117, spells) and Freeze (114, techniques).
-            if (chosen.Atk != null)
+            // 0x431206..0x4313b5: Enemy-only Freeze/Silence/Shadow Sew attack overrides (skipped for Summons/NPCs);
+            // Breath (effect ID 3) bypasses Silence (117, spells) and Freeze (114, techniques), NOT Shadow Sew (123).
+            if (unit.Kind == Kind.Enemy && chosen.Atk != null)
             {
                 bool blocked = unit.St[123] != null
                     || (!IsBreath(chosen.Atk) && ((unit.St[117] != null && chosen.Atk.Spell) || (unit.St[114] != null && chosen.Atk.Technique)));
@@ -171,6 +171,8 @@ namespace DtEngine
             if (cid == 3 || cid == 10 || cid == 12 || cid == 13 || cid == 14)
             {
                 int value = SourceValue(battle, unit, args[0]);
+                // 0x431a51..0x432480: SourceValue == -1 means empty/false source and always fails comparisons.
+                if (value < 0) return false;
                 int n = args[1];
                 switch (cid)
                 {
@@ -229,6 +231,8 @@ namespace DtEngine
             }
             if (cid == 9)
             {
+                // 0x43232e: Opcode 9 (dead ally) always returns false for Enemies.
+                if (unit.Kind == Kind.Enemy) return false;
                 foreach (var u in battle.AlliesArray(unit, false)) if (!u.Alive && u.Kind != Kind.Doll) return true;
                 return false;
             }
@@ -243,18 +247,18 @@ namespace DtEngine
             switch (source)
             {
                 case 0: return PyMath.Int(unit.HpRatio * 100);
-                case 1: { int m = 100; bool any = false; foreach (var u in allies) { int v = PyMath.Int(u.HpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : 100; }
-                case 2: { int m = 100; bool any = false; foreach (var u in foes) { int v = PyMath.Int(u.HpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : 100; }
-                case 3: { int m = 100; bool any = false; foreach (var u in allies) { int v = PyMath.Int(u.TpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : 100; }
-                case 4: { int m = 100; bool any = false; foreach (var u in foes) { int v = PyMath.Int(u.TpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : 100; }
-                case 5: { int n = 0; foreach (var u in allies) if (HasAilmentOrDebuff(u)) n++; return n; }
-                case 6: { int n = 0; foreach (var u in foes) if (HasAilmentOrDebuff(u)) n++; return n; }
-                case 7: { int n = 0; foreach (var u in foes) if (u.Chant != null) n++; return n; }
-                case 8: { int n = 0; foreach (var u in foes) if (!u.Front) n++; return n; }
-                case 9: { int n = 0; foreach (var u in foes) if (u.Front) n++; return n; }
-                case 10: { int n = 0; foreach (var u in foes) if (HasBuff(u)) n++; return n; }
-                case 11: { int n = 0; foreach (var u in allies) if (HasDebuff(u)) n++; return n; }
-                default: return 0;
+                case 1: { int m = 100; bool any = false; foreach (var u in allies) { int v = PyMath.Int(u.HpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : -1; }
+                case 2: { int m = 100; bool any = false; foreach (var u in foes) { int v = PyMath.Int(u.HpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : -1; }
+                case 3: { int m = 100; bool any = false; foreach (var u in allies) { int v = PyMath.Int(u.TpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : -1; }
+                case 4: { int m = 100; bool any = false; foreach (var u in foes) { int v = PyMath.Int(u.TpRatio * 100); if (!any || v < m) { m = v; any = true; } } return any ? m : -1; }
+                case 5: { foreach (var u in allies) if (HasAilmentOrDebuff(u)) return 1; return -1; }
+                case 6: { foreach (var u in foes) if (HasAilmentOrDebuff(u)) return 1; return -1; }
+                case 7: { foreach (var u in foes) if (u.Chant != null) return 1; return -1; }
+                case 8: { foreach (var u in foes) if (!u.Front) return 1; return -1; }
+                case 9: { foreach (var u in foes) if (u.Front) return 1; return -1; }
+                case 10: { foreach (var u in foes) if (HasBuff(u)) return 1; return -1; }
+                case 11: { foreach (var u in allies) if (HasDebuff(u)) return 1; return -1; }
+                default: return -1;
             }
         }
 

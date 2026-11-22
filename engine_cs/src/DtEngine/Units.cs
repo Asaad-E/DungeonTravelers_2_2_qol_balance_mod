@@ -93,16 +93,25 @@ namespace DtEngine
             get { return alive; }
             set { if (alive != value) { alive = value; if (Roster != null) Roster.Version++; } }
         }
+        /// <summary>0x4fb600 (vtable+0xc8): true when Petrification (120) has reached Stage >= 3.</summary>
+        public bool IsFullPetrified => St[120] != null && St[120].Stage >= 3;
+        /// <summary>0x4fbd90 (vtable+0xe8): alive AND not Stage-3 Petrified (targetable, healable, counted for victory/defeat).</summary>
+        public bool CanFight => alive && !IsFullPetrified;
+        public void InvalidateRoster() { if (Roster != null) Roster.Version++; }
         public double NextTime;
         public Action Chant;
         List<string> song, dance, geass;
+        List<int> songIds, danceIds, geassIds;
         public List<string> Song => song ?? (song = new List<string>());
         public List<string> Dance => dance ?? (dance = new List<string>());
         public List<string> Geass => geass ?? (geass = new List<string>());
-        public bool HasSongs => song != null && song.Count > 0;
-        public bool HasDances => dance != null && dance.Count > 0;
-        public bool HasGeass => geass != null && geass.Count > 0;
-        public void ClearSongsAndDances() { song?.Clear(); dance?.Clear(); geass?.Clear(); }
+        public List<int> SongIds => songIds ?? (songIds = new List<int>());
+        public List<int> DanceIds => danceIds ?? (danceIds = new List<int>());
+        public List<int> GeassIds => geassIds ?? (geassIds = new List<int>());
+        public bool HasSongs => (songIds != null && songIds.Count > 0) || (song != null && song.Count > 0);
+        public bool HasDances => (danceIds != null && danceIds.Count > 0) || (dance != null && dance.Count > 0);
+        public bool HasGeass => (geassIds != null && geassIds.Count > 0) || (geass != null && geass.Count > 0);
+        public void ClearSongsAndDances() { song?.Clear(); dance?.Clear(); geass?.Clear(); songIds?.Clear(); danceIds?.Clear(); geassIds?.Clear(); }
         public Unit Owner;
         public int TurnsTaken;
         public int LastSkillId = T.NONE;
@@ -130,7 +139,7 @@ namespace DtEngine
         public int PreviousClass = T.NONE;
         public bool Defending, StolenGold, StolenItem;     // a gold steal and an item steal each succeed once (0x155, 0x154 of the unit)
         public Dictionary<int, int> Items = new Dictionary<int, int>();
-        public bool Adult, Shield;
+        public bool Adult, Shield, HasHead, HasBody;
         public string Role = "attacker";
         public bool HasRole;
         public int[] Raw;
@@ -179,7 +188,7 @@ namespace DtEngine
             c.ResistBase = (int[])ResistBase.Clone();
             c.St = NoStatuses; c.stOrder = Array.Empty<int>(); c.StCount = 0; c.statModCount = 0;
             pvShared = true; c.pvShared = true;
-            c.song = null; c.dance = null; c.geass = null;
+            c.song = null; c.dance = null; c.geass = null; c.songIds = null; c.danceIds = null; c.geassIds = null;
             c.uses = null; c.usesById = null; c.onceDone = null;
             c.Items = copyItems ? new Dictionary<int, int>(Items) : Items;
             c.Chant = null; c.Owner = null; c.ShadowOf = null; c.AiTargets = null; c.Samsara = null; c.Roster = null;
@@ -211,7 +220,10 @@ namespace DtEngine
 
         public void SetStatus(Status s)
         {
+            // 0x4f9950 (vtable+0xc8): Stage-3 Petrified units reject all new statuses except explicit 120 updates.
+            if (IsFullPetrified && s.Effect != 120) return;
             if (St == NoStatuses) St = RentStatusArray();
+            bool wasPet3 = IsFullPetrified;
             // 0x4f9bff..0x4f9c7c (vtable+0x7c == 1 -> 325..329): elemental weapon enchants are mutually exclusive.
             if (s.Effect >= 325 && s.Effect <= 329)
             {
@@ -231,12 +243,14 @@ namespace DtEngine
                 if (IsStatModEffect(s.Effect)) statModCount++;
             }
             St[s.Effect] = s;
+            if (wasPet3 != IsFullPetrified) InvalidateRoster();
         }
 
         public Status PopStatus(int e)
         {
             var s = St[e];
             if (s == null) return null;
+            bool wasPet3 = IsFullPetrified;
             St[e] = null;
             if (IsStatModEffect(e)) statModCount--;
             for (int i = 0; i < StCount; i++)
@@ -248,14 +262,43 @@ namespace DtEngine
                 }
             // 0x4fc63a..0x4fc644: clamp current HP to MaxHp when Max HP buff (172) is removed.
             if (e == MAX_HP_BUFF && Hp > MaxHp) Hp = MaxHp;
+            if (wasPet3 != IsFullPetrified) InvalidateRoster();
             return s;
         }
 
         public void ClearStatuses()
         {
+            bool wasPet3 = IsFullPetrified;
             for (int i = 0; i < StCount; i++) St[stOrder[i]] = null;
             StCount = 0;
             statModCount = 0;
+            if (wasPet3) InvalidateRoster();
+        }
+
+        /// <summary>0x4fa960 (ClearBattleStatuses): removes battle-only statuses while preserving true ailments (113..122).</summary>
+        public void ClearBattleStatuses()
+        {
+            int write = 0;
+            int mods = 0;
+            bool wasPet3 = IsFullPetrified;
+            for (int i = 0; i < StCount; i++)
+            {
+                int e = stOrder[i];
+                bool keep = e >= 113 && e <= 122;
+                if (keep)
+                {
+                    stOrder[write++] = e;
+                    if (IsStatModEffect(e)) mods++;
+                }
+                else
+                {
+                    St[e] = null;
+                }
+            }
+            StCount = write;
+            statModCount = mods;
+            if (Hp > MaxHp) Hp = MaxHp;
+            if (wasPet3 != IsFullPetrified) InvalidateRoster();
         }
 
         /// <summary>Clears all statuses and returns the status backing array to the thread-local pool.</summary>
@@ -694,20 +737,17 @@ namespace DtEngine
             foreach (var kv in dollEnchants) dollCounted[kv.Key] = data.EnchantStacks.Contains(kv.Key) ? kv.Value : Math.Min(kv.Value, 1);
             var bonusTotal = new int[6];
             var resistBonus = new int[8];
-            int[] gearedForLine = totals;
-            if (offhandBonus != null)
-            {
-                gearedForLine = new int[6];
-                for (int s = 0; s < 6; s++) gearedForLine[s] = totals[s] + offhandBonus[s];
-            }
-            EnchantBonus(counted, characterStats, hp, tp, front, bonusTotal, out int bonusHp, out int bonusTp, resistBonus, gearedForLine);
+            // 0x4f8270 (Stage 4): EnchantBonus runs BEFORE Stage-5 Dual-Wield offhandBonus (0x4fbdd0), using totals only.
+            EnchantBonus(counted, characterStats, hp, tp, front, bonusTotal, out int bonusHp, out int bonusTp, resistBonus, totals);
             for (int s = 0; s < 6; s++) totals[s] += bonusTotal[s];
             var dollBonusTotal = new int[6];
             var dollResistUnused = new int[8];
             EnchantBonus(dollCounted, characterStats, hp, tp, front, dollBonusTotal, out _, out _, dollResistUnused, dollTotals);
             for (int s = 0; s < 6; s++) dollTotals[s] += dollBonusTotal[s];
             int baseHpPreEnchant = hp;
-            hp += bonusHp; tp += bonusTp;
+            // 0x4fc62f: MaxHp and MaxTp are clamped to >= 1.
+            hp = Math.Max(1, hp + bonusHp);
+            tp = Math.Max(1, tp + bonusTp);
             var resist = new int[8];
             for (int i = 0; i < 8; i++) resist[i] = crownBonus + resistBonus[i];
             // 0x4f5556..0x4f55df: weapon rank, else enchant 263 -> Rank A (WeaponRanks[1]), else ClassData +0x24 unarmed rank.
@@ -720,8 +760,9 @@ namespace DtEngine
                 rankDelay = classUnarmed;
             else
                 rankDelay = UnarmedDelay(data);
+            int charRace = character != null ? character.Race : T.NONE;
             var unit = new Unit(name ?? (character != null ? character.Name : "class " + classId), Unit.PARTY, level, hp, tp, totals, resist,
-                                rankDelay, weapon != null ? weapon.Swing : 0.0, T.NONE, Kind.Member);
+                                rankDelay, weapon != null ? weapon.Swing : 0.0, charRace, Kind.Member);
             unit.BaseHp = baseHpPreEnchant;
             unit.OffhandBonus = offhandBonus;
             unit.AdoptPassives(passiveValues);
@@ -744,9 +785,17 @@ namespace DtEngine
             unit.HasUnique = hasUnique; unit.UniqueEffect = uniqueEffect; unit.UniqueValue = uniqueValue;
             unit.Character = character;
             unit.Adult = character != null && character.Flag == 1;
-            bool shield = false;
-            foreach (var use in equipment) if (use.Slot == 1 && data.Equipment[use.EquipId].Category == 1) shield = true;
+            bool shield = false, hasHead = false, hasBody = false;
+            foreach (var use in equipment)
+            {
+                var p = data.Equipment[use.EquipId];
+                if (use.Slot == 1 && p.Category == 1) shield = true;
+                if (use.Slot == 2) hasHead = true;
+                if (use.Slot == 3) hasBody = true;
+            }
             unit.Shield = shield;
+            unit.HasHead = hasHead;
+            unit.HasBody = hasBody;
             unit.ClassId = classId;
             unit.PreviousClass = previous;
             unit.Front = front;
@@ -926,8 +975,10 @@ namespace DtEngine
                 var sealed_ = data.Enemies[owner.Sealbook];
                 for (int s = 0; s < 6; s++) baseStats[s] += PyMath.Int(sealed_.Stats[s] * owner.Value(SOUL_SEAL));
             }
-            // All three doll vtables (0x6d4768, 0x6d4dd8, 0x6d434c) map weight slot +0xf4 to 0x4fd630 (fldz; ret => 0.0).
-            var unit = new Unit(doll.Name, owner.Side, owner.Level, DOLL_HP, 0, baseStats, null, 0.0, 0.0, T.NONE, Kind.Doll);
+            // All three doll vtables (0x6d4768, 0x6d4dd8, 0x6d434c) map weight slot +0xf4 to 0x4fd630 (fldz; ret => 0.0),
+            // initialize MaxTP = 9999, and copy owner's enchantments (0x4fd867 -> 0x4f3290).
+            var unit = new Unit(doll.Name, owner.Side, owner.Level, DOLL_HP, 9999, baseStats, null, 0.0, 0.0, T.NONE, Kind.Doll);
+            if (owner.HasEnchants) unit.SetEnchants((int[])owner.Enchants.Clone());
             unit.Owner = owner;
             unit.Life = doll.Turns[level - 1];
             unit.Doll = doll;

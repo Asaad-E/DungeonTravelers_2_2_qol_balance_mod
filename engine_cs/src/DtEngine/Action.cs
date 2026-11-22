@@ -18,7 +18,8 @@ namespace DtEngine
         public Unit Target;
         public int Item = T.NONE;
         public Unit[] FixedTargets;
-        public bool Chanting, Furious, Paid;
+        public bool Chanting, Furious, Paid, WarningShot;
+        public int Pattern => Skill != null ? Skill.Pattern : Atk != null ? Atk.Pattern : 0;
 
         // the effects at the level of the action: id, kind, value; the first of each id is what value() finds. The arrays are shared
         // between the actions that have the same effects (a skill at a level whose figures take nothing from the user, an enemy
@@ -111,7 +112,7 @@ namespace DtEngine
         public void Reset(Unit actor, AKind kind, Skill skill, int level)
         {
             Actor = actor; Kind = kind; Skill = skill; Atk = null; Level = level; Target = null; Item = T.NONE; FixedTargets = null;
-            Chanting = false; Furious = false; Paid = false; fx = null;
+            Chanting = false; Furious = false; Paid = false; WarningShot = false; fx = null;
         }
 
         public bool HasSource => Skill != null || Atk != null;
