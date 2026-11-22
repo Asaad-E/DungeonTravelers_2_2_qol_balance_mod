@@ -1,6 +1,6 @@
 {
   "campaign_status": "IN PROGRESS",
-  "active_phase": 3,
+  "active_phase": 4,
   "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
   "phases": {
     "0": {
@@ -16,11 +16,11 @@
       "signoff_commit": "6950513"
     },
     "3": {
-      "status": "in_progress",
-      "signoff_commit": null
+      "status": "done",
+      "signoff_commit": "f1700d5"
     },
     "4": {
-      "status": "pending",
+      "status": "in_progress",
       "signoff_commit": null
     },
     "5": {
@@ -35,9 +35,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (9 rules, 182 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 4,
+      "open_s1": 0,
       "open_s2": 0
     },
     "M01": {
@@ -46,9 +46,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (7 rules, 239 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 3,
+      "open_s1": 0,
       "open_s2": 1
     },
     "M02": {
@@ -57,9 +57,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (7 rules, 191 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 7,
+      "open_s1": 0,
       "open_s2": 0
     },
     "M03": {
@@ -68,9 +68,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (5 rules, 168 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 4,
+      "open_s1": 0,
       "open_s2": 1
     },
     "M04": {
@@ -79,9 +79,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (16 rules, 319 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 9,
+      "open_s1": 0,
       "open_s2": 1
     },
     "M05": {
@@ -90,9 +90,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (13 rules, 322 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 10,
+      "open_s1": 0,
       "open_s2": 0
     },
     "M06": {
@@ -101,9 +101,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (8 rules, 176 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 2,
+      "open_s1": 0,
       "open_s2": 2
     },
     "M07": {
@@ -112,9 +112,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (12 rules, 228 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 8,
+      "open_s1": 0,
       "open_s2": 0
     },
     "M08": {
@@ -123,9 +123,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (14 rules, 326 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 8,
+      "open_s1": 0,
       "open_s2": 1
     },
     "M09": {
@@ -134,9 +134,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (15 rules, 433 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 5,
+      "open_s1": 0,
       "open_s2": 1
     },
     "M10": {
@@ -145,9 +145,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (19 rules, 355 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 7,
+      "open_s1": 0,
       "open_s2": 5
     },
     "M11": {
@@ -156,9 +156,9 @@
       "phase1_spec": "done",
       "phase1_audit_check": "pass (15 rules, 285 lines)",
       "phase2_diff": "done",
-      "phase3_fix": "in_progress",
+      "phase3_fix": "done",
       "open_s0": 0,
-      "open_s1": 8,
+      "open_s1": 0,
       "open_s2": 3
     }
   },
