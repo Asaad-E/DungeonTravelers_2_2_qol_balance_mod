@@ -32,8 +32,8 @@
     "M00": {
       "file": "M00_PIPELINE.md",
       "title": "Global Action & Turn Call-Graph Pipeline",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (9 rules, 182 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -43,7 +43,7 @@
     "M01": {
       "file": "M01_TURN_LOOP_AND_ATB.md",
       "title": "Turn Loop, 3 Update Jump Tables, ATB & Extra Turns",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -98,7 +98,7 @@
     "M06": {
       "file": "M06_STATUS_LIFECYCLE_AND_RECALC.md",
       "title": "Status Lifecycle, Vtable Groups, Recalc & Dispel",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -164,10 +164,17 @@
   },
   "claims": [
     {
-      "module": "M00",
-      "owner": "spec-m00-pipeline",
+      "module": "M01",
+      "owner": "spec-m01-turnloop",
       "model": "gemini-4-argon-high",
-      "output": "docs/binary_spec/M00_PIPELINE.md",
+      "output": "docs/binary_spec/M01_TURN_LOOP_AND_ATB.md",
+      "status": "in_progress"
+    },
+    {
+      "module": "M06",
+      "owner": "spec-m06-status",
+      "model": "gemini-4-argon-high",
+      "output": "docs/binary_spec/M06_STATUS_LIFECYCLE_AND_RECALC.md",
       "status": "in_progress"
     }
   ],
