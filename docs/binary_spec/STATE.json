@@ -131,8 +131,8 @@
     "M09": {
       "file": "M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md",
       "title": "Dolls, Summons, Guests & Enchantments",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (15 rules, 433 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -163,13 +163,6 @@
     }
   },
   "claims": [
-    {
-      "module": "M09",
-      "owner": "spec-m09-dolls-enchants",
-      "model": "gemini-4-neon-high",
-      "output": "docs/binary_spec/M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md",
-      "status": "in_progress"
-    },
     {
       "module": "M10",
       "owner": "spec-m10-ai-loaders",
