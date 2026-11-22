@@ -54,8 +54,8 @@
     "M02": {
       "file": "M02_PHYSICAL_DAMAGE.md",
       "title": "Physical Damage, Range, Crit, Multi-Hit & Zones",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (7 rules, 191 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -163,13 +163,6 @@
     }
   },
   "claims": [
-    {
-      "module": "M02",
-      "owner": "spec-m02-physdmg",
-      "model": "gemini-4-neon-high",
-      "output": "docs/binary_spec/M02_PHYSICAL_DAMAGE.md",
-      "status": "in_progress"
-    },
     {
       "module": "M04",
       "owner": "spec-m04-hit-target",
