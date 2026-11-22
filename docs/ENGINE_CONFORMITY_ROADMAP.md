@@ -48,47 +48,47 @@
 
 | Module / Task | Owner | Started Commit | Output Path | Status |
 |---|---|---|---|---|
-| Phase 0 Inventory & Tooling | coordinator | `d6ddd7b` | `tools/exe_inventory.py`, `docs/binary_spec/00_INVENTORY.json`, `STATE.json`, `tools/conformity_status.py`, `tools/audit_check.py` | `in_progress` |
+| Phase 5 Balance Recalibration *(deferred until user request)* | coordinator | `311db06` | `data_tables/balance_changes.xlsx` | `deferred` |
 
 ### Phase Gate Tracker
 
 | Phase | Name | Status | Primary Artifacts | Exit Gate | Sign-off Commit |
 |---|---|---|---|---|---|
-| **0** | Mechanical Binary Inventory | `[~] in_progress` | `tools/exe_reader.py` (pinned), `tools/exe_inventory.py`, `docs/binary_spec/00_INVENTORY.json`, `00_INVENTORY.md`, `STATE.json`, `tools/conformity_status.py`, generalized `tools/audit_check.py` | SHA-256 pinned; all 6 combat C++ namespaces (`0x413000..0x570000`) + 633 RTTI vtables + all 5 dispatch routes + all battle jump tables + `.rdata` tables + `.pck` usage + `X01..X17` byte diff + stratified `audit_catalog` dumped cleanly | — |
-| **1** | Clean-Room Binary Spec (`Exe` only) | `[ ] pending` | `docs/binary_spec/M00_PIPELINE.md`, `docs/binary_spec/M01..M11.md` | `M00` + `M01..M11` complete with typed pseudocode, `Calls`/`CalledBy`, tabular batch rules for high-cardinality families, 100% inventory coverage, **0 unverified quotes** via `audit_check.py --spec` | — |
-| **2** | Two-Way Global Diff & Triage | `[ ] pending` | `docs/binary_spec/DIFF_REPORT.md`, `docs/binary_spec/DIFF_TABLE.json` | Forward diff (`Spec -> Code`) + Reverse sweep (`Code literals -> Spec / ENGINE-ONLY`) across C# + all 13 `tools/*_data.py` + `extract_vanilla.py` + `gamedata/`; `audit_check.py --diff` passes; global `S0` review signed off | — |
-| **3** | Fixes, Tests & Binary Invariants | `[ ] pending` | `engine_cs/`, `gamedata/`, `tools/*_data.py`, `tools/extract_vanilla.py`, `BinaryConformityTests.cs`, `tests/test_binary_invariants.py` | 0 open `S0/S1/S2`; `Battle.IsLegalAction()` asserted on `Policy.Choose`; `.pck`-direct invariant & exe-table invariants PASS; `CalibrationTests` intact; `X01..X17` scope-split tests PASS | — |
-| **4** | 5-Stratum Independent Random Audit | `[ ] pending` | `tools/sample_audit_batch.py`, `docs/binary_spec/RANDOM_AUDIT_LOG.md` | 1 full round of **15** items (12 catalog + 3 self-contained `Trace.cs` JSON event packets) + detected verified **canary** with **0 verified fails** AND cumulative `<= 1` S2 | — |
-| **5** | Final Balance Recalibration & Release | `[ ] pending` | `docs/generated/*`, `measures/*`, `dist/*.zip`, `docs/FORMULAS.md`, `data_tables/engine_conformity.json` | `full_suite.py` + batteries + `package_all.py` + all tests green; working artifacts cleanly archived | — |
+| **0** | Mechanical Binary Inventory | `[x] done` | `tools/exe_reader.py` (pinned), `tools/exe_inventory.py`, `docs/binary_spec/00_INVENTORY.json`, `00_INVENTORY.md`, `STATE.json`, `tools/conformity_status.py`, generalized `tools/audit_check.py` | SHA-256 pinned; all 6 combat C++ namespaces (`0x413000..0x570000`) + 633 RTTI vtables + all 5 dispatch routes + all battle jump tables + `.rdata` tables + `.pck` usage + `X01..X17` byte diff + stratified `audit_catalog` dumped cleanly | `2133dab` |
+| **1** | Clean-Room Binary Spec (`Exe` only) | `[x] done` | `docs/binary_spec/M00_PIPELINE.md`, `docs/binary_spec/M01..M11.md` | `M00` + `M01..M11` complete (140 rules, 3,224 verified exe lines, **0 failing**) via `audit_check.py --spec` | `ef410a6` |
+| **2** | Two-Way Global Diff & Triage | `[x] done` | `docs/binary_spec/DIFF_REPORT.md`, `docs/binary_spec/DIFF_TABLE.json` | 146 items (140 spec + 6 `ENGINE-ONLY`), `audit_check.py --diff` passes (**0 failing**), 282 sub-bugs triaged | `6950513` |
+| **3** | Fixes, Tests & Binary Invariants | `[x] done` | `engine_cs/`, `gamedata/`, `tools/*_data.py`, `tools/extract_vanilla.py`, `BinaryConformityTests.cs`, `tests/test_binary_invariants.py`, `tests/test_phase3_py_fixes.py` | All S0/S1/Py-loader waves fixed; `Battle.IsLegalAction()` enforced; `68/68` C# + `282/282` Py + paired `X01..X17` PASS | `f1700d5` |
+| **4** | 5-Stratum Independent Random Audit | `[x] done` | `tools/sample_audit_batch.py`, `docs/binary_spec/RANDOM_AUDIT_LOG.md` | 2 rounds (24 catalog items without replacement + 6 real `TextTrace` packets + 2/2 caught canaries); Round 2 **CERTIFIED PASS** (`0 S0 / 0 S1`, 1 synthetic `S2` fixed) | `7ce0de7` |
+| **5** | Final Balance Recalibration & Release | `[~] sync done` | `docs/generated/*`, `measures/*`, `dist/*.zip`, `docs/FORMULAS.md`, `data_tables/engine_conformity.json` | `full_suite.py` + `sealbook-battery` + `support-battery` + `suite_charts.py` + `package_all.py` + doc sync complete (`311db06`); optional `balance_changes.xlsx` recalibration deferred per user | `311db06` |
 
 ### Phase 1–3 Module Progress Matrix (`M00`–`M11`)
 
 | ID | Module | Spec File (`docs/binary_spec/`) | Phase 1 (Spec + `audit_check`) | Phase 2 (2-Way Diff) | Open `S0 / S1 / S2` | Phase 3 (Fixed + Tested) |
 |---|---|---|---|---|---|---|
-| `M00` | Global Action & Turn Call-Graph Pipeline *(FIRST)* | `M00_PIPELINE.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M01` | Turn Loop, 3 `Update` Jump Tables, ATB & Extra Turns | `M01_TURN_LOOP_AND_ATB.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M02` | Physical Damage, Range, Crit, Multi-Hit & Zones | `M02_PHYSICAL_DAMAGE.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M03` | Magical Damage, Elements & Missed Spells | `M03_MAGICAL_DAMAGE.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M04` | Hit / Evasion, Targeting Scopes & Formation | `M04_HIT_EVASION_AND_TARGETING.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M05` | Healing, Recovery, After-Battle & `ItemResult` (`0..106`) | `M05_HEALING_RECOVERY_AND_ITEMS.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M06` | Status Lifecycle, Vtable Groups, Recalc & Dispel | `M06_STATUS_LIFECYCLE_AND_RECALC.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M07` | Ailments, Immunities, Barriers & Recovery | `M07_AILMENTS_AND_CONTROL.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M08` | Procs, Counters, Cover, Parry, Patterns & AfterHit | `M08_PROCS_COUNTERS_AND_AFTERHIT.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M09` | Dolls, Summons, Guests & Enchantments *(may split `M09a`/`M09b`)* | `M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M10` | Enemy/Summon/NPC AI VM, Map Triggers & Binary Readers | `M10_ENEMY_AI_AND_DATA_LOADERS.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
-| `M11` | Unit Build, Growth, Unarmed Rank, Caps & EXP/SP Curves | `M11_UNIT_BUILD_AND_STATS.md` | `[ ]` | `[ ]` | `- / - / -` | `[ ]` |
+| `M00` | Global Action & Turn Call-Graph Pipeline *(FIRST)* | `M00_PIPELINE.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M01` | Turn Loop, 3 `Update` Jump Tables, ATB & Extra Turns | `M01_TURN_LOOP_AND_ATB.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M02` | Physical Damage, Range, Crit, Multi-Hit & Zones | `M02_PHYSICAL_DAMAGE.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M03` | Magical Damage, Elements & Missed Spells | `M03_MAGICAL_DAMAGE.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M04` | Hit / Evasion, Targeting Scopes & Formation | `M04_HIT_EVASION_AND_TARGETING.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M05` | Healing, Recovery, After-Battle & `ItemResult` (`0..106`) | `M05_HEALING_RECOVERY_AND_ITEMS.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M06` | Status Lifecycle, Vtable Groups, Recalc & Dispel | `M06_STATUS_LIFECYCLE_AND_RECALC.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M07` | Ailments, Immunities, Barriers & Recovery | `M07_AILMENTS_AND_CONTROL.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M08` | Procs, Counters, Cover, Parry, Patterns & AfterHit | `M08_PROCS_COUNTERS_AND_AFTERHIT.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M09` | Dolls, Summons, Guests & Enchantments | `M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M10` | Enemy/Summon/NPC AI VM, Map Triggers & Binary Readers | `M10_ENEMY_AI_AND_DATA_LOADERS.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
+| `M11` | Unit Build, Growth, Unarmed Rank, Caps & EXP/SP Curves | `M11_UNIT_BUILD_AND_STATS.md` | `[x]` | `[x]` | `0 / 0 / 0` | `[x]` |
 
 ### Phase 4 Random Audit Circuit-Breaker Tracker
 
 - **Consecutive Failed Rounds:** `0 / 3`
 - **Immediate Trip Triggers:** ANY verified `S0`, OR `>= 2` verified fails sharing a root-cause class, OR `3` consecutive failed rounds → **HARD STOP & Drawing Board `POST_MORTEM.md`**.
-- **Items Audited Without Replacement:** `0` | **Cumulative S2 Across All Rounds:** `0` *(must stay `<= 1` to certify)*
+- **Items Audited Without Replacement:** `24` catalog + `6` Trace JSON = `30` | **Canaries Caught:** `2 / 2`
 
 | Round | Date | Seed | Canary Planted / Caught? (Max 2 void retries) | Items (12 catalog + 3 Trace JSON = 15) | Verified Fails (`S0/S1/undoc S2`) | Verdict |
 |---|---|---|---|---|---|---|
-| 1 | — | — | — | — | — | `[ ] pending` |
-| 2 *(if needed)* | — | — | — | — | — | `[ ] standby` |
-| 3 *(if needed)* | — | — | — | — | — | `[ ] standby` |
+| 1 | 2026-11-22 | `20261122` | `SP11` / **YES** | 12 catalog + 3 Trace (`3/3 PASS`) | `0 / 3 / 4` *(all 7 fixed in `483e6df`)* | `[x] FAIL (fixed)` |
+| 2 | 2026-11-22 | `20261123` | `EF275` / **YES** | 12 new catalog + 3 Trace (`3/3 PASS`) | `0 / 0 / 1` *(synthetic `SP02` fixed in `7ce0de7`)* | `[x] CERTIFIED PASS` |
+| 3 *(if needed)* | — | — | — | — | — | `[ ] not needed` |
 
 ---
 

@@ -7,10 +7,10 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | Verdict | Items | Meaning |
 |---|---|---|
 | MATCH | 64 | the engine does what the program does |
-| FIXED | 40 | the audit found a difference; the engine was corrected (commit named) |
+| FIXED | 46 | the audit found a difference; the engine was corrected (commit named) |
 | MODEL-LIMIT | 3 | the engine leaves out a detail on purpose; the note says which, and where it can matter |
 | N/A | 0 | not a mechanic of a battle |
-| Total | 107 | |
+| Total | 113 | |
 
 ## Phase 0
 
@@ -203,3 +203,14 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | Item | Mechanic | Program | Engine | Verdict | Note |
 |---|---|---|---|---|---|
 | P16.1 | Puppet uniqueness across the party and active doll cap | 0x43c790, 0x43c862, 0x43f210, 0x43a1a0 | Battle.cs:MakeDoll, Battle.cs:MakeGuestDoll, Policy.cs:ActDoll | MATCH | Non-arrow puppets remove any active same-effect doll anywhere on owner.Side before enforcing the owner's 1/2 cap; total active dolls are capped at 12; Policy.ActDoll skips dolls already active on unit.Side. |
+
+## Phase 17
+
+| Item | Mechanic | Program | Engine | Verdict | Note |
+|---|---|---|---|---|---|
+| P17.1 | Command-list merge summation for Effects 26 & 31 and 1-hit barrier consumption (179/183) | 0x43e970, 0x422b58, 0x422b6e | Battle.cs:PhysicalDamageValue, Battle.cs:CriticalRateOf, Battle.cs:Resolve | FIXED (0be8085) | Restores Berserk/Defender/HRHR stacking on Techniques, Last Stand stacking on Moonlight Purgatory/Divine Cannon, and 1-hit barrier removal. |
+| P17.2 | 4-stage post-action interrupt chain, 0-based IsSequentialPattern & Arcane Shield Skill 240 | 0x4247e0, 0x422640, 0x41e194, 0x42525b | Battle.cs:Perform, Battle.cs:IsSequentialPattern, Battle.cs:Voided | FIXED (483e6df) | Removes phantom counters on 253/305/310, fixes 0-based Pattern 3 AoE classification, and routes Arcane Shield 447 through Skill 240 cap/barriers/Endure. |
+| P17.3 | 25-state turn-start pipeline, Overstock Clearance U0008, Murder License 119 & Stage-3 Petrification | 0x436322, 0x42fb60, 0x42c180, 0x436c82 | Battle.cs:Turn, Battle.cs:BeforeAction, Battle.cs:RunOverstockClearance, Battle.cs:CompletePetrify | FIXED (f1700d5) | Removes ENGINE-ONLY-01 (413 proxy) and ENGINE-ONLY-02 (bag-consuming 446 proxy); enforces Sleep 36-ID strip and Stage-3 Petrification guards. |
+| P17.4 | Star Dust Arrow stacking, Perdurabo all-party cure & Summon/Guest Leader Sealbook inheritance | 0x484491, 0x48a430, 0x4ff530 | Battle.cs:MakeDoll, Battle.cs:DollAction, Units.cs:BuildSummon, Units.cs:BuildGuest | FIXED (483e6df) | Removes ENGINE-ONLY-03 (DollCureTargets cap); propagates Party Slot 0 Sealbook enchants to Summons and Guests across all build paths. |
+| P17.5 | Battle ItemResult handlers (0..8, 11..23, 52..72) & 44 skill-casting item wrappers | 0x50e538, 0x50e789, 0x511830, 0x512eb0 | Battle.cs:ExecuteItemEffects, Battle.cs:ApplyItemMastery | FIXED (f1700d5) | Adds battle-usable item types and party-buff skill wrappers 35/36/39; verified against vanilla exe tables 0x6d3820 and 0x6d38b0. |
+| P17.6 | Effect 87 missed-spell guard, dynamic Maid Bonus 278 on status 168 & Trump Card 48 DEF overwrite | 0x44f0c2, 0x483a20, 0x48bf90, 0x4fbffb | Battle.cs:Resolve, Battle.cs:Wait, Units.cs:Stat | FIXED (7ce0de7) | Closes every verified finding from Phase 4 clean-room random audits Rounds 1 and 2. |

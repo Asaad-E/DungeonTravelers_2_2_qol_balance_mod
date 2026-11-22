@@ -1,5 +1,5 @@
 {
-  "campaign_status": "IN PROGRESS",
+  "campaign_status": "CERTIFIED (SYNC DONE; BALANCE RECALIBRATION DEFERRED)",
   "active_phase": 5,
   "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
   "phases": {
@@ -21,11 +21,11 @@
     },
     "4": {
       "status": "done",
-      "signoff_commit": null
+      "signoff_commit": "7ce0de7"
     },
     "5": {
-      "status": "in_progress",
-      "signoff_commit": null
+      "status": "sync_done",
+      "signoff_commit": "311db06"
     }
   },
   "modules": {
