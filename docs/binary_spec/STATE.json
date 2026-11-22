@@ -76,7 +76,7 @@
     "M04": {
       "file": "M04_HIT_EVASION_AND_TARGETING.md",
       "title": "Hit / Evasion, Targeting Scopes & Formation",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -98,8 +98,8 @@
     "M06": {
       "file": "M06_STATUS_LIFECYCLE_AND_RECALC.md",
       "title": "Status Lifecycle, Vtable Groups, Recalc & Dispel",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (8 rules, 176 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -164,24 +164,24 @@
   },
   "claims": [
     {
-      "module": "M06",
-      "owner": "spec-m06-status",
-      "model": "claude-sonnet-5-5-high",
-      "output": "docs/binary_spec/M06_STATUS_LIFECYCLE_AND_RECALC.md",
-      "status": "in_progress"
-    },
-    {
       "module": "M02",
       "owner": "spec-m02-physdmg",
-      "model": "claude-sonnet-5-5-high",
+      "model": "gemini-4-neon-high",
       "output": "docs/binary_spec/M02_PHYSICAL_DAMAGE.md",
       "status": "in_progress"
     },
     {
       "module": "M03",
       "owner": "spec-m03-magdmg",
-      "model": "claude-sonnet-5-5-high",
+      "model": "gemini-4-neon-high",
       "output": "docs/binary_spec/M03_MAGICAL_DAMAGE.md",
+      "status": "in_progress"
+    },
+    {
+      "module": "M04",
+      "owner": "spec-m04-hit-target",
+      "model": "gemini-4-neon-high",
+      "output": "docs/binary_spec/M04_HIT_EVASION_AND_TARGETING.md",
       "status": "in_progress"
     }
   ],
