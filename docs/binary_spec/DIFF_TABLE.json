@@ -1,0 +1,3665 @@
+{
+  "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
+  "total_items": 146,
+  "spec_rules_covered": 140,
+  "reverse_sweep_items": 6,
+  "verdict_counts": {
+    "S1": 75,
+    "S0": 29,
+    "S2": 15,
+    "MATCH": 19,
+    "MODEL-LIMIT": 2,
+    "ENGINE-ONLY": 6
+  },
+  "sub_bug_counts": {
+    "S1": 174,
+    "S0": 36,
+    "S2": 72
+  },
+  "total_sub_bugs": 282,
+  "items": [
+    {
+      "id": "M00.01",
+      "module": "M00",
+      "title": "Battle Initialization & Start",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.01a",
+          "severity": "S1",
+          "summary": "noTurnJitterFlag ([this+0x33], enemy 0x3C bit 1) does not suppress the 20% battle-start random order scramble.",
+          "exe_va": "0x449316",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:647",
+          "reach": "105 enemies in vanilla pck_usage (including bosses)",
+          "fix_hint": "Add && !flagged to the RANDOM_ORDER guard in Battle.Start()."
+        },
+        {
+          "sub_id": "M00.01b",
+          "severity": "S1",
+          "summary": "First Grid (300) scans dead/petrified units and non-candidates (Dolls/Summons/Guests >= 2000) instead of living non-petrified members/enemies.",
+          "exe_va": "0x449375",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:652",
+          "reach": "Multi-battle chains with dead/petrified members or active Summons/Guests",
+          "fix_hint": "Filter First Grid (300) scan by CanFight(u) && !NotACandidate(u)."
+        },
+        {
+          "sub_id": "M00.01c",
+          "severity": "S1",
+          "summary": "Missing _SortTime 1/1000 gauge quantization (trunc0 via __ftoui3 0x61e650) and inverted Doll TieKey (-unit.Position vs 962..1 above Summon 930 / Guest 929).",
+          "exe_va": "0x440b69",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:601",
+          "reach": "All battles (ATB tiebreaks and Doll turn ordering)",
+          "fix_hint": "Quantize sort keys and headGauge normalization to 1/1000 ticks and track a per-battle Doll tiebreak counter starting at 962."
+        }
+      ]
+    },
+    {
+      "id": "M00.02",
+      "module": "M00",
+      "title": "Outer CBattleBase::Update State Machine",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.02a",
+          "severity": "S0",
+          "summary": "Dolls (2000..2999), Summons, and Guests (3000..3999) execute the full inner Turn-Start States 0..24 instead of skipping (Dolls) or running only Samba 199 + vtable+0xdc (Summons/Guests).",
+          "exe_va": "0x43660d",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:838",
+          "reach": "All battles with Dolls, Summons, or Guests (opponent 345/259/283, regen, poison, and ally 355 Undaunted revives wrongly fire)",
+          "fix_hint": "Branch in Battle.Turn() on Kind.Doll (skip inner turn-start and status tick) and Kind.Summon/Kind.Npc (run only Samba 199 + DecrementTimedStatuses)."
+        },
+        {
+          "sub_id": "M00.02b",
+          "severity": "S0",
+          "summary": "Outer State 12 Warning Shot (259) 0.3x physical attack execution is absent; turn is unconditionally cancelled even on miss/void and Regen/Dances/Undaunted still run.",
+          "exe_va": "0x4395b6",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1030",
+          "reach": "4 vanilla uses of 259 (1 Passive, 3 EnemyAttacks)",
+          "fix_hint": "Execute the 0.3x physical attack against actor and cancel actor's turn (skipping States 10..24) only if it deals HP damage."
+        },
+        {
+          "sub_id": "M00.02c",
+          "severity": "S1",
+          "summary": "Stage-3 Petrified enemies are not defeated/removed (PhaseNo=15 0x4396d0) and stay Alive/targetable; Battle.Over() counts Enemy Dolls.",
+          "exe_va": "0x43b554",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:535",
+          "reach": "All battles inflicting Stage-3 Petrify on enemies or featuring Enemy Dolls",
+          "fix_hint": "Set Alive=false and run enemy cleanup on Stage-3 Petrify; exclude Kind.Doll from Battle.Over() enemy check."
+        }
+      ]
+    },
+    {
+      "id": "M00.03",
+      "module": "M00",
+      "title": "Inner Turn-Start State Machine",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.03a",
+          "severity": "S0",
+          "summary": "Systematic Turn-Start state ordering violations: State 3 (446) and States 12..15 (319/357/350/448) are moved into BeforeAction after CC/Regen/Dances/Poison/Undaunted; Heretic Samsara (291, Post-Action) runs at Turn-Start; State 22 (355 Undaunted) still runs after softLost (259/283/203).",
+          "exe_va": "0x43670c",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:895",
+          "reach": "All battles with 446, 319, 357, 350, 448, 291, 259, 283, 203, or 355",
+          "fix_hint": "Run States 0..24 in exact binary order, move 291 to Post-Action, and skip States 12..24 when 259/283/203 cancel the turn."
+        },
+        {
+          "sub_id": "M00.03b",
+          "severity": "S1",
+          "summary": "States 9 (259) and 10 (283) are interleaved inside a single OpponentsArray loop and include Dolls instead of running all oppPlusSummons for 259 then 283.",
+          "exe_va": "0x436d89",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1028",
+          "reach": "Battles where opponents carry 259 and/or 283",
+          "fix_hint": "Split LostTurnSoft into sequential State 9 (259) and State 10 (283) passes over oppPlusSummons (excluding Dolls)."
+        },
+        {
+          "sub_id": "M00.03c",
+          "severity": "S1",
+          "summary": "State 1 (RollAilmentRecovery) omits the IsAsleep() && vtable+0x8c sleep-decay immediate removal check.",
+          "exe_va": "0x48d1d0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:785",
+          "reach": "Sleeping units carrying sleep-decaying statuses",
+          "fix_hint": "Immediately remove statuses whose vtable+0x8c sleep-decay flag is true when actor has Sleep (116)."
+        },
+        {
+          "sub_id": "M00.03d",
+          "severity": "S2",
+          "summary": "Minor state divergences: State 2 (345) omits break on first proc and scans non-candidates (X16 verified faithful in both vanilla and patched modes); State 13 (357) debuffs non-candidates; States 18..20 tick 199->339->200->204 instead of 200->204->199/339; State 22 (355) calls Wait(u) instead of keeping frozen gauge.",
+          "exe_va": "0x436d27",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:857",
+          "reach": "Narrow multi-unit proc / dance ordering edge cases",
+          "fix_hint": "Add break & candidate filter to 345, filter candidates in 357, reorder dance ticks to 200->204->199/339, and preserve frozen gauge on 355 revive."
+        }
+      ]
+    },
+    {
+      "id": "M00.04",
+      "module": "M00",
+      "title": "Action Selection, Legality Gate & _CreatePattern Dispatch",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.04a",
+          "severity": "S0",
+          "summary": "Skill pattern IDs (Trailer[4], 14 distinct values) and EnemyAttack+0x90 (8 distinct values, including 55 uses of pattern 6 E1630) are not exported to C#, so Battle.Perform() has no CActionPattern* dispatch (Joint Attack 0x41c970 is MODEL-LIMIT).",
+          "exe_va": "0x41e0a6",
+          "code_ref": "tools/engine_export.py:43",
+          "reach": "All skills and enemy attacks with non-default action patterns (e.g. 55 uses of E1630)",
+          "fix_hint": "Export Skill.pattern and EnemyAttack.pattern in tools/engine_export.py, load in Data.cs/Loader.cs, and dispatch pattern behavior in Battle.Perform()."
+        },
+        {
+          "sub_id": "M00.04b",
+          "severity": "S0",
+          "summary": "No centralized Battle.IsLegalAction() gate in Battle.Turn() (NextAction checks only Silence 117 and Freeze 114), and Policy.WeaponAllows() omits equipment condition codes 17 (Head) and 18 (Body).",
+          "exe_va": "0x4f4923",
+          "code_ref": "engine_cs/src/DtEngine/Policy.cs:216",
+          "reach": "Any policy/AI action submission bypassing Policy.Options; codes 17/18 have 0 vanilla skill uses (S2 sub-part)",
+          "fix_hint": "Add centralized Battle.IsLegalAction() assertion in Battle.Turn() and support codes 17 and 18 in WeaponAllows()."
+        },
+        {
+          "sub_id": "M00.04c",
+          "severity": "S1",
+          "summary": "Battle.NumberOfHits() clamps Math.Max(1, hits), breaking Effect 94 (0~4 Hits) by eliminating the 10% 0-hit outcome.",
+          "exe_va": "0x4180e3",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1716",
+          "reach": "18 vanilla skills/attacks using Effect 94 (Danger Shoot + 17 EnemyAttacks)",
+          "fix_hint": "Return hits unclamped when any multi-hit effect was evaluated."
+        }
+      ]
+    },
+    {
+      "id": "M00.05",
+      "module": "M00",
+      "title": "Target Resolution & Cover/Provoke/Redirect Hand-off",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.05a",
+          "severity": "S1",
+          "summary": "Auto-Guard (255) is rolled on original targets in Battle.Perform() before Resolve() executes Cover (171) redirect, denying Auto-Guard to covering allies.",
+          "exe_va": "0x420c48",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1330",
+          "reach": "All battles where a Cover (171) ally carries Auto-Guard (255)",
+          "fix_hint": "Roll Auto-Guard (255) on the post-Cover target (once per unique final target per action)."
+        },
+        {
+          "sub_id": "M00.05b",
+          "severity": "S1",
+          "summary": "Multi-hit loop aborts when target dies instead of re-selecting a living enemy via _SelectTarget (0x420560) on TargetType 0..6.",
+          "exe_va": "0x420ca7",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1354",
+          "reach": "All single-target multi-hit physical skills and enemy attacks that kill mid-combo",
+          "fix_hint": "Re-select a living opponent via PickOpponent for remaining hits when target dies on single-target multi-hit actions."
+        },
+        {
+          "sub_id": "M00.05c",
+          "severity": "S1",
+          "summary": "Redirect() checks Alive instead of CanFight (allowing Stage-3 Petrified allies to cover), and Counter Whip (303) does not stop remaining hits if it inflicts Sleep (116).",
+          "exe_va": "0x4203fd",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1756",
+          "reach": "Battles with Stage-3 Petrified coverers or Counter Whip (303) with Sleep weapon enchants",
+          "fix_hint": "Filter Cover candidates by CanFight(u) and abort remaining hits if Counter Whip puts actor to Sleep."
+        }
+      ]
+    },
+    {
+      "id": "M00.06",
+      "module": "M00",
+      "title": "Hit -> Crit -> Damage -> Barrier -> TakeDamage -> Interrupt Hand-off",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.06a",
+          "severity": "S0",
+          "summary": "Material Guard (179 / 0xb3) and Magic Barrier (183 / 0xb7) are NEVER consumed on hit in Battle.cs, whereas CActionPatternBase::_Task (0x422b58..0x422b6e) pops 179 on every non-voided physical hit and 183 on every non-voided magical hit.",
+          "exe_va": "0x422b6e",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2126",
+          "reach": "10 uses of 179 (Material Guard) and 2 player skills for 183 (Spell Guard, Magic Barrier) — buffs wrongly last 3..7 turns across unlimited hits",
+          "fix_hint": "Pop target.St[179] after a non-voided physical hit and target.St[183] after a non-voided magical hit."
+        },
+        {
+          "sub_id": "M00.06b",
+          "severity": "S1",
+          "summary": "Missing 0x43e970 command-merge summation drops active status buffs 26 (Berserk/Defender/HRHR) on 58 Techniques and 31 (Last Stand) on Moonlight Purgatory & Divine Cannon.",
+          "exe_va": "0x43e9d8",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2098",
+          "reach": "61 player Techniques + 7 EnemyAttacks (26); Moonlight Purgatory & Divine Cannon + Last Stand (31)",
+          "fix_hint": "Sum action.Val(e) + unit.Value(e) instead of First()/AddFirst() for merged command IDs (26, 31, 27, 173)."
+        },
+        {
+          "sub_id": "M00.06c",
+          "severity": "S1",
+          "summary": "Effect 87 (Only Damages Living) fails to void AfterHit/Murder 258, is skipped on special damage, and misses party member Ist (race=6) because Character.Race is never loaded.",
+          "exe_va": "0x421b58",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2123",
+          "reach": "13 vanilla EnemyAttacks with Effect 87 and all battles with Ist",
+          "fix_hint": "Export/load Character.Race, check Effect 87 after SpecialDamage, and mark hit voided to skip AfterHit and Murder 258."
+        },
+        {
+          "sub_id": "M00.06d",
+          "severity": "S1",
+          "summary": "Voided() applies physical 182/250 to 19 short/mid-range enemy Magic attacks, Endure 254 clamps damage before Interrupt, and duplicate zone slots square f.Element.",
+          "exe_va": "0x423233",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1839",
+          "reach": "19 enemy Magic attacks (182/250), Endure procs during chants/performances, and St02_0070 battle 41 (9,9)",
+          "fix_hint": "Gate 182/250 on action.Physical, pass pre-Endure damage to Interrupt(), and deduplicate ZoneFactor() slot checks."
+        }
+      ]
+    },
+    {
+      "id": "M00.07",
+      "module": "M00",
+      "title": "AfterHit Reactive Chain",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.07a",
+          "severity": "S1",
+          "summary": "Reprisal (249) omits target.Front and !inCounter guards, allowing back-row units and counter-chains to trigger 249.",
+          "exe_va": "0x4246b0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2897",
+          "reach": "4 vanilla uses of 249 (1 Passive, 3 EnemyAttacks)",
+          "fix_hint": "Add && !inCounter && target.Front to the Reprisal (249) trigger condition."
+        },
+        {
+          "sub_id": "M00.07b",
+          "severity": "S1",
+          "summary": "Arcane Shield (447) omits the !action.IsSpecial ([ebx+0x78] == 0) guard in both vanilla (15%) and X13 (25%) modes.",
+          "exe_va": "0x424728",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2579",
+          "reach": "Any special/fixed damage hit (8, 12, 134, 138, 140..142, 434, 435) on a unit with Arcane Shield (447)",
+          "fix_hint": "Add && (action == null || !action.IsSpecial) to the Arcane Shield (447) trigger."
+        },
+        {
+          "sub_id": "M00.07c",
+          "severity": "S1",
+          "summary": "Devil's Whisper (320) runs after TakeDamage instead of in _AfterHit1 before Endure (254), bypassing Endure.",
+          "exe_va": "0x423688",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2868",
+          "reach": "2 vanilla EnemyAttacks with 320 against targets with Endure (254)",
+          "fix_hint": "Apply Devil's Whisper lethal bonus damage before Endure (254) clamping in TakeDamage."
+        },
+        {
+          "sub_id": "M00.07d",
+          "severity": "S1",
+          "summary": "Slow Target / Dark Aura (293) is wrongly gated on action.Reach == T.SHORT; binary has no range check.",
+          "exe_va": "0x424319",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2889",
+          "reach": "2 vanilla EnemyAttacks with 293 when hit by MID/LONG attacks",
+          "fix_hint": "Remove action.Reach == T.SHORT from the 293 check."
+        },
+        {
+          "sub_id": "M00.07e",
+          "severity": "S1",
+          "summary": "Support Shot / Avenger (260) scans allies in fixed order instead of shuffling and fires even when the primary target died.",
+          "exe_va": "0x4253ae",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1418",
+          "reach": "All party/enemy comps with Support Shot / Avenger (260)",
+          "fix_hint": "Require primary target to remain alive and shuffle eligible allies before checking 260."
+        }
+      ]
+    },
+    {
+      "id": "M00.08",
+      "module": "M00",
+      "title": "Post-Action Resolution, Status Add (0x4f9930), Death/Revive/Fall, Extra-Turn Rolls, Doll Life Tick & _SetTime",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.08a",
+          "severity": "S0",
+          "summary": "Heretic Samsara (291) executes at Turn-Start instead of Post-Action (0x438e50) and re-checks live < 50% HP instead of latching cmd291.val on damage.",
+          "exe_va": "0x438e53",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:850",
+          "reach": "Boss battles with Heretic Samsara (291)",
+          "fix_hint": "Latch SamsaraState when damaged below 50% HP and execute the resistance re-roll in EndOfTurn()."
+        },
+        {
+          "sub_id": "M00.08b",
+          "severity": "S1",
+          "summary": "Extra-turn rolls (288/289/354) omit !IsAsleep() and head-unit guards, cancel remaining extra turns on Chant Start (unit.Chant != null), and waste a Wait() RNG draw.",
+          "exe_va": "0x43903b",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1110",
+          "reach": "All units/enemies with Double/Triple Action (288/289/354)",
+          "fix_hint": "Compute Wait() only when no extra turn is granted, add !IsAsleep() and head-unit checks, and remove unit.Chant == null gate."
+        },
+        {
+          "sub_id": "M00.08c",
+          "severity": "S1",
+          "summary": "Unit.SetStatus() omits binary AddStatus IsDead / Stage-3 Petrified guard (vtable+0xc8 at 0x4f9950).",
+          "exe_va": "0x4f9950",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:212",
+          "reach": "Any AoE buff/debuff/ailment touching dead or Stage-3 Petrified units",
+          "fix_hint": "Guard SetStatus (or status application entry points) against dead or Stage-3 Petrified targets."
+        },
+        {
+          "sub_id": "M00.08d",
+          "severity": "S1",
+          "summary": "Enemy Self-Destruct (12) and Escape (11) set Alive=false directly instead of running Fall() cleanup, leaking owned Dolls and active songs/dances/geass.",
+          "exe_va": "0x43d2c0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1401",
+          "reach": "Enemies using Self-Destruct (12) or Escape (11) with active Dolls or performances",
+          "fix_hint": "Call shared Fall/cleanup logic (EndParts, remove owned Dolls, remove caster-sourced SongKind statuses)."
+        }
+      ]
+    },
+    {
+      "id": "M00.09",
+      "module": "M00",
+      "title": "Battle End, After-Battle Recovery (0x43d6a7) & Rewards (EXP/Gold/Drops) Hand-off",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M00.09a",
+          "severity": "S1",
+          "summary": "Scenario.RecoverAfterBattle() filters by u.Alive instead of IsAliveAndNotPetrified (vtable+0xe8), letting Stage-3 Petrified members contribute 272/273/353 and receive HP/TP recovery in multi-battle chains.",
+          "exe_va": "0x43d6c2",
+          "code_ref": "engine_cs/src/DtEngine/Scenario.cs:1085",
+          "reach": "Multi-battle chains where a party member finishes a battle Stage-3 Petrified",
+          "fix_hint": "Filter living in RecoverAfterBattle() by u.Alive && !(u.St[120] != null && u.St[120].Stage >= 3) && u.Kind == Kind.Member."
+        }
+      ]
+    },
+    {
+      "id": "M01.01",
+      "module": "M01",
+      "title": "Battle Start Gauges, Random Order Jitter, Preemptive/Ambush (321/268/267), First Grid (300), and _SortTime",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M01.01a",
+          "severity": "S1",
+          "summary": "noTurnJitterFlag (0x3C bit 1, 105 enemies) does not suppress the 20% random order scramble.",
+          "exe_va": "0x449316",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:647",
+          "reach": "105 enemies in vanilla pck_usage (including bosses)",
+          "fix_hint": "Add && !flagged to the RANDOM_ORDER check in Battle.Start()."
+        },
+        {
+          "sub_id": "M01.01b",
+          "severity": "S1",
+          "summary": "_SortTime 1/1000 gauge quantization (trunc0 via 0x61e650) and headGauge normalization are absent, and Doll TieKey is negative (-Position) instead of 962..1 (above Summon 930 / Guest 929).",
+          "exe_va": "0x440b69",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:601",
+          "reach": "All battles (ATB tiebreak and Doll ordering)",
+          "fix_hint": "Quantize gauge sort/normalization to 1/1000 ticks and assign Dolls descending tiebreak keys starting from 962."
+        },
+        {
+          "sub_id": "M01.01c",
+          "severity": "S1",
+          "summary": "First Grid (300) scans all Units instead of excluding dead/petrified units and Dolls/Summons/Guests.",
+          "exe_va": "0x449375",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:652",
+          "reach": "Multi-battle chains with dead/petrified members or active Summons/Guests",
+          "fix_hint": "Filter by CanFight(u) && !NotACandidate(u) in the 300 loop."
+        },
+        {
+          "sub_id": "M01.01d",
+          "severity": "S2",
+          "summary": "Ambush (321/268/267) scans non-candidates/petrified units and omits the always-passing Rand(100) draw when certain (321) is true.",
+          "exe_va": "0x44a45e",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:660",
+          "reach": "Battles with Ambush/Preemptive passives alongside Dolls/Summons/petrified members",
+          "fix_hint": "Filter FindCommandOnSide by CanFight && !NotACandidate and preserve the Rand(100) draw."
+        }
+      ]
+    },
+    {
+      "id": "M01.02",
+      "module": "M01",
+      "title": "Outer CBattleBase::Update (0x4397e0, States 0..15), Win/Loss/Escape Checks, Doll/Summon/Guest Skip, and Summon/Guest Samba 199 Tick",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M01.02a",
+          "severity": "S0",
+          "summary": "Dolls, Summons, and Guests execute the full inner Turn-Start States 0..24 instead of skipping (Dolls) or running only Samba 199 + vtable+0xdc (Summons/Guests).",
+          "exe_va": "0x43660d",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:838",
+          "reach": "All battles with Dolls, Summons, or Guests",
+          "fix_hint": "Skip inner turn-start for Kind.Doll and run only Samba 199 + DecrementTimedStatuses for Kind.Summon/Kind.Npc."
+        },
+        {
+          "sub_id": "M01.02b",
+          "severity": "S0",
+          "summary": "Outer State 12 (0x439584) Warning Shot (259) 0.3x physical attack execution is absent; turn is unconditionally cancelled and Regen/Dances/Undaunted still execute.",
+          "exe_va": "0x4395b6",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1030",
+          "reach": "4 vanilla uses of 259 (1 Passive, 3 EnemyAttacks)",
+          "fix_hint": "Execute the 0.3x Warning Shot attack and cancel the turn (skipping States 10..24) only on landed HP damage."
+        },
+        {
+          "sub_id": "M01.02c",
+          "severity": "S1",
+          "summary": "Stage-3 Petrified enemies stay Alive and targetable (missing PhaseNo=15 removal) and Battle.Over() counts Enemy Dolls.",
+          "exe_va": "0x43b554",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:535",
+          "reach": "Battles petrifying enemies to Stage 3 or with Enemy Dolls",
+          "fix_hint": "Defeat/remove Stage-3 Petrified enemies in CompletePetrify() and exclude Kind.Doll in Over()."
+        }
+      ]
+    },
+    {
+      "id": "M01.03",
+      "module": "M01",
+      "title": "Inner Turn-Start 25-State Machine (0x439820, States 0..24)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M01.03a",
+          "severity": "S0",
+          "summary": "Turn-Start state ordering diverges from States 0..24: State 3 (446) and States 12..15 (319/357/350/448) run in BeforeAction after CC/Regen/Dances/Poison/Undaunted; Heretic Samsara (291) runs at Turn-Start instead of Post-Action; State 22 (355) still runs after softLost (259/283/203).",
+          "exe_va": "0x43670c",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:895",
+          "reach": "All battles with 446, 319, 357, 350, 448, 291, 259, 283, 203, or 355",
+          "fix_hint": "Reorder Turn-Start execution to match States 0..24, move 291 to EndOfTurn(), and skip States 12..24 on softLost."
+        },
+        {
+          "sub_id": "M01.03b",
+          "severity": "S1",
+          "summary": "State 9 (259) and State 10 (283) are interleaved in one OpponentsArray loop (including Dolls) instead of sequential passes over oppPlusSummons.",
+          "exe_va": "0x436d89",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1028",
+          "reach": "Battles with opponent 259 and/or 283",
+          "fix_hint": "Evaluate all 259 oppPlusSummons checks first, then all 283 oppPlusSummons checks."
+        },
+        {
+          "sub_id": "M01.03c",
+          "severity": "S1",
+          "summary": "State 1 (RollAilmentRecovery) omits binary IsAsleep() && vtable+0x8c immediate removal check.",
+          "exe_va": "0x48d1d0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:785",
+          "reach": "Sleeping units carrying sleep-decaying ailments",
+          "fix_hint": "Remove sleep-decaying ailments when actor has Sleep (116)."
+        },
+        {
+          "sub_id": "M01.03d",
+          "severity": "S2",
+          "summary": "Minor state divergences: State 2 (345) missing break & candidate filter (X16 verified faithful in both vanilla and patched modes); State 13 (357) debuffs non-candidates; dance order 199->339->200->204 vs 200->204->199/339; State 22 (355) calls Wait(u) instead of keeping frozen gauge.",
+          "exe_va": "0x436d27",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:857",
+          "reach": "Narrow multi-proc and dance-order edge cases",
+          "fix_hint": "Break on first 345 proc, filter candidates in 345/357, reorder dance ticks, and preserve frozen gauge on 355."
+        }
+      ]
+    },
+    {
+      "id": "M01.04",
+      "module": "M01",
+      "title": "Post-Action Resolution, Extra Turns (288/289/354), Doll/Summon Life Expiry, and Heretic Samsara (291)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M01.04a",
+          "severity": "S1",
+          "summary": "Heretic Samsara (291) runs at Turn-Start instead of Post-Action and re-checks live < 50% HP instead of using latched cmd291.val.",
+          "exe_va": "0x438e53",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:850",
+          "reach": "Boss battles with Heretic Samsara (291)",
+          "fix_hint": "Latch Samsara activation on <50% HP damage and run the resistance re-roll in EndOfTurn()."
+        },
+        {
+          "sub_id": "M01.04b",
+          "severity": "S1",
+          "summary": "Extra-turn rolls (288/289/354) omit !IsAsleep() and head-unit (actor == units[0]) guards, and wrongly block extra turns when unit.Chant != null.",
+          "exe_va": "0x43903b",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1112",
+          "reach": "All units/enemies with 288/289/354 (especially Triple Action + chant or counter Sleep/Pushback)",
+          "fix_hint": "Guard extra-turn rolls on !IsAsleep() and actor == head unit, and remove the unit.Chant == null restriction."
+        },
+        {
+          "sub_id": "M01.04c",
+          "severity": "S1",
+          "summary": "EndOfTurn() calls Wait(unit, last) (consuming a speed jitter RNG draw) before checking extra turns, then overwrites NextTime.",
+          "exe_va": "0x438ce4",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1109",
+          "reach": "Every extra turn proc (RNG desync)",
+          "fix_hint": "Move Wait() computation into the else branch when no extra turn is granted."
+        }
+      ]
+    },
+    {
+      "id": "M01.05",
+      "module": "M01",
+      "title": "ATB _SetTime (0x43e5c0 -> 0x4499d0..0x44a3c5)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M01.05a",
+          "severity": "S2",
+          "summary": "SPEED_BUFFS (168, 217, 221) uses SumStatus instead of SumValue (status + passive).",
+          "exe_va": "0x449f20",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:569",
+          "reach": "0 vanilla passives grant 168/217/221",
+          "fix_hint": "Change SumStatus(unit, SPEED_BUFFS) to SumValue(unit, SPEED_BUFFS)."
+        },
+        {
+          "sub_id": "M01.05b",
+          "severity": "S2",
+          "summary": "Enchant 298 omits the always-passing Rand(10) < 10 RNG draw, and Escape (1.20x) is hardcoded false (out-of-scope battle escape).",
+          "exe_va": "0x44a370",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:585",
+          "reach": "RNG draw parity only when chanting with Enchant 298",
+          "fix_hint": "Optionally consume Rng.RandRange(10) < 10 before applying Enchant 298 +0.25."
+        }
+      ]
+    },
+    {
+      "id": "M01.06",
+      "module": "M01",
+      "title": "Player Weapon / Unarmed / Action / Chant Speed Slots & Enemy Spell Speed",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M01.07",
+      "module": "M01",
+      "title": "Chant & Performance Interruption (0x44cf90..0x44d266 Physical, 0x44f12a..0x44f14a Magic Crit-Only, 0x47ea83..0x47eac0 Cancellation)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M01.07a",
+          "severity": "S1",
+          "summary": "Endure (254) clamps damage to target.Hp - 1 BEFORE Interrupt() computes the interruption ratio (and skips both Sleep wake and Interrupt when Hp == 1 so clamped amount == 0).",
+          "exe_va": "0x44d03a",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2542",
+          "reach": "Any chanting/performing/sleeping unit saved by Endure (254)",
+          "fix_hint": "Pass pre-Endure rawAmount to Interrupt() and gate Sleep wake / Interrupt on rawAmount > 0 && target.Alive."
+        },
+        {
+          "sub_id": "M01.07b",
+          "severity": "S2",
+          "summary": "target.Value(264) does not sum status + passive 264, and non-crit Magic draws 1 wasted Rng.Random() (X14 InterruptProduct verified faithful in both vanilla and Balance modes).",
+          "exe_va": "0x44f13f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2596",
+          "reach": "3 uses of 264 (1 Passive, 2 EnemyAttacks) + non-crit magic hits on chanters",
+          "fix_hint": "Sum all 264 sources on target and return early before Rng.Random() when chance <= 0."
+        }
+      ]
+    },
+    {
+      "id": "M02.01",
+      "module": "M02",
+      "title": "Base Physical ATK/DEF, Stat Substitution, Swing, Weapon/Skill Rank, Status/Enchant Modifiers & Ignore-DEF",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M02.01a",
+          "severity": "S1",
+          "summary": "First(action, unit, 26) discards active status 26 (Berserk, Defender, High Risk High Return) whenever a Technique carries Effect 26.",
+          "exe_va": "0x44a9e1",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2098",
+          "reach": "58 player Techniques with Effect 26 combined with Berserk/Defender/HRHR",
+          "fix_hint": "Replace First(action, unit, 26) with action.Val(26, 0.0) + unit.Value(26, 0.0)."
+        },
+        {
+          "sub_id": "M02.01b",
+          "severity": "S1",
+          "summary": "Player Dolls (BuildDoll) hardcode Swing = 0.0 instead of inheriting owner's main-hand weapon swing.",
+          "exe_va": "0x44b2f9",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:930",
+          "reach": "All physical attacks by player Puppets/Dolls",
+          "fix_hint": "Pass owner.Swing to BuildDoll for player-side Dolls."
+        },
+        {
+          "sub_id": "M02.01c",
+          "severity": "S2",
+          "summary": "Stat-substitution priority (47 RES vs 49 INT) is inverted (0 vanilla skills carry both), and SwingOf() uses PyMath.Round instead of __ftoui3 trunc0 (0 vanilla weapons/enemies differ).",
+          "exe_va": "0x44b26f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2110",
+          "reach": "0 vanilla skills/weapons affected",
+          "fix_hint": "Check 47 before 49 so 49 wins, and use (int)(float)(100.0f * (float)swing) in SwingOf()."
+        }
+      ]
+    },
+    {
+      "id": "M02.02",
+      "module": "M02",
+      "title": "Range & Row Factor, Damage Cuts, Defending Multiplier & Min/Crit-Min Damage Roll",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M02.02a",
+          "severity": "S1",
+          "summary": "Auto-Guard (255) is rolled on original targets before Cover (171) redirect, so covering allies never get their Auto-Guard roll.",
+          "exe_va": "0x44c56e",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1330",
+          "reach": "Any battle where a Cover (171) tank has Auto-Guard (255)",
+          "fix_hint": "Evaluate Auto-Guard (255) on the post-Cover defender inside Resolve() (cached per unique defender per action)."
+        },
+        {
+          "sub_id": "M02.02b",
+          "severity": "S2",
+          "summary": "Doll range override (228->0, 229->1, 231->2) is not explicitly enforced in Action.Reach.",
+          "exe_va": "0x44a7d5",
+          "code_ref": "engine_cs/src/DtEngine/Action.cs:352",
+          "reach": "0 vanilla doll actions diverge (existing data ranges already match 0/1/2)",
+          "fix_hint": "Override Reach to 0/1/2 when action carries Doll effect 228/229/231."
+        }
+      ]
+    },
+    {
+      "id": "M02.03",
+      "module": "M02",
+      "title": "Elemental/Physical Resistance, Race Slayer/Guard, Effects 87/88, Element Boost & Zone Factor",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M02.03a",
+          "severity": "S1",
+          "summary": "ZoneFactor() multiplies per slot instead of logical OR across slots, squaring Wind element boost on St02_0070 fixed battle 41 (slots (9, 9)).",
+          "exe_va": "0x44fd70",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2526",
+          "reach": "Real vanilla fixed battle St02_0070 battle 41 (slots (9, 9))",
+          "fix_hint": "Check Array.IndexOf(ZoneInfo.Slots, code) >= 0 once per zone effect type."
+        },
+        {
+          "sub_id": "M02.03b",
+          "severity": "S1",
+          "summary": "Effect 87 (Only Damages Living) misses party member Ist (id=11, race=6) because Character.Race is never loaded (Race=-1), fails to void AfterHit/Murder 258, and is skipped on special damage.",
+          "exe_va": "0x44bd05",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:724",
+          "reach": "13 vanilla EnemyAttacks with Effect 87 and all battles with Ist",
+          "fix_hint": "Export/load Character.Race into Unit.Race, evaluate Effect 87 after SpecialDamage, and mark hit voided to skip AfterHit and Murder 258."
+        },
+        {
+          "sub_id": "M02.03c",
+          "severity": "S1",
+          "summary": "Feline (196) and Sea Creature (209) slayer enchants stack instead of using binary else-if on overlapping Enemy IDs 215, 216, 217.",
+          "exe_va": "0x44c37a",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2489",
+          "reach": "Vanilla enemies 215, 216, 217 when party equips 196 and/or 209",
+          "fix_hint": "Break after the first matching RACE_SPECIAL entry (196 takes precedence over 209)."
+        },
+        {
+          "sub_id": "M02.03d",
+          "severity": "S1",
+          "summary": "Player Dolls do not inherit owner enchants for RaceSlayer / Both-Sides Element (251..255).",
+          "exe_va": "0x44c367",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:930",
+          "reach": "Player Dolls attacking with owners wearing RaceSlayer or Element enchants",
+          "fix_hint": "Copy owner.Enchants into player-side Dolls in BuildDoll()."
+        }
+      ]
+    },
+    {
+      "id": "M02.04",
+      "module": "M02",
+      "title": "Additive other Modifiers & Float-to-Integer Truncation",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M02.04a",
+          "severity": "S1",
+          "summary": "Power Charge (191) is not suppressed during counter-attacks (binary checks ctx.isCounter_0x04 == 0 at 0x44c738).",
+          "exe_va": "0x44c738",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2125",
+          "reach": "Any counter-attack performed while holding Power Charge (191)",
+          "fix_hint": "Gate unit.StatusValue(191) on !inCounter."
+        },
+        {
+          "sub_id": "M02.04b",
+          "severity": "S1",
+          "summary": "Material Guard (179) is never consumed on physical hit (0x422b58..0x422b6e), and 179/308 check Alive instead of CanFight (Stage-3 Petrified).",
+          "exe_va": "0x422b62",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2126",
+          "reach": "10 vanilla uses of Material Guard (179) and Imperial Guard (308)",
+          "fix_hint": "Pop target.St[179] after a non-voided physical hit and use CanFight for 179 source and 308 allies."
+        }
+      ]
+    },
+    {
+      "id": "M02.05",
+      "module": "M02",
+      "title": "Post-Truncation Modifiers, Demon Wall 356, Positive Trance 440, SpecialDamage & Cap 296",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M02.05a",
+          "severity": "S1",
+          "summary": "Warning Shot (259) 3/10 damage scaling (0x44cae1..0x44cb11) before min-damage roll is absent.",
+          "exe_va": "0x44cae1",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2018",
+          "reach": "4 vanilla uses of Warning Shot (259)",
+          "fix_hint": "Add warningShot flag to Action and apply dmg = (dmg * 3) / 10 before the <= 0 min-damage roll."
+        },
+        {
+          "sub_id": "M02.05b",
+          "severity": "S1",
+          "summary": "Effect 140 (Halve HP) defaults HalveEnemies=true even on fixed/boss battles instead of checking enemy +0xa5 flag; 141 lacks the +0xa5 gate (S2) and 134 (Gold/20) is unimplemented (S2).",
+          "exe_va": "0x44f9c0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2462",
+          "reach": "1 player Technique (140) used against boss/fixed encounters",
+          "fix_hint": "Gate 140 and 141 on target.Side == Unit.PARTY || (!Fixed && !Options.Boss) (or exported +0xa5 flag) and add 134."
+        },
+        {
+          "sub_id": "M02.05c",
+          "severity": "S1",
+          "summary": "Effect 86 (Magic Users: Damage x2) runs AFTER _CalcSpecialDamage instead of BEFORE, doubling special damage, while Effect 87 is skipped on special damage.",
+          "exe_va": "0x44cda2",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2023",
+          "reach": "Enemy attacks combining special damage with 86 or 87 against Magic Users/Ist",
+          "fix_hint": "Move Effect 86 inside if (!special) and run Effect 87 after SpecialDamage."
+        },
+        {
+          "sub_id": "M02.05d",
+          "severity": "S2",
+          "summary": "Demon Wall (356) does not exclude Stage-3 Petrified allies, Positive Trance (440) clamps divisor at 1.0 (X17 threshold verified faithful in both vanilla and Balance modes), and Cap 296 checks only action.TryVal(296).",
+          "exe_va": "0x44cbf0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2045",
+          "reach": "Narrow edge cases (all vanilla 440 values are 1..10; all 34 vanilla 296 uses are on skills/attacks)",
+          "fix_hint": "Use CanFight(u) in DemonWallOf() and check merged actor+action commands for Cap 296."
+        }
+      ]
+    },
+    {
+      "id": "M02.06",
+      "module": "M02",
+      "title": "Physical Critical Rate & Multiplier, Crit Interrupt & Crit-Triggered Murder 258",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M02.06a",
+          "severity": "S1",
+          "summary": "AddFirst(..., 31) discards Last Stand (unit.St[31]) when using Moonlight Purgatory (Technique 13) or Divine Cannon (Technique 50).",
+          "exe_va": "0x44a9e1",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1970",
+          "reach": "Last Stand + Moonlight Purgatory / Divine Cannon in vanilla builds",
+          "fix_hint": "Sum action + unit values for CRIT_TERMS (31, 174, 211) matching 0x43e970 command merge."
+        },
+        {
+          "sub_id": "M02.06b",
+          "severity": "S1",
+          "summary": "Crit-triggered Murder (258) fires on voided Effect 87 hits and is skipped on Effect 2 TP-damage physical crits.",
+          "exe_va": "0x44d279",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2032",
+          "reach": "Effect 87 attacks with Murder 258, or Effect 2 physical attacks with Murder 258",
+          "fix_hint": "Return voided early on Effect 87 before Murder 258, and allow Murder 258 after Effect 2 physical crits."
+        },
+        {
+          "sub_id": "M02.06c",
+          "severity": "S1",
+          "summary": "Physical Crit/Chant Interrupt uses post-Endure clamped damage instead of pre-Endure damage.",
+          "exe_va": "0x44d238",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2542",
+          "reach": "Chanting/performing units surviving lethal hits via Endure (254)",
+          "fix_hint": "Pass pre-Endure damage into Interrupt() (see M01.07a)."
+        },
+        {
+          "sub_id": "M02.06d",
+          "severity": "S2",
+          "summary": "Effect 110 (Crits on Beasts) requires target.Side == Unit.ENEMIES and omits player Beast Luco (id=19, race=2).",
+          "exe_va": "0x44f4b2",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1982",
+          "reach": "0 vanilla enemy attacks use Effect 110",
+          "fix_hint": "Load Character.Race and remove the target.Side == Unit.ENEMIES restriction on Effect 110."
+        }
+      ]
+    },
+    {
+      "id": "M02.07",
+      "module": "M02",
+      "title": "Multi-Hit Count (SetHitCount, Weight Tables & Rondo Shift)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M02.07a",
+          "severity": "S1",
+          "summary": "Math.Max(1, hits) in NumberOfHits() and T.RANDOM targeting breaks Effect 94 (0~4 Hits), turning the 10% 0-hit roll into 1 hit.",
+          "exe_va": "0x417da9",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1716",
+          "reach": "18 vanilla skills/attacks (Danger Shoot + 17 EnemyAttacks including Daedalus Attack, Heart Corruption, Share Misery)",
+          "fix_hint": "Return hits unclamped when any multi-hit effect matched, and skip target loop when hits <= 0."
+        },
+        {
+          "sub_id": "M02.07b",
+          "severity": "S2",
+          "summary": "Action.MultiHitIndex evaluates at most one effect from {89..92, 94..100} instead of independent additive blocks.",
+          "exe_va": "0x417db0",
+          "code_ref": "engine_cs/src/DtEngine/Action.cs:93",
+          "reach": "0 vanilla skills/attacks combine two distinct IDs from {89..92, 94..100}",
+          "fix_hint": "Evaluate each hit-table effect independently and sum their rolls."
+        }
+      ]
+    },
+    {
+      "id": "M03.01",
+      "module": "M03",
+      "title": "Base Magic Damage Formula",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M03.01a",
+          "severity": "S1",
+          "summary": "ZoneFactor() squares duplicate zone slots on spells (St02_0070 fixed battle 41 has slots (9, 9) Wind).",
+          "exe_va": "0x44fd70",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2526",
+          "reach": "Real vanilla fixed battle St02_0070 battle 41 (slots (9, 9))",
+          "fix_hint": "Use logical OR across ZoneInfo.Slots per zone effect type."
+        },
+        {
+          "sub_id": "M03.01b",
+          "severity": "S2",
+          "summary": "SwingOf() uses PyMath.Round instead of __ftoui3 trunc0 (0 vanilla spells differ), and First(27)/First(173) does not sum action + status (0 vanilla damaging spells carry 27/173).",
+          "exe_va": "0x44dbd3",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2218",
+          "reach": "0 vanilla spells affected",
+          "fix_hint": "Use trunc0 in SwingOf() and sum action + unit values for 27 and 173."
+        }
+      ]
+    },
+    {
+      "id": "M03.02",
+      "module": "M03",
+      "title": "Element Boost, Elemental Resistance Multiplier, and Magic Damage Cuts",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M03.02a",
+          "severity": "S1",
+          "summary": "Magic Barrier / Spell Guard (183 / 0xb7) is NEVER consumed on a magical hit; binary CActionPatternBase::_Task (0x422b58..0x422b6e) removes 183 after every non-voided magical hit.",
+          "exe_va": "0x422b69",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2219",
+          "reach": "Spell Guard (Skill 23) and Magic Barrier (Skill 58) — buffs wrongly persist across unlimited spell hits for 4..7 turns",
+          "fix_hint": "Pop target.St[183] after every non-voided magical hit."
+        }
+      ]
+    },
+    {
+      "id": "M03.03",
+      "module": "M03",
+      "title": "Additive other Modifiers ([ebp+0x44])",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M03.03a",
+          "severity": "S2",
+          "summary": "FullHpBonus (271), LevelBonus (219/220), and Small-Party (267) bonuses in MagicValue() are not gated on target.Side == Unit.ENEMIES (target.isPlayer_0x78 == 0).",
+          "exe_va": "0x44ebe4",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2222",
+          "reach": "0 vanilla damaging player spells target allies",
+          "fix_hint": "Gate FullHpBonus, LevelBonus, and Enchant 267 in MagicValue() on target.Side == Unit.ENEMIES."
+        }
+      ]
+    },
+    {
+      "id": "M03.04",
+      "module": "M03",
+      "title": "Living-Only (87), Magic Critical (301), Demon Wall (356), & Post-Floor Multipliers",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M03.04a",
+          "severity": "S1",
+          "summary": "Living-Only Effect 87 (0x57) misses party member Ist (race=6) because Character.Race is never loaded, fails to void AfterHit, and is skipped on special magic.",
+          "exe_va": "0x44e881",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2186",
+          "reach": "13 vanilla EnemyAttacks with Effect 87 and all battles with Ist",
+          "fix_hint": "Load Character.Race, check Effect 87 after SpecialDamage, and mark hit voided to skip AfterHit."
+        },
+        {
+          "sub_id": "M03.04b",
+          "severity": "S1",
+          "summary": "Effect 86 (Magic Users: Damage x2) runs AFTER _CalcSpecialDamage instead of BEFORE, doubling special magic damage.",
+          "exe_va": "0x44f040",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2023",
+          "reach": "Special magic attacks carrying Effect 86 against Magic Users",
+          "fix_hint": "Move Effect 86 inside if (!special)."
+        },
+        {
+          "sub_id": "M03.04c",
+          "severity": "S2",
+          "summary": "Demon Wall (356) does not exclude Stage-3 Petrified allies (checks u.Alive instead of CanFight).",
+          "exe_va": "0x44ef36",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2045",
+          "reach": "Stage-3 Petrified ally with Demon Wall (356)",
+          "fix_hint": "Use CanFight(u) in DemonWallOf()."
+        }
+      ]
+    },
+    {
+      "id": "M03.05",
+      "module": "M03",
+      "title": "Missed-Spell Grazing, Spell Floor Roll, Damage Cap, & Voided/Nullify Interaction",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M03.05a",
+          "severity": "S1",
+          "summary": "Voided() checks Range Immunity (182) and Parry (250) without requiring action.Physical, wrongly voiding and parrying 19 short/mid-range vanilla enemy Magic attacks.",
+          "exe_va": "0x421b51",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1839",
+          "reach": "19 vanilla enemy Magic attacks with Range=SHORT/MID (Pink Typhoon, Feel'n Woozy, Solvent, etc.)",
+          "fix_hint": "Gate both 182 and 250 checks in Voided() on action.Physical."
+        },
+        {
+          "sub_id": "M03.05b",
+          "severity": "S2",
+          "summary": "Damage Cap 296 checks only action.TryVal(296) instead of merged actor+action commands.",
+          "exe_va": "0x44f0ce",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2025",
+          "reach": "All 34 vanilla uses of 296 are on Skills/EnemyAttacks",
+          "fix_hint": "Query merged actor+action commands for Cap 296."
+        }
+      ]
+    },
+    {
+      "id": "M04.01",
+      "module": "M04",
+      "title": "Physical Attack Hit Rate, Modifiers & Stab Evasion (CBattle::CalcPhysicalAttack)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.01a",
+          "severity": "S1",
+          "summary": "Action.PhysicalAttr falls back to Actor.AttackAttr (Attacks[0].Attr) on Attr == 0 (WEAPON_ATTR) enemy attacks, falsely triggering Stab Evasion (253) on 16 vanilla enemies whose Attacks[0] is Stab.",
+          "exe_va": "0x415710",
+          "code_ref": "engine_cs/src/DtEngine/Action.cs:320",
+          "reach": "16 vanilla enemies (e.g., Odin, Paladin, Royal Guard, Seraph, Titania) vs Maiden passive 253",
+          "fix_hint": "In Action.PhysicalAttr, return a directly for Atk != null without falling back to Actor.AttackAttr when a == T.WEAPON_ATTR."
+        },
+        {
+          "sub_id": "M04.01b",
+          "severity": "S2",
+          "summary": "F.PhysicalHit computes in f64 (double) instead of x86 f32 (0.885f, mulss/divss), causing rare 1-point truncation boundary differences before trunc0.",
+          "exe_va": "0x44aabe..0x44aeab",
+          "code_ref": "engine_cs/src/DtEngine/Formulas.cs:233",
+          "reach": "Rare f32/f64 rounding boundary on physical hit calculation",
+          "fix_hint": "Compute F.PhysicalHit terms in float (f32) matching 0x44aabe..0x44aeab."
+        }
+      ]
+    },
+    {
+      "id": "M04.02",
+      "module": "M04",
+      "title": "Physical Hit Overrides, Age Flags, trunc0_u32 Roll & Furious Strike (348)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.02a",
+          "severity": "S1",
+          "summary": "Battle.Hits invents a free Counter(target, action.Actor) when Physical Stab Evasion (253) causes a miss; binary 0x44b124..0x44b20f only logs the passive activation message and never counters.",
+          "exe_va": "0x44b124..0x44b20f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1895",
+          "reach": "Maiden passive 253 (1 vanilla passive) vs any Stab attack",
+          "fix_hint": "Remove the Counter(target, action.Actor) call from Battle.Hits."
+        },
+        {
+          "sub_id": "M04.02b",
+          "severity": "S2",
+          "summary": "action.Furious short-circuits Battle.Hits before HitChance, skipping age-gate overrides (149/150) and the Rand(100) RNG draw (0x44b0f3).",
+          "exe_va": "0x42105b..0x4210b7",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1890",
+          "reach": "Furious Strike (348) combined with age gates 149/150 or RNG alignment",
+          "fix_hint": "Apply action.Furious as a Cmd 72 (1.0) override inside HitChance rather than short-circuiting Hits."
+        },
+        {
+          "sub_id": "M04.02c",
+          "severity": "S2",
+          "summary": "Battle.HitChance checks Cmd 72 (Physical Accuracy Fixed Modifier) for both physical (roll == 1) and magical (roll == 2) hits, whereas CalcMagicalAttack never queries Cmd 72.",
+          "exe_va": "0x44af34",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2299",
+          "reach": "0 vanilla magic skills carry Cmd 72",
+          "fix_hint": "Gate action.Has(72) on roll == 1."
+        }
+      ]
+    },
+    {
+      "id": "M04.03",
+      "module": "M04",
+      "title": "Magical Attack Hit Rate, Modifiers, Overrides, Graze & Cmd 25 (Magic Hit Determination)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.03a",
+          "severity": "S1",
+          "summary": "Battle.Resolve runs Hits() and Voided() before MagicDamageActual(), reversing binary RNG order (Swing -> Hit -> Crit -> MinDmg becomes Hit -> Crit -> Swing -> MinDmg) and skipping Swing/Crit/MinDmg RNG draws on Voided spells.",
+          "exe_va": "0x44dbc3..0x44ee87",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1758",
+          "reach": "39 Magic skills + 603 Magic EnemyAttacks",
+          "fix_hint": "Compute raw magic damage (including spell swing) before the magic hit roll, and evaluate Voided after CalcMagicalAttack."
+        },
+        {
+          "sub_id": "M04.03b",
+          "severity": "S2",
+          "summary": "Battle.HitChance applies Cmd 72 on roll == 2 (Magic), whereas CalcMagicalAttack (0x44da58) checks only Cmd 55.",
+          "exe_va": "0x44da58",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2299",
+          "reach": "0 vanilla Magic skills carry Cmd 72",
+          "fix_hint": "Restrict action.Has(72) to roll == 1."
+        }
+      ]
+    },
+    {
+      "id": "M04.04",
+      "module": "M04",
+      "title": "Post-Hit Physical Evasion & Negation Hooks: Parry (180) & Counter-Evade (250)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.04a",
+          "severity": "S1",
+          "summary": "Battle.Voided checks Counter-Evade (250) without guarding on !inCounter (0x422559), voiding incoming counterattacks against units with 250.",
+          "exe_va": "0x422559",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1866",
+          "reach": "Eff 250 (Passive: 1, EnemyAttack: 3) vs any counterattacking opponent",
+          "fix_hint": "Add !inCounter to the target.Has(250) guard in Battle.Voided."
+        }
+      ]
+    },
+    {
+      "id": "M04.05",
+      "module": "M04",
+      "title": "Attack Range Determination & Row Distance Revision (SetAttackRange, _GetAttackRangeRevision)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M04.06",
+      "module": "M04",
+      "title": "Master Target Pool Collector, Liveness Predicate & Unit-Type Filtering (0x43e6d0, 0x43b580)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.06a",
+          "severity": "S0",
+          "summary": "Battle.Build and Battle.TargetableArray check only u.Alive (Hp > 0) instead of vtable+0xe8 (!IsDead && !IsFullPetrified), leaving Stage-3 Petrified units inside target pools, aggro weights, AoE/Row/Pierce scopes, Cover candidates, and healing pools.",
+          "exe_va": "0x43e77d",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:438",
+          "reach": "Eff 120 (68 uses) + Eff 121 (7 uses) across all battles with Petrification",
+          "fix_hint": "Replace u.Alive with CanFight(u) (u.Alive && !(u.St[120] != null && u.St[120].Stage >= 3)) in TargetableArray and Build(aliveOnly=true), and invalidate roster cache on Stage-3 entry/cure."
+        }
+      ]
+    },
+    {
+      "id": "M04.07",
+      "module": "M04",
+      "title": "Master Target Scope Resolution (0x43f450, TargetTypes 0..15, Heal AI & Multi-Hit Deduplication 112)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.07a",
+          "severity": "S1",
+          "summary": "Battle.OwnSidePick omits the Ally-Heal AI lowest-HP% branch (0x43f541..0x43f7a5) when chosen == null, picking a uniform random ally for enemy heals (TargetType 5/7).",
+          "exe_va": "0x43f541..0x43f7a5",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1454",
+          "reach": "52 EnemyAttacks with TargetType 5 + 11 EnemyAttacks with TargetType 7",
+          "fix_hint": "Pass isHeal (9, 103, 104, 128, 131, 138) into OwnSidePick and pick lowest HpRatio (ties keeping later unit, <=) when chosen == null."
+        },
+        {
+          "sub_id": "M04.07b",
+          "severity": "S1",
+          "summary": "Battle.Targets uses OwnSideAll(unit.Side) for 105 || 106 on both sides, allowing enemy Nurse (106) to target dead enemies that remain in Units.",
+          "exe_va": "0x43f4c5",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1482",
+          "reach": "18 vanilla EnemyAttacks with Nurse (106)",
+          "fix_hint": "Use OwnSideAll only for unit.Side == Unit.PARTY (dead enemies are removed from battle.units in binary)."
+        },
+        {
+          "sub_id": "M04.07c",
+          "severity": "S1",
+          "summary": "Battle.Perform multi-hit random expansion omits T.RANDOM_ALLY (6), ignores forced action.Target on T.RANDOM, and skips the initial chosenUnit RNG draw.",
+          "exe_va": "0x43f7aa..0x43f892",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1301",
+          "reach": "158 skills/attacks with T.RANDOM plus Roulette Circus (T.RANDOM_ALLY 6)",
+          "fix_hint": "Handle both T.RANDOM and T.RANDOM_ALLY with forced-target collapse (hitCount = 1) and 112 without-replacement logic."
+        },
+        {
+          "sub_id": "M04.07d",
+          "severity": "S2",
+          "summary": "TargetType 11 and 13 fall through to Self; T.ALLY_MOST_TP_LOST (12) can return [null] on empty friends; T.ANYONE (15) ignores forced target; T.EVERYONE (14) ignores targetSide-first ordering.",
+          "exe_va": "0x43f4c5..0x43fc29",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1482",
+          "reach": "Rare/special target types (11, 12, 13 Identify 53, 14, 15)",
+          "fix_hint": "Add explicit cases for 11 and 13, guard empty friends in 12, honor forced target in 15, and order targetSide first in 14."
+        }
+      ]
+    },
+    {
+      "id": "M04.08",
+      "module": "M04",
+      "title": "Player Menu Target Selection & Item Scopes (CBattleMenuSelectTarget 0x456ff0, TargetTypes 0..18)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.08a",
+          "severity": "S0",
+          "summary": "Systemic data-pipeline omission: ItemData w_0x5c (targetType 16 Single / 17 Row / 18 SideAll) and Flags_0x18 (canTargetEnemies bit 4) are dropped in gamedata/data.py, engine_export.py, Loader.cs, and Data.cs, breaking all Row (17) and SideAll (18) battle items.",
+          "exe_va": "0x453454..0x4534be",
+          "code_ref": "gamedata/data.py:281",
+          "reach": "9 Row (17) + 59 SideAll (18) battle-usable items in vanilla ItemData.pck",
+          "fix_hint": "Export target_type (w_0x5c) and flags (Flags_0x18) through gamedata/data.py -> engine_export.py -> Loader.cs -> Data.Item, and expand 16/17/18 targets in Battle.UseItem."
+        },
+        {
+          "sub_id": "M04.08b",
+          "severity": "S1",
+          "summary": "Battle.Perform only expands multi-hit random targets for T.RANDOM (1), omitting T.RANDOM_ALLY (6) and T.ANYONE (15).",
+          "exe_va": "0x4571eb",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1301",
+          "reach": "Skills/attacks with TargetType 6 or 15",
+          "fix_hint": "Expand hitCount random targets for T.RANDOM_ALLY (6) and T.ANYONE (15) alongside T.RANDOM (1)."
+        }
+      ]
+    },
+    {
+      "id": "M04.09",
+      "module": "M04",
+      "title": "Enemy Action Target Selection, Mid-Action Retarget Fallback & Splash (137)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.09a",
+          "severity": "S0",
+          "summary": "Battle.Perform completely lacks mid-action retarget fallback (CActionPatternBase::_SelectTarget 0x420560..0x420893); when a target dies mid-multi-hit or from Counter Whip (303), Battle.cs:1349 breaks and discards remaining hits.",
+          "exe_va": "0x420560..0x420893",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1349",
+          "reach": "Virtually every battle with Double/Triple Attack or multi-hit skills",
+          "fix_hint": "Implement _SelectTarget uniform retarget fallback inside the hit loop for TargetType 0, 1, 5, 6 (and pre-hit-0 Pierce rebuild)."
+        },
+        {
+          "sub_id": "M04.09b",
+          "severity": "S1",
+          "summary": "Cmd 137 (EXTRA_TARGETS) breaks immediately on an opposite-side unit instead of skipping and continuing to append extraCount same-side targets.",
+          "exe_va": "0x42017a..0x4202ff",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1505",
+          "reach": "15 vanilla uses (1 Tech + 14 EnemyAttacks)",
+          "fix_hint": "Replace break with continue and track added < extra instead of step <= extra."
+        },
+        {
+          "sub_id": "M04.09c",
+          "severity": "S1",
+          "summary": "Chanted enemy attack retarget uses aggro-weighted PickOpponent instead of uniform random GlobalRng.Rand(pool.size()) (0x41a973).",
+          "exe_va": "0x41a973",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1482",
+          "reach": "Chanted enemy attacks whose initial target dies before resolution",
+          "fix_hint": "Use uniform random retargeting when re-selecting a dead target for a chanted enemy attack."
+        }
+      ]
+    },
+    {
+      "id": "M04.10",
+      "module": "M04",
+      "title": "Target Redirection: Physical Cover (171) & Absence of 172 / 324 / Magic Cover",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.10a",
+          "severity": "S1",
+          "summary": "Battle.Resolve calls Redirect() per hit instead of once per target slot (0x420be2..0x420eb3), incrementing covered count per hit on multi-hit single-target attacks.",
+          "exe_va": "0x420be2..0x420eb3",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1756",
+          "reach": "Paladin Cover (171) vs any multi-hit single-target enemy attack",
+          "fix_hint": "Run Redirect once per target slot before the hit loop and track a per-slot wasCovered flag."
+        },
+        {
+          "sub_id": "M04.10b",
+          "severity": "S1",
+          "summary": "Battle.Perform defers Cover (171) wear-off rolls until after the entire action instead of rolling after each covered target slot (0x42496e).",
+          "exe_va": "0x42496e",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1354",
+          "reach": "Paladin Cover (171) vs multi-slot T.RANDOM attacks",
+          "fix_hint": "Roll Cover wear-off immediately after each covered target slot completes."
+        }
+      ]
+    },
+    {
+      "id": "M04.11",
+      "module": "M04",
+      "title": "Formation Table (FormationShareTable 0x6517a0), Row Assignment & Enemy Front-Row Wipe Shift",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.11a",
+          "severity": "S1",
+          "summary": "Enemy Front-Row Wipe Shift (CBattleBase::_RemoveUnit 0x43b7a8..0x43b865) is completely missing from Battle.Fall and escape/self-destruct removals, leaving back-row enemies stuck at Front = false permanently.",
+          "exe_va": "0x43b7a8..0x43b865",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2633",
+          "reach": "60 fixed battles + 1,442 random 2-row enemy formations",
+          "fix_hint": "When an enemy dies/leaves, if no living front-row enemies remain, set u.Front = true on all living back-row enemies."
+        }
+      ]
+    },
+    {
+      "id": "M04.12",
+      "module": "M04",
+      "title": "Pierce / Column Adjacency Graph (CBattleBase::_SetPierceTarget 0x43def0)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M04.13",
+      "module": "M04",
+      "title": "Target-Rate / Aggro Weighting & Weighted Selection (CBattle::_UpdateTargetRate 0x44a630, 0x505ad0)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.13a",
+          "severity": "S1",
+          "summary": "WeightedPick includes Stage-3 Petrified players via TargetableArray instead of excluding them via vtable+0xe8 (0x44a673).",
+          "exe_va": "0x44a673",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1660",
+          "reach": "All battles where a player reaches Stage-3 Petrification",
+          "fix_hint": "Exclude Stage-3 Petrified units in TargetableArray / WeightedPick."
+        },
+        {
+          "sub_id": "M04.13b",
+          "severity": "S2",
+          "summary": "WeightedPick draws continuous Rng.Random() * total instead of discrete integer Rng.RandRange((int)total) (0x505b35).",
+          "exe_va": "0x505b35",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1662",
+          "reach": "PRNG quantization alignment on weighted target selection",
+          "fix_hint": "Use int roll = Rng.RandRange((int)total); with strict < prefix check."
+        }
+      ]
+    },
+    {
+      "id": "M04.14",
+      "module": "M04",
+      "title": "Equipment & Weapon Condition Gate (CGamePlayerStatusBase::CheckSkillCondition 0x4f4910)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.14a",
+          "severity": "S2",
+          "summary": "Policy.WeaponAllows omits condType 17 (slot 2 Head/Armor equipped) and condType 18 (slot 3 Accessory/Body equipped).",
+          "exe_va": "0x4f4b8e..0x4f4b9f",
+          "code_ref": "engine_cs/src/DtEngine/Policy.cs:216",
+          "reach": "0 vanilla skills use condType 17 or 18",
+          "fix_hint": "Store HasHead/HasBody (slots 2 and 3) on Unit and handle codes 17 and 18 in Policy.WeaponAllows."
+        }
+      ]
+    },
+    {
+      "id": "M04.15",
+      "module": "M04",
+      "title": "Battle Skill, Item & Command Legality Gate (0x455bc0, 0x4fd250, 0x515f7c, 0x455e60)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.15a",
+          "severity": "S0",
+          "summary": "No centralized Battle.IsLegalAction(Action) gate is asserted in Battle.Turn, and Shadow Sew (123, 0x455d94) is completely missing from Policy.OptionCache, Policy.ComputeOptions, and Battle.NextAction, letting Shadow-Sewed players cast all skills.",
+          "exe_va": "0x455d94",
+          "code_ref": "engine_cs/src/DtEngine/Policy.cs:241",
+          "reach": "Eff 123 used by 28 vanilla EnemyAttacks",
+          "fix_hint": "Implement Battle.IsLegalAction(Action) covering Shadow Sew (123), Freeze, Silence, WeaponAllows, TP, alive/not-petrified, and battle item flags; add ShadowSewed to Policy.OptionCache and ComputeOptions."
+        },
+        {
+          "sub_id": "M04.15b",
+          "severity": "S1",
+          "summary": "Battle-usable item flag Flags_0x18 bit 2 (0x04, 0x515fc9) is not exported or checked by Policy.ActItem / Battle.UseItem.",
+          "exe_va": "0x515fc9",
+          "code_ref": "engine_cs/src/DtEngine/Policy.cs:267",
+          "reach": "Any out-of-battle-only item placed in bag",
+          "fix_hint": "Export Flags_0x18 on Data.Item and require (item.Flags & 0x04) != 0 in battle."
+        }
+      ]
+    },
+    {
+      "id": "M04.16",
+      "module": "M04",
+      "title": "Mid-Action Legality Downgrade on Freeze (114) & Silence (117) (0x4208a0)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M04.16a",
+          "severity": "S1",
+          "summary": "Battle.NextAction skips Freeze/Silence mid-action downgrade on completed chants, ignores enemy attacks (action.Atk), omits re-check after pre-attack Counter Whip (303), discards targets[0], and fails to clamp hits = 1 (0x420ab4).",
+          "exe_va": "0x420985..0x420ab4",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1039",
+          "reach": "Eff 114 (92 uses) + Eff 117 (98 uses) + Counter Whip 303 / chanted techniques",
+          "fix_hint": "Move Freeze/Silence downgrade into Battle.Perform right after Counter Whip (303), handle both Skill and Atk, preserve targets[0], and force hits = 1."
+        }
+      ]
+    },
+    {
+      "id": "M05.01",
+      "module": "M05",
+      "title": "Stat-Scaled Magic Healing (CCommand_0103), Doll Scaling & Healing Cap",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.01a",
+          "severity": "S1",
+          "summary": "Battle.Restore / Battle.Heal (103) omit the Stage-3 Petrification guard (vtable+0xe8 IsHealable at 0x481815), healing Stage-3 Petrified units.",
+          "exe_va": "0x481815",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2659",
+          "reach": "Eff 103 (56 vanilla uses) when a party member is Stage-3 Petrified",
+          "fix_hint": "Gate Battle.Restore (or Heal 103) on CanFight(target) (!IsDead && !IsFullPetrified)."
+        },
+        {
+          "sub_id": "M05.01b",
+          "severity": "S2",
+          "summary": "When Cmd 9 overrides Cmd 103, Battle.Heal skips both ApplyHealCap (295+317) and the Rand(5) variance RNG draw (0x48d873..0x48d922).",
+          "exe_va": "0x48d873..0x48d922",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3138",
+          "reach": "0 vanilla skills/attacks combine Cmd 9 and Cmd 103",
+          "fix_hint": "Always roll variance first and apply 295+317 heal cap after checking Cmd 9."
+        },
+        {
+          "sub_id": "M05.01c",
+          "severity": "S2",
+          "summary": "Battle.Heal checks IsPuppet(unit) rather than unit.Kind == Kind.Doll (0x48d73b).",
+          "exe_va": "0x48d73b",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3141",
+          "reach": "Non-puppet dolls casting Cmd 103",
+          "fix_hint": "Check unit.Kind == Kind.Doll && unit.Owner != null."
+        }
+      ]
+    },
+    {
+      "id": "M05.02",
+      "module": "M05",
+      "title": "Fixed, Percentage, TP Transfer & Nurse/Purge Healing Commands (9, 104, 106, 128, 129, 130, 131, 132, 235, 426)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.02a",
+          "severity": "S1",
+          "summary": "Cmd 131 (Heal Enemy) omits dynamic_cast<CGameEnemyStatus*>(target) != null (0x483d69), falsely healing players on 6 vanilla EnemyAttacks (971..973, 2081..2083).",
+          "exe_va": "0x483d69",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3174",
+          "reach": "6 vanilla EnemyAttacks (971..973 Here's Some Sweets, 2081..2083 Hospitality)",
+          "fix_hint": "Gate effect == 131 on target.Kind == Kind.Enemy && CanFight(target)."
+        },
+        {
+          "sub_id": "M05.02b",
+          "severity": "S1",
+          "summary": "Cmd 129, 130, and 426 omit player-only (Kind.Member), !IsDead, and (for 129/130) !IsFullPetrified checks.",
+          "exe_va": "0x48b169",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3188",
+          "reach": "Cmd 129 (10 uses), 130 (1 Tech), 426 (1 Tech)",
+          "fix_hint": "Gate 129/130 TP gain on target.Kind == Kind.Member && CanFight(target), and 426 on target.Kind == Kind.Member && target.Alive."
+        },
+        {
+          "sub_id": "M05.02c",
+          "severity": "S1",
+          "summary": "Cmd 9, 104, 128, 132 omit the Stage-3 Petrification gate (vtable+0xe8) via Battle.Restore.",
+          "exe_va": "0x47fbc5",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2659",
+          "reach": "Healing skills targeting Stage-3 Petrified units",
+          "fix_hint": "Enforce CanFight(target) in Battle.Restore."
+        },
+        {
+          "sub_id": "M05.02d",
+          "severity": "S2",
+          "summary": "Cmd 235 checks == 8 instead of >= 8 (0x48a430) and uses PyMath.Int instead of 0x61e650; Policy.ExpectedHeal omits passive 317 on Cmd 132.",
+          "exe_va": "0x48a430",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2741",
+          "reach": "Fractional/gt-8 tier values on 235; Policy heuristic for 132 with passive 317",
+          "fix_hint": "Use >= 8 for 235 and pass Passive(317) to FractionRecovery in Policy.ExpectedHeal."
+        }
+      ]
+    },
+    {
+      "id": "M05.03",
+      "module": "M05",
+      "title": "HP/TP Clamping, Petrification Gating, TP Conversion (257, E72/E73) & Defend Regen (E257/E292)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.03a",
+          "severity": "S1",
+          "summary": "Battle.Restore omits !IsFullPetrified (vtable+0xe8) and TP recovery sites in Battle.Heal omit !IsDead (0x47eda7).",
+          "exe_va": "0x47eda7",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2659",
+          "reach": "Healing/TP skills when an ally is dead or Stage-3 Petrified",
+          "fix_hint": "Enforce CanFight on HP heals and target.Alive on TP heals."
+        },
+        {
+          "sub_id": "M05.03b",
+          "severity": "S2",
+          "summary": "Battle.TakeDamage gates TP Conversion (257, E72, E73) on amount > 0 instead of hpDamage != 0x7fffffff (0x47e634..0x47e750), skipping the 1 or 5 TP floor on 0-damage negated hits.",
+          "exe_va": "0x47e634..0x47e750",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2551",
+          "reach": "0-damage Parry/Clone/Barrier hits on units with 257 or E72/E73",
+          "fix_hint": "Trigger TP conversion on non-sentinel 0-damage hits as well."
+        }
+      ]
+    },
+    {
+      "id": "M05.04",
+      "module": "M05",
+      "title": "Resurrection (105), Resuscitate (188), Undaunted Spirit (355), Sacrifice (77) & Death/Revive Hooks",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.04a",
+          "severity": "S1",
+          "summary": "Battle.Fall intercepts Resuscitate (188) and returns early before running OnDeathCleanup (chant, statuses, songs/dances/geasses, dolls) required by 0x4f5fa0 -> 0x47f936.",
+          "exe_va": "0x4f5fa0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2626",
+          "reach": "Magic 188 (Resuscitate, 1 skill)",
+          "fix_hint": "Save cmd188.Value, run full death status/performance/chant/doll cleanup, then revive via 188."
+        },
+        {
+          "sub_id": "M05.04b",
+          "severity": "S1",
+          "summary": "All revive paths (105, 188, 355, Item 8) omit OnRevive (0x43cfb0) song/dance/geass resync and overwrite NextTime = Time + Wait(target).",
+          "exe_va": "0x4f69d5",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3165",
+          "reach": "105 (5 uses), 188 (1), 355 (1 Unique), Revive items (4)",
+          "fix_hint": "Call OnUnitRevived(unit) to re-sync active Songs/Dances/Geasses and match binary ATB gauge behavior."
+        },
+        {
+          "sub_id": "M05.04c",
+          "severity": "S2",
+          "summary": "Sacrifice (77) runs after self-heal 103 in Primevil (Magic 230) instead of wiping prior self HP heals in seq (0x4810de).",
+          "exe_va": "0x4810de",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1399",
+          "reach": "Primevil (Magic 230) healing statistics / self-targeting",
+          "fix_hint": "Suppress self-heals on actor when action.Has(SACRIFICE)."
+        }
+      ]
+    },
+    {
+      "id": "M05.05",
+      "module": "M05",
+      "title": "HP & TP Drain Commands (75, 76) & Normal-Attack Drain Enchants (161..164)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M05.06",
+      "module": "M05",
+      "title": "Turn-Start HoT Commands (215, 216, 246, 247), Regen Enchants (144..149, 296) & Poison DoT (113)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M05.07",
+      "module": "M05",
+      "title": "CBattleBase::End Party Recovery (272, 273, 353, E193, E194) & ClearBattleStatuses (vtable+0x70)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.07a",
+          "severity": "S0",
+          "summary": "Scenario.PlayRun calls unit.ClearStatuses() unconditionally before every battle in a chain, wiping all true ailments (113..122, 139) and out-of-battle persistent buffs that ClearBattleStatuses (0x4fa960) preserves.",
+          "exe_va": "0x4fa960..0x4faa30",
+          "code_ref": "engine_cs/src/DtEngine/Scenario.cs:1036",
+          "reach": "Every random-battle walk and multi-phase boss chain",
+          "fix_hint": "Replace unit.ClearStatuses() between consecutive battles with ClearBattleStatuses() preserving true ailments (113..122) and persistent buffs."
+        },
+        {
+          "sub_id": "M05.07b",
+          "severity": "S1",
+          "summary": "Scenario.RecoverAfterBattle filters living by u.Alive && u.Kind == Kind.Member, omitting !IsFullPetrified (vtable+0xe8 at 0x43d6bc).",
+          "exe_va": "0x43d6bc",
+          "code_ref": "engine_cs/src/DtEngine/Scenario.cs:1085",
+          "reach": "After-battle recovery whenever a party member finishes Stage-3 Petrified",
+          "fix_hint": "Exclude Stage-3 Petrified members from living in RecoverAfterBattle."
+        }
+      ]
+    },
+    {
+      "id": "M05.08",
+      "module": "M05",
+      "title": "CActionItem, CActionPatternItem, Item Consumption (274) & ItemResult Factory (0x50c570)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.08a",
+          "severity": "S1",
+          "summary": "Infinite / non-consumable item flag (Flags_0x18 bit 6 = 0x40 at 0x42d011) is not loaded or checked; Battle.UseItem consumes all 8 infinite battle-usable vanilla items (859..867).",
+          "exe_va": "0x42d011",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3496",
+          "reach": "8 infinite battle-usable vanilla items (859, 860, 861, 863..867)",
+          "fix_hint": "Export Flags_0x18 on Data.Item and skip decrement and 274 roll when (item.Flags & 0x40) != 0."
+        },
+        {
+          "sub_id": "M05.08b",
+          "severity": "S1",
+          "summary": "Battle.UseItem decrements item count and rolls Loss Rate (274) before executing item effects, reversing RNG order vs _ConsumeItem (0x42cfe0) which runs after effects.",
+          "exe_va": "0x42cfe0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3496",
+          "reach": "All battle items used by characters with Loss Rate (274)",
+          "fix_hint": "Move item consumption and 274 conservation roll to the end of Battle.UseItem."
+        },
+        {
+          "sub_id": "M05.08c",
+          "severity": "S1",
+          "summary": "Battle.UseItem silently drops ~40 battle-usable ItemResult types (11..23, 35, 36, 39, 52..61, 69, 88, 89).",
+          "exe_va": "0x50c59f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3503",
+          "reach": "Hundreds of battle-usable items across vanilla ItemData.pck",
+          "fix_hint": "Implement missing combat ItemResult types per M05.09..M05.13."
+        }
+      ]
+    },
+    {
+      "id": "M05.09",
+      "module": "M05",
+      "title": "Grouped Tabular Batch Rule: All 58 Skill-Casting CItemResult* Types (41 Direct Thunks + 17 Wrappers via 0x50b030)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.09a",
+          "severity": "S1",
+          "summary": "tools/item_effect_data.py:skill_item_specs omits the 3 battle-usable Party-Buff Wrappers (35 -> 226, 36 -> 227, 39 -> 195; 26 battle item uses) and 14 meal wrappers (73..86).",
+          "exe_va": "0x51160c..0x513c40",
+          "code_ref": "tools/item_effect_data.py:53",
+          "reach": "26 battle-usable item uses (35: 8, 36: 8, 39: 10)",
+          "fix_hint": "Include 35 -> (226, 0, -1), 36 -> (227, 0, -1), 39 -> (195, 0, -1) and 73..86 in skill_item_specs()."
+        },
+        {
+          "sub_id": "M05.09b",
+          "severity": "S1",
+          "summary": "MEAL_BUFFS_FALLBACK in tools/item_effect_data.py omits 78 (184, 5) and 79 (185, 5), and mismaps 80 -> 184 (should be 186), 35 -> 193 (should be 226), and 36 -> 194 (should be 227).",
+          "exe_va": "0x513c3b",
+          "code_ref": "tools/item_effect_data.py:53",
+          "reach": "Fallback table whenever exe scan is unavailable or meal wrappers are queried",
+          "fix_hint": "Correct MEAL_BUFFS_FALLBACK to match verified binary table."
+        },
+        {
+          "sub_id": "M05.09c",
+          "severity": "S2",
+          "summary": "Battle.UseItem uses PyMath.Int instead of 0x61e650 (round_f32_to_i32) when useValAsLevel == 1 and passes only single action.Target instead of expanded item.TargetType.",
+          "exe_va": "0x50b0f9",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3569",
+          "reach": "Skill-casting items with fractional value or Row/SideAll targetType",
+          "fix_hint": "Use PyMath.Round(value) for useValAsLevel == 1 and pass expanded targets."
+        }
+      ]
+    },
+    {
+      "id": "M05.10",
+      "module": "M05",
+      "title": "Consumable HP/TP Recovery & Revive CItemResult* Handlers (0..5, 8, 59, 61, 62..64)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.10a",
+          "severity": "S1",
+          "summary": "Conditional 10%-step HP recovery item Types 59 (1 battle use) and 61 (2 battle uses) are unimplemented in Battle.UseItem.",
+          "exe_va": "0x512605..0x512bd1",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3509",
+          "reach": "3 battle-usable vanilla items (Types 59 and 61)",
+          "fix_hint": "Implement Types 59 and 61 with (MaxHp * PyMath.Int(value)) / 10 and ApplyItemMastery(275)."
+        },
+        {
+          "sub_id": "M05.10b",
+          "severity": "S1",
+          "summary": "Types 0..5 omit !IsFullPetrified; Type 8 (Revive item) omits !IsFullPetrified (0x510194), omits OnRevive (0x43cfb0) resync, and resets NextTime.",
+          "exe_va": "0x510194",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3542",
+          "reach": "All HP/TP recovery and revive items when Stage-3 Petrified or Songs/Dances active",
+          "fix_hint": "Gate 0..5 on CanFight, gate 8 on !target.Alive && !IsFullPetrified(target), and trigger OnUnitRevived."
+        },
+        {
+          "sub_id": "M05.10c",
+          "severity": "S2",
+          "summary": "10%-step MaxHP/MaxTP Types 62..64 (0x512eb0..0x5133c0) are unimplemented.",
+          "exe_va": "0x512f5a",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3509",
+          "reach": "0 vanilla item uses",
+          "fix_hint": "Add handlers for Types 62, 63, 64."
+        }
+      ]
+    },
+    {
+      "id": "M05.11",
+      "module": "M05",
+      "title": "Ailment Cure & Debuff Purge CItemResult* Handlers (6, 7, 20..23, 65..72)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.11a",
+          "severity": "S1",
+          "summary": "Battle-usable cure/purge item Types 20 (17 uses), 21 (4 uses), 22 (17 uses), 23 (26 uses), and 69 (2 uses) — 66 total battle uses — are unimplemented in Battle.UseItem.",
+          "exe_va": "0x510acd..0x51111e",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3548",
+          "reach": "66 battle-usable item effect slots in vanilla ItemData.pck",
+          "fix_hint": "Implement Types 20 (114), 21 (116), 22 (123), 23 (remove all IsDebuffStatus), and 65..72."
+        },
+        {
+          "sub_id": "M05.11b",
+          "severity": "S1",
+          "summary": "Types 6 (35 uses) and 7 (36 uses) omit !target.IsDead() guard, Row/SideAll expansion, and 0x43cfb0 performance resync on Petrify cure.",
+          "exe_va": "0x50fbcd",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3548",
+          "reach": "71 battle-usable cure item uses (Types 6 & 7)",
+          "fix_hint": "Loop over expanded targetType targets, gate on t.Alive, and resync ally performances when 120 is removed."
+        },
+        {
+          "sub_id": "M05.11c",
+          "severity": "S2",
+          "summary": "Types 65..68 and 70..72 are unimplemented.",
+          "exe_va": "0x5136f5..0x513a44",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3548",
+          "reach": "0 vanilla item uses",
+          "fix_hint": "Add handlers for Types 65..72 alongside 20..23."
+        }
+      ]
+    },
+    {
+      "id": "M05.12",
+      "module": "M05",
+      "title": "Offensive Damage & Ailment-Inflicting CItemResult* Handlers (11..19, 52..58, 60)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.12a",
+          "severity": "S1",
+          "summary": "All 17 offensive item handlers (11..19, 52..58, 60) are completely unimplemented in Battle.UseItem, silently no-oping 246 battle-usable item effect slots.",
+          "exe_va": "0x50ab21..0x512935",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3503",
+          "reach": "246 battle-usable item effect slots in vanilla ItemData.pck",
+          "fix_hint": "Implement Types 11..19, 52..58, and 60 inside Battle.UseItem over expanded targetType targets with Exclusive Barrier checks (0x41f920) and Stun gauge reset."
+        }
+      ]
+    },
+    {
+      "id": "M05.13",
+      "module": "M05",
+      "title": "Utility, Dungeon & Out-of-Battle CItemResult* Handlers (9, 10, 24, 87, 88, 89)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M05.13a",
+          "severity": "S1",
+          "summary": "Combat-active battle item Types 88 (Force Enemies Flee, 2 items), 10 (Escape Battle, 6 items), and 89 (Lose 5% Gold in battle, 3 items) are unimplemented in Battle.UseItem.",
+          "exe_va": "0x5104ef..0x51438a",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3576",
+          "reach": "11 battle-usable vanilla items (Types 10, 88, 89)",
+          "fix_hint": "Implement Type 88 (mark enemies fleeing when Options.RandomBattle) and Type 10 (escapable battle exit) in Battle.UseItem."
+        }
+      ]
+    },
+    {
+      "id": "M06.01",
+      "module": "M06",
+      "title": "CGameStatusBase::AddStatus, Removal, and Status Wipe",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M06.01a",
+          "severity": "S0",
+          "summary": "Units.cs:212 SetStatus has no Stage-3 Petrification guard (0x4f9950 vt+0xc8), allowing buffs, debuffs, songs, dances, and ailments to attach to Stage-3 Petrified units.",
+          "exe_va": "0x4f9950..0x4f995a",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:212",
+          "reach": "40+ vanilla enemy attacks & skills inflicting Petrification (120/121)",
+          "fix_hint": "Return early from Unit.SetStatus when St[120] != null && St[120].Stage >= 3 (except explicit 120 Stage-3 upgrade)."
+        },
+        {
+          "sub_id": "M06.01b",
+          "severity": "S0",
+          "summary": "Sleep (116) application in Battle.cs:3024 never strips active statuses with vtable+0x8c (IsSleepCleared, 36 command IDs including Cover 171, Parry 180, Limit Field 190, Puppets 228..233, Counter-Parry 250, Warning Shot 259, Elegant Dancing 285).",
+          "exe_va": "0x4fa03a..0x4fa072",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3024",
+          "reach": "Active in every battle involving Sleep (116/143) vs Cover/Parry/Limit Field/Puppet stances",
+          "fix_hint": "Export flags38 bit 1 (IsSleepCleared) from CommandData.pck and strip all matching statuses when 116 is applied."
+        },
+        {
+          "sub_id": "M06.01c",
+          "severity": "S1",
+          "summary": "PopStatus(120) omits CBattleBase::ResyncAllyPerformances_0x43cfb0 on Petrification cure, failing to restore active ally Songs/Dances/Geasses.",
+          "exe_va": "0x4fa690",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:236",
+          "reach": "Active whenever Nurse (tier >= 6) or Panacea cures a petrified unit while Songs/Dances/Geasses are active",
+          "fix_hint": "Invoke ResyncAllyPerformances(unit) in Battle when status 120 is removed from an alive unit."
+        },
+        {
+          "sub_id": "M06.01d",
+          "severity": "S1",
+          "summary": "EndParts(unit, PerfParts.Doll) excludes Arrow, Genjimaru, and Shadow dolls on 123 (Shadow Sew), whereas 0x4fa430 -> 0x43d2c0 destroys all owned dolls.",
+          "exe_va": "0x43d2c0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3082",
+          "reach": "Shadow/Genjimaru/Arrow owners hit by Shadow Sew (123)",
+          "fix_hint": "Match 0x43d2c0 doll destruction predicate when 123 lands."
+        }
+      ]
+    },
+    {
+      "id": "M06.02",
+      "module": "M06",
+      "title": "CCommand Vtable Boolean Flag Matrix (All 328 Instantiated IDs)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M06.02a",
+          "severity": "S0",
+          "summary": "CommandData.pck flags38 bit 1 (+0x8c IsSleepCleared, 36 IDs) and bit 2 (+0x90 ClearOnDeath, 8 exempt IDs) are not extracted by the data pipeline or modeled in Battle.cs/Units.cs.",
+          "exe_va": "0x48bec0..0x48bf19",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:109",
+          "reach": "Systemic across all battles involving Sleep or death-persistent effects",
+          "fix_hint": "Export flags38 bits 1 and 2 from CommandData.pck into engine_data.json and enforce them in Units.cs and Battle.cs."
+        },
+        {
+          "sub_id": "M06.02b",
+          "severity": "S2",
+          "summary": "Battle.IsTrueAilmentId omits 121 and 139 relative to vtable+0x68 (113..122, 139).",
+          "exe_va": "0x47b220",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:215",
+          "reach": "Near-0 runtime impact (121 converts to 120; 139 kills immediately)",
+          "fix_hint": "Include 121 and 139 in IsTrueAilmentId for exact vtable+0x68 parity."
+        }
+      ]
+    },
+    {
+      "id": "M06.03",
+      "module": "M06",
+      "title": "Stat Recalculation (0x4fbdd0..0x4fc6cc)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M06.03a",
+          "severity": "S1",
+          "summary": "Units.cs:697-703 adds Stage-5 Dual-Wield offhandBonus (256) into gearedForLine BEFORE Stage-4 EnchantBonus (222..225, 281), inverting the 0x4f7c00 RecalculateAll order and inflating line-bonus enchant stats.",
+          "exe_va": "0x4f7c00..0x4fc5c5",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:697",
+          "reach": "Every Dual-Wield (256) build wearing front/back line-boost enchants (222..225, 281)",
+          "fix_hint": "Pass totals (without offhandBonus) as gearedForLine into EnchantBonus, keeping offhandBonus strictly in Stage 5 (Unit.Stat)."
+        },
+        {
+          "sub_id": "M06.03b",
+          "severity": "S2",
+          "summary": "Trump Card (48) subtracts 10000 instead of overwriting delta[1] = -10000 (0x4fbfef), keeping prior DEF buff 42 if Base[DEF] + buffs > 10000.",
+          "exe_va": "0x4fbfef",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:371",
+          "reach": "Rare edge case when Base[DEF] + DEF buffs > 10000 under Trump Card (48)",
+          "fix_hint": "Overwrite the prior 42 DEF delta with -10000 when St[TRUMP_CARD] != null."
+        }
+      ]
+    },
+    {
+      "id": "M06.04",
+      "module": "M06",
+      "title": "Max HP Buff 172 & Life Bringer 133 MaxHP Drain Modifier",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M06.04a",
+          "severity": "S2",
+          "summary": "Units.cs:385-396 MaxHp omits Math.Max(1, hp) floor (0x4fc635) and SetStatus(172) omits Hp <= MaxHp clamping on negative 172.",
+          "exe_va": "0x4fc635..0x4fc646",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:385",
+          "reach": "0 vanilla enemies apply negative 172",
+          "fix_hint": "Return Math.Max(1, hp) in MaxHp and clamp Hp <= MaxHp whenever 172 is set or popped."
+        },
+        {
+          "sub_id": "M06.04b",
+          "severity": "S2",
+          "summary": "Battle.cs:2785 floors MaxHpBase at 1 immediately on Life Bringer (133) instead of accumulating an unclamped MaxHPDelta_0x98 separately from 172.",
+          "exe_va": "0x4fc629..0x4fc63d",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2785",
+          "reach": "Rare overlap of Life Bringer (133) and Max HP Buff (172) on the same unit",
+          "fix_hint": "Track unit.MaxHpDelta separately from MaxHpBase and compute Math.Max(1, Math.Max(1, MaxHpBase + hpBuffDelta) + MaxHpDelta)."
+        }
+      ]
+    },
+    {
+      "id": "M06.05",
+      "module": "M06",
+      "title": "Resistance Recalculation & Samsara Override (0x4fc050..0x4fc889)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M06.06",
+      "module": "M06",
+      "title": "Timed Status Countdown, Sleep-Decay, and Map Step Counter (X15)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M06.06a",
+          "severity": "S1",
+          "summary": "DecrementTimedStatuses omits the Sleep-Decay check (target.HasSleep_116() && cmd.vtable+0x8c) at 0x48d5b5..0x48d5d7, which expires vtable+0x8c statuses even if turnsRemaining == 0.",
+          "exe_va": "0x48d5b5..0x48d5d7",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:794",
+          "reach": "Active whenever a unit holds a vtable+0x8c status while asleep",
+          "fix_hint": "Check unit.St[116] != null && Data.IsSleepCleared(effect) at the top of DecrementTimedStatuses and pop immediately."
+        },
+        {
+          "sub_id": "M06.06b",
+          "severity": "S2",
+          "summary": "Field-only IDs [17, 18, 21, 107] (0x47fdc0) are not exempt from battle countdown in DecrementTimedStatuses.",
+          "exe_va": "0x47fdc0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:805",
+          "reach": "Near-0 in combat; field-only utility statuses rarely tick in battle",
+          "fix_hint": "Skip countdown in DecrementTimedStatuses for field-only IDs {17, 18, 21, 107}."
+        }
+      ]
+    },
+    {
+      "id": "M06.07",
+      "module": "M06",
+      "title": "Dispel (74), Cure (106), Light (107), and Esarhaddon (311)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M06.07a",
+          "severity": "S2",
+          "summary": "Cure 106 and Esarhaddon 311 use PyMath.Int instead of 0x61e650 (round_f32_to_i32), and Cmd 235 checks == 8 instead of >= 8.",
+          "exe_va": "0x481aa3",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2739",
+          "reach": "0 divergence on vanilla integer tier values (1..8)",
+          "fix_hint": "Use Math.Round(..., MidpointRounding.ToEven) for 106/311 tiers and >= 8 for 235."
+        },
+        {
+          "sub_id": "M06.07b",
+          "severity": "S2",
+          "summary": "Attack-embedded Dispel 74 executes in slot order inside AfterHit instead of before vtable+0xe0 ailments (0x4226c4).",
+          "exe_va": "0x4226c4",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2698",
+          "reach": "Near-0 in vanilla (only 942 Abyss Roar combines 74 and an ailment, with 74 already before 118)",
+          "fix_hint": "Execute attack-embedded Dispel 74 before the IsAilment loop in AfterHit."
+        }
+      ]
+    },
+    {
+      "id": "M06.08",
+      "module": "M06",
+      "title": "Performance Groups: Songs, Dances, Puppets, Geass, Bonuses, Ticks & Cancellation",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M06.08a",
+          "severity": "S0",
+          "summary": "PerformSong and PerformGeass track performance slots by skill Name string instead of cmdId and never erase cmdId from another ally on the same side already performing it (0x43bdd0..0x43cb80).",
+          "exe_va": "0x43bdd0..0x43cb80",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2928",
+          "reach": "Any battle with two overlapping performers on the same side or multi-effect performance skills",
+          "fix_hint": "Track performance vectors by int cmdId per unit and erase cmdId from all allies on the same side before FIFO eviction."
+        },
+        {
+          "sub_id": "M06.08b",
+          "severity": "S1",
+          "summary": "PerformSong applies Song/Dance Bonus (279/280 + enchants 300..303) to 200, 203, 204, 219, 220, 221, and 223, none of which receive it in the binary (weakening 204 negative pep drain and inflating 200, 203, 219..221, 223).",
+          "exe_va": "0x487d70..0x4895e0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2987",
+          "reach": "Every Diva/Mistress/Dancer using 200, 203, 204, 219, 220, 221, or 223 with 279/280 or enchants 300..303",
+          "fix_hint": "Apply bonus strictly to {195..199, 201, 202, 205} (Dance) and {210..218, 222} (Song); leave other IDs at raw value."
+        },
+        {
+          "sub_id": "M06.08c",
+          "severity": "S1",
+          "summary": "TickRegenAndDances executes performer ticks in order 199 -> 339 -> 200 -> 204 instead of binary State 18 (200) -> State 19 (204) -> State 20 (199/339) (0x437eda..0x43824e).",
+          "exe_va": "0x437eda..0x43824e",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1178",
+          "reach": "Dancer/Mistress maintaining 199/339 alongside 200 or 204 via On Stage (284)",
+          "fix_hint": "Run three separate passes over Units in binary order: 200 first, 204 second, 199/339 third."
+        }
+      ]
+    },
+    {
+      "id": "M07.01",
+      "module": "M07",
+      "title": "Core Ailment Application Formula (113-118, 120, 122)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.01a",
+          "severity": "S1",
+          "summary": "Battle.ApplyAilment omits the Stage-3 Petrification guard (vtable+0xc8 at 0x481ef4), allowing ailments and barrier consumption on Stage-3 Petrified units.",
+          "exe_va": "0x481ef4",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3005",
+          "reach": "AoE/random ailment skills hitting a Stage-3 Petrified unit",
+          "fix_hint": "Return false at top of ApplyAilment when target.St[120] != null && target.St[120].Stage >= 3."
+        },
+        {
+          "sub_id": "M07.01b",
+          "severity": "S1",
+          "summary": "Battle.ApplyAilment short-circuits chance <= 0 before Rng.RandRange(100), whereas 0x482021 always draws Rand(100) before comparing roll < threshold.",
+          "exe_va": "0x482021",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3010",
+          "reach": "Any ailment targeting a unit with >= 100 corresponding elemental resistance",
+          "fix_hint": "Always draw int roll = Rng.RandRange(100); before comparing roll >= chance."
+        },
+        {
+          "sub_id": "M07.01c",
+          "severity": "S2",
+          "summary": "Duplicate Petrification (120) short-circuits before RNG and ConsumeBarrier instead of discarding inside AddStatus (0x4f9b9f..0x4f9bcd).",
+          "exe_va": "0x4f9b9f..0x4f9bcd",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3006",
+          "reach": "Stage 1-2 petrified unit with active Clone/Barrier hit by 120 again",
+          "fix_hint": "Move duplicate 120 discard after ConsumeBarrier (inside SetStatus)."
+        }
+      ]
+    },
+    {
+      "id": "M07.02",
+      "module": "M07",
+      "title": "Instant Death (119, 139), Special Sleep (143), Shadow Sew (123), Weapon Procs & Reactive Ailments",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.02a",
+          "severity": "S1",
+          "summary": "Weapon normal-attack ailment proc enchants (153..157, 165) initialize self-cure at 5% instead of 0% (0x421287..0x4216d2).",
+          "exe_va": "0x421287..0x4216d2",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3023",
+          "reach": "Every weapon bearing enchants 153..157 or 165 during basic attacks",
+          "fix_hint": "Tag weapon-proc effects in MakePlainSet and pass start: 0 to ApplyAilment."
+        },
+        {
+          "sub_id": "M07.02b",
+          "severity": "S1",
+          "summary": "Sugar Coma (346) and Slow Target (293) bypass ApplyAilment for Slow (122), ignoring Earth resistance scaling and Exclusive Barriers (101/102/181); 293 also wrongly restricts to action.Reach == T.SHORT unlike 0x424317.",
+          "exe_va": "0x424317..0x424520",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2876",
+          "reach": "Any attack triggering 293 (Slow Target) at Mid/Long range or 293/346 vs Earth resist / Clone barriers",
+          "fix_hint": "Route 122 inside 346 and 293 through ApplyAilment(..., 122, 1.0, action, 5) and remove action.Reach == T.SHORT from 293."
+        },
+        {
+          "sub_id": "M07.02c",
+          "severity": "S1",
+          "summary": "Instakill (119) and Shadow Sew (123) omit the Stage-3 Petrification guard (vtable+0xc8 at 0x482e40, 0x483840).",
+          "exe_va": "0x483840",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2688",
+          "reach": "AoE 119/123 when a Stage-3 Petrified unit is present",
+          "fix_hint": "Add !IsFullPetrified guard to 123 at Battle.cs:2688 and to ApplyAilment."
+        },
+        {
+          "sub_id": "M07.02d",
+          "severity": "S2",
+          "summary": "Passives 258 (Instakill on Crit) and 320 (Devil's Whisper) run after TakeDamage instead of modifying res.hpDamage prior to single HP deduction.",
+          "exe_va": "0x44d266",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2868",
+          "reach": "258/320 proc against target with Resuscitate (188) or TP Conversion",
+          "fix_hint": "Evaluate 258 inside PhysicalDamageActual and 320 before TakeDamage when dealt > 0."
+        }
+      ]
+    },
+    {
+      "id": "M07.03",
+      "module": "M07",
+      "title": "Chant Interruption (CalcPhysicalAttack / CalcMagicalAttack) & Turn Delay (54)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.03a",
+          "severity": "S1",
+          "summary": "Battle.cs:2575 passes physical = (action == null || !action.Magic) to Interrupt(), falsely running physical damage-ratio interruption on Special-Damage attacks and Poison/Salsa/Geass DoT ticks (action == null).",
+          "exe_va": "0x44d012..0x44d265",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2575",
+          "reach": "Every chanting/performing unit taking Poison (113), Salsa (199), Geass (339), or Special-Damage attacks",
+          "fix_hint": "Pass action != null && action.Physical and skip Interrupt() completely for DoTs (action == null) and non-physical/non-magic special attacks."
+        },
+        {
+          "sub_id": "M07.03b",
+          "severity": "S1",
+          "summary": "Battle.Interrupt skips RNG when not chanting/performing and combines physical+crit probabilities into a single continuous Rng.Random() draw instead of 1-2 discrete Rand(100) draws (0x44d1f8, 0x44d238).",
+          "exe_va": "0x44d1f8..0x44d238",
+          "code_ref": "engine_cs/src/DtEngine/Formulas.cs:296",
+          "reach": "Every physical hit and crit in combat (RNG stream alignment + exact crit-interrupt quantization)",
+          "fix_hint": "Use discrete Rng.RandRange(100) < threshold and independent Rng.RandRange(100) < 33 draws."
+        }
+      ]
+    },
+    {
+      "id": "M07.04",
+      "module": "M07",
+      "title": "Enemy & Boss Immunity Bitmask ([enemyParam+0x54] / EnemyData.pck +0x3c)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M07.05",
+      "module": "M07",
+      "title": "Player Equipment, Elemental Resistance, and Status Immunity Gates",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.05a",
+          "severity": "S1",
+          "summary": "Stage-3 Petrification target-state immunity gate (vtable+0xc8 at 0x483504, 0x481ef4, 0x4f9950) is missing from Special Petrification (121) at Battle.cs:2826, ApplyAilment, and SetStatus.",
+          "exe_va": "0x483504",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2826",
+          "reach": "Any battle where a Stage-3 Petrified unit is targeted by AoE 121 or ailments/statuses",
+          "fix_hint": "Add !(target.St[120] != null && target.St[120].Stage >= 3) to Battle.cs:2826, Battle.cs:3005, and Units.cs:212."
+        }
+      ]
+    },
+    {
+      "id": "M07.06",
+      "module": "M07",
+      "title": "Gradual & Instant Petrification Lifecycle (120, 121)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.06a",
+          "severity": "S0",
+          "summary": "Battle.LostTurnHard skips Stage-3 Petrified enemies instead of defeating/removing them via CBattleBase::_SetDead (0x436c82 -> 0x43a4a0, PhaseNo = 15), and TargetableArray/Over() keep Stage-3 Petrified units alive/targetable.",
+          "exe_va": "0x436c82..0x436c92",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1020",
+          "reach": "Every battle where Petrification (120/121) reaches Stage 3 on either side",
+          "fix_hint": "Call Fall(unit, null) in Inner State 5 for Stage-3 Petrified enemies, and exclude Stage-3 Petrified units from targeting and Over() liveness checks."
+        },
+        {
+          "sub_id": "M07.06b",
+          "severity": "S1",
+          "summary": "SetStatus does not block new statuses on Stage-3 Petrify (0x4f9950) and PopStatus(120) does not resync ally performances on cure (0x43cfb0).",
+          "exe_va": "0x4f9950",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:212",
+          "reach": "Petrified units hit by buffs/ailments or cured by Nurse/Panacea",
+          "fix_hint": "Enforce Stage-3 guard in SetStatus and resync ally performances on 120 cure."
+        }
+      ]
+    },
+    {
+      "id": "M07.07",
+      "module": "M07",
+      "title": "Ailment Self-Cure (CCommandProbabilityBase) & Duration Tick (CCommandTurnBase)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.07a",
+          "severity": "S1",
+          "summary": "Weapon normal-attack ailment proc enchants (153..157, 165) initialize self-cure chance at 5% instead of 0% (0x421287..0x4216d2).",
+          "exe_va": "0x421287..0x4216d2",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3023",
+          "reach": "All weapon-enchant ailment procs (153..157, 165)",
+          "fix_hint": "Pass start: 0 for weapon-enchant ailment procs."
+        },
+        {
+          "sub_id": "M07.07b",
+          "severity": "S1",
+          "summary": "RollAilmentRecovery and DecrementTimedStatuses omit Sleep-triggered immediate expiry (HasSleep && vtable+0x8c at 0x48d1c0..0x48d1d8, 0x48d5bd..0x48d5d7).",
+          "exe_va": "0x48d1c0..0x48d1d8",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:775",
+          "reach": "Sleep (116) coexisting with any vtable+0x8c status",
+          "fix_hint": "Add immediate-expiry check for unit.St[116] != null && Data.IsSleepCleared(effect) to both loops."
+        }
+      ]
+    },
+    {
+      "id": "M07.08",
+      "module": "M07",
+      "title": "Crowd-Control Turn-Start Gates & Action Restrictions (113-118, 120, 122, 123, 203, 259, 283)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.08a",
+          "severity": "S0",
+          "summary": "Battle.LostTurnSoft omits Warning Shot (259) opponent 0.3x confused basic attack (0x436d60, PhaseNo = 12) and interleaves State 9 (259) and State 10 (283) in one loop instead of running all 259 checks before 283.",
+          "exe_va": "0x436d60..0x436e0c",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1026",
+          "reach": "Every battle with Warning Shot (259) or Mesmerized (283)",
+          "fix_hint": "Split State 9 (259) and State 10 (283) into sequential loops and execute opponent's 0.3x basic attack on 259 proc."
+        },
+        {
+          "sub_id": "M07.08b",
+          "severity": "S0",
+          "summary": "Shadow Sew (123, 0x455d94) does not block player skills in Policy.ComputeOptions or Battle.NextAction.",
+          "exe_va": "0x455d94",
+          "code_ref": "engine_cs/src/DtEngine/Policy.cs:267",
+          "reach": "28 vanilla EnemyAttacks inflicting Shadow Sew (123)",
+          "fix_hint": "Reject all skills in Policy.ComputeOptions and Battle.IsLegalAction whenever unit.St[123] != null."
+        },
+        {
+          "sub_id": "M07.08c",
+          "severity": "S0",
+          "summary": "Stage-3 Petrified enemies are not defeated at Inner State 5 (Battle.cs:1020).",
+          "exe_va": "0x436c82",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1020",
+          "reach": "Every Stage-3 Petrified enemy",
+          "fix_hint": "Defeat enemy at Inner State 5 via Fall."
+        },
+        {
+          "sub_id": "M07.08d",
+          "severity": "S1",
+          "summary": "Battle.Turn runs Inner States 0..22 on Dolls and Summons/Guests (unitId >= 2000), falsely firing Third Eye Wide (345), Warning Shot (259), Mesmerized (283), and Undaunted (355) on doll/summon turns (0x4365ff).",
+          "exe_va": "0x4365ff",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:838",
+          "reach": "Every battle with Maid Dolls, Shadows, Genjimaru, Arrow, Summons, or Guest allies",
+          "fix_hint": "Gate Inner States 0..22 on !extraTurn && unit.Kind != Kind.Doll && unit.Kind != Kind.Summon (running only the 199 hook for Kind.Summon per 0x436343)."
+        }
+      ]
+    },
+    {
+      "id": "M07.09",
+      "module": "M07",
+      "title": "Sleep Combat Modifiers & Wake-on-Hit (116 / 0x74)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.09a",
+          "severity": "S0",
+          "summary": "Sleep (116) application in Battle.cs:3024 fails to strip the 36 vtable+0x8c statuses (0x4fa056).",
+          "exe_va": "0x4fa056",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3024",
+          "reach": "Sleep landing on any unit with Cover/Parry/Limit Field/Puppet/stance statuses",
+          "fix_hint": "Strip all active vtable+0x8c statuses when 116 is applied."
+        },
+        {
+          "sub_id": "M07.09b",
+          "severity": "S1",
+          "summary": "Extra-Turn Passives (288/289/354) at Battle.cs:1124 are not blocked when the actor is Asleep (0x43905f).",
+          "exe_va": "0x43905f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1124",
+          "reach": "Extra-turn bearer put to Sleep mid-action",
+          "fix_hint": "Require unit.St[116] == null (and !IsFullPetrified) at Battle.cs:1124."
+        },
+        {
+          "sub_id": "M07.09c",
+          "severity": "S1",
+          "summary": "Battle.TakeDamage gates Sleep wake-up on amount > 0 and Voided returns before TakeDamage, failing to wake Sleep on 0-damage negated hits (101/102/181, 180, 349, 310, 285, 305, 0-dmg) where binary sets hpDamage = 0 != 0x7fffffff (0x47ea41).",
+          "exe_va": "0x47ea41..0x47ea83",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2571",
+          "reach": "Sleeping unit blocking hits with Clone/Barrier/Parry/Alter Fate/Pretend/Elegant Dancing/Knock Down or taking 0 damage",
+          "fix_hint": "Wake Sleep (PopStatus(116)) on every non-sentinel HP-delta hit including 0-damage and zeroed voids (349, 310, 285, 305, 180, 101, 102, 181)."
+        }
+      ]
+    },
+    {
+      "id": "M07.10",
+      "module": "M07",
+      "title": "Exclusive Hit-Consuming Barriers (101 Clone, 102 Clone, 181 Barrier System) & vtable+0x84 Exclusivity",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.10a",
+          "severity": "S1",
+          "summary": "Battle.cs:2682 -> 3011 calls ConsumeBarrier independently per ailment slot on multi-ailment hits, burning multiple charges instead of 1 charge blocking all landed ailments on that hit (0x422c10..0x422c74).",
+          "exe_va": "0x422c10..0x422c74",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2682",
+          "reach": "Every multi-ailment vanilla enemy attack or player skill against Clone (101/102) or Barrier System (181)",
+          "fix_hint": "Evaluate all ailment rolls on a hit first; if any true ailment landed, call ConsumeBarrier(target) once and discard all landed ailments if blocked."
+        },
+        {
+          "sub_id": "M07.10b",
+          "severity": "S1",
+          "summary": "Battle.cs:1878 gates damage-hit exclusive barriers on (action.Physical || action.Magic), allowing Special-Damage attacks (63/64, 135, etc.) and Anti-TP (2) to bypass 101/102/181 unlike 0x42265f.",
+          "exe_va": "0x42265f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1878",
+          "reach": "Special-Damage and TP-damage attacks vs Clone/Barrier System",
+          "fix_hint": "Trigger 101/102/181 on any non-140/141/142 HP or TP damage payload."
+        },
+        {
+          "sub_id": "M07.10c",
+          "severity": "S1",
+          "summary": "Battle.cs:1882 returns true without waking Sleep (116), whereas 0x41f96d sets hpDamage = 0 (!= 0x7fffffff) which wakes Sleep.",
+          "exe_va": "0x41f96d",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1882",
+          "reach": "Sleeping unit absorbing a hit with 101/102/181",
+          "fix_hint": "Pop Sleep (116) when 101/102/181 blocks an HP-damage hit."
+        }
+      ]
+    },
+    {
+      "id": "M07.11",
+      "module": "M07",
+      "title": "Non-Exclusive Nullify Shields, Mitigation Barriers & Block Priority Chain (179, 180, 182, 183, 188, 189, 191, 192, 193, 194, 261, 285, 305, 310, 349)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.11a",
+          "severity": "S1",
+          "summary": "Physical Barrier / Material Guard (179) and Magic Barrier (183) are NEVER consumed on hit in Battle.cs:2126, 2219, whereas 0x422b58..0x422b71 removes 179 after 1 physical hit and 183 after 1 magical hit.",
+          "exe_va": "0x422b58..0x422b71",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2126",
+          "reach": "Every Paladin/Valkyrie/Bishop/enemy using Material Guard (179) or Magic Barrier (183)",
+          "fix_hint": "Pop target.PopStatus(179) after resolving a physical hit and target.PopStatus(183) after resolving a magical hit."
+        },
+        {
+          "sub_id": "M07.11b",
+          "severity": "S1",
+          "summary": "Battle.Voided invents free Counter(target, unit) calls on Pretend (310) and Knock Down (305); neither passive counterattacks in the vanilla binary (0x421db8, 0x4221ee).",
+          "exe_va": "0x421db8..0x4223b2",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1844",
+          "reach": "Every Kunoichi/Etoile/Sniper/enemy with Pretend (310) or Knock Down (305)",
+          "fix_hint": "Remove Counter(target, unit) from both PRETEND (310) and KNOCK_DOWN (305) blocks in Voided."
+        },
+        {
+          "sub_id": "M07.11c",
+          "severity": "S1",
+          "summary": "Counter-Parry (250) omits !inCounter; Resuscitate (188) skips OnDeathCleanup/OnRevive; 349/310/285/305/180 fail to wake Sleep (116).",
+          "exe_va": "0x422559",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1866",
+          "reach": "Standard combat with 250, 188, 349, 310, 285, 305, or 180",
+          "fix_hint": "Add !inCounter to 250, run death/revive hooks on 188, and wake Sleep on zeroed-damage voids."
+        },
+        {
+          "sub_id": "M07.11d",
+          "severity": "S2",
+          "summary": "Stamina (261) uses float 0.4 * MaxHp instead of integer (MaxHP * 40) / 100 (0x47f86c), and Elegant Dancing (285) spent set is never cleared on death/revive.",
+          "exe_va": "0x47f86c",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:570",
+          "reach": "MaxHp % 5 != 0 boundary for 261; revived unit with 285",
+          "fix_hint": "Use (unit.MaxHp * 40) / 100 for 261 and reset 285 spent state on death/revive."
+        }
+      ]
+    },
+    {
+      "id": "M07.12",
+      "module": "M07",
+      "title": "Ailment Cure, Recovery Skills, Cure Items & Turn-Start Purge (106 Nurse, 105 Resurrect, 311 Esarhaddon, ItemResult_0009/0010/0011)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M07.12a",
+          "severity": "S1",
+          "summary": "Nurse (106) and Resurrect (105) omit ResyncAllyPerformances (0x43cfb0) on Petrify cure/revival; enemy Nurse can target dead enemies (Battle.cs:1482); Resurrect overwrites NextTime; 106/311 use PyMath.Int instead of 0x61e650.",
+          "exe_va": "0x481a20..0x481d68",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3161",
+          "reach": "Nurse (106) curing Petrification or Resurrect (105) reviving while Songs/Dances/Geasses are active",
+          "fix_hint": "Invoke ResyncAllyPerformances(target) on 120 cure and revival, exclude dead enemies from enemy Nurse, and match binary ATB gauge on revive."
+        },
+        {
+          "sub_id": "M07.12b",
+          "severity": "S1",
+          "summary": "Cure items 6/7 omit !target.IsDead, Row/SideAll expansion (w_0x5c), and 0x43cfb0 performance resync; Revive item 8 omits !IsFullPetrified (0x510194), 0x43cfb0, and overwrites NextTime.",
+          "exe_va": "0x50fbcd..0x510194",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3542",
+          "reach": "60+ vanilla cure/revive battle items (Types 6, 7, 8)",
+          "fix_hint": "Enforce Alive / !Alive && !IsFullPetrified guards, expand item targets via w_0x5c, and resync ally performances."
+        }
+      ]
+    },
+    {
+      "id": "M08.01",
+      "module": "M08",
+      "title": "Hit-Time Effects & Pre-Action Interception (253, 303, 137)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.01a",
+          "severity": "S1",
+          "summary": "Passive 253 (Flowing Water Stance / Stab Dodge) only logs a dodge message in binary (0x44b100..0x44b20f) with NO counterattack; Battle.cs:1895 erroneously calls Counter(target, action.Actor).",
+          "exe_va": "0x44b100..0x44b20f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1895",
+          "reach": "1 vanilla player passive (Flowing Water Stance, active on every dodged Stab hit)",
+          "fix_hint": "Remove the Counter(target, action.Actor) call from Hits() at Battle.cs:1895 when dodge != 0."
+        },
+        {
+          "sub_id": "M08.01b",
+          "severity": "S1",
+          "summary": "Counter Whip (303) Phase 9 (0x420985..0x420ab4) downgrades the attacker's queued skill to a 1-hit basic attack if the pre-action counter inflicts Freeze on a Technique or Silence on Magic; Battle.cs:1319-1327 never checks for Freeze/Silence downgrade after Counter(t, unit).",
+          "exe_va": "0x420985..0x420ab4",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1319",
+          "reach": "1 player passive + enemy Counter Whip users; fires whenever a Counter Whip weapon/enchant inflicts Freeze or Silence",
+          "fix_hint": "After Counter(t, unit) in Perform(), if unit is alive and Frozen (on Technique) or Silenced (on Magic), replace action with a 1-hit plain Attack."
+        },
+        {
+          "sub_id": "M08.01c",
+          "severity": "S2",
+          "summary": "cmd 137 (EXTRA_TARGETS splash) rounds its target count via round_f32_to_i32 (0x61e650 at 0x420296), whereas Battle.cs:1498 truncates via PyMath.Int (identical on vanilla integer values 2..5).",
+          "exe_va": "0x420296",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1498",
+          "reach": "15 vanilla skills/attacks with cmd 137 (all carry exact integers 2..5 in vanilla)",
+          "fix_hint": "Use PyMath.Round instead of PyMath.Int for cmd 137 extra target count."
+        }
+      ]
+    },
+    {
+      "id": "M08.02",
+      "module": "M08",
+      "title": "_AfterHit1 (Drain 75/76, Devil's Whisper 320, Status Application)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.02a",
+          "severity": "S1",
+          "summary": "Devil's Whisper (320) runs in AfterHit AFTER TakeDamage/Endure 254 and calls ApplyAilment(119)->LoseHp, bypassing Endure 254; also Battle.cs:2674 gates preAiling on dealt != 0 instead of hpDamage != 0x7fffffff (0x422d09), skipping 0-damage hits.",
+          "exe_va": "0x422d09, 0x423560..0x4237e6",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2868",
+          "reach": "2 enemy passives across 11 vanilla enemies (Devil's Whisper) + any Endure 254 bearer",
+          "fix_hint": "Check hitLanded (not dealt != 0) for preAiling and route Devil's Whisper 119 lethal damage through Endure 254 before committing HP loss."
+        }
+      ]
+    },
+    {
+      "id": "M08.03",
+      "module": "M08",
+      "title": "_AfterHit2 (Endure 254, Turn Delay 54, Lethal Snapshot)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.03a",
+          "severity": "S1",
+          "summary": "_AfterHit2 snapshots origDmg before Endure 254 clamps damage and gates Turn Delay (54) on CurHP - origDmg > 0, making Endure save and Turn Delay mutually exclusive; Battle.cs:2728 checks post-Endure dealt > 0 and target.Alive, erroneously applying Turn Delay 54 on Endure-saved hits.",
+          "exe_va": "0x42388d..0x423a26",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2728",
+          "reach": "45 vanilla skills/attacks carrying Turn Delay (54) against any Endure 254 bearer",
+          "fix_hint": "Track whether Endure 254 triggered on the current hit (or pass origDamage >= hpBefore) and skip Turn Delay 54 when the raw hit was lethal."
+        }
+      ]
+    },
+    {
+      "id": "M08.04",
+      "module": "M08",
+      "title": "Defensive Procs Inside _Task (Parry 180, Counter 250, Knock Down 305, Pretend 310)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.04a",
+          "severity": "S0",
+          "summary": "Counter 250 (Mind's Eye) branches on pattern flag10 (0x422640..0x422656): sequential patterns (A/B/C/T0105/M0140) counter immediately and abort remaining multi-hits, whereas AoE patterns (D/E/F/G/M0124) defer to Stage 2 of _CheckAfterAttackInterrupt (max 1 counter for entire AoE, suppressing Reprisal 249 & Arcane Shield 447). Battle.cs:1866-1873 counters immediately per hit, never aborts multi-hits, permits multiple AoE counters, and fails to suppress 249/447.",
+          "exe_va": "0x422640..0x422656",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1866",
+          "reach": "1 player passive (Mind's Eye) + 3 enemy passives across 47 vanilla enemies",
+          "fix_hint": "Wire pattern flag10: on sequential patterns trigger immediate counter and break the remaining hit loop; on AoE patterns record deferredCounterSlot and execute once in Stage 2 before Reprisal/Arcane Shield."
+        },
+        {
+          "sub_id": "M08.04b",
+          "severity": "S1",
+          "summary": "Knock Down 305 (0x422285..0x4223ad) and Pretend 310 (0x421e00..0x421f57) ONLY void/zero damage in binary with NO counterattack; Battle.cs:1844 and Battle.cs:1857 erroneously call Counter(target, unit).",
+          "exe_va": "0x421e00..0x421f57, 0x422285..0x4223ad",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1857",
+          "reach": "1 player passive + 4 enemy passives across 75 vanilla enemies (Knock Down 305) + Pretend 310 users",
+          "fix_hint": "Remove Counter(target, unit) from Pretend 310 (Battle.cs:1844) and Knock Down 305 (Battle.cs:1857)."
+        },
+        {
+          "sub_id": "M08.04c",
+          "severity": "S1",
+          "summary": "Counter 250 checks this.inCounter == 0 at 0x422559 before rolling; Battle.cs:1866 omits !inCounter, allowing Voided() to roll 250 during a counterattack and evade/void the counter hit.",
+          "exe_va": "0x422559",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1866",
+          "reach": "All Mind's Eye / enemy Counter 250 bearers struck by a counterattack",
+          "fix_hint": "Add !inCounter to the Counter 250 condition at Battle.cs:1866."
+        },
+        {
+          "sub_id": "M08.04d",
+          "severity": "S1",
+          "summary": "Voided() returns early on Knock Down 305 (Battle.cs:1858) and Parry 180 (Battle.cs:1864) before AfterHit, skipping secondary status/ailment commands, whereas binary (0x422296, 0x4223d4) zeroes HP/TP damage inside _Task without aborting non-damage commands.",
+          "exe_va": "0x422296, 0x4223d4",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1854",
+          "reach": "75 enemies + 1 passive (305) and all Parry 180 stances when hit by skills with secondary ailments/debuffs",
+          "fix_hint": "Zero HP/TP damage for Knock Down 305 and Parry 180 instead of returning true from Voided() before AfterHit."
+        }
+      ]
+    },
+    {
+      "id": "M08.05",
+      "module": "M08",
+      "title": "Post-Hit Passive Recording (Dark Aura 262, Slow Target 293, Reprisal 249, Arcane Shield 447)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.05a",
+          "severity": "S1",
+          "summary": "Reprisal 249 requires Front Row (tgtUnit.isFrontRow != 0 at 0x4246b0); Battle.cs:2897 omits target.Front, allowing back-row units and enemies to trigger Reprisal.",
+          "exe_va": "0x4246b0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2897",
+          "reach": "1 player passive + 4 enemy passives across 126 vanilla enemies (Avenger / Reprisal)",
+          "fix_hint": "Add target.Front to the Reprisal 249 guard at Battle.cs:2897."
+        },
+        {
+          "sub_id": "M08.05b",
+          "severity": "S1",
+          "summary": "Reprisal 249 requires this.inCounter == 0 at 0x42467f; Battle.cs:2897 omits !inCounter, allowing counter hits to overwrite reprisal[] flags.",
+          "exe_va": "0x42467f",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2897",
+          "reach": "126 vanilla enemies + Reprisal passive bearers during counter exchanges",
+          "fix_hint": "Add !inCounter to the Reprisal 249 guard at Battle.cs:2897."
+        },
+        {
+          "sub_id": "M08.05c",
+          "severity": "S1",
+          "summary": "Arcane Shield 447 requires this.hitWasPhysical == 0 (non-physical/magical hits ONLY at 0x424728); Battle.cs:2579 omits this check and reflects physical attacks as well.",
+          "exe_va": "0x424728",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2579",
+          "reach": "1 Unique Skill (Arcane Shield 447) in both vanilla and X13-patched modes",
+          "fix_hint": "Gate Arcane Shield recording at Battle.cs:2579 on action != null && !action.Physical."
+        },
+        {
+          "sub_id": "M08.05d",
+          "severity": "S1",
+          "summary": "Dark Aura 262 (0x423d50..0x423d9b) only requires close range and hitLanded (no isPhysical check); Battle.cs:2881 wrongly requires action.Physical, suppressing Dark Aura on short-range spells.",
+          "exe_va": "0x423d50..0x423d9b",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2881",
+          "reach": "1 player passive + 3 enemy passives across 65 vanilla enemies",
+          "fix_hint": "Remove action.Physical from the Dark Aura 262 check at Battle.cs:2881."
+        },
+        {
+          "sub_id": "M08.05e",
+          "severity": "S1",
+          "summary": "Battle.cs:2871 gates 262/293/249 on dealt != 0 instead of hitLanded, and Slow Target 293 (Battle.cs:2891-2892) directly sets Slow (122) bypassing Earth resistance (AilmentThreshold) and barrier consumption (0x4244dc executes cmd 122 val=1.0f via ExecuteCalc).",
+          "exe_va": "0x4244dc",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2891",
+          "reach": "10 vanilla enemies with Slow Target 293 + all 0-damage hit interactions for 262/293/249",
+          "fix_hint": "Gate post-hit passives on hitLanded (not dealt != 0) and route Slow Target 293 Slow (122) through ApplyAilment(target, unit, 122, 1.0, null, SLOW_TARGET_RECOVERY)."
+        }
+      ]
+    },
+    {
+      "id": "M08.06",
+      "module": "M08",
+      "title": "_CheckAfterAttackInterrupt 4-Stage Post-Action Chain (250, 249, 447, 260)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.06a",
+          "severity": "S0",
+          "summary": "Stage 2 Deferred Counter 250 (which suppresses Stages 3 & 4) is missing, AND Stage 4 Arcane Shield 447 (Battle.cs:1366-1383) executes BEFORE Stage 3 Reprisal 249 (Battle.cs:1386-1398) and Support Shot 260 runs last (Battle.cs:1416-1442).",
+          "exe_va": "0x424c42..0x425381",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1366",
+          "reach": "All AoE/multi-target actions involving Mind's Eye 250, Reprisal 249 (126 enemies), Arcane Shield 447, or Support Shot 260",
+          "fix_hint": "Implement the exact 4-stage post-action order: Support Shot 260 -> Deferred Counter 250 (if fired, skip 249 & 447) -> Reprisal 249 -> Arcane Shield 447."
+        },
+        {
+          "sub_id": "M08.06b",
+          "severity": "S1",
+          "summary": "Arcane Shield 447 (0x4251f8..0x42531b) executes Skill 240 (0xf0: effects [(8,0),(1,1),(55,1),(296,500),(70,0)]), which enforces a 500 damage cap (cmd 296), barriers, and Endure 254; Battle.cs:1378 calls raw LoseHp(unit, PyMath.Int(stored * bearer.UniqueValue), bearer), bypassing all three.",
+          "exe_va": "0x4251f8..0x42531b",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1378",
+          "reach": "1 Unique Skill (Arcane Shield 447) whenever stored * mult > 500 or attacker has barrier/Endure 254",
+          "fix_hint": "Cap Arcane Shield damage at 500 (Skill 240 cmd 296) and route through barrier/TakeDamage/Endure 254."
+        },
+        {
+          "sub_id": "M08.06c",
+          "severity": "S1",
+          "summary": "Support Shot 260 (0x424c42..0x425821) requires primaryTarget alive (no fallback to another foe) and executes with inCounter = 1; Battle.cs:1424-1428 falls back to opp[0] on target death and Battle.cs:1437 calls Resolve(shot, first, 0) without setting inCounter = true.",
+          "exe_va": "0x424c42, 0x425821",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1424",
+          "reach": "1 player passive + 7 enemy attacks across 9 vanilla enemies with Support Shot 260",
+          "fix_hint": "Skip Support Shot if the primary target is dead (remove opp[0] fallback) and wrap Resolve(shot, first, 0) in inCounter = true."
+        },
+        {
+          "sub_id": "M08.06d",
+          "severity": "S2",
+          "summary": "Arcane Shield 447 iterates global Units order (Battle.cs:1369) instead of targetSlots order (0x424e70).",
+          "exe_va": "0x424e70",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1369",
+          "reach": "Only matters if multiple Arcane Shield bearers are hit by the same AoE in non-Units order",
+          "fix_hint": "Iterate targets in targetSlots order for Arcane Shield just like Reprisal 249."
+        }
+      ]
+    },
+    {
+      "id": "M08.07",
+      "module": "M08",
+      "title": "Chant/Song/Dance Interruption & Crit Instakill (258)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.07a",
+          "severity": "S1",
+          "summary": "Battle.cs:2575 passes physical = (action == null || !action.Magic) into Interrupt(), wrongly applying the physical damage-ratio interrupt roll to non-physical special-damage attacks (0x44cff7 runs only in CalcPhysicalAttack).",
+          "exe_va": "0x44cff7",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2575",
+          "reach": "All non-physical special-damage skills/attacks hitting chanting/singing/dancing targets",
+          "fix_hint": "Pass action != null && action.Physical (not !action.Magic) to Interrupt() at Battle.cs:2575."
+        },
+        {
+          "sub_id": "M08.07b",
+          "severity": "S1",
+          "summary": "Crit Instakill 258 (Murder) runs at Battle.cs:2032-2033 AFTER TakeDamage/Endure 254 instead of inside CalcPhysicalAttack (0x44d266) before _AfterHit2, causing Murder to bypass Endure 254.",
+          "exe_va": "0x44d266",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2032",
+          "reach": "1 player passive (Murder 258) on critical hits against Endure 254 bearers",
+          "fix_hint": "Evaluate Crit Instakill 258 inside the physical damage calculation before TakeDamage so Endure 254 can intercept the lethal hit."
+        },
+        {
+          "sub_id": "M08.07c",
+          "severity": "S2",
+          "summary": "Formulas.cs:296 + Battle.cs:2597 merges the binary's two separate integer Rand(100) rolls on critical hits into a single combined float Roll(chance) (mathematically equivalent probability, 1 fewer RNG draw on crits).",
+          "exe_va": "0x44d044..0x44d1ff",
+          "code_ref": "engine_cs/src/DtEngine/Formulas.cs:296",
+          "reach": "All critical hits on chanting/performing units (RNG stream alignment only)",
+          "fix_hint": "Roll physical ratio interrupt and critical 15% interrupt as two separate Rng.RandRange(100) checks."
+        }
+      ]
+    },
+    {
+      "id": "M08.08",
+      "module": "M08",
+      "title": "CActionPattern* Factory & Dispatch Table (Skill Trailer[4] & EnemyAttack+0x90)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.08a",
+          "severity": "S0",
+          "summary": "pattern (Skill Trailer[4] and EnemyAttack+0x90) is not parsed for EnemyAttack in gamedata/data.py:213-234, is dropped for both Skills and EnemyAttacks in tools/engine_export.py:43-62, and does not exist in Data.cs/Loader.cs/Battle.cs. All 2,616 vanilla skills and enemy attacks collapse into a single Battle.Perform() path.",
+          "exe_va": "0x41e060, 0x41b530",
+          "code_ref": "tools/engine_export.py:43",
+          "reach": "All 241 vanilla skills and 2,375 vanilla enemy attacks (100% of active combat actions)",
+          "fix_hint": "Parse pattern from EnemyAttack Trailer[2] (+0x90) and Skill Trailer[4], export it in engine_export.py, load it in Data.cs/Loader.cs, and dispatch pattern-specific sequencing/flag10/Cover/retarget rules in Battle.cs."
+        }
+      ]
+    },
+    {
+      "id": "M08.09",
+      "module": "M08",
+      "title": "Standard Multi-Hit & AoE Patterns (A..G, T0105, M0124, M0140)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.09a",
+          "severity": "S0",
+          "summary": "Patterns A/B/C/G re-select a new living target via _SelectTarget when the current target dies mid-multi-hit; Battle.cs:1349 breaks the hit loop (if (!target.Alive) break;) and wastes all remaining hits.",
+          "exe_va": "0x41e060, 0x41b530",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1349",
+          "reach": "1,325+ vanilla A/B/C/G multi-hit skills and enemy attacks (e.g., Divine Cannon, Mad Zapper, Prism Dawn)",
+          "fix_hint": "On A/B/C/G patterns, when target dies mid-multi-hit, re-select another valid living target via _SelectTarget instead of breaking."
+        },
+        {
+          "sub_id": "M08.09b",
+          "severity": "S0",
+          "summary": "CActionPatternM0124 (case 13, Magic 230 Primevil, 0x42d1d0) rotates self-slot last in target order (unimplemented), and pre-calc _Cover (Battle.cs:1799) dispatches by TargetCode instead of pattern (D/F/G/M0124 skip pre-calc _Cover while E/T0105/M0140 run it).",
+          "exe_va": "0x42d1d0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1799",
+          "reach": "Magic 230 (Primevil) + all AoE/row/random attacks interacting with Cover (171)",
+          "fix_hint": "Rotate self slot to the end for pattern 13 (M0124) and gate Cover(171) by pattern class (A/B/C/E/T0105/M0140) rather than TargetCode alone."
+        }
+      ]
+    },
+    {
+      "id": "M08.10",
+      "module": "M08",
+      "title": "Random Skill Patterns (10/11/12/14/17 & Weighted Draw)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.10a",
+          "severity": "S1",
+          "summary": "CActionPatternM0129 (case 14, Magic 234 Heaven or Hell, 0x42d370) preserves the caster's chosen target slots when executing the drawn skill; Battle.cs:3482 constructs new Action(action.Actor, AKind.Skill, skill, action.Level) without copying action.Target, redirecting to a random target.",
+          "exe_va": "0x42d370",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3482",
+          "reach": "Magic 234 (Heaven or Hell) whenever cast by player",
+          "fix_hint": "Copy Target = action.Target onto the returned Action in RandomMove() when effect == 155 (Heaven or Hell)."
+        },
+        {
+          "sub_id": "M08.10b",
+          "severity": "S2",
+          "summary": "EnemyAttack pattern 17 (E2520, table at 0x64f1c0, 13 moves 2701..2713, sum=95) is neither extracted by tools/random_move_data.py:28-31 nor handled in Battle.cs.",
+          "exe_va": "0x41b530",
+          "code_ref": "tools/random_move_data.py:28",
+          "reach": "0 vanilla EnemyAttackData records carry pattern 17",
+          "fix_hint": "Add table 0x64f1c0 (13 entries) to tools/random_move_data.py and handle pattern 17 in Battle.cs."
+        },
+        {
+          "sub_id": "M08.10c",
+          "severity": "S2",
+          "summary": "Battle.cs:1734 draws continuous Rng.Random() * total instead of integer GlobalRng.Rand(total) (0x505b35).",
+          "exe_va": "0x505b35",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1734",
+          "reach": "All random-move weighted draws (RNG precision/stream divergence)",
+          "fix_hint": "Use integer Rng.RandRange((int)total) for integer weight tables in Weighted()."
+        }
+      ]
+    },
+    {
+      "id": "M08.11",
+      "module": "M08",
+      "title": "Special Patterns (E1580 Murder License 319 & U0008 Overstock Clearance 446)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.11a",
+          "severity": "S1",
+          "summary": "CActionPatternE1580 (Murder License 319, 0x42c180) directly executes raw cmd 119 (Instakill, val=1.0f) on a random target with no physical attack/hit roll; Battle.cs:93,924-929 instead fires EnemyAttack 413 (Head Shot: Stab physical attack, acc=-0.15, pow=0.35, range=2, eff 119 @ 0.5).",
+          "exe_va": "0x42c180",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:924",
+          "reach": "3 vanilla boss/enemies (Carmilla, Koumoku Mary, Aradia)",
+          "fix_hint": "Replace the EnemyAttack 413 proxy with direct ApplyAilment(unit, foe, 119, 1.0, null) on a random living targetable opponent."
+        },
+        {
+          "sub_id": "M08.11b",
+          "severity": "S1",
+          "summary": "CActionPatternU0008 (Overstock Clearance 446, 0x42fb60..0x4302cf) casts a FREE weighted random item from [1, 6, 45, 49, 55, 56] (weights [20,20,20,15,15,15], sum=105) with hardcoded target rules and NO inventory consumption; Battle.cs:934-940 requires unit.Items.Count > 0, picks a heal/TP item via Policy.ActItem, and consumes the bag.",
+          "exe_va": "0x42fb60..0x4302cf",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:934",
+          "reach": "1 Unique Skill (Overstock Clearance 446)",
+          "fix_hint": "Implement the hardcoded 6-item free weighted table [1,6,45,49,55,56] with weights [20,20,20,15,15,15] and zero inventory decrement."
+        }
+      ]
+    },
+    {
+      "id": "M08.12",
+      "module": "M08",
+      "title": "Steal & Turn-Into-Snack (59, 60, 62, 84/292)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.12a",
+          "severity": "S2",
+          "summary": "Gold Steal 60 (Battle.cs:2754-2768) omits the enemyParam.gold == 0 guard (0x44fed3), rolls RandRange(100) only after checking allowed && !already (binary 0x44ff16 rolls before), and does not model Enemy Gold Steal 62 (9 enemy attacks; wallet economy out of single-battle scope).",
+          "exe_va": "0x44fed3, 0x44ff16",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:2762",
+          "reach": "Item/Gold Steal skills (59/60) against 0-gold enemies and 9 enemy attacks with cmd 62",
+          "fix_hint": "Export enemy gold (or gold > 0) for the cmd 60 guard and roll RandRange(100) unconditionally before checking allowed/already if RNG-exact parity is desired."
+        }
+      ]
+    },
+    {
+      "id": "M08.13",
+      "module": "M08",
+      "title": "Turn-Start Auto-Trigger State Machine (TurnPhaseNo 0..24)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.13a",
+          "severity": "S0",
+          "summary": "Overstock Clearance 446 (TurnPhaseNo 3), Murder License 319 (12), Tranquil 357 (13), Usurper of Souls 350 (14), and ShadowHeart 448 (15) are all placed in BeforeAction(unit) (Battle.cs:909-963) OUTSIDE if (!extraTurn) and AFTER hard/soft turn loss, Regen, Dances, Poison, and Undaunted. All five fire illegally on extra turns (violating 0x4365ff) and in the wrong turn-start order.",
+          "exe_va": "0x4365ff, 0x437364..0x437960",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:909",
+          "reach": "4 Unique Skills (446, 357, 350, 448) + 3 boss enemies (319) on every turn and extra turn",
+          "fix_hint": "Move 446 into TurnPhaseNo 3 (before Petrify/hard turn-loss) and 319/357/350/448 into TurnPhaseNo 12..15 (after soft turn-loss, before Regen/Dances/Poison/Undaunted), all inside if (!extraTurn)."
+        },
+        {
+          "sub_id": "M08.13b",
+          "severity": "S1",
+          "summary": "Third Eye Wide 345 (0x436955..0x436a98) breaks after the first opposing bearer procs; Battle.cs:857-867 lacks a break statement.",
+          "exe_va": "0x436955..0x436a98",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:859",
+          "reach": "Unique Skill 345 (Third Eye Wide) when multiple opponents hold it",
+          "fix_hint": "Add break; inside the successful Roll(other.UniqueValue) branch at Battle.cs:866."
+        },
+        {
+          "sub_id": "M08.13c",
+          "severity": "S1",
+          "summary": "Usurper of Souls 350 (0x4376e3..0x4378d8) is player-only and destroys only enemy puppets ([etc+0x194] == 3); Battle.cs:953 targets any opposing Kind.Doll including Star Dust Arrows.",
+          "exe_va": "0x4376e3..0x4378d8",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:953",
+          "reach": "Unique Skill 350 (Usurper of Souls) against enemies summoning dolls/arrows",
+          "fix_hint": "Filter Usurper of Souls 350 to unit.Kind == Kind.Member and opposing IsPuppet(u) only."
+        },
+        {
+          "sub_id": "M08.13d",
+          "severity": "S1",
+          "summary": "Battle.cs:838 never skips TurnPhaseNo 0..24 for Kind.Doll, Kind.Summon, or Kind.Npc (0x43660d..0x43664d), causing them to trigger Third Eye Wide 345, Warning Shot/Magnificent Steps, and Undaunted 355.",
+          "exe_va": "0x43660d..0x43664d",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:838",
+          "reach": "Every Doll, Arrow, Genjimaru, Shadow, Summon, and Guest NPC turn",
+          "fix_hint": "Skip TurnPhaseNo 0..24 for Kind.Doll and route Kind.Summon/Npc to the dedicated Samba-199-only tick."
+        }
+      ]
+    },
+    {
+      "id": "M08.14",
+      "module": "M08",
+      "title": "Post-Action Triggers (Heretic Samsara 291 & Extra-Turn 288/289/354)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M08.14a",
+          "severity": "S1",
+          "summary": "Heretic Samsara 291 triggers POST-ACTION (0x438e50, Outer State 3) once cmd291.val >= 1.0f (flagged at 0x47f775); Battle.cs:850-855 instead triggers at TURN-START and checks unit.Hp < unit.MaxHp / 2.0.",
+          "exe_va": "0x438e50, 0x47f775",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:850",
+          "reach": "3 vanilla boss enemies (Ma, Riko, Demiurge)",
+          "fix_hint": "Move Samsara resistance shuffle to post-action EndOfTurn() triggered by SamsaraState >= 1 (set on crossing the damage threshold), not turn-start."
+        },
+        {
+          "sub_id": "M08.14b",
+          "severity": "S1",
+          "summary": "Extra-turn passives 288 (5 enemies), 289 (1 enemy), and 354 (1 Unique Skill) at 0x43903b..0x439069 require actor == battle.units[0] AND !actor.IsAsleep (vt+0xbc); Battle.cs:1124 omits both guards and Battle.cs:1110 wastes a SPEED_RANDOM RNG draw in Wait() even when granting an extra turn.",
+          "exe_va": "0x43903b..0x439069",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1110",
+          "reach": "5 enemies (288), 1 enemy (289), and 1 Unique Skill (354)",
+          "fix_hint": "Check !unit.HasStatus(116) (Sleep) and evaluate extra-turn eligibility before calling Wait() so no SPEED_RANDOM draw is wasted."
+        }
+      ]
+    },
+    {
+      "id": "M09.01",
+      "module": "M09",
+      "title": "Doll & Arrow Spawning, Caster Status Whitelist (0x6cc7b8) & Enemy Doll Table",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.01a",
+          "severity": "S1",
+          "summary": "The 12-command caster status whitelist at 0x6cc7b8 ([41..46, 48, 189, 193, 194, 256, 286], copied in CGamePlayerStatusETCDoll::ctor 0x4fd840) is NOT copied from owner to newly spawned Dolls or Star Dust Arrows in UnitFactory.BuildDoll (Units.cs:903-939) or MakeDoll/MakeGuestDoll (Battle.cs:3287-3378). Only AddShadow copies statuses.",
+          "exe_va": "0x4fd840, 0x6cc7b8",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:903",
+          "reach": "All 6 player puppets, Star Dust Arrow, Genjimaru, and all 34 enemy/NPC doll skills whenever caster has buffs/256/286",
+          "fix_hint": "Copy any active caster statuses in the 12-command whitelist [41..46, 48, 189, 193, 194, 256, 286] onto the new doll in UnitFactory.BuildDoll()."
+        },
+        {
+          "sub_id": "M09.01b",
+          "severity": "S2",
+          "summary": "Player skill 315 (0x13b -> EnemyAttack 341 Bunmawashi) is absent from tools/doll_data.py (0 vanilla records in TechniqueSkillData.pck).",
+          "exe_va": "0x484481",
+          "code_ref": "tools/doll_data.py:15",
+          "reach": "0 vanilla TechniqueSkillData.pck records use skill ID 315",
+          "fix_hint": "Optionally register skill 315 -> action 341 in tools/doll_data.py for completeness."
+        }
+      ]
+    },
+    {
+      "id": "M09.02",
+      "module": "M09",
+      "title": "Doll Eviction Rules, Global 12-ETC Cap, ATB Gauge & Tiebreak Counter",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.02a",
+          "severity": "S1",
+          "summary": "Battle.cs:3299-3304 evicts all of owner's existing Star Dust Arrows whenever Star Dust Arrow is recast; in binary (0x484491..0x4844fa, 0x43c790), Arrows carry no puppet status command and NEVER self-evict, stacking freely up to the global 12-ETC cap.",
+          "exe_va": "0x484491..0x4844fa",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3299",
+          "reach": "Star Dust Arrow (Technique 49) whenever cast on consecutive turns by an Archer/Sniper",
+          "fix_hint": "Remove the if (arrow) eviction block at Battle.cs:3299-3304 so Arrows only respect MAX_ACTIVE_DOLLS."
+        },
+        {
+          "sub_id": "M09.02b",
+          "severity": "S2",
+          "summary": "Battle.cs:601 sets doll TieKey = -unit.Position instead of the decrementing etcCounter starting at 962 wrapping 0->962 (0x43a20d..0x43a2f1); identical relative order until >962 spawns in one battle.",
+          "exe_va": "0x43a20d..0x43a2f1",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:601",
+          "reach": "Battles spawning >962 dolls (effectively unreachable in normal fights)",
+          "fix_hint": "Track a decrementing etcCounter starting at 962 (wrapping to 962 on 0) for doll TieKey."
+        }
+      ]
+    },
+    {
+      "id": "M09.03",
+      "module": "M09",
+      "title": "Doll Stat Snapshot, Enchant Inheritance, TP=9999 & Post-Hit Exclusions",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.03a",
+          "severity": "S0",
+          "summary": "UnitFactory.BuildDoll (Units.cs:903-939) leaves unit.Enchants = NoEnchants instead of copying owner.Enchants (0x4fd867 -> 0x4f3290 copies full enchantList), stripping ALL offensive, crit, speed, slayer, element, and ailment enchants from every player Doll, Star Dust Arrow, and Genjimaru (AddShadow at Battle.cs:980 copies Enchants, BuildDoll does not).",
+          "exe_va": "0x4fd867, 0x4f3290",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:930",
+          "reach": "Every player Puppet (6), Star Dust Arrow, and Genjimaru in every geared party",
+          "fix_hint": "In UnitFactory.BuildDoll(), call unit.SetEnchants((int[])owner.Enchants.Clone()) when owner.HasEnchants."
+        },
+        {
+          "sub_id": "M09.03b",
+          "severity": "S1",
+          "summary": "Units.cs:930 sets Doll MaxTp = 0, Tp = 0 instead of 9999 (0x4fd922..0x4fd929), and Units.cs:640 excludes offhand weapon stats (256 Lefty Bonus) from DollBase even though 256 is in the 12-cmd whitelist 0x6cc7b8.",
+          "exe_va": "0x4fd922, 0x4fd929",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:930",
+          "reach": "All player Dolls/Arrows/Genjimaru (especially Dual-Wielding Doll Masters / Snipers)",
+          "fix_hint": "Initialize Doll MaxTp/Tp to 9999 and include offhand stats in DollBase when owner has 256 (Dual Wield)."
+        }
+      ]
+    },
+    {
+      "id": "M09.04",
+      "module": "M09",
+      "title": "Doll Turn Execution, TurnPhaseNo Skip, Life Decrement & Shadow Sew Destruction",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.04a",
+          "severity": "S0",
+          "summary": "Battle.cs:838-900 executes full TurnPhaseNo 0..24 for Kind.Doll instead of skipping directly to action execution (0x43660d..0x43662c), exposing Dolls to Third Eye Wide 345, Warning Shot/Magnificent Steps, Undaunted 355, DecrementTimedStatuses, and TickRegenAndDances.",
+          "exe_va": "0x43660d..0x43662c",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:838",
+          "reach": "Every Doll, Arrow, Genjimaru, and ShadowHeart turn in combat",
+          "fix_hint": "Bypass TurnPhaseNo 0..24 when unit.Kind == Kind.Doll (jump straight to DollAction/Perform + EndOfTurn life decrement)."
+        },
+        {
+          "sub_id": "M09.04b",
+          "severity": "S1",
+          "summary": "Shadow Sew (123) calls EndParts() (Battle.cs:3082), which removes only puppets (!u.Arrow && !u.Genjimaru && u.ShadowOf == null), whereas binary 0x4fa4d7 -> 0x43d2c0 (DestroyAllETCOfOwner) destroys ALL ETC units owned by the victim (Arrows, Genjimaru, and ShadowHearts too).",
+          "exe_va": "0x4fa4d7, 0x43d2c0",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3082",
+          "reach": "Any unit afflicted by Shadow Sew 123 while owning Arrows, Genjimaru, or ShadowHeart",
+          "fix_hint": "When Shadow Sew (123) lands, destroy every Kind.Doll with u.Owner == target (including Arrows, Genjimaru, and ShadowHearts)."
+        },
+        {
+          "sub_id": "M09.04c",
+          "severity": "S1",
+          "summary": "DollAction() (Battle.cs:3437-3452) invents an Options.DollCureTargets = 2 cap on Perdurabo's Action (Skill 105, Target=10 NO_TARGET, effect 235), whereas binary cmd 235 cures up to skill-level ailments across the party without a 2-ally target cap.",
+          "exe_va": "0x438cea",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:3449",
+          "reach": "Perdurabo puppet (Technique 99 / Action 105) whenever >=3 party members have ailments",
+          "fix_hint": "Remove the artificial DollCureTargets = 2 truncation and apply Perdurabo's cmd 235 across all eligible party members per binary Target=10 rules."
+        }
+      ]
+    },
+    {
+      "id": "M09.05",
+      "module": "M09",
+      "title": "Summon & Guest NPC Battle Lifecycle, Slot Priority (930/929) & Untargetability",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.05a",
+          "severity": "S1",
+          "summary": "Battle.cs:838-900 runs full TurnPhaseNo 0..24 for Kind.Summon and Guest NPCs instead of skipping to the Samba-199-only hook (0x43662d..0x43664d), exposing them to Third Eye Wide 345, Undaunted 355, and normal turn-start ticks.",
+          "exe_va": "0x43662d..0x43664d",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:838",
+          "reach": "Every Summon (105 forms) and Guest NPC (107 entries) turn in combat",
+          "fix_hint": "Route Kind.Summon/Npc away from TurnPhaseNo 0..24 to the dedicated Samba-199-only tick."
+        },
+        {
+          "sub_id": "M09.05b",
+          "severity": "S2",
+          "summary": "Ai.cs:323 returns AKind.Defend if attack lookup fails, whereas binary Outer State 1 (0x438a66..0x438b68) falls back to EnemyAttack ID 0 when AI returns false.",
+          "exe_va": "0x438a9d",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:323",
+          "reach": "Only if a Summon/NPC AI script returns no valid attack (0 vanilla occurrences)",
+          "fix_hint": "Fall back to EnemyAttack ID 0 instead of Defend when AI yields null."
+        }
+      ]
+    },
+    {
+      "id": "M09.06",
+      "module": "M09",
+      "title": "Summon/NPC Stat Scaling, Leader Sealbook Inheritance, Buddy Enchants (295/297) & Samba (199) Tick",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.06a",
+          "severity": "S1",
+          "summary": "Party Slot 0 Sealbook enchant inheritance (0x4ff530, vtable+0x178 on BOTH CGamePlayerStatusSummon and CGamePlayerStatusNPC) is completely unimplemented in BuildGuest (Units.cs:794-807) and BuildSummon (Units.cs:847-901) — neither sets unit.Enchants from the leader's equipped Sealbook.",
+          "exe_va": "0x4ff530..0x4ff62e",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:889",
+          "reach": "All 105 Summon forms and 107 Guest NPCs whenever Party Slot 0 equips any Sealbook",
+          "fix_hint": "Copy Party Slot 0's Sealbook enchants onto Summon and Guest NPC units via SetEnchants() in BuildSummon() and BuildGuest()."
+        },
+        {
+          "sub_id": "M09.06b",
+          "severity": "S1",
+          "summary": "Samba 199 (Debilitating Salsa, carried by Summons 111/112 & NPC 170) runs inside full TurnPhaseNo/TickRegenAndDances (Battle.cs:896,1182) instead of the dedicated 2-step Samba-only tick (0x436322..0x4365fb), exposing Summons/NPCs to all other turn-start states.",
+          "exe_va": "0x436322..0x4365fb",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:1182",
+          "reach": "Summons 111/112 & Guest NPC 170 (Debilitating Salsa) + all Summons/NPCs taking turns",
+          "fix_hint": "Run only the Samba 199 tick (and no other TurnPhaseNo states) at turn start for Kind.Summon/Npc."
+        }
+      ]
+    },
+    {
+      "id": "M09.07",
+      "module": "M09",
+      "title": "Enchant Aggregation, Stacking Bit 0, Offhand Bit 7 & Party-Wide Presence (295/297)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M09.08",
+      "module": "M09",
+      "title": "Stat, Accuracy/Evasion, Speed/Chant, Interruption & Element Resistance Enchants",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M09.09",
+      "module": "M09",
+      "title": "Normal-Attack Ailment/Drain Enchants (152..165, 197) & Weapon Element Overrides (78..82)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.09a",
+          "severity": "S1",
+          "summary": "Action.cs:306-307 returns only the FIRST active weapon-element enchant in 78..82 (Fire..Lightning), whereas binary IsAttributeFire/Water/Wind/Earth/Lightning (0x415f50..0x416e49) tests each enchant independently, allowing multi-element normal attacks to trigger multiple element boosts/resists/nullifiers.",
+          "exe_va": "0x415f50..0x416e49",
+          "code_ref": "engine_cs/src/DtEngine/Action.cs:306",
+          "reach": "41 vanilla gear/sealbook occurrences of enchants 78..82 whenever a character equips >=2 different element-buff enchants",
+          "fix_hint": "Represent attack elements as a bitmask/set for normal attacks so multiple active 78..82 enchants all apply independently."
+        },
+        {
+          "sub_id": "M09.09b",
+          "severity": "S1",
+          "summary": "Action.cs:295 gates weapon element overrides (325..329 and 78..82) on Actor.Kind == Kind.Member, excluding Dolls even though binary checks CGamePlayerStatusBase (0x41620d) which Dolls inherit.",
+          "exe_va": "0x41620d",
+          "code_ref": "engine_cs/src/DtEngine/Action.cs:295",
+          "reach": "Player Dolls/Arrows whose owner carries weapon-element enchants 78..82 or statuses 325..329",
+          "fix_hint": "Allow player-owned Kind.Doll units (with inherited enchants) to evaluate weapon-element overrides in WeaponAttrWithOverrides()."
+        }
+      ]
+    },
+    {
+      "id": "M09.10",
+      "module": "M09",
+      "title": "Damage Nullification (120..128), Ailment Nullification (129..139), Trap (269) & Dissipation (265)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M09.11",
+      "module": "M09",
+      "title": "Turn-Start Regen (144..149, 296), Defend Regen (257, 292), Damage-to-TP (72, 73) & Post-Battle (193, 194)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M09.12",
+      "module": "M09",
+      "title": "TP Cost (246..249 + cmd 266), Performance (300..305), Unarmed (263), Class Mod (264) & Unique+1 (293)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M09.13",
+      "module": "M09",
+      "title": "Conditional/Species Combat Enchants (262, 267, 268, 271, 272, 219, 220, 280, 298, Slayers/Guards)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.13a",
+          "severity": "S2",
+          "summary": "Fast-Chant 298 (Battle.cs:586) faithfully replicates the vanilla Rand(10) < 10 unconditional +0.25 bonus, but omits the 1 GlobalRng.Rand(10) draw at 0x44a370.",
+          "exe_va": "0x44a370",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:586",
+          "reach": "1 vanilla gear/sealbook item with enchant 298 (RNG stream parity only; gameplay effect identical)",
+          "fix_hint": "Consume Rng.RandRange(10) < 10 when chanting with enchant 298 if RNG-exact parity is required."
+        },
+        {
+          "sub_id": "M09.13b",
+          "severity": "S2",
+          "summary": "Escape Probability UP 262 (floor 0.50 at 0x43b55a) is not implemented because battle escape is not modeled in Battle.cs (1 vanilla gear/sealbook occurrence).",
+          "exe_va": "0x43b55a",
+          "code_ref": "engine_cs/src/DtEngine/Battle.cs:586",
+          "reach": "1 vanilla gear/sealbook item with enchant 262 (escape command out of sim scope)",
+          "fix_hint": "Implement when/if battle escape is added to Battle.cs."
+        }
+      ]
+    },
+    {
+      "id": "M09.14",
+      "module": "M09",
+      "title": "EXP (270, 275), Drop (276), Pep (195, 200, 201) & Field/Exploration Enchants",
+      "verdict": "MODEL-LIMIT",
+      "sub_bugs": []
+    },
+    {
+      "id": "M09.15",
+      "module": "M09",
+      "title": "Master Reference Table of All 280 Enchants (0..305)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M09.15a",
+          "severity": "S0",
+          "summary": "Systemic Doll enchant drop (M09.03a): UnitFactory.BuildDoll (Units.cs:903-939) omits owner.Enchants, silently disabling all 280 enchants on player Dolls, Arrows, and Genjimaru.",
+          "exe_va": "0x4fd867",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:930",
+          "reach": "All 280 enchants on every player Doll/Arrow/Genjimaru",
+          "fix_hint": "Copy owner.Enchants in UnitFactory.BuildDoll()."
+        },
+        {
+          "sub_id": "M09.15b",
+          "severity": "S1",
+          "summary": "Systemic Companion Sealbook drop (M09.06a): BuildSummon/BuildGuest omit Party Slot 0 Sealbook enchants (0x4ff530), disabling all Sealbook enchants on Summons and Guest NPCs; plus weapon-element 78..82 single-element & Member-only limitation (M09.09a/b).",
+          "exe_va": "0x4ff530, 0x41620d",
+          "code_ref": "engine_cs/src/DtEngine/Action.cs:306",
+          "reach": "All 105 Summons, 107 Guest NPCs, and 41 vanilla weapon-element enchant occurrences",
+          "fix_hint": "Propagate Slot 0 Sealbook enchants to Summons/NPCs and support multi-element 78..82 on Members and Dolls."
+        }
+      ]
+    },
+    {
+      "id": "M10.01",
+      "module": "M10",
+      "title": "Enemy/Summon/NPC AI Script Container & Bytecode Framing",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M10.02",
+      "module": "M10",
+      "title": "AI Instruction Format, Action-Word Bitfields & Chaining (0x1000/0x2000/0x4000/0x8000)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.02a",
+          "severity": "S2",
+          "summary": "FinalResult() at Ai.cs:149-150 masks SLOT (0x4000) and ATTACK_ID (0x8000) action words with 0x0FFF instead of 0x3FFF (0x433024, 0x433037); SkillOf() at Ai.cs:159,162 uses 0x3FFF correctly.",
+          "exe_va": "0x433024, 0x433037",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:149",
+          "reach": "0 vanilla impact (max vanilla EnemyAttackId is 2693 < 4096); breaks modded IDs >= 4096",
+          "fix_hint": "Change 0x0FFF to 0x3FFF on Ai.cs:149-150 (matching SkillOf at Ai.cs:159,162)."
+        }
+      ]
+    },
+    {
+      "id": "M10.03",
+      "module": "M10",
+      "title": "AI Set Switching, Visited-Set Guard, Weight Roll & Missing-Script Fallback",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.03a",
+          "severity": "S2",
+          "summary": "When script == null or initial AiSet is absent, Ai.cs:50,70-75 falls back to MinSet() / RollUniform(battle, attacks), whereas binary (0x430f37 -> 0x4313ba, 0x431018) falls back to slot 0 (_SelectNormalAttack).",
+          "exe_va": "0x430f37, 0x431018",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:50",
+          "reach": "0 vanilla enemies lack scripts; Summons/NPCs without scripts default to RollUniform vs slot 0",
+          "fix_hint": "Fall back to slot 0 (AttackAction(battle, unit, 0, T.NONE)) when script or set is missing."
+        },
+        {
+          "sub_id": "M10.03b",
+          "severity": "S2",
+          "summary": "RollWeights() (Ai.cs:88-105) filters slot < attacks.Length when summing weights, whereas binary sums all 16 weight slots 0..15 unconditionally.",
+          "exe_va": "0x431018",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:93",
+          "reach": "Only affects scripts with non-zero weight on an out-of-range slot index",
+          "fix_hint": "Sum all 16 weight entries and fall back to slot 0 if rolled slot >= attacks.Length."
+        }
+      ]
+    },
+    {
+      "id": "M10.04",
+      "module": "M10",
+      "title": "AI Condition Opcodes (0..15) & Stop Flag Semantics",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.04a",
+          "severity": "S0",
+          "summary": "Passes() for comparison opcodes 3, 4, 10, 11, 12, 13, 14 (Ai.cs:171-184) NEVER checks v != -1 because SourceValue() returns 0 (for false boolean sources 5..11) or 100 (for empty HP/TP sources 1..4) instead of -1, and returns counts 0..N instead of 1/-1 for sources 5..11. Thus opcode 3 (<= N) on source 5..11 when NO unit qualifies evaluates 0 <= N -> TRUE instead of FALSE!",
+          "exe_va": "0x431aa0, 0x432690",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:171",
+          "reach": "All 516 Enemies, 105 Summons, and 107 NPCs executing AI comparison opcodes 3/10/12/13/14 on sources 1..11",
+          "fix_hint": "Return -1 from SourceValue() when empty/false and 1 when true for sources 5..11, and return false in Passes() whenever value == -1."
+        },
+        {
+          "sub_id": "M10.04b",
+          "severity": "S1",
+          "summary": "Opcode 2 (Turn count <= N, Ai.cs:170) tests unit.TurnsTaken, which increments at TURN START (Battle.cs:832) including lost turns (Sleep/Paralysis/Petrify) and chant-start turns; binary battleUnit[+0xb8] increments at Outer State 3 (0x438cbd) AFTER completing an action.",
+          "exe_va": "0x438cbd",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:170",
+          "reach": "124 vanilla Enemy AI scripts + 6 NPC AI scripts using opcode 2",
+          "fix_hint": "Increment AI action/turn counter in Outer State 3 post-action (excluding hard-lost turns) rather than at turn start."
+        },
+        {
+          "sub_id": "M10.04c",
+          "severity": "S2",
+          "summary": "Opcode 9 (Dead ally, Ai.cs:230-234) runs for Enemies too, whereas binary 0x43232e forces false for Enemies (task.isPlayerSide == 0).",
+          "exe_va": "0x43232e",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:230",
+          "reach": "0 vanilla Enemy scripts use opcode 9 (2 NPC scripts use it)",
+          "fix_hint": "Gate cid == 9 on unit.Side == Unit.PARTY."
+        },
+        {
+          "sub_id": "M10.04d",
+          "severity": "S2",
+          "summary": "Opcode 15 (Summon/NPC per-skill use limit) is completely unimplemented in Ai.cs:235 (always returns false) and useLimit is unread by summon_data.py/npc_data.py.",
+          "exe_va": "0x431aa0",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:235",
+          "reach": "0 vanilla AI scripts use opcode 15",
+          "fix_hint": "Extract useLimit in summon_data.py/npc_data.py and implement cid == 15 in Ai.cs."
+        }
+      ]
+    },
+    {
+      "id": "M10.05",
+      "module": "M10",
+      "title": "AI Condition Sources (0..11) & CalcUnitPercent Rounding",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.05a",
+          "severity": "S1",
+          "summary": "SourceValue() sources 0..4 (Ai.cs:245-249) truncate HP/TP percent with PyMath.Int instead of round_f32_to_i32 (0x61e650 at 0x43074b), causing systematic 1% threshold drift on AI HP/TP checks.",
+          "exe_va": "0x43074b",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:245",
+          "reach": "117+23 Enemy, 10+2 Summon, and 20+8 NPC AI source usages (180+ vanilla checks)",
+          "fix_hint": "Replace PyMath.Int(... * 100) with PyMath.Round(... * 100) in SourceValue() cases 0..4."
+        },
+        {
+          "sub_id": "M10.05b",
+          "severity": "S1",
+          "summary": "SourceValue() returns 100 (when empty) for sources 1..4 and counts 0..N for sources 5..11 (Ai.cs:246-256), whereas binary 0x432690 returns -1 (empty/false) and 1 (true) for boolean presence sources 5..11.",
+          "exe_va": "0x432690",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:250",
+          "reach": "All vanilla AI scripts using sources 5..11 with comparison opcodes",
+          "fix_hint": "Return -1 when empty/false and 1 when any matching unit exists for sources 5..11."
+        },
+        {
+          "sub_id": "M10.05c",
+          "severity": "S2",
+          "summary": "Unit.HpRatio returns 0 when MaxHp == 0 (Units.cs:428), whereas binary CalcUnitPercent (0x430706) returns 100.",
+          "exe_va": "0x430706",
+          "code_ref": "engine_cs/src/DtEngine/Units.cs:428",
+          "reach": "Only units with MaxHp == 0 (never occurs on normal combat units)",
+          "fix_hint": "Return 100 in CalcUnitPercent helper when Max == 0."
+        }
+      ]
+    },
+    {
+      "id": "M10.06",
+      "module": "M10",
+      "title": "AI Target Selection Modes (0..15) & Eager vs Lazy Opcode-1 Evaluation",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.06a",
+          "severity": "S1",
+          "summary": "Lowest() for Target Modes 0..3 (Ai.cs:378-379) truncates HP/TP percent with PyMath.Int instead of round_f32_to_i32 (0x61e650).",
+          "exe_va": "0x43074b",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:378",
+          "reach": "66 vanilla AI target-override rules using Target Modes 0..3",
+          "fix_hint": "Use PyMath.Round instead of PyMath.Int in Lowest() at Ai.cs:378-379."
+        },
+        {
+          "sub_id": "M10.06b",
+          "severity": "S1",
+          "summary": "Target Mode 5 (opponent with most ailments+debuffs, Ai.cs:348) passes skipPetrified: true, whereas binary 0x4338ec keeps petrified units (same filter as Target Mode 4).",
+          "exe_va": "0x4338ec",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:348",
+          "reach": "All vanilla AI scripts using Target Mode 5 when a player is petrified",
+          "fix_hint": "Remove skipPetrified: true from case 5 at Ai.cs:348."
+        },
+        {
+          "sub_id": "M10.06c",
+          "severity": "S1",
+          "summary": "Target Modes 13 & 14 (Ai.cs:350-351) check HasAilmentOrDebuff(u), whereas binary 0x43453a calls vt+0x7c (HasTrueAilment ONLY, excluding stat debuffs).",
+          "exe_va": "0x43453a",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:350",
+          "reach": "All vanilla AI scripts using Target Modes 13 or 14 (e.g., healers/ailment-punishers)",
+          "fix_hint": "Replace HasAilmentOrDebuff(u) with Battle.HasTrueAilment(u) in cases 13 and 14 at Ai.cs:350-351."
+        },
+        {
+          "sub_id": "M10.06d",
+          "severity": "S1",
+          "summary": "Target Mode 8 (ally without skill's turn-status effects, Ai.cs:354-361) requires ally to lack ALL of attack.EffId, whereas binary 0x433c90..0x433d5a counts only (flags & 4) CCommandTurnBase commands and selects allies with activeMatchingCount < totalTurnCmds (missing ANY turn-status, ignoring non-turn commands).",
+          "exe_va": "0x433c90..0x433d5a",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:354",
+          "reach": "All vanilla AI buff/support scripts using Target Mode 8 on multi-effect skills",
+          "fix_hint": "Filter attack effects to turn-status commands (flags & 4) and include allies missing at least one of them."
+        },
+        {
+          "sub_id": "M10.06e",
+          "severity": "S2",
+          "summary": "Ai.cs:326-329 evaluates Target Override (opcode 1) lazily only for the chosen attack, whereas binary 0x433350 runs SelectTargetMode eagerly during _Check (consuming 1 RNG draw per opcode-1 rule encountered).",
+          "exe_va": "0x433350",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:329",
+          "reach": "RNG stream alignment on AI scripts containing multiple opcode-1 rules",
+          "fix_hint": "Evaluate PickByKind() eagerly when executing opcode 1 in Run() if RNG-exact parity is needed."
+        }
+      ]
+    },
+    {
+      "id": "M10.07",
+      "module": "M10",
+      "title": "Enemy-Only Freeze/Silence/Shadow Sew Override & Breath (3) Bypass",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.07a",
+          "severity": "S1",
+          "summary": "Ai.cs:37-42 applies the Freeze/Silence/Shadow Sew -> slot-0 override to ALL AI units (Enemies, Summons, AND Guest NPCs), whereas binary 0x431206 checks task.asEnemy != NULL and skips this entire block for Summons and Guest NPCs.",
+          "exe_va": "0x431206",
+          "code_ref": "engine_cs/src/DtEngine/Ai.cs:37",
+          "reach": "All 105 Summons and 107 Guest NPCs if ever bearing 114/117/123",
+          "fix_hint": "Guard Ai.cs:37-42 with if (unit.Kind == Kind.Enemy && chosen.Atk != null)."
+        }
+      ]
+    },
+    {
+      "id": "M10.08",
+      "module": "M10",
+      "title": "Static Random Move Tables (0x64f8c0, 0x64fa28, 0x64fb50, 0x64f458, 0x64f1c0)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.08a",
+          "severity": "S2",
+          "summary": "tools/random_move_data.py:28-31 omits the 5th static random move table at 0x64f1c0 (CActionPatternE2520, EnemyAttack pattern 17, 13 entries 2701..2713, sum=95).",
+          "exe_va": "0x41b530",
+          "code_ref": "tools/random_move_data.py:28",
+          "reach": "0 vanilla EnemyAttackData records carry pattern 17",
+          "fix_hint": "Add 0x64f1c0 (13 entries) to tools/random_move_data.py."
+        }
+      ]
+    },
+    {
+      "id": "M10.09",
+      "module": "M10",
+      "title": "FloorParameter Loader (Normal, Fixed & Boss Groups, Zone Factors)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.09a",
+          "severity": "S1",
+          "summary": "tools/floor_data.py and data_tables/record_layouts.json NEVER read bossGroups (+0x38 count / +0x40 pointer, 182 boss/FOE formations across 101 vanilla floors) or EncGroup+0x50 (isBossOrNoEscape flag).",
+          "exe_va": "0x4d3180",
+          "code_ref": "tools/floor_data.py:86",
+          "reach": "182 vanilla boss/FOE encounter formations across 101 dungeon floors",
+          "fix_hint": "Add boss_count=0x38, boss_pointer=0x40, and EncGroup+0x50 (is_boss) to record_layouts.json and tools/floor_data.py (read_bosses())."
+        }
+      ]
+    },
+    {
+      "id": "M10.10",
+      "module": "M10",
+      "title": "FloorMap Cell Grid (Mass_s, Kind 1 vs Kind 5 & 3-Tier Group Namespace)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.10a",
+          "severity": "S1",
+          "summary": "tools/map_data.py:132 (battle_cells) only scans cell[\"kind\"] == 1 (EVENT_CELL), completely ignoring cell[\"kind\"] == 5 (927 fixed-tile encounter cells in vanilla floor_maps.zip) and never resolving the 3-tier group namespace (0..39 normal, 40..59 fixed, >=60 boss, >=0x80000000 direct).",
+          "exe_va": "0x4cc260, 0x4cc32a",
+          "code_ref": "tools/map_data.py:132",
+          "reach": "927 vanilla fixed-tile encounter cells across dungeon maps",
+          "fix_hint": "Include cell[\"kind\"] == 5 in battle_cells() and dispatch group indices across normal/fixed/boss/direct tiers."
+        }
+      ]
+    },
+    {
+      "id": "M10.11",
+      "module": "M10",
+      "title": ".adv.bin Event Script Opcode 0x1F (Battle Trigger) Scanner",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.11a",
+          "severity": "S1",
+          "summary": "tools/map_data.py:72-80 (battles_of_script) scans raw bytes with b.find(b\"\\x1f\\x01\\x00\") instead of walking .adv.bin instruction framing (0x4d2570/0x4d2a10), injecting 37 bogus battle number -256 false positives across vanilla floor_maps.zip.",
+          "exe_va": "0x4d2570, 0x4d2a10",
+          "code_ref": "tools/map_data.py:74",
+          "reach": "37 vanilla dungeon event scripts in backups/Dungeon/floor_maps.zip",
+          "fix_hint": "Walk .adv.bin instruction headers/lengths properly (or validate opcode framing) instead of raw substring search."
+        }
+      ]
+    },
+    {
+      "id": "M10.12",
+      "module": "M10",
+      "title": "Aquaplus .pck Archive Container Format (Filename & Pack Chunks)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.12a",
+          "severity": "S2",
+          "summary": "tools/pck_handler.py:27 locates the Pack chunk via raw byte search data.find(b\"Pack                \") instead of walking chunks via (chunkSize + 7) & ~7 (0x5ab5ab..0x5ab5b4).",
+          "exe_va": "0x5ab5ab..0x5ab5b4",
+          "code_ref": "tools/pck_handler.py:27",
+          "reach": "0 failures on vanilla .pck files; fragile if payload bytes ever contain the 20-byte Pack marker",
+          "fix_hint": "Walk 24-byte chunk headers advancing by (chunkSize + 7) & ~7 to locate Filename and Pack chunks."
+        }
+      ]
+    },
+    {
+      "id": "M10.13",
+      "module": "M10",
+      "title": "EnemyStatusData.pck Binary Layout",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M10.14",
+      "module": "M10",
+      "title": "EnemyAttackData.pck Binary Layout (incl. +0x90 Pattern ID)",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.14a",
+          "severity": "S0",
+          "summary": "tools/extract_vanilla.py:477 dumps 0x88..0xA0 (including pattern at +0x90) only as an opaque Trailer CSV string, and gamedata/data.py:213-234 + tools/engine_export.py:56-62 never read or export pattern (+0x90), severing CActionPattern* dispatch for all 2,375 EnemyAttacks.",
+          "exe_va": "0x41b530",
+          "code_ref": "gamedata/data.py:223",
+          "reach": "All 2,375 vanilla EnemyAttackData.pck records",
+          "fix_hint": "Extract pattern = i32(b, 0x90) (Trailer[2]) into EnemyAttack and export it in tools/engine_export.py."
+        }
+      ]
+    },
+    {
+      "id": "M10.15",
+      "module": "M10",
+      "title": "Skill .pck Binary Layouts (Technique, Magic, Passive, Unique & Trailer[4])",
+      "verdict": "S0",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.15a",
+          "severity": "S0",
+          "summary": "tools/engine_export.py:43-53 omits Trailer[4] (pattern) from skill_json(), dropping CActionPattern* dispatch for all 241 vanilla player skills.",
+          "exe_va": "0x41e060",
+          "code_ref": "tools/engine_export.py:43",
+          "reach": "All 241 vanilla player skills (Technique, Magic, Passive, Unique)",
+          "fix_hint": "Store pattern (Trailer[4]) on Skill in gamedata/data.py and export it in skill_json() at tools/engine_export.py:43-53."
+        }
+      ]
+    },
+    {
+      "id": "M10.16",
+      "module": "M10",
+      "title": "EquipmentData.pck & SealScrollData.pck Binary Layouts",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M10.17",
+      "module": "M10",
+      "title": "ItemData.pck Binary Layout & Item Effect Switch Table (0x46c040)",
+      "verdict": "MATCH",
+      "sub_bugs": []
+    },
+    {
+      "id": "M10.18",
+      "module": "M10",
+      "title": "SummonData.bin & NPCData.bin Binary Layouts (Attack Slots & useLimit)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.18a",
+          "severity": "S2",
+          "summary": "Neither tools/summon_data.py:55 nor tools/npc_data.py:49 reads the per-attack useLimit int (+0x44 + 8*k in SummonData, +0x40 + 8*k in NPCData) needed by AI opcode 15 (0 non-zero vanilla useLimits).",
+          "exe_va": "0x4ff2bb, 0x50030b",
+          "code_ref": "tools/summon_data.py:55",
+          "reach": "0 vanilla Summons/NPCs have non-zero useLimit (105 Summons, 107 NPCs checked)",
+          "fix_hint": "Read useLimit at +0x44+8*k (SummonData) and +0x40+8*k (NPCData) and export alongside attack IDs."
+        },
+        {
+          "sub_id": "M10.18b",
+          "severity": "S2",
+          "summary": "data_tables/record_layouts.json sets SummonData.attack_slots = 12, which overlaps passive_count at 0x98 (0x40 + 11*8 = 0x98, not 12*8 = 0xA0), shifting summon_data.py:46's trailing string-scan start to 0xA0 inside passive[1..4].",
+          "exe_va": "0x50030b",
+          "code_ref": "tools/summon_data.py:46",
+          "reach": "0 vanilla string corruption (vanilla count <= 11 and strings read from tail), but schema overlaps 0x98..0x9F",
+          "fix_hint": "Set SummonData.attack_slots = 11 in data_tables/record_layouts.json and start string scanning after passive[4] (0xB0)."
+        }
+      ]
+    },
+    {
+      "id": "M10.19",
+      "module": "M10",
+      "title": "CharacterData.pck / PlayerStatusData.bin, CommandData.pck & EnchantData.pck Layouts",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "sub_id": "M10.19a",
+          "severity": "S1",
+          "summary": "tools/character_data.py:62-67 discards PlayerStatusData.bin +0x30 (Character.Race, where Ist id=11 has race=6) and tools/engine_export.py:136-137 omits both race (+0x30) and the 21-float pep table (+0x3C) from the C# export, causing Ist to take full damage from all 13 Effect 87 EnemyAttacks and freezing party Pep in combat.",
+          "exe_va": "0x459ff0, 0x4e4b70",
+          "code_ref": "tools/character_data.py:62",
+          "reach": "All 20 playable characters (esp. Ist race=6 vs 13 Effect-87 attacks, and Alisia Positive Trance 440)",
+          "fix_hint": "Expose race = ints[12] (+0x30) in tools/character_data.py and export both race and pep (21 floats) in tools/engine_export.py:136."
+        }
+      ]
+    },
+    {
+      "id": "M11.01",
+      "module": "M11",
+      "title": "ClassLevelData.pck, ClassData.pck, Character.pck Binary Layouts & GetClassLevelID (0x5545b0)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.01a",
+          "severity": "S1",
+          "location": "tools/engine_export.py:136, engine_cs/src/DtEngine/Data.cs:198, engine_cs/src/DtEngine/Loader.cs:402",
+          "summary": "engine_export.py drops PlayerStatusData.bin +0x3c 21-float pep table when exporting characters; C# Character has no Pep field."
+        }
+      ],
+      "notes": "ClassLevelData (38 rows), ClassData (49 records +0x24 unarmed ranks), GetClassLevelID (GROWTH_ROW + default min), and Python Character.pck reader match binary."
+    },
+    {
+      "id": "M11.02",
+      "module": "M11",
+      "title": "Player Stat Recalculation Spine (0x4f7c00) & Base + Growth + Crown Formula (0x4f5d60)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.02a",
+          "severity": "S1",
+          "location": "engine_cs/src/DtEngine/Units.cs:697-703",
+          "summary": "Stage 4/5 inversion: offhandBonus (Stage 5 Dual-Wield 256) is added into gearedForLine before Stage 4 EnchantBonus (222..225, 281)."
+        },
+        {
+          "id": "M11.02b",
+          "severity": "S1",
+          "location": "engine_cs/src/DtEngine/Scenario.cs:720-730",
+          "summary": "BuildReferenceParty mutates unit.Front after BuildMember statically baked row-conditional ENCHANT_LINE bonuses into unit.Base."
+        },
+        {
+          "id": "M11.02c",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Units.cs:190-197",
+          "summary": "Stage 1 Command 81 (Pep Freeze) motivation overwrite is absent."
+        }
+      ],
+      "notes": "Sub-event charBonus[0..15] and Stage 6 PartySkillSynergy (0x4f8fe0) are MODEL-LIMIT out of scope per Section 2."
+    },
+    {
+      "id": "M11.03",
+      "module": "M11",
+      "title": "Class Change (0x4f4e80), Level Reset (0x4f5650 / 0x523727 / 0x5245d0) & Crown Reset Steps (0x4f94f0, Vanilla X09..X12)",
+      "verdict": "MATCH",
+      "sub_bugs": [],
+      "notes": "Vanilla RESET_STEPS/RESET_MAX, X09..X12 via catch_up_options.py, crown added to HP/TP/6 stats/8 resists, ClassPath, and unclamped SpTotal match. Guild UI and save bitmasks are out of scope."
+    },
+    {
+      "id": "M11.04",
+      "module": "M11",
+      "title": "Class Specialty Modifiers (_CalculateParameterSpecialty 0x4f7c70, Jump Table 0x4f81e8 & .rdata 0x6d3b64..0x6d40a0)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.04a",
+          "severity": "S1",
+          "location": "engine_cs/src/DtEngine/Units.cs:663",
+          "summary": "Computes specialty rate and product in f64 instead of f32 (0x4f7fa4..0x4f803b), causing off-by-1 divergences on real combinations (369 tested cases diverge)."
+        },
+        {
+          "id": "M11.04b",
+          "severity": "S1",
+          "location": "tools/class_modifier_data.py:249-253",
+          "summary": "specialty_gain floors at 0 instead of int(yearning) and omits Enchant 264 (+0.02f)."
+        },
+        {
+          "id": "M11.04c",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Units.cs:445-458",
+          "summary": "ClassModifierEntries falls back to first parent for unmatched previous class on dual-parent Tier-3 classes instead of returning 0 entries (0x4f7d49)."
+        }
+      ],
+      "notes": "All 38 .rdata specialty tables in class_modifier_data.py (live and static) have 0 diffs against vanilla exe."
+    },
+    {
+      "id": "M11.05",
+      "module": "M11",
+      "title": "Equipment Stat Aggregation, Forge Growth (0x4e12a0..0x4e15ef) & Passives 243/298 (0x4f6530)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.05a",
+          "severity": "S1",
+          "location": "tools/extract_vanilla.py:239-241, engine_cs/src/DtEngine/Units.cs:513-518",
+          "summary": "extract_vanilla.py rounds Upgrade_Rate f32 to 4 decimals and Units.cs multiplies in f64 instead of f32, causing 4 exact off-by-1 vanilla divergences (Tantou +90, Kite Shield +45/+85/+90)."
+        },
+        {
+          "id": "M11.05b",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Units.cs:637-638",
+          "summary": "Mastery 243+298 scales ATK and RES in f64 instead of f32 (0x4f6604, 0x4f6638)."
+        }
+      ],
+      "notes": "Zero-stat non-scaling, offhand weapon skip, Sealbook skip, and ATK/RES-only 243+298 application match."
+    },
+    {
+      "id": "M11.06",
+      "module": "M11",
+      "title": "Weapon Rank, Unarmed Rank (ClassData+0x24 / 0x4f5585) & Enchant 263 (0x4f54d0)",
+      "verdict": "MATCH",
+      "sub_bugs": [],
+      "notes": "All 12 WeaponRankData multipliers, all 49 ClassData +0x24 unarmed ranks, and Enchant 263 -> Rank 1 (1.20f) match with 0 diffs."
+    },
+    {
+      "id": "M11.07",
+      "module": "M11",
+      "title": "Enchantment Collection, Dual-Wield Offhand Filter, Stacking & Party-Leader Sealbook (0x4f62c0, 0x4f64b0, 0x4f7ac0, 0x4f5470)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "id": "M11.07a",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Scenario.cs:291-318, engine_cs/src/DtEngine/Units.cs:685-690",
+          "summary": "Forged enchants on slot-1 dual-wield offhand weapons are pooled into flat forged dictionary and bypass EnchantOffhand bit-7 gate (0x4f6362). Dormant under default EnchantPlan."
+        }
+      ],
+      "notes": "EnchantData bit 0 (stacks) and bit 7 (offhand) have 0 diffs vs EnchantData.pck; innate offhand filter, personal/grand sealbook, and stacking deduplication match."
+    },
+    {
+      "id": "M11.08",
+      "module": "M11",
+      "title": "Equipment & Sealbook Enchant Stat/Resistance Modifiers (_CalculateParameterEnchant 0x4f8270)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.08a",
+          "severity": "S1",
+          "location": "engine_cs/src/DtEngine/Units.cs:697-703",
+          "summary": "Row-conditional enchants 222..225, 281 scale totals + offhandBonus instead of pre-Dual-Wield totals (Stage 4/5 inversion)."
+        },
+        {
+          "id": "M11.08b",
+          "severity": "S1",
+          "location": "engine_cs/src/DtEngine/Scenario.cs:720-730",
+          "summary": "Flipping unit.Front in BuildReferenceParty leaves statically baked 222..225, 281 bonuses stale."
+        }
+      ],
+      "notes": "All 78 enchant IDs, formulas, and intermediate clamps (+/-baseHp/2, +/-baseTp/2, +/-100 resist) match 0x4f8270."
+    },
+    {
+      "id": "M11.09",
+      "module": "M11",
+      "title": "Status/Passive % Modifiers (0x4fbdd0), Dual-Wield Offhand (256), Party-Skill Synergy (0x4f8fe0) & Hard Caps (0x4fc620)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.09a",
+          "severity": "S1",
+          "location": "engine_cs/src/DtEngine/Units.cs:385-396, engine_cs/src/DtEngine/Units.cs:710",
+          "summary": "MaxHp and MaxTp omit binary max(1, ...) floor clamp (0x4fc62f..0x4fc64e)."
+        },
+        {
+          "id": "M11.09b",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Units.cs:368-372",
+          "summary": "Trump Card (48) subtracts 10000 instead of overwriting dStat[DEF] = -10000 (0x4fbfef)."
+        },
+        {
+          "id": "M11.09c",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Units.cs:400, engine_cs/src/DtEngine/Units.cs:419",
+          "summary": "Post-clamp Fixed Resistances 416..423 are hardcoded only to SamsaraState == 2; 184/185/186 check St[] only; status/dual-wield multipliers use f64."
+        }
+      ],
+      "notes": "Stage 6 _CalculatePartySkillSynergy (0x4f8fe0, passives 360..377/405/415) is MODEL-LIMIT out of scope per Section 2."
+    },
+    {
+      "id": "M11.10",
+      "module": "M11",
+      "title": "LvExpSkptData.pck Layout, Cumulative EXP/SP Curves (0x55c100, 0x4f5610) & Level-Up SP Cap (0x448560)",
+      "verdict": "MATCH",
+      "sub_bugs": [],
+      "notes": "All 99 levels match LvExpSkptData.pck (totalExp=3,042,158, totalSp=685); LevelOfExp, SpTotal, and variant.py sp_curve match."
+    },
+    {
+      "id": "M11.11",
+      "module": "M11",
+      "title": "Per-Kill EXP Level-Gap Scaling (CBattle::_AddExp 0x450710, Vanilla X01..X08 & Enchant 270)",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.11a",
+          "severity": "S1",
+          "location": "gamedata/progression.py:32",
+          "summary": "Computes int(exp * mult) in f64 instead of f32 (mulss 0x450815 + __ftoui3 0x61e650), producing 151 off-by-1 divergences across vanilla enemies."
+        },
+        {
+          "id": "M11.11b",
+          "severity": "S2",
+          "location": "tools/catch_up_options.py:81-84",
+          "summary": "gap option builder sets with_enchant = max(values[k], vanilla_with_enchant), omitting X06..X08 Enchant-270 values (1.5, 4.0, 6.0)."
+        }
+      ],
+      "notes": "All 7 LEVEL_GAP bands match 0x450734..0x45080d; 0x61e650 verified as MSVC __ftoui3 (trunc0), matching int(...)."
+    },
+    {
+      "id": "M11.12",
+      "module": "M11",
+      "title": "Victory EXP Split & Multipliers (CBattleResult::_Initialize 0x445830, Passive 218, Status 157, Enchant 275)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "id": "M11.12a",
+          "severity": "S2",
+          "location": "gamedata/progression.py:33-39",
+          "summary": "Returns un-truncated f64 analytical EXP without f32 arithmetic, final __ftoui3 truncation, or dead-member skip (0x4443c5)."
+        }
+      ],
+      "notes": "Division by living, Paean 218 additive bonus, Status 157 x2, and Enchant 275 x2 match 0x445830."
+    },
+    {
+      "id": "M11.13",
+      "module": "M11",
+      "title": "Battle Gold & Enemy Drop Calculations (0x43a9be..0x43ab08, 0x558180, 0x505ad0)",
+      "verdict": "MODEL-LIMIT",
+      "sub_bugs": [],
+      "notes": "tools/enemy_data.py parses gold/drops/equipment_drop/equipment_slots accurately; post-battle gold and drop reward simulation is out-of-combat economy outside simulator scope."
+    },
+    {
+      "id": "M11.14",
+      "module": "M11",
+      "title": "Motivation / Pep System (0x4f5410, 0x4f5440, 0x4f69e0, [70..130])",
+      "verdict": "S1",
+      "sub_bugs": [
+        {
+          "id": "M11.14a",
+          "severity": "S1",
+          "location": "tools/engine_export.py:136-137, engine_cs/src/DtEngine/Battle.cs:2017-2019",
+          "summary": "PlayerStatusData.bin +0x3c battle motivation deltas (kill, KO, crit, hit) are never exported or applied in Battle.cs, freezing Alisia's Pep at 100.0 and distorting Positive Trance (440) in vanilla and X17."
+        },
+        {
+          "id": "M11.14b",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Units.cs:190-197, engine_cs/src/DtEngine/Recipe.cs:166",
+          "summary": "ClampPep omits Command 81 (Pep Freeze) override (0x4f6a6e); Recipe.cs sets Pep unclamped; Battle.cs reads actor.Pep without calling ClampPep."
+        }
+      ],
+      "notes": "ClampPep [70..130] + Enchants 201/200/195 precedence and Positive Trance 440 vanilla (100) & X17 (85) threshold/baseline match."
+    },
+    {
+      "id": "M11.15",
+      "module": "M11",
+      "title": "Battle-Entry Enemy Construction from Enemy.pck (0x4f05d0, 0x4f25f0, 0x4f2820, 0x4f1fc0, 0x4f2150)",
+      "verdict": "S2",
+      "sub_bugs": [
+        {
+          "id": "M11.15a",
+          "severity": "S2",
+          "location": "engine_cs/src/DtEngine/Units.cs:429, engine_cs/src/DtEngine/Units.cs:770-790",
+          "summary": "BuildEnemy sets MaxTp=0 (causing TpRatio to return 1.0 instead of 0.0), stores innate passives in Pv instead of St, and skips post-init Recalculate/Clamp."
+        }
+      ],
+      "notes": "All 516 Enemy.pck records, direct-float weight, and all 31 enemy innate passive effect IDs are loaded and read accurately."
+    },
+    {
+      "id": "ENGINE-ONLY-01",
+      "module": "REVERSE",
+      "title": "Battle.cs Substitutes EnemyAttackData 413 (Head Shot) for Murder License (319) CActionPatternE1580",
+      "verdict": "ENGINE-ONLY",
+      "location": "engine_cs/src/DtEngine/Battle.cs:93, engine_cs/src/DtEngine/Battle.cs:924-930",
+      "disposition": "remove_and_replace",
+      "summary": "Hardcodes MURDER_LICENSE_ATTACK = 413 (physical Head Shot with power 0.35 and 50% instakill) instead of binary CActionPatternE1580 direct CCommand_0119(val=1.0f) instakill (0x42c180)."
+    },
+    {
+      "id": "ENGINE-ONLY-02",
+      "module": "REVERSE",
+      "title": "Battle.cs Invented Overstock Clearance (446) Bag-Consuming HpRatio < 0.6 Heal/TP Proxy",
+      "verdict": "ENGINE-ONLY",
+      "location": "engine_cs/src/DtEngine/Battle.cs:934-940",
+      "disposition": "remove_and_replace",
+      "summary": "Invents HpRatio < 0.6 Policy.ActItem heal/tp proxy that requires and consumes bag items instead of binary CActionPatternU0008 (0x42fb60) free 6-item weighted cast."
+    },
+    {
+      "id": "ENGINE-ONLY-03",
+      "module": "REVERSE",
+      "title": "Options.DollCureTargets Invented Perdurabo (235) Ailment-Sort Target Cap",
+      "verdict": "ENGINE-ONLY",
+      "location": "engine_cs/src/DtEngine/Battle.cs:13, engine_cs/src/DtEngine/Battle.cs:3437-3452, engine_cs/src/DtEngine/Scenario.cs:84",
+      "disposition": "remove",
+      "summary": "Invents sorting party by descending ailment count and slicing to Options.DollCureTargets (default 2) with zero binary backing."
+    },
+    {
+      "id": "ENGINE-ONLY-04",
+      "module": "REVERSE",
+      "title": "Options.HalveEnemies Global Toggle Replacing Per-Enemy flagA5 (pctHpSusceptible_0xa5)",
+      "verdict": "ENGINE-ONLY",
+      "location": "engine_cs/src/DtEngine/Battle.cs:12, engine_cs/src/DtEngine/Battle.cs:2462, engine_cs/src/DtEngine/Scenario.cs:83",
+      "disposition": "remove_and_replace",
+      "summary": "Replaces binary per-enemy pctHpSusceptible_0xa5 gate (for both 140 and 141 at 0x44f989) with a global Options.HalveEnemies boolean affecting only 140."
+    },
+    {
+      "id": "ENGINE-ONLY-05",
+      "module": "REVERSE",
+      "title": "Scenario.cs ONE_PER_PIECE ({ 6, 9, 12, 15, 18, 21 }) Simulator-Only Forge Restriction",
+      "verdict": "ENGINE-ONLY",
+      "location": "engine_cs/src/DtEngine/Scenario.cs:41, engine_cs/src/DtEngine/Scenario.cs:306",
+      "disposition": "document",
+      "summary": "Restricts stackable stat+10% enchants (6,9,12,15,18,21) to one per forged piece inside ForgeEnchants; no such restriction exists in binary _SetupEnchant (0x4f62c0)."
+    },
+    {
+      "id": "ENGINE-ONLY-06",
+      "module": "REVERSE",
+      "title": "Options.SurvivalGuard (L46) — Confirmed Intentional Inactive Trial Hook",
+      "verdict": "ENGINE-ONLY",
+      "location": "engine_cs/src/DtEngine/Battle.cs:17, engine_cs/src/DtEngine/Battle.cs:2540, engine_cs/src/DtEngine/Data.cs:343, engine_cs/src/DtEngine/Loader.cs:305, gamedata/variant.py:238, tools/engine_export.py:339",
+      "disposition": "document_intentional_trial_hook",
+      "summary": "Confirmed intentional inactive trial hook (L46, no ExePatches row; false in both vanilla and Balance snapshots) altering Endure (254) fatality check to amount >= target.Hp - 1."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "campaign_status": "IN PROGRESS",
-  "active_phase": 2,
+  "active_phase": 3,
   "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
   "phases": {
     "0": {
@@ -9,10 +9,10 @@
     },
     "1": {
       "status": "done",
-      "signoff_commit": null
+      "signoff_commit": "ef410a6"
     },
     "2": {
-      "status": "in_progress",
+      "status": "done",
       "signoff_commit": null
     },
     "3": {
@@ -34,10 +34,10 @@
       "title": "Global Action & Turn Call-Graph Pipeline",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (9 rules, 182 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
+      "open_s0": 5,
+      "open_s1": 4,
       "open_s2": 0
     },
     "M01": {
@@ -45,21 +45,21 @@
       "title": "Turn Loop, 3 Update Jump Tables, ATB & Extra Turns",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (7 rules, 239 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s0": 2,
+      "open_s1": 3,
+      "open_s2": 1
     },
     "M02": {
       "file": "M02_PHYSICAL_DAMAGE.md",
       "title": "Physical Damage, Range, Crit, Multi-Hit & Zones",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (7 rules, 191 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
       "open_s0": 0,
-      "open_s1": 0,
+      "open_s1": 7,
       "open_s2": 0
     },
     "M03": {
@@ -67,32 +67,32 @@
       "title": "Magical Damage, Elements & Missed Spells",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (5 rules, 168 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
       "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s1": 4,
+      "open_s2": 1
     },
     "M04": {
       "file": "M04_HIT_EVASION_AND_TARGETING.md",
       "title": "Hit / Evasion, Targeting Scopes & Formation",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (16 rules, 319 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s0": 4,
+      "open_s1": 9,
+      "open_s2": 1
     },
     "M05": {
       "file": "M05_HEALING_RECOVERY_AND_ITEMS.md",
       "title": "Healing, Recovery, After-Battle & ItemResult (0..106)",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (13 rules, 322 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
+      "open_s0": 1,
+      "open_s1": 10,
       "open_s2": 0
     },
     "M06": {
@@ -100,21 +100,21 @@
       "title": "Status Lifecycle, Vtable Groups, Recalc & Dispel",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (8 rules, 176 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s0": 3,
+      "open_s1": 2,
+      "open_s2": 2
     },
     "M07": {
       "file": "M07_AILMENTS_AND_CONTROL.md",
       "title": "Ailments, Immunities, Barriers & Recovery",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (12 rules, 228 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
+      "open_s0": 3,
+      "open_s1": 8,
       "open_s2": 0
     },
     "M08": {
@@ -122,44 +122,44 @@
       "title": "Procs, Counters, Cover, Parry, Patterns & AfterHit",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (14 rules, 326 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s0": 5,
+      "open_s1": 8,
+      "open_s2": 1
     },
     "M09": {
       "file": "M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md",
       "title": "Dolls, Summons, Guests & Enchantments",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (15 rules, 433 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s0": 3,
+      "open_s1": 5,
+      "open_s2": 1
     },
     "M10": {
       "file": "M10_ENEMY_AI_AND_DATA_LOADERS.md",
       "title": "Enemy/Summon/NPC AI VM, Map Triggers & Binary Readers",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (19 rules, 355 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
-      "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s0": 3,
+      "open_s1": 7,
+      "open_s2": 5
     },
     "M11": {
       "file": "M11_UNIT_BUILD_AND_STATS.md",
       "title": "Unit Build, Growth, Unarmed Rank, Caps & EXP/SP Curves",
       "phase1_spec": "done",
       "phase1_audit_check": "pass (15 rules, 285 lines)",
-      "phase2_diff": "pending",
+      "phase2_diff": "done",
       "phase3_fix": "pending",
       "open_s0": 0,
-      "open_s1": 0,
-      "open_s2": 0
+      "open_s1": 8,
+      "open_s2": 3
     }
   },
   "claims": [],
