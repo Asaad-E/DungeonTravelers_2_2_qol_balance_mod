@@ -109,8 +109,8 @@
     "M07": {
       "file": "M07_AILMENTS_AND_CONTROL.md",
       "title": "Ailments, Immunities, Barriers & Recovery",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (12 rules, 228 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -142,7 +142,7 @@
     "M10": {
       "file": "M10_ENEMY_AI_AND_DATA_LOADERS.md",
       "title": "Enemy/Summon/NPC AI VM, Map Triggers & Binary Readers",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -164,13 +164,6 @@
   },
   "claims": [
     {
-      "module": "M07",
-      "owner": "spec-m07-ailments",
-      "model": "gemini-4-neon-high",
-      "output": "docs/binary_spec/M07_AILMENTS_AND_CONTROL.md",
-      "status": "in_progress"
-    },
-    {
       "module": "M08",
       "owner": "spec-m08-procs-patterns",
       "model": "gemini-4-neon-high",
@@ -182,6 +175,13 @@
       "owner": "spec-m09-dolls-enchants",
       "model": "gemini-4-neon-high",
       "output": "docs/binary_spec/M09_DOLLS_SUMMONS_NPCS_AND_ENCHANTS.md",
+      "status": "in_progress"
+    },
+    {
+      "module": "M10",
+      "owner": "spec-m10-ai-loaders",
+      "model": "gemini-4-neon-high",
+      "output": "docs/binary_spec/M10_ENEMY_AI_AND_DATA_LOADERS.md",
       "status": "in_progress"
     }
   ],
