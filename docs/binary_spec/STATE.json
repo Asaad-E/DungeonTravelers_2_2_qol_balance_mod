@@ -43,8 +43,8 @@
     "M01": {
       "file": "M01_TURN_LOOP_AND_ATB.md",
       "title": "Turn Loop, 3 Update Jump Tables, ATB & Extra Turns",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (7 rules, 239 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -54,7 +54,7 @@
     "M02": {
       "file": "M02_PHYSICAL_DAMAGE.md",
       "title": "Physical Damage, Range, Crit, Multi-Hit & Zones",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -65,7 +65,7 @@
     "M03": {
       "file": "M03_MAGICAL_DAMAGE.md",
       "title": "Magical Damage, Elements & Missed Spells",
-      "phase1_spec": "pending",
+      "phase1_spec": "in_progress",
       "phase1_audit_check": "pending",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
@@ -164,17 +164,24 @@
   },
   "claims": [
     {
-      "module": "M01",
-      "owner": "spec-m01-turnloop",
-      "model": "gemini-4-argon-high",
-      "output": "docs/binary_spec/M01_TURN_LOOP_AND_ATB.md",
+      "module": "M06",
+      "owner": "spec-m06-status",
+      "model": "claude-sonnet-5-5-high",
+      "output": "docs/binary_spec/M06_STATUS_LIFECYCLE_AND_RECALC.md",
       "status": "in_progress"
     },
     {
-      "module": "M06",
-      "owner": "spec-m06-status",
-      "model": "gemini-4-argon-high",
-      "output": "docs/binary_spec/M06_STATUS_LIFECYCLE_AND_RECALC.md",
+      "module": "M02",
+      "owner": "spec-m02-physdmg",
+      "model": "claude-sonnet-5-5-high",
+      "output": "docs/binary_spec/M02_PHYSICAL_DAMAGE.md",
+      "status": "in_progress"
+    },
+    {
+      "module": "M03",
+      "owner": "spec-m03-magdmg",
+      "model": "claude-sonnet-5-5-high",
+      "output": "docs/binary_spec/M03_MAGICAL_DAMAGE.md",
       "status": "in_progress"
     }
   ],
