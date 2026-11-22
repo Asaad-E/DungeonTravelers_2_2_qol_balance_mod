@@ -153,8 +153,8 @@
     "M11": {
       "file": "M11_UNIT_BUILD_AND_STATS.md",
       "title": "Unit Build, Growth, Unarmed Rank, Caps & EXP/SP Curves",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (15 rules, 285 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -168,13 +168,6 @@
       "owner": "spec-m10-ai-loaders",
       "model": "gemini-4-neon-high",
       "output": "docs/binary_spec/M10_ENEMY_AI_AND_DATA_LOADERS.md",
-      "status": "in_progress"
-    },
-    {
-      "module": "M11",
-      "owner": "spec-m11-units-stats",
-      "model": "gemini-4-neon-high",
-      "output": "docs/binary_spec/M11_UNIT_BUILD_AND_STATS.md",
       "status": "in_progress"
     }
   ],
