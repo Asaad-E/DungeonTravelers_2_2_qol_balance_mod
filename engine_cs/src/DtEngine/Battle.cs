@@ -291,6 +291,7 @@ namespace DtEngine
         Unit deferredCounter;
         bool abortHits;
         int lastDealtDamage;
+        bool lastEndured;
         // the full recorder (null when nobody asks for it)
         public Recorder Rec;
         Dictionary<Unit, int> damageByTarget;
@@ -1430,6 +1431,7 @@ namespace DtEngine
                 }
             }
             int hits = NumberOfHits(action);
+            if (hits <= 0) return;
             if (action.TargetCode == T.RANDOM)
             {
                 var pool = targets;
@@ -1872,7 +1874,8 @@ namespace DtEngine
                 if (extra != 0) { hits += extra; any = true; }
             }
             if (!any) hits = 1;
-            return Math.Max(1, hits);
+            // 0x417cd0: Effect 94 (Danger Shoot + 17 EnemyAttacks) can legitimately roll 0 hits without Rondo (210).
+            return Math.Max(0, hits);
         }
 
         int WeightedWithSum(int[] picks, double[] weights, double total)
@@ -2645,8 +2648,14 @@ namespace DtEngine
                 int res = index >= 0 ? target.Resistance(index) : 0;
                 return PyMath.Int(target.MaxHp * action.Val(138, 0) * F.ResistanceFactor(res));
             }
-            if (action.Has(140)) return target.Side == Unit.PARTY || Options.HalveEnemies ? target.Hp / 2 : 0;
-            if (action.Has(141)) return target.Hp * 3 / 4;
+            if (action.Has(140) || action.Has(141))
+            {
+                // 0x44f9c0 (+0xa5): Halve HP (140) and 3/4 HP (141) work on party members or non-boss enemies.
+                bool susceptible = target.Side == Unit.PARTY
+                    || (Options.HalveEnemies && !Fixed && (target.EnemyId == T.NONE || !Data.Enemies.TryGetValue(target.EnemyId, out var er) || (er.Flags & 1) == 0));
+                if (!susceptible) return 0;
+                return action.Has(140) ? target.Hp / 2 : target.Hp * 3 / 4;
+            }
             if (action.Has(142)) return Math.Max(0, target.Hp - 1);
             if (action.Has(434)) return Math.Max(0, unit.Hp - 1);
             if (action.Has(435)) return PyMath.Int(unit.Level * action.Val(435, 0));
@@ -2672,7 +2681,9 @@ namespace DtEngine
                     foreach (var (e, share) in list) s.AddFloat(unit.Pieces(e) * share);
                 double bonus = s.Result;
                 var t = new PySum();
-                foreach (var (e, ids) in F.RACE_SPECIAL) if (target.EnemyId != T.NONE && ids.Contains(target.EnemyId)) t.AddInt(unit.Pieces(e));
+                // 0x44be88: Feline (196) and Sea Creature (209) are mutually exclusive else-if (IDs 215..217 match Feline only).
+                foreach (var (e, ids) in F.RACE_SPECIAL)
+                    if (target.EnemyId != T.NONE && ids.Contains(target.EnemyId)) { t.AddInt(unit.Pieces(e)); break; }
                 bonus += t.Result;
                 return 1.0 + bonus;
             }
@@ -2722,10 +2733,16 @@ namespace DtEngine
         void TakeDamage(Unit target, int amount, Action action, bool critical)
         {
             var unit = action != null ? action.Actor : null;
+            int origAmount = amount;
+            lastEndured = false;
             bool fatal;
             if (Options.SurvivalGuard ?? Data.SurvivalGuard) fatal = target.Hp > 1 && amount >= target.Hp - 1;
             else fatal = amount >= target.Hp;
-            if (fatal && target.Has(254) && Roll(target.Value(254))) amount = target.Hp - 1;
+            if (fatal && target.Has(254) && Roll(target.Value(254)))
+            {
+                amount = target.Hp - 1;
+                lastEndured = true;
+            }
             int before = target.Hp;
             LoseHp(target, amount, unit);
             if (unit != null && unit.Side != target.Side)
@@ -2757,8 +2774,9 @@ namespace DtEngine
             if (target.Alive && amount > 0)
             {
                 target.PopStatus(116);
-                if (target.Chant != null || Performing(target))
-                    Interrupt(target, amount, critical, action == null || !action.Magic);
+                // 0x44cfad: Interrupt uses pre-Endure origAmount and runs only on direct physical/magical hits (not Poison/Dance DoTs).
+                if (action != null && !action.IsSpecial && (target.Chant != null || Performing(target)))
+                    Interrupt(target, origAmount, critical, !action.Magic);
             }
             // Arcane Shield (447; 0x424714, 0x424747..0x42476e): skipped during counters (!inCounter), physical, and special damage;
             // rolls per hit (15% vanilla, 25% Balance via X13) and overwrites stored damage; fires once post-action (Stage 4).
@@ -2840,6 +2858,24 @@ namespace DtEngine
                     if (s != null && s.Source == unit && s.Kind == Status.SongKind) ally.PopStatus(e);
                 }
             }
+            // 0x43b7a8: Enemy front-row wipe shifts all surviving back-row enemies forward (players never auto-shift).
+            if (unit.Side == Unit.ENEMIES && unit.Front)
+            {
+                bool anyFront = false;
+                for (int i = 0; i < Units.Count; i++)
+                {
+                    var u = Units[i];
+                    if (u.Side == Unit.ENEMIES && CanFight(u) && u.Front) { anyFront = true; break; }
+                }
+                if (!anyFront)
+                {
+                    for (int i = 0; i < Units.Count; i++)
+                    {
+                        var u = Units[i];
+                        if (u.Side == Unit.ENEMIES && CanFight(u) && !u.Front) u.Front = true;
+                    }
+                }
+            }
         }
 
         public int Restore(Unit unit, int amount)
@@ -2910,8 +2946,8 @@ namespace DtEngine
                 if (effect == 2) continue;
                 if (effect == 54 && hostile)
                 {
-                    // 0x423a18..0x423a41: Turn Delay requires dealt > 0 and target still alive.
-                    if (dealt > 0 && target.Alive && !target.Immune("turn delay") && Rng.RandRange(100) < PyMath.Int(value * 100)) Delay(target);
+                    // 0x423a18..0x423a41: Turn Delay requires dealt > 0, target still alive, and NOT saved by Endure (254).
+                    if (dealt > 0 && !lastEndured && target.Alive && !target.Immune("turn delay") && Rng.RandRange(100) < PyMath.Int(value * 100)) Delay(target);
                     continue;
                 }
                 if (effect == 103 || effect == 9 || effect == 104 || effect == 105 || effect == 128 || effect == 129 || effect == 130 ||
@@ -3063,24 +3099,22 @@ namespace DtEngine
                         unit.SetStatus(new Status(122, 1.0, 0, target).WithData(SUGAR_COMA_RECOVERY));
                     unit.SetStatus(new Status(168, -0.2, SUGAR_COMA_TURNS, target));
                 }
-                // Dark Aura: each stat debuff is set to -0.1, not deepened (0x423d9b onward)
-                if (target.Has(262) && action.Physical && action.Reach == T.SHORT && !unit.Has(304))
+                // Dark Aura (262; 0x423d9b): works on both physical and magical short-range hits; blocked by 304.
+                if (target.Has(262) && action.Reach == T.SHORT && !unit.Has(304))
                 {
                     int points = PyMath.Int(target.Value(262));
                     int[] order = { 45, 44, 43, 42, 41, 46 };
                     int n = Math.Max(0, Math.Min(points < 0 ? order.Length + points : points, order.Length));
                     for (int k = 0; k < n; k++) unit.SetStatus(new Status(order[k], -0.1, DARK_AURA_TURNS, target));
                 }
-                // Slow Target (293; 0x424535..0x4245da): Slow (122) checks immune+Nullified; Speed -0.75 (168) applies independently.
+                // Slow Target (293; 0x423d50..0x4245da): shared Close-range (range == 0) contact gate; Slow (122) routed through ApplyAilment; Speed -0.75 (168) independent.
                 if (target.Has(293) && action.Reach == T.SHORT && Roll(target.Value(293)))
                 {
-                    if (!unit.Immune("slow") && !Nullified(unit, 122))
-                        unit.SetStatus(new Status(122, 1.0, 0, target).WithData(SLOW_TARGET_RECOVERY));
+                    ApplyAilment(target, unit, 122, 1.0, null, SLOW_TARGET_RECOVERY);
                     unit.SetStatus(new Status(168, -0.75, SLOW_TARGET_TURNS, target));
                 }
-                // Reprisal rolls on every hit and writes the result on the target's record, the last hit's roll standing
-                // (0x424711); one counter at most is set up after the whole action (0x4247e0)
-                if (target.Has(249) && action.Physical && (action.Reach == T.SHORT || action.Reach == T.MID) && !unit.Has(307))
+                // Reprisal (249; 0x424711): front row only, !inCounter, physical Short/Mid, !307.
+                if (!inCounter && target.Front && target.Has(249) && action.Physical && (action.Reach == T.SHORT || action.Reach == T.MID) && !unit.Has(307))
                 {
                     reprisal[target.Position] = Roll(target.Value(249));
                     reprisalDirty = true;
@@ -3197,7 +3231,9 @@ namespace DtEngine
                     case 202: sign = -1; scale = 100; break;
                     case 211: sign = 1; scale = 100; break;
                 }
-                var st = new Status(effect, value + sign * scale * bonus, 0, singer, name, Status.SongKind, atkId);
+                // 0x43be90: Song/Dance Bonus (279/280) does NOT apply to 200, 203, 204, 219, 220, 221, 223.
+                bool noBonus = effect == 200 || effect == 203 || effect == 204 || effect == 219 || effect == 220 || effect == 221 || effect == 223;
+                var st = new Status(effect, noBonus ? value : value + sign * scale * bonus, 0, singer, name, Status.SongKind, atkId);
                 if ((effect == 199 || effect == 200) && action.TryVal(296, out double cap)) st.WithData(cap);
                 target.SetStatus(st);
             }
@@ -3392,8 +3428,8 @@ namespace DtEngine
             }
             else if (effect == 131)
             {
-                // Heal Enemy: a fixed amount, the value itself, with no cap (0x483da0 - 0x483dad)
-                Healed(unit, Restore(target, PyMath.Int(value)));
+                // Heal Enemy (0x483da0): heals enemy targets only, fixed amount with no cap.
+                if (target.Side == Unit.ENEMIES) Healed(unit, Restore(target, PyMath.Int(value)));
             }
             else if (effect == 132)
             {

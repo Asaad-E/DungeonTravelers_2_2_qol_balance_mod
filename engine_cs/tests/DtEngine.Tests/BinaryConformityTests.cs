@@ -1004,5 +1004,55 @@ namespace DtEngine.Tests
             Assert.Equal(1, s1.Items[9998]); // Infinite item not decremented!
             data.Items.Remove(9998);
         }
+
+        [Fact]
+        public void Phase3_S1_EnemyRowShift_DarkAuraMagic_SlowTargetAnyRange_ReprisalFront_Cmd131_SongBonus()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["vanilla"];
+
+            // M04.10: Enemy front-row wipe auto-shifts back-row enemies forward; players NEVER auto-shift.
+            var pFront = new Unit("PFront", Unit.PARTY, 50, 10, 100, new[] { 500, 50, 50, 50, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = true };
+            var pBack = new Unit("PBack", Unit.PARTY, 50, 1000, 100, new[] { 500, 50, 50, 50, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = false };
+            var eFront = new Unit("EFront", Unit.ENEMIES, 50, 10, 0, new[] { 200, 10, 50, 10, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Enemy) { Front = true };
+            var eBack = new Unit("EBack", Unit.ENEMIES, 50, 2000, 0, new[] { 200, 10, 50, 10, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Enemy) { Front = false };
+            var b = new Battle(data, new List<Unit> { pFront, pBack }, new List<Unit> { eFront, eBack }, new PyRandom(1), null, new BattleOptions(), null);
+            b.LoseHp(eFront, 50, pFront);
+            Assert.False(eFront.Alive);
+            Assert.True(eBack.Front, "Back-row enemies must shift forward on front-row wipe (0x43b7a8)");
+            b.LoseHp(pFront, 50, eBack);
+            Assert.False(pFront.Alive);
+            Assert.False(pBack.Front, "Back-row players must NEVER auto-shift forward");
+
+            // M08.05: Dark Aura (262) triggers on short-range magic enemy attacks too; Reprisal (249) requires front row.
+            var mage = new Unit("Mage", Unit.ENEMIES, 50, 2000, 100, new[] { 100, 80, 200, 80, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Enemy) { Front = true };
+            var backRep = new Unit("BackRep", Unit.PARTY, 50, 5000, 0, new[] { 150, 50, 50, 50, 200, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = false };
+            backRep.SetPassive(262, 2.0);
+            backRep.SetPassive(249, 1.0);
+            var shortMagAtk = new EnemyAttack
+            {
+                Id = 9956, Name = "CloseMag", Target = T.SINGLE, Attr = T.FIRE, Speed = 1.0, Accuracy = 1.0, Range = T.SHORT, Spell = true,
+                EffId = new[] { 1 }, EffKind = new[] { 4 }, EffValue = new[] { 100.0 }, EffIsInt = new[] { false }
+            };
+            var b2 = new Battle(data, new List<Unit> { backRep }, new List<Unit> { mage }, new PyRandom(1), null, new BattleOptions(), null);
+            b2.Perform(new Action(mage, AKind.Enemy, shortMagAtk, 1) { Target = backRep });
+            Assert.NotNull(mage.St[45]); // Dark Aura fired on short-range Magic EnemyAttack!
+            int mageHpPre = mage.Hp;
+            b2.Perform(new Action(mage, AKind.Attack) { Target = backRep });
+            Assert.Equal(mageHpPre, mage.Hp); // Back-row Reprisal (249) did NOT fire!
+
+            // M06.08: Song Bonus (279) does NOT scale excluded song 221 (Barcarole).
+            var singer = new Unit("Singer", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            singer.SetPassive(279, 0.10);
+            var barc = new Skill
+            {
+                Category = "Magic", Id = 9957, Name = "Barc", Levels = 1, Target = T.ALLIES, Attr = T.NEUTRAL, Group = 0x08, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[] { new Effect { Id = 221, Kind = 5, Values = new[] { 0.25 }, IsInt = new[] { false } } }
+            };
+            var b3 = new Battle(data, new List<Unit> { singer }, new List<Unit> { backRep }, new PyRandom(1), null, new BattleOptions(), null);
+            b3.Perform(new Action(singer, AKind.Skill, barc, 1, singer));
+            Assert.Equal(0.25, singer.St[221].Value, 6);
+        }
     }
 }
