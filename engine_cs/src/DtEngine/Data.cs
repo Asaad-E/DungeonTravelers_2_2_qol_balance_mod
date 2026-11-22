@@ -47,6 +47,7 @@ namespace DtEngine
         public int[] Classes;
         public int Range = T.NONE;
         public int ChantStat;              // 0 none, 1 int, 2 res, 3 agi
+        public int Pattern;                // Skill Trailer[4] -> CActionSkill::_CreatePattern (0x41e060)
         public bool Chanted;
         public bool HasEffect(int id) { foreach (var e in Effects) if (e.Id == id) return true; return false; }
 
@@ -86,6 +87,7 @@ namespace DtEngine
         public int Range = T.NONE;
         public bool Passive, Plain, Spell, Technique; // Plain: bit 0 (+0x40); Technique: bit 1 (freeze); Spell: bit 2 (silence, anti-magic)
         public int ChantStat;
+        public int Pattern;                // EnemyAttack +0x90 (Trailer[2]) -> CActionEnemyAttack::_CreatePattern (0x41a4a0)
         public bool Chanted => ChantSpeed != 0;
         public Action.FxSet Fx;       // the effects as arrays shared by the actions (made when first asked)
         int summonsDollState;         // 0 unknown, 1 false, 2 true
@@ -198,7 +200,8 @@ namespace DtEngine
     public sealed class Character
     {
         public string Name;
-        public int BaseClass, Flag;
+        public int BaseClass, Flag, Race;  // Race: PlayerStatusData +0x30 (e.g. Ist = 6 Magic Being; 0x55d810)
+        public double[] Pep = Array.Empty<double>(); // PlayerStatusData +0x3c: 21-float event motivation deltas
         public int StartExp;
         public int UniqueSkill = T.NONE;
     }
@@ -214,6 +217,8 @@ namespace DtEngine
     {
         public int Id;
         public string Name;
+        public int Flags;                  // ItemData Flags_0x18 (bit 2: battle usable, bit 4: enemy-targetable, bit 8: infinite)
+        public int TargetType = 16;        // ItemData w_0x5c: 16 Single, 17 Row, 18 SideAll (0x456ff0)
         public int[] Kinds;
         public double[] Values;
     }
@@ -322,6 +327,14 @@ namespace DtEngine
         public List<Piece> EquipmentList = new List<Piece>();
         public HashSet<int> EnchantStacks = new HashSet<int>();
         public HashSet<int> EnchantOffhand = new HashSet<int>();
+        // CommandData.pck +0x38 bit 1 (vt+0x8c IsSleepCleared, 36 IDs; 0x4fa056) and bit 2 == 0 (vt+0x90 ClearOnDeath exempt, 8 IDs; 0x4fa8b1)
+        public HashSet<int> SleepClearedCommands = new HashSet<int>
+        {
+            146, 147, 171, 180, 190, 228, 229, 230, 231, 232, 233, 235,
+            249, 250, 253, 255, 259, 260, 267, 268, 283, 285, 296, 300,
+            303, 305, 306, 308, 320, 345, 350, 357, 446, 447, 448, 449
+        };
+        public HashSet<int> DeathExemptCommands = new HashSet<int> { 67, 68, 81, 133, 134, 188, 355, 428 };
         public Dictionary<int, int[]> SealbookEnchants = new Dictionary<int, int[]>();
         public Dictionary<int, double> WeaponRanks = new Dictionary<int, double>();
         public Dictionary<int, Item> Items = new Dictionary<int, Item>();

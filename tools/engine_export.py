@@ -49,7 +49,7 @@ def skill_json(s):
         'cast': None if s.cast is None else list(s.cast),
         'accuracy': None if s.accuracy is None else list(s.accuracy),
         'turns': list(s.turns), 'classes': list(s.classes or []), 'range': s.range, 'chant_stat': s.chant_stat,
-        'swing': s.swing or 0.0,
+        'swing': s.swing or 0.0, 'pattern': 0 if s.pattern is None else int(s.pattern),
     }
 
 
@@ -59,6 +59,7 @@ def attack_json(a):
         'accuracy': a.accuracy, 'power': a.power, 'turns': a.turns, 'speed': a.speed,
         'effects': [[e, k, v] for e, k, v in a.effects], 'range': a.range, 'passive': bool(a.passive),
         'chant_stat': a.chant_stat, 'plain': bool(a.plain), 'spell': bool(a.spell), 'technique': bool(a.technique),
+        'pattern': 0 if a.pattern is None else int(a.pattern),
     }
 
 
@@ -134,13 +135,18 @@ def side_json(data, flags):
                              'entries': [{'modifier': x['modifier'], 'slot': x['slot'], 'type': x['type']}
                                          for x in m['entries']]} for m in data.class_modifiers],
         'characters': [{'name': c['name'], 'base_class': c['base_class'], 'flag': c['flag'],
+                        'race': int(c.get('race', 0)), 'pep': list(c.get('pep', [])),
                         'start_exp': c['start_exp'], 'unique_skill': c['unique_skill']} for c in data.characters],
         'equipment': [equipment_json(p) for p in data.equipment.values()],
         'enchant_stacks': sorted(data.enchant_stacks),
         'enchant_offhand': sorted(data.enchant_offhand),
+        'command_sleep_cleared': sorted(data.command_sleep_cleared),
+        'command_death_exempt': sorted(data.command_death_exempt),
         'sealbooks': [{'id': k, 'enchants': list(v['enchants'])} for k, v in data.sealbooks.items()],
         'weapon_ranks': [[k, v] for k, v in data.weapon_ranks.items()],
-        'items': [{'id': k, 'name': v['name'], 'effects': [[t, val] for t, val in v['effects']],
+        'items': [{'id': k, 'name': v['name'], 'flags': int(v.get('flags', 0)),
+                   'target_type': int(v.get('target_type', 16)),
+                   'effects': [[t, val] for t, val in v['effects']],
                    'slots': [[t, val] for t, val in v['slots']]}
                   for k, v in data.items.items()],
         'item_skills': [[k, v] for k, v in data.item_skills.items()],

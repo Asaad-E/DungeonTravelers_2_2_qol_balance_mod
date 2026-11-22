@@ -63,7 +63,7 @@ def read_character(files):
     foods = lambda at: [f for f in ints[at + 1:at + 1 + max(0, min(ints[at], 3))] if f != -1]
     character = {'id': ints[0], 'name': name.group(1).decode('utf-8') if name else '', 'base_class': ints[1],
                  'unique_skill': ints[2] if ints[2] != -1 else None, 'flag': ints[3],
-                 'foods_first': foods(4), 'foods_second': foods(8), 'raw_30': list(ints[12:15]),
+                 'foods_first': foods(4), 'foods_second': foods(8), 'race': ints[12], 'raw_30': list(ints[12:15]),
                  'pep': list(struct.unpack_from(f'<{PEP_COUNT}f', status, PEP_OFFSET)),
                  'start_class': None, 'start_exp': None}
     if initial:

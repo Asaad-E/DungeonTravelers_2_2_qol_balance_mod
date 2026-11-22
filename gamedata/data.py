@@ -21,7 +21,7 @@ TOOLS_DIR = os.path.join(PROJECT_DIR, 'tools')
 WORKBOOK = os.path.join(PROJECT_DIR, 'data_tables', 'vanilla_source_of_truth.xlsx')
 CRITERIA = os.path.join(PROJECT_DIR, 'data_tables', 'balance_criteria.xlsx')
 CACHE = os.path.join(SIM_DIR, '__pycache__', 'game_data.pkl')
-CACHE_VERSION = 10
+CACHE_VERSION = 11
 LEVELS = [f'Lv{k}' for k in range(1, 11)]
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)
@@ -89,7 +89,7 @@ class Skill:
 class EnemyAttack:
     """An EnemyAttackData record: also the attacks of summons and guest allies, and the passives of enemies."""
     __slots__ = ('id', 'name', 'target', 'attr', 'chant_speed', 'accuracy', 'power', 'turns', 'speed', 'effects',
-                 'range', 'passive', 'chant_stat', 'plain', 'spell', 'technique')
+                 'range', 'passive', 'chant_stat', 'plain', 'spell', 'technique', 'pattern')
 
     def __init__(self, **kw):
         for k in self.__slots__:
@@ -128,6 +128,8 @@ class GameData:
         self.enchants = {}
         self.enchant_stacks = set()  # enchantments every piece of which counts (EnchantData 0x20 bit 0; 0x4f5499)
         self.enchant_offhand = set()  # enchantments that also count on an off-hand weapon (EnchantData 0x20 bit 7; 0x4f636b)
+        self.command_sleep_cleared = set()  # CommandData 0x38 bit 1: cleared when Sleep (116) is applied (0x4fa056)
+        self.command_death_exempt = set()   # CommandData 0x38 bit 2 == 0: preserved on ClearOnDeath (0x4fa8b1)
         self.sealbooks = {}            # sealbook id -> {'name', 'grand', 'level', 'enchants'}
         self.weapon_ranks = {}      # rank index -> delay
         self.items = {}
@@ -220,6 +222,9 @@ def _load_attacks(wb, data):
         # (0x4183d0 - 0x418475).
         anim = r['Anim_0x28'] or 0
         reach = SHORT if (anim >> 7 & 1) else MID if (anim >> 8 & 1) else LONG if (anim >> 9 & 1) else NO_RANGE
+        # EnemyAttackData +0x90 (Trailer[2]): CActionEnemyAttack::_CreatePattern (0x41a4a0) dispatch index
+        trailer = [int(x.strip()) for x in str(r.get('Trailer') or '').split(',') if x.strip()]
+        pattern = trailer[2] if len(trailer) > 2 else 0
         data.attacks[r['Skill_ID']] = EnemyAttack(
             id=r['Skill_ID'], name=r['Name'], target=r['Target_Code'], attr=r['Attr_Code'],
             chant_speed=r['Chant_Speed'] or 0, accuracy=r['Accuracy'] or 0, power=r['Power'] or 0,
@@ -230,7 +235,8 @@ def _load_attacks(wb, data):
             plain=bool((r['Anim_0x28'] or 0) & 1), spell=bool((r['Anim_0x28'] or 0) >> 2 & 1),
             # bit 1 of the same word: a technique, which freeze stops (the choice of an AI unit, 0x431344 for spells under
             # silence, 0x4312e4 for techniques under freeze)
-            technique=bool((r['Anim_0x28'] or 0) >> 1 & 1))
+            technique=bool((r['Anim_0x28'] or 0) >> 1 & 1),
+            pattern=pattern)
 
 
 def _enemy_chant_stat(word):
@@ -282,6 +288,8 @@ def _load_misc(wb, data):
         # Preserve the fixed 4-slot layout (slots 0-1 ally, slots 2-3 enemy; 0x55b550) alongside filtered 'effects'
         slots = [(-1 if r[f'Eff{k}_Type'] is None else r[f'Eff{k}_Type'], r[f'Eff{k}_Value'] or 0) for k in range(1, 5)]
         data.items[r['Item_ID']] = {'name': r['Name'], 'price': r['Buy_Price'],
+                                    'flags': int(r['Flags_0x18'] or 0),
+                                    'target_type': int(r['w_0x5c'] if r['w_0x5c'] is not None else 16),
                                     'effects': [(t, v) for t, v in slots if t != -1],
                                     'slots': slots}
     for r in _rows(wb, 'ExpCurve'):
@@ -359,6 +367,19 @@ def build():
         data.random_moves = {}
     data.item_skills = {kind: skill for kind, (skill, _) in item_effect_data.skill_items(exe).items()}
     data.item_skill_specs = item_effect_data.skill_item_specs(exe)
+    # CommandData.pck +0x38 flags: bit 1 = IsSleepCleared (vt+0x8c, 0x4fa056), bit 2 = ClearOnDeath (vt+0x90, 0x4fa8b1)
+    cmd_pck = os.path.join(PROJECT_DIR, 'backups', 'CommandData.pck')
+    if os.path.exists(cmd_pck):
+        import struct
+        from pck_handler import PckArchive
+        for _, blob in PckArchive(cmd_pck).files:
+            if len(blob) >= 0x3c:
+                cid = struct.unpack_from('<i', blob, 0)[0]
+                f38 = struct.unpack_from('<I', blob, 0x38)[0]
+                if f38 & 2:
+                    data.command_sleep_cleared.add(cid)
+                if not (f38 & 4):
+                    data.command_death_exempt.add(cid)
     criteria = openpyxl.load_workbook(CRITERIA, read_only=True)
     try:
         data.effect_rules = {r['Effect_ID']: r['Rule'] for r in _rows(criteria, 'EffectRules')}

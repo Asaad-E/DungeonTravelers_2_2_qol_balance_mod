@@ -319,6 +319,7 @@ namespace DtEngine
                     Classes = Ints(s.GetProperty("classes")), Range = I(s.GetProperty("range")),
                     ChantStat = ChantStatOf(s.GetProperty("chant_stat")),
                     Swing = s.TryGetProperty("swing", out var sw) && sw.ValueKind == JsonValueKind.Number ? sw.GetDouble() : 0.0,
+                    Pattern = s.TryGetProperty("pattern", out var spat) && spat.ValueKind == JsonValueKind.Number ? I(spat) : 0,
                 };
                 k.IsMagic = k.Category == "Magic"; k.IsTechnique = k.Category == "Technique"; k.IsPassive = k.Category == "Passive";
                 var effs = new List<Effect>();
@@ -346,6 +347,7 @@ namespace DtEngine
                     Plain = a.TryGetProperty("plain", out var pl) && B(pl),
                     Spell = B(a.GetProperty("spell")),
                     Technique = a.TryGetProperty("technique", out var tq) && B(tq),
+                    Pattern = a.TryGetProperty("pattern", out var apat) && apat.ValueKind == JsonValueKind.Number ? I(apat) : 0,
                 };
                 var ids = new List<int>(); var kinds = new List<int>(); var vals = new List<double>(); var wholes = new List<bool>();
                 foreach (var x in a.GetProperty("effects").EnumerateArray()) { ids.Add(I(x[0])); kinds.Add(I(x[1])); vals.Add(D(x[2])); wholes.Add(IsWhole(x[2])); }
@@ -403,6 +405,8 @@ namespace DtEngine
                 d.Characters.Add(new Character
                 {
                     Name = S(c.GetProperty("name")), BaseClass = I(c.GetProperty("base_class")), Flag = I(c.GetProperty("flag")),
+                    Race = c.TryGetProperty("race", out var crace) && crace.ValueKind == JsonValueKind.Number ? I(crace) : 0,
+                    Pep = c.TryGetProperty("pep", out var cpep) && cpep.ValueKind == JsonValueKind.Array ? Doubles(cpep) : Array.Empty<double>(),
                     StartExp = c.GetProperty("start_exp").ValueKind == JsonValueKind.Null ? 0 : I(c.GetProperty("start_exp")),
                     UniqueSkill = I(c.GetProperty("unique_skill")),
                 });
@@ -425,11 +429,27 @@ namespace DtEngine
             foreach (var x in e.GetProperty("enchant_stacks").EnumerateArray()) d.EnchantStacks.Add(I(x));
             if (e.TryGetProperty("enchant_offhand", out var eo))
                 foreach (var x in eo.EnumerateArray()) d.EnchantOffhand.Add(I(x));
+            if (e.TryGetProperty("command_sleep_cleared", out var csc))
+            {
+                d.SleepClearedCommands.Clear();
+                foreach (var x in csc.EnumerateArray()) d.SleepClearedCommands.Add(I(x));
+            }
+            if (e.TryGetProperty("command_death_exempt", out var cde))
+            {
+                d.DeathExemptCommands.Clear();
+                foreach (var x in cde.EnumerateArray()) d.DeathExemptCommands.Add(I(x));
+            }
             foreach (var s in e.GetProperty("sealbooks").EnumerateArray()) d.SealbookEnchants[I(s.GetProperty("id"))] = Ints(s.GetProperty("enchants"));
             foreach (var r in e.GetProperty("weapon_ranks").EnumerateArray()) d.WeaponRanks[I(r[0])] = D(r[1]);
             foreach (var it in e.GetProperty("items").EnumerateArray())
             {
-                var item = new Item { Id = I(it.GetProperty("id")), Name = S(it.GetProperty("name")) };
+                var item = new Item
+                {
+                    Id = I(it.GetProperty("id")),
+                    Name = S(it.GetProperty("name")),
+                    Flags = it.TryGetProperty("flags", out var ifl) && ifl.ValueKind == JsonValueKind.Number ? I(ifl) : 0,
+                    TargetType = it.TryGetProperty("target_type", out var itt) && itt.ValueKind == JsonValueKind.Number ? I(itt) : 16,
+                };
                 var kinds = new List<int>(); var vals = new List<double>();
                 var src = it.TryGetProperty("slots", out var sl) ? sl : it.GetProperty("effects");
                 foreach (var x in src.EnumerateArray()) { kinds.Add(I(x[0])); vals.Add(x[1].ValueKind == JsonValueKind.Null ? 0 : D(x[1])); }

@@ -13,10 +13,10 @@
     },
     "2": {
       "status": "done",
-      "signoff_commit": null
+      "signoff_commit": "6950513"
     },
     "3": {
-      "status": "pending",
+      "status": "in_progress",
       "signoff_commit": null
     },
     "4": {
