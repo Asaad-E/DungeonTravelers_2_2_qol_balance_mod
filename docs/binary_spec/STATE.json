@@ -1,18 +1,18 @@
 {
   "campaign_status": "IN PROGRESS",
-  "active_phase": 1,
+  "active_phase": 2,
   "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
   "phases": {
     "0": {
       "status": "done",
-      "signoff_commit": null
+      "signoff_commit": "2133dab"
     },
     "1": {
-      "status": "in_progress",
+      "status": "done",
       "signoff_commit": null
     },
     "2": {
-      "status": "pending",
+      "status": "in_progress",
       "signoff_commit": null
     },
     "3": {
@@ -142,8 +142,8 @@
     "M10": {
       "file": "M10_ENEMY_AI_AND_DATA_LOADERS.md",
       "title": "Enemy/Summon/NPC AI VM, Map Triggers & Binary Readers",
-      "phase1_spec": "in_progress",
-      "phase1_audit_check": "pending",
+      "phase1_spec": "done",
+      "phase1_audit_check": "pass (19 rules, 355 lines)",
       "phase2_diff": "pending",
       "phase3_fix": "pending",
       "open_s0": 0,
@@ -162,15 +162,7 @@
       "open_s2": 0
     }
   },
-  "claims": [
-    {
-      "module": "M10",
-      "owner": "spec-m10-ai-loaders",
-      "model": "gemini-4-neon-high",
-      "output": "docs/binary_spec/M10_ENEMY_AI_AND_DATA_LOADERS.md",
-      "status": "in_progress"
-    }
-  ],
+  "claims": [],
   "phase4": {
     "consecutive_failed_rounds": 0,
     "cumulative_s2": 0,
