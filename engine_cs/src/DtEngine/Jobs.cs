@@ -255,7 +255,9 @@ namespace DtEngine
                 {
                     // a hired guest ally stands beside the summon of the grand sealbook (units 3000 and 3001, 0x449771 and 0x449839), at the
                     // stage the bar offers at this point of the story
-                    var g = sc.GuestUnit(guest, job.Cid);
+                    int leaderSealbook = T.NONE;
+                    foreach (var m in built) if (m.Kind == Kind.Member) { leaderSealbook = m.Sealbook; break; }
+                    var g = sc.GuestUnit(guest, job.Cid, leaderSealbook);
                     if (g != null) built.Add(g);
                 }
                 return built;

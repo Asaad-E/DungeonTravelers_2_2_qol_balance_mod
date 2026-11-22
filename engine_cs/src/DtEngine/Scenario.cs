@@ -496,7 +496,7 @@ namespace DtEngine
         // The party of a checkpoint is the same each time it is asked for with the same arguments: it is built once and each run gets a copy.
         readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<Unit>> partyTemplates = new System.Collections.Concurrent.ConcurrentDictionary<string, List<Unit>>();
         readonly System.Collections.Concurrent.ConcurrentDictionary<(int, bool), Unit> enemyTemplates = new System.Collections.Concurrent.ConcurrentDictionary<(int, bool), Unit>();
-        readonly System.Collections.Concurrent.ConcurrentDictionary<(string, string), Unit> guestTemplates = new System.Collections.Concurrent.ConcurrentDictionary<(string, string), Unit>();
+        readonly System.Collections.Concurrent.ConcurrentDictionary<(string, string, int), Unit> guestTemplates = new System.Collections.Concurrent.ConcurrentDictionary<(string, string, int), Unit>();
         readonly System.Collections.Concurrent.ConcurrentDictionary<FloorZone, (FormationRec[] formations, double[] cumWeights)> validFormations = new System.Collections.Concurrent.ConcurrentDictionary<FloorZone, (FormationRec[], double[])>();
         readonly System.Collections.Concurrent.ConcurrentDictionary<(string, ulong, int), ChainCacheEntry> chainPickCache = new System.Collections.Concurrent.ConcurrentDictionary<(string, ulong, int), ChainCacheEntry>();
         Dictionary<string, FloorZone> zonesByName;
@@ -560,13 +560,13 @@ namespace DtEngine
             }
         }
 
-        /// <summary>Cached hired guest unit template for (guest, cid), or null if not offered at cid.</summary>
-        public Unit GuestUnit(string guest, string cid)
+        /// <summary>Cached hired guest unit template for (guest, cid, leaderSealbook), or null if not offered at cid.</summary>
+        public Unit GuestUnit(string guest, string cid, int leaderSealbook = T.NONE)
         {
-            if (!guestTemplates.TryGetValue((guest, cid), out var template))
+            if (!guestTemplates.TryGetValue((guest, cid, leaderSealbook), out var template))
             {
                 var stage = UnitFactory.GuestStageAt(Data, Setup, guest, cid);
-                template = guestTemplates.GetOrAdd((guest, cid), stage != null ? UnitFactory.BuildGuest(Data, stage) : null);
+                template = guestTemplates.GetOrAdd((guest, cid, leaderSealbook), stage != null ? UnitFactory.BuildGuest(Data, stage, leaderSealbook) : null);
             }
             return template?.CloneFresh();
         }

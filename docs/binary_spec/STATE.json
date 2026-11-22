@@ -164,9 +164,64 @@
   },
   "claims": [],
   "phase4": {
-    "consecutive_failed_rounds": 0,
-    "cumulative_s2": 0,
-    "sampled_item_ids": [],
-    "rounds": []
+    "consecutive_failed_rounds": 1,
+    "cumulative_s2": 4,
+    "sampled_item_ids": [
+      "CC19",
+      "CC17",
+      "CC08",
+      "SP13",
+      "SP11",
+      "SP10",
+      "EF031",
+      "EF070",
+      "EF278",
+      "UL01",
+      "UL03",
+      "UL07"
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "date": "2026-11-22",
+        "seed": 20261122,
+        "canary_item": "SP11",
+        "canary_caught": true,
+        "catalog_items": [
+          "CC19",
+          "CC17",
+          "CC08",
+          "SP13",
+          "SP11",
+          "SP10",
+          "EF031",
+          "EF070",
+          "EF278",
+          "UL01",
+          "UL03",
+          "UL07"
+        ],
+        "trace_events": [
+          "TR-20261122-b0-t10-damage-D2>7=48",
+          "TR-20261122-b0-t18-hit-H2>6=1",
+          "TR-20261122-b0-t18-turn_end"
+        ],
+        "verified_fails": {
+          "S0": 0,
+          "S1": 3,
+          "S2": 4
+        },
+        "fixed_items": [
+          "UL07",
+          "SP13",
+          "CC17",
+          "CC19",
+          "SP10",
+          "UL03",
+          "EF278"
+        ],
+        "verdict": "FAIL (all 7 fixed; canary caught; 0 S0)"
+      }
+    ]
   }
 }

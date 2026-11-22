@@ -575,6 +575,10 @@ namespace DtEngine
             else
             {
                 bonus = SumStatus(unit, SPEED_BUFFS);
+                // 0x483a20 / 0x48bf90 (EF278): CCommand_0168 dynamically adds caster's 278+353 ONLY while caster CanFight.
+                var s168 = unit.St[168];
+                if (s168 != null && s168.Skill != null && s168.Source != null && CanFight(s168.Source))
+                    bonus += s168.Source.Passive(278, 0.0) + s168.Source.Passive(353, 0.0);
                 if (unit.Hp <= 0.4 * unit.MaxHp && unit.Has(261)) bonus += unit.Value(261);
                 enchant = unit.HasEnchants ? F.SpeedEnchantBonus(unit.Pieces(51), unit.Pieces(52), unit.Pieces(53)) : 0.0;
                 if (action != null && (action.Kind == AKind.Skill || action.Kind == AKind.Enemy))
@@ -1147,6 +1151,8 @@ namespace DtEngine
                     finally { inCounter = false; }
                     if (lastDealtDamage > 0 || unit.Hp < preHp || !unit.Alive)
                         return Deny(unit, Lost.Empty);
+                    // 0x4371c3 (SP10): first opposing bearer that procs Warning Shot exits State 9 even if the shot misses.
+                    break;
                 }
             }
             // Inner State 10 (0x436ee0): Magnificent Steps / Mesmerized (283)
@@ -1617,7 +1623,23 @@ namespace DtEngine
                     var bearer = Units[ui];
                     if (CanFight(bearer) && CanFight(unit) && bearer.HasUnique && bearer.UniqueEffect == 447)
                     {
-                        LoseHp(unit, PyMath.Int(stored * bearer.UniqueValue), bearer);
+                        // 0x4251e3..0x42531b (SP13): Arcane Shield executes Skill 240 (0xf0) with Effect 296 (500 cap),
+                        // subject to exclusive barriers (101/102/181), Alter Fate (349), and Endure (254).
+                        int reflected = Math.Min(500, PyMath.Int(stored * bearer.UniqueValue));
+                        if (reflected > 0)
+                        {
+                            var shieldSkill = Data.ById(240);
+                            var shieldAct = shieldSkill != null
+                                ? new Action(bearer, AKind.Skill, shieldSkill, 1, unit) { Paid = true }
+                                : new Action(bearer, AKind.Attack, null, 1, unit);
+                            inCounter = true;
+                            try
+                            {
+                                if (!Voided(shieldAct, unit))
+                                    TakeDamage(unit, reflected, shieldAct, false);
+                            }
+                            finally { inCounter = false; }
+                        }
                         fired = true;
                     }
                 }
@@ -1962,6 +1984,9 @@ namespace DtEngine
                 }
                 bool landed = Hits(action, target);
                 Trace?.Hit(this, action, target, landed);
+                // 0x44bf19 / 0x44eb25 / 0x44f0c2 (CC17): Effect 87 (Only Damages Living) sets hitStatus=4 on Undead (5) /
+                // Inorganic (6, incl. Ist) for BOTH landed and missed spells, preserving barriers (101/102/181/183) and skipping AfterHit.
+                if (action.Has(87) && (target.Race == 5 || target.Race == 6)) return;
                 if (!landed)
                 {
                     // 0x421ab9..0x421ade, 0x44f0a0: a missed damaging spell (incl. special-damage magic) still checks Voided,
@@ -2031,14 +2056,14 @@ namespace DtEngine
             return target;
         }
 
-        /// <summary>0x422640: pattern flag10=1 (sequential A/B/C/T0105/M0140) vs flag10=0 (AoE D/E/F/G/M0124).</summary>
+        /// <summary>0x422640 / 0x41e060 / 0x41a4a0 (UL07): exact 0-based pattern flag10=1 (sequential) vs flag10=0 (AoE, incl. pattern 3).</summary>
         static bool IsSequentialPattern(Action action)
         {
             int p = action.Pattern;
-            if (action.Skill != null && p != 0)
-                return p == 1 || p == 2 || p == 3 || p == 8 || p == 14;
-            if (action.Atk != null && p != 0)
-                return p == 1 || p == 2 || p == 3 || p == 15;
+            if (action.Skill != null)
+                return p == 0 || p == 1 || p == 2 || p == 7 || p == 8 || p == 9 || p == 15;
+            if (action.Atk != null)
+                return p == 0 || p == 1 || p == 2;
             int c = action.TargetCode;
             return c == T.SINGLE || c == T.RANDOM;
         }
@@ -2975,7 +3000,7 @@ namespace DtEngine
                     {
                         if (effect == 123)
                         {
-                            if (hostile && CanFight(target) && unit.Level > target.Level && !target.Immune("shadow sew") && target.Pieces(F.ENCHANT_NULLIFY_ALL) == 0 && Roll(value))
+                            if (hostile && CanFight(target) && target.St[123] == null && unit.Level > target.Level && !target.Immune("shadow sew") && target.Pieces(F.ENCHANT_NULLIFY_ALL) == 0 && Roll(value))
                             {
                                 if (hitBarrierConsumed || ConsumeBarrier(target)) hitBarrierConsumed = true;
                                 else
@@ -3478,12 +3503,21 @@ namespace DtEngine
                 double coefficient = value;
                 if (IsPuppet(unit) && unit.Owner != null)
                     coefficient += F.DollHealBonus(unit.Owner.Passive(286, 0.0), unit.Owner.Pieces(304), unit.Owner.Pieces(305));
-                bool hasFixed = action.TryVal(9, out double fixedValue) && fixedValue != 0;
+                // 0x48d873..0x48d922 (CC19): always draws Rand(5) first; if Effect 9 present, overwrites amount and still applies 295/317 heal cap.
+                double random = F.HEAL_RANDOM[Rng.ChoiceIndex(F.HEAL_RANDOM.Length)];
                 int amount;
-                if (hasFixed) amount = PyMath.Int(fixedValue);
+                if (action.TryVal(9, out double fixedValue))
+                {
+                    amount = PyMath.Int(fixedValue);
+                    if (hasCap)
+                    {
+                        int lim = PyMath.Int(cap);
+                        lim += PyMath.Int(lim * unit.Passive(317, 0.0));
+                        amount = Math.Min(amount, lim);
+                    }
+                }
                 else
                 {
-                    double random = F.HEAL_RANDOM[Rng.ChoiceIndex(F.HEAL_RANDOM.Length)];
                     amount = F.Heal(unit.Stat(Unit.RES), coefficient, unit.Passive(245, 0.0), hasCap, cap, unit.Passive(317, 0.0), random);
                 }
                 Healed(unit, Restore(target, amount));

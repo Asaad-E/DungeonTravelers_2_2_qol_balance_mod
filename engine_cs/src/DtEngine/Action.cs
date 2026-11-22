@@ -127,7 +127,8 @@ namespace DtEngine
         {
             switch (e)
             {
-                case 128: case 129: case 130: case 168: return Bonus278_353;
+                // 168 (Speed Buff) evaluates caster's 278/353 dynamically while caster CanFight (0x483a20 / 0x48bf90, EF278).
+                case 128: case 129: case 130: return Bonus278_353;
                 case 272: case 273: return Bonus278;
                 default: return BonusNone;
             }

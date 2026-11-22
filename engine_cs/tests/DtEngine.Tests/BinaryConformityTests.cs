@@ -1228,5 +1228,103 @@ namespace DtEngine.Tests
             Assert.True(lowFoe.Alive);
             vanilla.Items.Remove(99950);
         }
+
+        [Fact]
+        public void Phase4_Round1_VerifiedFixes_UL07_SP13_CC17_CC19_SP10_UL03_EF278()
+        {
+            var snap = LoadSnapshot();
+            var vanilla = snap.Sides["vanilla"];
+
+            // UL07: Skill/EnemyAttack Pattern == 3 (flag10=0) is AoE (deferred Counter 250, does NOT abort hits on other targets).
+            var aoeSkill = vanilla.ById(10); // Halving Slice (Row, Pattern == 3)
+            Assert.NotNull(aoeSkill);
+            Assert.Equal(3, aoeSkill.Pattern);
+            var fighter = new Unit("Fighter", Unit.PARTY, 50, 1000, 100, new[] { 200, 100, 100, 100, 200, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = true };
+            var e1 = new Unit("E1", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 10 }, null, 2.0, 0.0, T.NONE, Kind.Enemy) { Front = true };
+            var e2 = new Unit("E2", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 10 }, null, 2.0, 0.0, T.NONE, Kind.Enemy) { Front = true };
+            e1.SetPassive(250, 1.0); // 100% Counter 250 on E1
+            var bAoe = new Battle(vanilla, new List<Unit> { fighter }, new List<Unit> { e1, e2 }, new PyRandom(1), null, new BattleOptions(), null);
+            bAoe.Perform(new Action(fighter, AKind.Skill, aoeSkill, 1, e1) { Paid = true });
+            Assert.True(e2.Hp < 1000, "UL07: Pattern 3 (flag10=0) must defer Counter 250 and still hit E2!");
+
+            // SP13: Arcane Shield 447 caps reflected damage at 500 (Skill 240 Effect 296) and respects exclusive barrier (101).
+            var siena = new Unit("Siena", Unit.PARTY, 50, 5000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member)
+            { HasUnique = true, UniqueEffect = 447, UniqueValue = 0.5 };
+            var boss = new Unit("Boss", Unit.ENEMIES, 50, 5000, 0, new[] { 100, 100, 500, 100, 100, 100 }, null, 2.0, 0.0, T.NONE, Kind.Enemy);
+            var bigSpell = new EnemyAttack
+            {
+                Id = 99910, Name = "BigNuke", Target = T.SINGLE, Attr = T.FIRE, Range = T.LONG, Accuracy = 1.0, Spell = true,
+                EffId = new[] { 1 }, EffKind = new[] { 4 }, EffValue = new[] { 2000.0 }, EffIsInt = new[] { false }
+            };
+            var bArc = new Battle(vanilla, new List<Unit> { siena }, new List<Unit> { boss }, new PyRandom(1), null, new BattleOptions { HasArcaneChance = true, ArcaneChance = 100 }, null);
+            bArc.Perform(new Action(boss, AKind.Enemy, bigSpell, 1) { Target = siena });
+            Assert.Equal(4500, boss.Hp); // 50% of >1000 dmg capped at 500!
+            boss.SetStatus(new Status(101, 1, 5, boss));
+            bArc.Perform(new Action(boss, AKind.Enemy, bigSpell, 1) { Target = siena });
+            Assert.Equal(4500, boss.Hp); // blocked by barrier 101!
+            Assert.Null(boss.St[101]);
+
+            // CC17: Missed Effect 87 (Only Damages Living) spell against Undead (Race 5) preserves Magic Barrier 183 and skips AfterHit 119.
+            var undead = new Unit("Skeleton", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 999, 50, 50 }, null, 2.0, 0.0, 5, Kind.Enemy);
+            undead.SetStatus(new Status(183, -0.5, 5, undead));
+            var soulEaterMiss = new Skill
+            {
+                Category = "Magic", Id = 9960, Name = "SoulEaterMiss", Levels = 1, Target = T.SINGLE, Attr = T.NEUTRAL, Group = 0x08, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Accuracy = new[] { 0.0 }, Turns = new[] { 0.0 },
+                Effects = new[]
+                {
+                    new Effect { Id = 1, Kind = 4, Values = new[] { 300.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 87, Kind = 2, Values = new[] { 1.0 }, IsInt = new[] { true } },
+                    new Effect { Id = 119, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 55, Kind = 2, Values = new[] { 0.0 }, IsInt = new[] { false } }
+                }
+            };
+            var b87 = new Battle(vanilla, new List<Unit> { fighter }, new List<Unit> { undead }, new PyRandom(1), null, new BattleOptions(), null);
+            b87.Perform(new Action(fighter, AKind.Skill, soulEaterMiss, 1, undead) { Paid = true });
+            Assert.True(undead.Alive);
+            Assert.NotNull(undead.St[183]);
+
+            // CC19: Effect 103 + Effect 9 (Fixed Heal 500) still applies Effect 295 Heal Cap (200).
+            var wounded = new Unit("Wounded", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Hp = 100 };
+            var capHeal = new Skill
+            {
+                Category = "Magic", Id = 9961, Name = "CapFixHeal", Levels = 1, Target = T.ALLY, Attr = T.NEUTRAL, Group = 0x08, IsMagic = true,
+                Weapons = Array.Empty<int>(), Tp = new[] { 0 }, Sp = new[] { 1 }, Speed = new[] { 1.0 }, Accuracy = new[] { 1.0 }, Turns = new[] { 0.0 },
+                Effects = new[]
+                {
+                    new Effect { Id = 103, Kind = 4, Values = new[] { 1.0 }, IsInt = new[] { false } },
+                    new Effect { Id = 9, Kind = 4, Values = new[] { 500.0 }, IsInt = new[] { true } },
+                    new Effect { Id = 295, Kind = 4, Values = new[] { 200.0 }, IsInt = new[] { true } }
+                }
+            };
+            var bHeal = new Battle(vanilla, new List<Unit> { wounded }, new List<Unit> { boss }, new PyRandom(1), null, new BattleOptions(), null);
+            bHeal.Perform(new Action(wounded, AKind.Skill, capHeal, 1, wounded) { Paid = true });
+            Assert.Equal(300, wounded.Hp); // +200 capped, NOT +500!
+
+            // SP10: Shadow Sew 123 does not overwrite existing Shadow Sew or consume barrier.
+            var sewed = new Unit("Sewed", Unit.PARTY, 10, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            sewed.SetStatus(new Status(123, 1.0, 1.0, boss));
+            sewed.SetStatus(new Status(101, 1.0, 5.0, sewed));
+            var sewAtk = new EnemyAttack
+            {
+                Id = 99911, Name = "Sew3", Target = T.SINGLE, Attr = T.NEUTRAL, Range = T.LONG, Accuracy = 1.0, Turns = 3,
+                EffId = new[] { 123 }, EffKind = new[] { 4 }, EffValue = new[] { 1.0 }, EffIsInt = new[] { false }
+            };
+            var bSew = new Battle(vanilla, new List<Unit> { sewed }, new List<Unit> { boss }, new PyRandom(1), null, new BattleOptions(), null);
+            bSew.Perform(new Action(boss, AKind.Enemy, sewAtk, 1) { Target = sewed });
+            Assert.Equal(1.0, sewed.St[123].Turns);
+            Assert.NotNull(sewed.St[101]);
+
+            // EF278: Effect 168 speed buff dynamically drops caster's 278 Maid Bonus when caster dies.
+            var maid = new Unit("Maid", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            maid.SetPassive(278, 0.20);
+            var ally = new Unit("Ally", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            ally.SetStatus(new Status(168, 0.10, 5, maid, "Cook"));
+            var bMaid = new Battle(vanilla, new List<Unit> { maid, ally }, new List<Unit> { boss }, new PyRandom(1), null, new BattleOptions(), null) { MeanWait = true };
+            double waitAlive = bMaid.Wait(ally);
+            maid.Alive = false;
+            double waitDead = bMaid.Wait(ally);
+            Assert.True(waitDead > waitAlive, "EF278: Dead Maid must not contribute 278 bonus to active 168 speed buff!");
+        }
     }
 }
