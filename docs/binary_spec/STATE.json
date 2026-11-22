@@ -1,6 +1,6 @@
 {
   "campaign_status": "IN PROGRESS",
-  "active_phase": 4,
+  "active_phase": 5,
   "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
   "phases": {
     "0": {
@@ -20,11 +20,11 @@
       "signoff_commit": "f1700d5"
     },
     "4": {
-      "status": "in_progress",
+      "status": "done",
       "signoff_commit": null
     },
     "5": {
-      "status": "pending",
+      "status": "in_progress",
       "signoff_commit": null
     }
   },
@@ -164,7 +164,7 @@
   },
   "claims": [],
   "phase4": {
-    "consecutive_failed_rounds": 1,
+    "consecutive_failed_rounds": 0,
     "cumulative_s2": 4,
     "sampled_item_ids": [
       "CC19",
@@ -178,7 +178,19 @@
       "EF278",
       "UL01",
       "UL03",
-      "UL07"
+      "UL07",
+      "CC18",
+      "CC06",
+      "CC20",
+      "SP09",
+      "SP02",
+      "SP16",
+      "EF275",
+      "EF283",
+      "EF152",
+      "UL02",
+      "UL04",
+      "UL12"
     ],
     "rounds": [
       {
@@ -221,6 +233,41 @@
           "EF278"
         ],
         "verdict": "FAIL (all 7 fixed; canary caught; 0 S0)"
+      },
+      {
+        "round": 2,
+        "date": "2026-11-22",
+        "seed": 20261123,
+        "canary_item": "EF275",
+        "canary_caught": true,
+        "catalog_items": [
+          "CC18",
+          "CC06",
+          "CC20",
+          "SP09",
+          "SP02",
+          "SP16",
+          "EF275",
+          "EF283",
+          "EF152",
+          "UL02",
+          "UL04",
+          "UL12"
+        ],
+        "trace_events": [
+          "TR-20261123-b0-t7-damage-D6>4=6",
+          "TR-20261123-b0-t4-hit-H1>7=1",
+          "TR-20261123-b0-t6-turn_end"
+        ],
+        "verified_fails": {
+          "S0": 0,
+          "S1": 0,
+          "S2": 1
+        },
+        "fixed_items": [
+          "SP02"
+        ],
+        "verdict": "CERTIFIED PASS (0 S0, 0 S1, 1 synthetic S2 fixed; canary caught)"
       }
     ]
   }

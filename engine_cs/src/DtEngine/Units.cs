@@ -411,7 +411,8 @@ namespace DtEngine
             if (St[TRUMP_CARD] != null)
             {
                 if (name == ATK) total += PyMath.Int(Base[DEF] * St[TRUMP_CARD].Value);
-                else if (name == DEF) total -= 10000;
+                // 0x4fbffb (SP02): Trump Card overwrites delta[DEF] = -10000 (discarding prior DEF buffs).
+                else if (name == DEF) total = b - 10000;
             }
             if (St[120] != null)
             {

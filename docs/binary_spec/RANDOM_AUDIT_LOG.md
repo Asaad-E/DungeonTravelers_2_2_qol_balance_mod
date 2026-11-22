@@ -27,3 +27,21 @@
   7. **`EF278` (`S2` — FIXED):** `Action.SkillEffects` baked `278`/`353` statically into `168` speed buff instead of dynamically checking caster `CanFight()` (`0x483a20`/`0x48bf90`). Moved `168` Maid bonus evaluation dynamically to `Battle.Wait()`.
 - **Regression Test:** `BinaryConformityTests.Phase4_Round1_VerifiedFixes_UL07_SP13_CC17_CC19_SP10_UL03_EF278`.
 - **Round 1 Verdict:** **FAIL (0 S0, 3 S1, 4 S2 — all fixed; canary caught; 3/3 trace events exact PASS)** -> **Round 2 required** with 15 brand-new unsampled items + fresh canary.
+
+---
+
+## Round 2 — 2026-11-22 (Seed `20261123`)
+
+- **Isolated Clean-Room Copy:** `p4_r2_isolated` (rebuilt from `483e6df` with all `docs/binary_spec/`, `FORMULAS.md`, `engine_conformity.json`, and test suites physically removed).
+- **Auditor:** `p4-r2-auditor` (`gemini-4-neon-high`, fresh no-fork session, read-only).
+- **Secret Canary:** Planted on `EF275` (`Battle.cs:ApplyItemMastery` mutated to return `PyMath.Int(value)` ignoring `mastery`, pre-verified to fail `Phase3_Wave2C_AutoGuardCover_Barriers_Arrows_Items_And_LeaderSealbook`).
+  - **Canary Caught?** **YES** — auditor flagged `EF275` (`S0` mutation in isolated copy) with verbatim binary VAs `0x50e789`, `0x50ead5`, `0x50edfc`, `0x50f234`. Round 2 is **VALID**.
+- **Sampled Items (15 brand-new items, 0 overlap with Round 1 = 12 catalog + 3 real `TextTrace` packets):**
+  - `core_combat`: `CC18` (**PASS**), `CC06` (**PASS**), `CC20` (**PASS**)
+  - `status_procs`: `SP09` (**PASS**), `SP02` (**1 synthetic `S2` edge — FIXED**), `SP16` (**PASS**)
+  - `effects_passives`: `EF275` *(canary — caught)*, `EF283` (**PASS**), `EF152` (**PASS**)
+  - `units_ai_loaders`: `UL02` (**PASS**), `UL04` (**PASS**), `UL12` (**PASS**)
+  - `trace_event`: `TR-20261123-b0-t7-damage-D6>4=6` (**PASS**), `TR-20261123-b0-t4-hit-H1>7=1` (**PASS**), `TR-20261123-b0-t6-turn_end` (**PASS**)
+- **Adjudicated Non-Canary Findings:** **0 `S0`**, **0 `S1`**, **1 synthetic `S2`**:
+  1. **`SP02` (`S2` — FIXED):** Trump Card (`48`) overwrites `delta[DEF] = -10000` (`0x4fbffb`) rather than subtracting `10000` (reachable only if synthetic `Base[DEF] + DEF_buff > 10000`). Updated `Units.cs:414` to `total = b - 10000`.
+- **Round 2 Verdict:** **CERTIFIED PASS (0 S0, 0 S1, 1 synthetic S2 fixed; canary caught; 6/6 real battle trace events exact PASS across Rounds 1–2; 24/24 catalog items audited without replacement)** -> **Engine Certified; proceed to Phase 5.**
