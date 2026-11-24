@@ -60,6 +60,12 @@ def main():
     check_runs = int(s.get('check_runs', 40))
     ci95 = 1.96 * math.sqrt(0.25 / max(1, check_runs)) * 100.0
     scan_runs = int(cfg['class_search']['presets']['balance']['scan'])
+    sc_cfg = cfg.get('scorecard', {})
+    story_exempt = set(sc_cfg.get('story_easier_exempt', []))
+    class_exempt = set(sc_cfg.get('class_speed_exempt', []))
+    dom_needs_beyond_a = bool(sc_cfg.get('class_dominant_requires_beyond_a', False))
+    drops_amber = int(sc_cfg.get('class_drops_amber', 45))
+    excl_always_niche = bool(sc_cfg.get('skills_backfire_exclude_forced_always_niche', False))
 
     rows_out = []
 
@@ -67,7 +73,10 @@ def main():
     dc_lines = read_lines(os.path.join(GENERATED, 'DIFFICULTY_CURVE.md'))
     dc_rows = table(dc_lines, '| Checkpoint | Level')
     dc_within = sum(1 for r in dc_rows if r[-1] == 'within')
-    dc_easier = sum(1 for r in dc_rows if 'easier' in r[-1])
+    dc_easier_ids = [r[0] for r in dc_rows if 'easier' in r[-1]]
+    dc_easier = len(dc_easier_ids)
+    dc_easier_eff = sum(1 for cid in dc_easier_ids if cid not in story_exempt)
+    dc_easier_ex = dc_easier - dc_easier_eff
     dc_harder = sum(1 for r in dc_rows if 'harder' in r[-1] and 'easier' not in r[-1])
     early_wipes = []
     for r in dc_rows:
@@ -86,13 +95,14 @@ def main():
         worst_arch = f'{scored[0][1]} {scored[0][0]:+.1f} pp (drops>=15: {scored[0][2]})'
         total_pb_drops = sum(int(num(r[3].split()[0])) for r in pb_sum if r[3] != '0')
     dc_zone = 'GREEN'
-    if dc_easier >= 3 or dc_harder >= 4 or total_pb_drops >= 6:
+    if dc_easier_eff >= 3 or dc_harder >= 4 or total_pb_drops >= 6:
         dc_zone = 'RED'
-    elif dc_easier > 0 or dc_harder > 0 or total_pb_drops >= 3 or early_wipes:
+    elif dc_easier_eff > 0 or dc_harder > 0 or total_pb_drops >= 3 or early_wipes:
         dc_zone = 'AMBER'
+    ex_txt = f', {dc_easier_ex} exempt' if dc_easier_ex else ''
     rows_out.append((
         'Story difficulty',
-        f'{dc_within}/{len(dc_rows)} within ({dc_easier} easier, {dc_harder} harder)',
+        f'{dc_within}/{len(dc_rows)} within ({dc_easier} easier{ex_txt}, {dc_harder} harder)',
         f'Worst archetype: {worst_arch or "n/a"}; total >=15pp drops: {total_pb_drops}' + (f'; early-wipe spikes: {", ".join(early_wipes)}' if early_wipes else ''),
         dc_zone,
         'Avoid tuning Meta at the expense of Mage-Heavy / Dual-Support.',
@@ -129,10 +139,17 @@ def main():
     cb_scan = table(cb_lines, '| Class | Cells')
     in_band = sum(1 for r in cb_band if r[-1] == 'yes')
     out_classes = [f'{r[0]} ({r[-1]})' for r in cb_band if r[-1] != 'yes']
+    out_eff = [r[0] for r in cb_band if r[-1] != 'yes' and r[0] not in class_exempt]
     cb_head = next((l for l in cb_lines if 'Confirmed:' in l), '')
-    m_dom = re.search(r'Confirmed:\s*(\d+)\s*dominant.*?,\s*(\d+)\s*drops', cb_head)
-    dom_cnt = int(m_dom.group(1)) if m_dom else 0
-    drop_cnt = int(m_dom.group(2)) if m_dom else 0
+    m_dom = re.search(r'Confirmed:\s*(\d+)\s*dominant\s*\((\d+)\s*beyond A\),\s*(\d+)\s*drops', cb_head)
+    if m_dom:
+        dom_cnt, beyond_a, drop_cnt = int(m_dom.group(1)), int(m_dom.group(2)), int(m_dom.group(3))
+    else:
+        m_dom2 = re.search(r'Confirmed:\s*(\d+)\s*dominant.*?,\s*(\d+)\s*drops', cb_head)
+        dom_cnt = int(m_dom2.group(1)) if m_dom2 else 0
+        beyond_a = dom_cnt
+        drop_cnt = int(m_dom2.group(2)) if m_dom2 else 0
+    dom_eff = beyond_a if dom_needs_beyond_a else dom_cnt
     top_fast = max(((num(r[5].split('>')[1]), r[0]) for r in cb_scan if '>' in r[5]), default=(0.0, '?'))
 
     cs_lines = read_lines(os.path.join(GENERATED, 'CLASS_STAGES.md'))
@@ -141,10 +158,11 @@ def main():
     cs_in = int(m_cs.group(1)) if m_cs else 0
     cs_tot = int(m_cs.group(2)) if m_cs else 0
     cs_out = int(m_cs.group(3)) if m_cs else 0
-    cb_zone = 'RED' if (dom_cnt > 0 or len(out_classes) >= 2 or cs_out >= 3) else ('AMBER' if (len(out_classes) == 1 or cs_out > 0 or drop_cnt >= 45) else 'GREEN')
+    cb_zone = 'RED' if (dom_eff > 0 or len(out_eff) >= 2 or cs_out >= 3) else ('AMBER' if (len(out_eff) == 1 or cs_out > 0 or drop_cnt >= drops_amber) else 'GREEN')
+    out_label = ', '.join(f'{r[0]} ({r[-1]}, exempt)' if r[0] in class_exempt else f'{r[0]} ({r[-1]})' for r in cb_band if r[-1] != 'yes') or 'all yes'
     rows_out.append((
         'Class balance & stages',
-        f'{in_band}/{len(cb_band)} final classes in band, {dom_cnt} dominant ({", ".join(out_classes) or "all yes"})',
+        f'{in_band}/{len(cb_band)} final classes in band, {dom_cnt} dominant ({beyond_a} beyond A; {out_label})',
         f'ClassStages {cs_in}/{cs_tot} within ({len(late_cids)} late bosses); {drop_cnt} drops; top fastest-5% share: {top_fast[1]} {top_fast[0]:.0f}%',
         cb_zone,
         'Track monotonic fastest-5% share + late ClassStages alongside z-band to avoid midgame overfitting.',
@@ -174,13 +192,18 @@ def main():
     sb_eff = [sv_map.get(r[0], r) for r in sb_rows]
     dead_cnt = sum(1 for r in sb_eff if r[-1] == 'dead')
     hurts_cnt = sum(1 for r in sb_eff if r[-1] == 'hurts')
-    high_backfire = sum(1 for r in sb_eff if num(r[5]) >= 25)
+    high_backfire_all = sum(1 for r in sb_eff if num(r[5]) >= 25)
+    high_backfire_eff = sum(
+        1 for r in sb_eff
+        if num(r[5]) >= 25 and not (excl_always_niche and r[-1] in ('good', 'niche') and ('; always /' in r[7] or '; doll_slot_free /' in r[7]))
+    )
     ub_head = next((l.strip('*') for l in read_lines(os.path.join(GENERATED, 'UNIQUE_BATTERY.md')) if l.startswith('**')), '')
-    sk_zone = 'RED' if (hurts_cnt > 0 or dead_cnt >= 8) else ('AMBER' if (dead_cnt > 0 or high_backfire >= 15) else 'GREEN')
+    sk_zone = 'RED' if (hurts_cnt > 0 or dead_cnt >= 8) else ('AMBER' if (dead_cnt > 0 or high_backfire_eff >= 15) else 'GREEN')
+    bf_txt = f'{high_backfire_all} situational ({high_backfire_eff} unexempt)' if excl_always_niche else f'{high_backfire_all}'
     rows_out.append((
         'Skills & uniques',
         f'{len(sb_eff)} skills: {dead_cnt} dead, {hurts_cnt} hurts (after rule variants)',
-        f'{high_backfire} skills with >=25% worse-cells under fixed AI rules; Uniques: {ub_head.split(".")[0]}',
+        f'{bf_txt} skills with >=25% worse-cells under fixed AI rules; Uniques: {ub_head.split(".")[0]}',
         sk_zone,
         'Niche skills can backfire under fixed AI rules; focus fixes on hurts / dead.',
     ))

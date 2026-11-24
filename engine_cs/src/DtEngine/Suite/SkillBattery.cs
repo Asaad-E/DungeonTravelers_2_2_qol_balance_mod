@@ -88,11 +88,14 @@ namespace DtEngine.Suite
                     return "U|" + side + "|" + e.Girl + "|" + e.Role + "|" + (use ? 1 : 0) + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
                 if (!use)
                 {
+                    bool passiveRule = e.Skill != null && e.Skill.IsPassive && e.Rule.HasValue;
+                    string s0Setup = passiveRule ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
+                    string s0Extra = passiveRule ? ("|" + (s0Setup ?? "") + "|" + e.Rule.Value.act) : "";
                     // Setting extra_skills = { id: 0 } is a no-op when the role's allocation plan never allocates that skill,
                     // so all such unallocated skills on the same (role, weapon, cid, party, context, chain) share one baseline.
                     if (!RoleMentionsSkill(c.Setup, e.Role, e.Skill.Name))
-                        return "S0|" + side + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
-                    return "S0|" + side + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + e.Skill.Id + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                        return "S0|" + side + "|" + e.Role + "|" + (e.Weapon ?? "") + s0Extra + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                    return "S0|" + side + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + e.Skill.Id + s0Extra + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
                 }
                 int levels = e.Skill.Levels != 0 ? e.Skill.Levels : 1;
                 string setupName = e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
@@ -277,17 +280,29 @@ namespace DtEngine.Suite
                                                { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true } }) },
                 };
             else
+            {
+                var extraSkills = new Obj { { e.Skill.Id.ToString(), (long)(use ? levels : 0) } };
+                // When testing a passive paired with an active companion skill (e.g. Triple Joker + Heaven or Hell),
+                // ensure the companion skill is learned at top level on BOTH with and without sides.
+                if (e.Skill.IsPassive && e.Rule.HasValue && e.Rule.Value.act.StartsWith("skill:"))
+                {
+                    string compName = e.Rule.Value.act.Substring(6);
+                    var comp = c.Data(side).SkillList.FirstOrDefault(s => s.Name == compName);
+                    if (comp != null) extraSkills[comp.Id.ToString()] = (long)(comp.Levels != 0 ? comp.Levels : 1);
+                }
                 recipe = new Obj
                 {
                     { "place", "replace_role" }, { "items", "first_kept" },
                     { "tested", Jb.L(new Obj { { "role", e.Role }, { "forge", sc.ForgeOpen(cp.Str("Floor")) }, { "unique_pieces", true },
-                                               { "extra_skills", new Obj { { e.Skill.Id.ToString(), (long)(use ? levels : 0) } } },
+                                               { "extra_skills", extraSkills },
                                                { "pieces", e.Weapon == null ? new Obj() : new Obj { { "Weapon", e.Weapon } } } }) },
                 };
+            }
             // the pep a girl's unique skill reads (section unique_skills of measure_config.json), as measures/UNIQUE_SKILLS.md plays her
             var pep = c.In("unique_skills").O("pep");
             if (e.Girl != null && pep.Has(e.Girl)) ((Obj)recipe.A("tested")[0]).Set("pep", pep.Get(e.Girl));
-            string setupName = use && e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
+            bool applyRule = e.Rule.HasValue && (use || (e.Skill != null && e.Skill.IsPassive));
+            string setupName = applyRule ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
             return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName, options: options,
                            name: (e.Label ?? e.Skill.Name) + "|" + e.Girl + "|" + e.Role + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
         }
@@ -650,6 +665,14 @@ namespace DtEngine.Suite
                                 foreach (var cond in allConds)
                                     entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = (cond, act) });
                             }
+                        }
+                        else if (variants && skill.IsPassive && skill.HasEffect(315))
+                        {
+                            // Triple Joker (315) modifies the outcome tables of Joker's four random skills (152..155);
+                            // evaluate both under the default policy and while actively casting each random skill.
+                            entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = null });
+                            foreach (string rSkill in new[] { "Heaven or Hell", "Showtime", "Magic Box", "Roulette Circus" })
+                                entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = ("always", "skill:" + rSkill) });
                         }
                         else entries.Add(new Entry { Skill = skill, Stage = st.S("name"), Role = role, Weapon = WeaponFor(c, data, cfg, skill, role), Rule = rule });
                     }

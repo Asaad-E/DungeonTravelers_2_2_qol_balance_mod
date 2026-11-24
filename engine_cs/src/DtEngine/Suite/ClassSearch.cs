@@ -277,7 +277,7 @@ namespace DtEngine.Suite
                 for (int i = 0; i < t.Parties.Count; i++)
                 {
                     var a = t.A[i]; var b = t.B[i];
-                    if (Dominant(b, a, t.Median, win, time, vanillaWin, vanillaLength)) candidates.Add(new Candidate { T = t, Party = i, Kind = "dominant", A = a, B = b });
+                    if (Dominant(b, a, t.Median, t.BestATime, win, time, vanillaWin, vanillaLength)) candidates.Add(new Candidate { T = t, Party = i, Kind = "dominant", A = a, B = b });
                     if (a.Won - b.Won >= drop) candidates.Add(new Candidate { T = t, Party = i, Kind = "drop", A = a, B = b });
                 }
             }
@@ -298,14 +298,15 @@ namespace DtEngine.Suite
                 {
                     var x = chosen[k];
                     x.A = Figures(done[2 * k]); x.B = Figures(done[2 * k + 1]);
-                    x.Confirmed = x.Kind == "dominant" ? Dominant(x.B, x.A, x.T.Median, win, time, vanillaWin, vanillaLength) : x.A.Won - x.B.Won >= drop;
+                    x.Confirmed = x.Kind == "dominant" ? Dominant(x.B, x.A, x.T.Median, x.T.BestATime, win, time, vanillaWin, vanillaLength) : x.A.Won - x.B.Won >= drop;
                 }
             }
             Report(c, cfg, p, targets, candidates, chosen, scanRuns, confirmRuns, chain);
         }
 
-        static bool Dominant(Fig b, Fig a, double median, double win, double time, double vanillaWin, double vanillaLength) =>
+        static bool Dominant(Fig b, Fig a, double median, double bestATime, double win, double time, double vanillaWin, double vanillaLength) =>
             b.Won >= win && !double.IsNaN(b.Time) && b.Time < time * median
+            && (double.IsNaN(bestATime) || b.Time < bestATime)
             && (a.Won < vanillaWin || double.IsNaN(a.Time) || a.Time >= vanillaLength * b.Time);
 
         static string Len(double x) => double.IsNaN(x) ? "-" : Py.F(x, 1);
@@ -338,9 +339,9 @@ namespace DtEngine.Suite
                     + confirmRuns + " runs (at most " + Py.Num(cfg.Get("confirm_max")) + " of each kind). Section class_search of data_tables/measure_config.json.", "",
                 trial.Count > 0 ? "**This search: " + string.Join("; ", trial) + ".**" + (p.Trial.Length > 0 || p.Enemy.Length > 0 ? " Skill and enemy values go to B, which is not built." : "")
                                 : "Every party, no trial values.", "",
-                "Dominant: B wins " + Py.Pct(win, 0) + " or more in under " + Py.Pct(cfg.D("time"), 0) + " of the median length of the target's parties on B, "
-                    + "where A won under " + Py.Pct(cfg.D("vanilla_win"), 0) + " or took " + Py.F(cfg.D("vanilla_length"), 1) + " times as long. Drop: B wins "
-                    + Py.Pct(drop, 0) + " points fewer than A. Beyond A: shorter than the shortest party of A at the target that wins " + Py.Pct(win, 0) + " or more.", "",
+                "Dominant: B wins " + Py.Pct(win, 0) + " or more in under " + Py.Pct(cfg.D("time"), 0) + " of the median length of the target's parties on B"
+                    + " and shorter than the shortest " + Py.Pct(win, 0) + "+ party of A, where A won under " + Py.Pct(cfg.D("vanilla_win"), 0) + " or took "
+                    + Py.F(cfg.D("vanilla_length"), 1) + " times as long. Drop: B wins " + Py.Pct(drop, 0) + " points fewer than A. Beyond A: shorter than the shortest party of A at the target that wins " + Py.Pct(win, 0) + " or more.", "",
                 "**" + targets.Count + " targets, " + targets.Sum(t => t.Parties.Count) + " party cells. Scan: " + candidates.Count(x => x.Kind == "dominant")
                     + " dominant and " + candidates.Count(x => x.Kind == "drop") + " drop candidates. "
                     + (confirmRuns == 0 ? "Not confirmed (0 confirmation runs): the scan only.**" : "Confirmed: " + dominant.Count + " dominant ("

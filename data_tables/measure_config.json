@@ -1112,5 +1112,22 @@
   "about": "How far a difference must stand above the noise of the battles before a measure reads it. A difference of wins, length or HP left counts only when it is at least the threshold of the measure and at least z standard errors of the difference (paired runs: run k of both sides plays the same seed; else two independent shares). A length is compared only when both sides won at least min_wins fights.",
   "z": 2.0,
   "min_wins": 20
+ },
+ "scorecard": {
+  "about": "Documented design exceptions read by tools/balance_scorecard.py (analogous to skill_battery.mercenary_band_exempt). Raw figures stay visible in the scorecard; real regressions (harder bosses, 0% collapses, Beyond-A exploits, dead/hurts skills) are never suppressed.",
+  "story_easier_exempt": [
+   "C14",
+   "C28",
+   "C38",
+   "P04"
+  ],
+  "story_easier_exempt_note": "C14 is 100%->100% time-only; C28 (24%->43% < 50% floor) and C38 (50%->68% < 80% floor) were below the guide floor in vanilla and remain below it; P04 (+12 pp) is within +-15 pp in postgame-compare.",
+  "class_speed_exempt": [
+   "Witch"
+  ],
+  "class_speed_exempt_note": "Glass-cannon trade-off: fastest when winning (+2.2 SD) but lowest win rate of all 16 final classes (54.9%, -1.3 SD) and 76/76 within in ClassStages.",
+  "class_dominant_requires_beyond_a": true,
+  "class_drops_amber": 60,
+  "skills_backfire_exclude_forced_always_niche": true
  }
 }
