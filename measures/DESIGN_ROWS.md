@@ -16,10 +16,10 @@ The reference party at the 40 boss fights of the story, 30 battles each, guards 
 | C14 | 93% | 97% | 77% | 100% |
 | C15 | 77% | 77% | 59% | 100% |
 | C16 | 87% | 127% | 70% | 100% |
-| C17 | 96% | 98% | 80% | 97% |
+| C17 | 96% | 97% | 80% | 100% |
 | C19 | 69% | 101% | 56% | 100% |
 | C21 | 76% | 79% | 62% | 100% |
-| C22 | 95% | 143% | 77% | 93% |
+| C22 | 95% | 156% | 77% | 93% |
 | C24 | 76% | 76% | 61% | 100% |
 | C25 | 101% | 139% | 81% | 100% |
 | C26 | 132% | 202% | 106% | 97% |
@@ -35,7 +35,7 @@ The reference party at the 40 boss fights of the story, 30 battles each, guards 
 | C35 | 192% | 314% | 143% | 50% |
 | C36 | 157% | 192% | 117% | 80% |
 | C37 | 121% | 155% | 90% | 97% |
-| C38 | 121% | 175% | 89% | 30% |
+| C38 | 145% | 175% | 107% | 30% |
 | C39 | 154% | 159% | 114% | 73% |
 | C40 | 143% | 172% | 106% | 47% |
 
@@ -58,8 +58,8 @@ The same party with and without her:
 
 | Party | C29a | P07 | P13 | P25 | P47 |
 |---|---|---|---|---|---|
-| Meta | 99% | 43% | 0% | 24% | 0% |
-| Meta, an attacker in her place | 99% | 50% | 0% | 3% | 0% |
+| Meta | 99% | 42% | 0% | 23% | 0% |
+| Meta, an attacker in her place | 99% | 49% | 0% | 3% | 0% |
 | Dual-Support | 100% | 7% | 0% | 0% | 0% |
 | Dual-Support, she in the place of the shooter | 99% | 6% | 0% | 1% | 0% |
 

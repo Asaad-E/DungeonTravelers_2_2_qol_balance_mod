@@ -5,22 +5,22 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 | Party skill | Members | Bonus at every proof | Wins | Fights shorter | HP left |
 |---|---|---|---|---|---|
 | Board Members | 3 | dex +20, agi +20 | +14 | +13% | +11 |
-| Vigor Trio | 3 | atk +32 | +10 | +14% | +8 |
+| Vigor Trio | 3 | atk +32 | +11 | +15% | +8 |
 | Vagabonds | 3 | agi +20 | +14 | +11% | +12 |
 | Eccentrics | 3 | agi +20 | +14 | +11% | +12 |
-| Sales Experience | 4 | wind +20, agi +10 | +16 | +7% | +12 |
-| NegaPosi | 4 | hp +50, tp +50 | +11 | +8% | +9 |
-| Mission Ongoing | 4 | fire +10, atk +20 | +8 | +11% | +7 |
-| Kindred Spirits | 4 | tp +50, fire +20 | +7 | +7% | +4 |
-| The New Magi | 3 | tp +50, fire +20 | +7 | +4% | +5 |
+| Sales Experience | 4 | wind +20, agi +10 | +14 | +8% | +12 |
+| Mission Ongoing | 4 | fire +10, atk +20 | +8 | +12% | +8 |
+| NegaPosi | 4 | hp +50, tp +50 | +11 | +9% | +9 |
+| Kindred Spirits | 4 | tp +50, fire +20 | +7 | +7% | +5 |
+| The New Magi | 3 | tp +50, fire +20 | +6 | +5% | +5 |
 | Full of Guts | 4 | hp +100 | +7 | +3% | +7 |
-| Graceful Agers | 4 | lightning +20, hp +50 | +7 | +1% | +6 |
-| Attentive | 3 | int +20 | +3 | +2% | +3 |
-| Beyond Human | 3 | stab +20 | +3 | +1% | +3 |
-| Libra Guard | 3 | def +25 | +5 | -2% | +4 |
-| Royal Squadron | 4 | bash +10, earth +20 | +1 | +0% | +0 |
+| Graceful Agers | 4 | lightning +20, hp +50 | +7 | +2% | +6 |
+| Attentive | 3 | int +20 | +3 | +4% | +4 |
+| Beyond Human | 3 | stab +20 | +4 | +0% | +3 |
+| Libra Guard | 3 | def +25 | +5 | -2% | +3 |
+| Natural Klutzes | 2 | bash +20 | +1 | +0% | +1 |
 | Celebrities | 3 | lightning +50 | +1 | +0% | +0 |
-| Natural Klutzes | 2 | bash +20 | +1 | +0% | +2 |
-| Dark and Light | 3 | res +20 | +1 | -0% | +1 |
+| Royal Squadron | 4 | bash +10, earth +20 | -0 | +1% | -1 |
+| Dark and Light | 3 | res +20 | -0 | +1% | +0 |
 | Veteran Soldiers | 2 | slash +25 | +0 | +0% | +0 |
-| Flawless Poise | 3 | water +20, earth +20 | +3 | -3% | +2 |
+| Flawless Poise | 3 | water +20, earth +20 | +1 | -3% | +0 |

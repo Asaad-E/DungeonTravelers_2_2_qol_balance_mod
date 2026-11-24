@@ -58,49 +58,49 @@ Hard for every class (median wins below half; out of the verdicts): C40 (29%).
 
 | Role | Class | Kind | C22 | C30 | C34 | C40 | Measure | Verdict |
 |---|---|---|---|---|---|---|---|---|
-| tank | Valkyrie | tank | 95% / 0.99 / 7% | 92% / 0.96 / 17% | 59% / 0.98 / 25% | 40% / - / 24% | wins +1% on the median | within |
-| attacker | Samurai | attacker | 94% / 1.03 / 29% | 90% / 0.91 / 36% | 71% / 0.83 / 38% | 29% / - / 46% | length 0.92 | within |
-| maid | Diva | support | 97% / 0.98 / 0% | 73% / 1.00 / 0% | 45% / 1.09 / 0% | 25% / - / 0% | wins -10% on the median | within |
-| healer | Bishop | support | 100% / 1.04 / 12% | 96% / 0.92 / 9% | 80% / 1.11 / 13% | 56% / - / 4% | wins +11% on the median | within |
-| mage | Witch | attacker | 96% / 0.64 / 57% | 88% / 0.62 / 50% | 52% / 0.94 / 41% | 13% / - / 36% | length 0.73 | within |
-| shooter | Sniper | attacker | 98% / 0.96 / 35% | 85% / 0.92 / 27% | 58% / 0.99 / 31% | 29% / - / 35% | length 0.96 | within |
-| dolls | Papillon | attacker | 98% / 0.89 / 44% | 83% / 1.11 / 19% | 64% / 1.01 / 29% | 25% / - / 24% | length 1.01 | within |
-| diva | Diva | support | 96% / 0.98 / 0% | 88% / 0.93 / 0% | 59% / 1.10 / 0% | 34% / - / 0% | wins -0% on the median | within |
-| dark lord | Dark Lord | attacker | 98% / 1.07 / 23% | 90% / 0.89 / 32% | 60% / 1.05 / 27% | 26% / - / 34% | length 1.00 | within |
-| papillon | Papillon | attacker | 99% / 0.90 / 42% | 86% / 1.07 / 18% | 55% / 1.13 / 21% | 30% / - / 27% | length 1.04 | within |
-| valkyrie | Valkyrie | tank | 100% / 0.92 / 10% | 94% / 0.74 / 18% | 69% / 0.99 / 9% | 35% / - / 5% | wins +6% on the median | within |
-| treasure hunter | Treasure Hunter | attacker | 99% / 1.17 / 21% | 91% / 1.19 / 20% | 52% / 1.10 / 27% | 30% / - / 23% | length 1.16 | slow |
-| soul summoner | Soul Summoner | attacker | 97% / 0.89 / 44% | 85% / 0.89 / 31% | 73% / 0.80 / 45% | 40% / - / 48% | length 0.86 | within |
-| magical princess | Magical Princess | attacker | 98% / 1.07 / 20% | 88% / 1.05 / 16% | 60% / 1.09 / 26% | 37% / - / 27% | length 1.07 | within |
-| sage | Sage | support | 97% / 1.11 / 0% | 95% / 0.80 / 7% | 60% / 1.05 / 2% | 26% / - / 2% | wins +2% on the median | within |
-| kunoichi | Kunoichi | attacker | 97% / 1.23 / 11% | 86% / 1.04 / 16% | 63% / 1.03 / 22% | 26% / - / 35% | length 1.10 | within |
-| mistress | Mistress | attacker | 98% / 1.17 / 18% | 87% / 1.08 / 14% | 50% / 1.15 / 18% | 25% / - / 20% | length 1.13 | within |
-| etoile | Etoile | support | 77% / 0.93 / 0% | 80% / 0.74 / 0% | 49% / 1.04 / 0% | 32% / - / 0% | wins -13% on the median | within |
-| joker | Joker | attacker | 97% / 1.06 / 31% | 82% / 0.93 / 30% | 62% / 0.85 / 45% | 28% / - / 31% | length 0.95 | within |
+| tank | Valkyrie | tank | 96% / 1.00 / 8% | 92% / 0.96 / 17% | 58% / 0.97 / 25% | 40% / - / 24% | wins +1% on the median | within |
+| attacker | Samurai | attacker | 94% / 1.04 / 29% | 91% / 0.91 / 36% | 71% / 0.84 / 38% | 28% / - / 47% | length 0.93 | within |
+| maid | Diva | support | 97% / 0.97 / 0% | 74% / 1.00 / 0% | 45% / 1.07 / 0% | 24% / - / 0% | wins -10% on the median | within |
+| healer | Bishop | support | 100% / 1.06 / 12% | 96% / 0.92 / 9% | 80% / 1.11 / 13% | 56% / - / 4% | wins +11% on the median | within |
+| mage | Witch | attacker | 98% / 0.64 / 57% | 88% / 0.62 / 50% | 53% / 0.94 / 41% | 11% / - / 36% | length 0.73 | within |
+| shooter | Sniper | attacker | 98% / 0.96 / 35% | 86% / 0.92 / 27% | 57% / 1.00 / 31% | 28% / - / 36% | length 0.96 | within |
+| dolls | Papillon | attacker | 98% / 0.90 / 44% | 83% / 1.11 / 19% | 63% / 1.01 / 29% | 24% / - / 24% | length 1.01 | within |
+| diva | Diva | support | 94% / 0.98 / 0% | 88% / 0.93 / 0% | 59% / 1.08 / 0% | 32% / - / 0% | wins -1% on the median | within |
+| dark lord | Dark Lord | attacker | 96% / 1.07 / 23% | 90% / 0.89 / 32% | 61% / 1.03 / 28% | 25% / - / 33% | length 0.99 | within |
+| papillon | Papillon | attacker | 100% / 0.90 / 42% | 86% / 1.07 / 18% | 58% / 1.12 / 21% | 33% / - / 28% | length 1.03 | within |
+| valkyrie | Valkyrie | tank | 100% / 0.91 / 10% | 94% / 0.74 / 18% | 67% / 0.98 / 9% | 37% / - / 5% | wins +6% on the median | within |
+| treasure hunter | Treasure Hunter | attacker | 99% / 1.16 / 21% | 91% / 1.19 / 20% | 52% / 1.10 / 26% | 31% / - / 22% | length 1.15 | slow |
+| soul summoner | Soul Summoner | attacker | 97% / 0.89 / 43% | 85% / 0.89 / 31% | 74% / 0.79 / 44% | 39% / - / 48% | length 0.86 | within |
+| magical princess | Magical Princess | attacker | 98% / 1.08 / 21% | 88% / 1.06 / 16% | 61% / 1.09 / 26% | 38% / - / 27% | length 1.07 | within |
+| sage | Sage | support | 98% / 1.11 / 0% | 95% / 0.80 / 7% | 59% / 1.05 / 2% | 25% / - / 2% | wins +2% on the median | within |
+| kunoichi | Kunoichi | attacker | 98% / 1.24 / 12% | 85% / 1.04 / 16% | 65% / 1.02 / 22% | 28% / - / 36% | length 1.10 | within |
+| mistress | Mistress | attacker | 98% / 1.19 / 18% | 87% / 1.08 / 14% | 48% / 1.16 / 18% | 23% / - / 20% | length 1.14 | within |
+| etoile | Etoile | support | 75% / 0.93 / 0% | 80% / 0.74 / 0% | 50% / 1.04 / 0% | 31% / - / 0% | wins -13% on the median | within |
+| joker | Joker | attacker | 97% / 1.05 / 30% | 82% / 0.93 / 30% | 62% / 0.83 / 45% | 29% / - / 31% | length 0.94 | within |
 
 ## late (P08, P14, P18, P24)
 
-Hard for every class (median wins below half; out of the verdicts): P14 (36%), P24 (17%).
+Hard for every class (median wins below half; out of the verdicts): P14 (36%), P24 (16%).
 
 | Role | Class | Kind | P08 | P14 | P18 | P24 | Measure | Verdict |
 |---|---|---|---|---|---|---|---|---|
-| tank | Valkyrie | tank | 100% / 0.97 / 37% | 39% / - / 25% | 71% / 0.89 / 24% | 25% / - / 29% | wins +11% on the median | within |
-| attacker | Samurai | attacker | 100% / 0.98 / 35% | 35% / - / 41% | 63% / 0.78 / 44% | 17% / - / 37% | length 0.88 | within |
-| maid | Diva | support | 100% / 1.17 / 0% | 25% / - / 0% | 56% / 0.93 / 0% | 24% / - / 0% | wins -4% on the median | within |
-| healer | Bishop | support | 100% / 1.26 / 2% | 58% / - / 5% | 67% / 1.10 / 7% | 29% / - / 3% | wins +7% on the median | within |
-| mage | Witch | attacker | 100% / 1.24 / 18% | 30% / - / 26% | 44% / 0.97 / 29% | 12% / - / 32% | length 1.11 | within |
-| shooter | Sniper | attacker | 100% / 1.04 / 39% | 36% / - / 46% | 60% / 1.00 / 47% | 11% / - / 43% | length 1.02 | within |
-| dolls | Papillon | attacker | 100% / 0.94 / 36% | 37% / - / 27% | 56% / 1.07 / 25% | 15% / - / 22% | length 1.01 | within |
-| diva | Diva | support | 100% / 1.14 / 0% | 24% / - / 0% | 55% / 0.93 / 0% | 18% / - / 0% | wins -5% on the median | within |
-| dark lord | Dark Lord | attacker | 100% / 1.05 / 34% | 44% / - / 28% | 64% / 0.99 / 29% | 22% / - / 31% | length 1.02 | within |
-| papillon | Papillon | attacker | 100% / 0.97 / 31% | 39% / - / 22% | 75% / 0.94 / 35% | 15% / - / 31% | length 0.96 | within |
-| valkyrie | Valkyrie | tank | 100% / 1.23 / 16% | 50% / - / 10% | 61% / 0.98 / 6% | 24% / - / 3% | wins +1% on the median | within |
-| treasure hunter | Treasure Hunter | attacker | 100% / 1.01 / 40% | 59% / - / 28% | 69% / 1.06 / 23% | 20% / - / 28% | length 1.04 | within |
-| soul summoner | Soul Summoner | attacker | 100% / 0.90 / 36% | 33% / - / 22% | 50% / 1.05 / 25% | 15% / - / 16% | length 0.97 | within |
-| magical princess | Magical Princess | attacker | 100% / 1.13 / 20% | 46% / - / 16% | 68% / 1.11 / 17% | 17% / - / 14% | length 1.12 | within |
-| sage | Sage | support | 100% / 1.21 / 1% | 40% / - / 2% | 60% / 1.02 / 1% | 16% / - / 0% | wins +0% on the median | within |
-| kunoichi | Kunoichi | attacker | 100% / 1.09 / 26% | 22% / - / 11% | 52% / 0.96 / 16% | 5% / - / 2% | length 1.02 | within |
-| mistress | Mistress | attacker | 100% / 0.98 / 28% | 32% / - / 21% | 57% / 1.06 / 16% | 18% / - / 13% | length 1.02 | within |
-| etoile | Etoile | support | 100% / 1.39 / 0% | 29% / - / 0% | 56% / 1.03 / 0% | 16% / - / 0% | wins -4% on the median | within |
-| joker | Joker | attacker | 100% / 0.95 / 35% | 22% / - / 20% | 58% / 1.02 / 22% | 8% / - / 10% | length 0.99 | within |
+| tank | Valkyrie | tank | 100% / 0.98 / 37% | 39% / - / 25% | 71% / 0.89 / 24% | 26% / - / 29% | wins +11% on the median | within |
+| attacker | Samurai | attacker | 100% / 0.98 / 35% | 35% / - / 41% | 62% / 0.79 / 44% | 15% / - / 37% | length 0.88 | within |
+| maid | Diva | support | 100% / 1.17 / 0% | 25% / - / 0% | 56% / 0.93 / 0% | 23% / - / 0% | wins -4% on the median | within |
+| healer | Bishop | support | 100% / 1.25 / 2% | 57% / - / 5% | 67% / 1.10 / 7% | 29% / - / 3% | wins +7% on the median | within |
+| mage | Witch | attacker | 100% / 1.25 / 18% | 29% / - / 26% | 43% / 0.97 / 29% | 13% / - / 32% | length 1.11 | within |
+| shooter | Sniper | attacker | 100% / 1.05 / 39% | 36% / - / 46% | 61% / 0.99 / 46% | 11% / - / 43% | length 1.02 | within |
+| dolls | Papillon | attacker | 100% / 0.95 / 35% | 37% / - / 27% | 56% / 1.06 / 25% | 15% / - / 22% | length 1.01 | within |
+| diva | Diva | support | 100% / 1.15 / 0% | 25% / - / 0% | 54% / 0.93 / 0% | 18% / - / 0% | wins -6% on the median | within |
+| dark lord | Dark Lord | attacker | 100% / 1.06 / 34% | 45% / - / 28% | 63% / 0.99 / 29% | 23% / - / 31% | length 1.02 | within |
+| papillon | Papillon | attacker | 100% / 0.97 / 31% | 38% / - / 22% | 75% / 0.94 / 35% | 15% / - / 31% | length 0.95 | within |
+| valkyrie | Valkyrie | tank | 100% / 1.21 / 16% | 53% / - / 9% | 60% / 0.96 / 6% | 23% / - / 3% | wins +0% on the median | within |
+| treasure hunter | Treasure Hunter | attacker | 100% / 1.01 / 40% | 59% / - / 28% | 69% / 1.06 / 23% | 19% / - / 28% | length 1.04 | within |
+| soul summoner | Soul Summoner | attacker | 100% / 0.90 / 36% | 33% / - / 22% | 52% / 1.04 / 24% | 15% / - / 16% | length 0.97 | within |
+| magical princess | Magical Princess | attacker | 100% / 1.12 / 20% | 45% / - / 16% | 68% / 1.12 / 17% | 16% / - / 14% | length 1.12 | within |
+| sage | Sage | support | 100% / 1.21 / 1% | 40% / - / 2% | 60% / 1.01 / 1% | 17% / - / 0% | wins +0% on the median | within |
+| kunoichi | Kunoichi | attacker | 100% / 1.10 / 26% | 22% / - / 11% | 52% / 0.96 / 16% | 5% / - / 2% | length 1.03 | within |
+| mistress | Mistress | attacker | 100% / 0.99 / 27% | 32% / - / 21% | 58% / 1.05 / 16% | 19% / - / 13% | length 1.02 | within |
+| etoile | Etoile | support | 100% / 1.38 / 0% | 29% / - / 0% | 57% / 1.03 / 0% | 15% / - / 0% | wins -3% on the median | within |
+| joker | Joker | attacker | 100% / 0.93 / 36% | 22% / - / 20% | 58% / 1.03 / 22% | 7% / - / 10% | length 0.98 | within |
 

@@ -14,44 +14,44 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 | C13 | atk x1.04; atk x1.05; atk x1.06 | 100% / 8.0 / 69% | 100% / 5.9 / 71% | time | 100% / 5.9 / 71% | time | no better with them |
 | C15 | hp x1.30 | 100% / 13.0 / 41% | 100% / 11.7 / 41% | within | 100% / 8.5 / 45% | time | needed |
 | C16 | def x1.04; def x1.05; def x1.06; def x1.38 | 100% / 4.3 / 79% | 100% / 3.7 / 81% | within | 100% / 3.2 / 82% | time | needed |
-| C17 | atk x1.08; def x1.04; def x1.05; def x1.06; hp x1.60; int x1.09 | 94% / 40.0 / 39% | 98% / 43.7 / 40% | within | 99% / 25.4 / 45% | time | needed |
+| C17 | atk x1.08; def x1.04; def x1.05; def x1.06; hp x1.60; int x1.09 | 93% / 43.0 / 37% | 96% / 44.8 / 38% | within | 98% / 28.1 / 43% | time | needed |
 | C18 | def x1.20 | 100% / 10.4 / 68% | 100% / 9.6 / 71% | within | 100% / 7.3 / 72% | time | needed |
 | C19 | atk x1.08; def x1.04; def x1.05; def x1.06; def x1.20; hp x1.20; int x1.08 | 97% / 7.7 / 53% | 96% / 7.5 / 53% | within | 100% / 5.5 / 63% | time, lowest_hp | needed |
 | C21 | hp x1.30 | 100% / 12.0 / 49% | 99% / 11.0 / 50% | within | 100% / 7.6 / 54% | time | needed |
-| C22 | hp x1.30 | 93% / 9.4 / 41% | 98% / 9.0 / 44% | within | 100% / 7.1 / 49% | within | not needed: within without them |
+| C22 | hp x1.30 | 94% / 9.4 / 42% | 98% / 9.0 / 44% | within | 100% / 7.1 / 49% | within | not needed: within without them |
 | C24 | atk x1.07; def x1.07; hp x1.25 | 100% / 6.5 / 55% | 100% / 5.4 / 57% | within | 100% / 4.2 / 59% | time | needed |
-| C26 | atk x0.96; atk x1.04; atk x1.15; def x1.10; def x1.11; hp x1.05; hp x1.12; hp x1.20; hp x1.22 | 97% / 11.2 / 44% | 98% / 11.0 / 50% | within | 99% / 8.4 / 53% | time | needed |
+| C26 | atk x0.96; atk x1.04; atk x1.15; def x1.10; def x1.11; hp x1.05; hp x1.12; hp x1.20; hp x1.22 | 96% / 11.1 / 44% | 98% / 11.1 / 50% | within | 99% / 8.4 / 53% | within | not needed: within without them |
 | C27 | hp x1.05; hp x1.30 | 100% / 4.1 / 84% | 100% / 4.0 / 85% | within | 100% / 3.2 / 87% | within | not needed: within without them |
 | C28 | hp x1.12 | 25% / 18.4 / 6% | 42% / 16.5 / 10% | won | 51% / 14.5 / 14% | won | no better with them |
 | C29 | atk x1.10; hp x1.30 | 98% / 19.2 / 44% | 96% / 18.2 / 46% | within | 100% / 13.7 / 52% | time | needed |
 | C31 | hp x1.05; hp x1.30 | 100% / 16.3 / 61% | 100% / 16.0 / 61% | within | 100% / 11.9 / 64% | time | needed |
 | C32 | atk x1.04; atk x1.26; hp x1.05; hp x1.34; hp x1.50 | 50% / 21.0 / 13% | 59% / 20.7 / 18% | within | 78% / 14.4 / 28% | won, time, lowest_hp | needed |
-| C34 | def x1.25 | 56% / 23.9 / 17% | 64% / 19.5 / 20% | within | 64% / 19.5 / 20% | within | not needed: within without them |
+| C34 | def x1.25 | 56% / 23.9 / 17% | 59% / 19.5 / 20% | within | 59% / 19.5 / 20% | within | not needed: within without them |
 | C35 | hp x1.38 | 55% / 12.8 / 17% | 64% / 14.7 / 21% | within | 78% / 10.5 / 27% | won, lowest_hp | needed |
-| C36 | def x1.22; def x1.30 | 81% / 18.3 / 3% | 90% / 13.8 / 8% | within | 90% / 13.8 / 8% | within | not needed: within without them |
+| C36 | def x1.22; def x1.30 | 81% / 18.3 / 3% | 90% / 13.9 / 7% | within | 90% / 13.9 / 7% | within | not needed: within without them |
 | C37 | atk x1.08; def x1.19; def x1.20; hp x1.10 | 98% / 14.9 / 46% | 98% / 11.4 / 50% | within | 99% / 7.9 / 55% | time | needed |
-| C38 | atk x1.10; hp x1.09; hp x1.30 | 14% / 13.7 / 36% | 12% / 11.3 / 34% | within | 19% / 9.5 / 37% | time | needed |
-| C39 | atk x1.04; hp x1.15 | 74% / 12.4 / 27% | 73% / 13.9 / 30% | within | 86% / 10.6 / 39% | won, lowest_hp | needed |
-| C40 | atk x1.06; hp x1.24; int x1.06 | 40% / 31.9 / 13% | 29% / 34.7 / 9% | won | 74% / 25.0 / 25% | won, lowest_hp | needed |
+| C38 | atk x1.10; hp x1.09; hp x1.30 | 16% / 13.6 / 37% | 14% / 11.9 / 36% | within | 20% / 9.9 / 38% | time | needed |
+| C39 | atk x1.04; hp x1.15 | 74% / 12.4 / 27% | 72% / 13.9 / 29% | within | 87% / 10.6 / 39% | won, lowest_hp | needed |
+| C40 | atk x1.06; hp x1.24; int x1.06 | 40% / 31.9 / 13% | 30% / 34.3 / 9% | won | 70% / 25.2 / 24% | won, lowest_hp | needed |
 | P05 | atk x1.08; hp x1.18; int x1.08 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 25.9 / 0% | within | not needed: within without them |
-| P06 | atk x1.12; hp x1.25; int x1.12 | 31% / 18.9 / 12% | 36% / 18.1 / 11% | within | 57% / 13.2 / 21% | won, time | needed |
-| P08 | def x1.54; hp x1.57 | 100% / 6.4 / 80% | 100% / 6.6 / 86% | pressure | 100% / 4.3 / 87% | time, pressure | needed |
-| P13 | atk x1.08; hp x1.18; int x1.08 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 6% / 6.6 / 1% | within | not needed: within without them |
-| P18 | atk x1.08; hp x1.08; int x1.08 | 100% / 4.6 / 53% | 98% / 5.0 / 45% | within | 98% / 4.4 / 51% | within | not needed: within without them |
-| P20 | atk x1.15; hp x1.30; int x1.15 | 1% / 14.7 / 0% | 1% / 13.3 / 0% | within | 56% / 8.9 / 24% | won, time, lowest_hp | needed |
-| P23 | atk x1.12; hp x1.25; int x1.12 | 2% / 7.4 / 0% | 2% / 8.8 / 0% | within | 14% / 6.9 / 4% | won | needed |
-| P24 | atk x0.91; atk x1.08; hp x0.87; hp x1.20 | 36% / 5.4 / 14% | 56% / 4.0 / 23% | won, time | 29% / 4.4 / 9% | within | not needed: within without them |
+| P06 | atk x1.12; hp x1.25; int x1.12 | 31% / 18.9 / 12% | 36% / 18.2 / 11% | within | 57% / 13.2 / 21% | won, time | needed |
+| P08 | def x1.54; hp x1.57 | 100% / 6.3 / 80% | 100% / 6.5 / 86% | pressure | 100% / 4.3 / 88% | time, pressure | needed |
+| P13 | atk x1.08; hp x1.18; int x1.08 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 6% / 6.7 / 1% | within | not needed: within without them |
+| P18 | atk x1.08; hp x1.08; int x1.08 | 100% / 4.6 / 52% | 98% / 5.0 / 46% | within | 99% / 4.4 / 51% | within | not needed: within without them |
+| P20 | atk x1.15; hp x1.30; int x1.15 | 0% / 15.6 / 0% | 0% / 13.0 / 0% | within | 58% / 9.0 / 25% | won, time, lowest_hp | needed |
+| P23 | atk x1.12; hp x1.25; int x1.12 | 2% / 7.4 / 0% | 2% / 8.6 / 0% | within | 14% / 6.9 / 4% | won | needed |
+| P24 | atk x0.91; atk x1.08; hp x0.87; hp x1.20 | 36% / 5.4 / 14% | 55% / 3.9 / 23% | won, time | 28% / 4.4 / 9% | within | not needed: within without them |
 | P27 | atk x1.08; hp x1.15; int x1.08 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 3.0 / 0% | within | not needed: within without them |
-| P28 | atk x1.10; hp x1.20; int x1.10 | 18% / 3.0 / 6% | 16% / 3.3 / 5% | within | 28% / 2.9 / 9% | won | needed |
+| P28 | atk x1.10; hp x1.20; int x1.10 | 16% / 3.0 / 5% | 15% / 3.3 / 5% | within | 26% / 2.8 / 8% | within | not needed: within without them |
 | P29 | atk x1.08; hp x1.15; int x1.08 | 0% / 4.6 / 0% | 0% / 0.0 / 0% | within | 0% / 3.6 / 0% | within | not needed: within without them |
 | P30 | hp x1.08 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 9.7 / 0% | within | not needed: within without them |
 | P31 | atk x1.12; hp x1.25; int x1.12 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 0.0 / 0% | within | not needed: within without them |
 | P34 | atk x1.12; hp x1.20; int x1.12 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 0.0 / 0% | within | not needed: within without them |
-| P36 | hp x1.25; int x1.10 | 4% / 3.9 / 1% | 8% / 4.8 / 3% | within | 16% / 4.3 / 4% | won | needed |
+| P36 | hp x1.25; int x1.10 | 4% / 3.9 / 1% | 8% / 5.0 / 2% | time | 16% / 4.4 / 4% | won | no better with them |
 | P39 | atk x1.06; atk x1.08; hp x1.12; hp x1.18; int x1.08 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 0.0 / 0% | within | not needed: within without them |
 | P40 | atk x1.06; hp x1.12 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 0.0 / 0% | within | not needed: within without them |
-| P46 | atk x1.08; atk x1.10; hp x1.15; hp x1.20; int x1.10 | 2% / 7.9 / 0% | 1% / 4.9 / 0% | time | 6% / 5.7 / 2% | time | no better with them |
+| P46 | atk x1.08; atk x1.10; hp x1.15; hp x1.20; int x1.10 | 1% / 6.9 / 0% | 2% / 5.9 / 1% | within | 6% / 5.9 / 2% | within | not needed: within without them |
 | P48 | atk x1.04; atk x1.05; hp x1.08; hp x1.12; int x1.05 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 0.0 / 0% | within | not needed: within without them |
 | P52 | atk x1.14; hp x1.25 | 64% / 2.7 / 22% | 56% / 3.1 / 17% | within | 82% / 2.4 / 29% | won | needed |
 | P53 | atk x1.10; hp x1.18; int x1.10 | 87% / 2.6 / 33% | 86% / 2.7 / 28% | within | 92% / 2.2 / 39% | within | not needed: within without them |
-| P54 | atk x1.10; hp x1.20; int x1.10 | 92% / 2.3 / 42% | 93% / 2.3 / 41% | within | 96% / 1.9 / 46% | within | not needed: within without them |
+| P54 | atk x1.10; hp x1.20; int x1.10 | 92% / 2.3 / 43% | 92% / 2.3 / 40% | within | 96% / 1.9 / 46% | within | not needed: within without them |

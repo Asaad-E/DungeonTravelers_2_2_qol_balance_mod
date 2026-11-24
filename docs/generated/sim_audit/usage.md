@@ -1,6 +1,6 @@
 ## usage
 
-213 skills of a plan never used: 1 a rule keeps effect 161 up, 106 dominated, 73 no rule of the role uses it, 6 not usable with the weapon of the role, 27 situational.
+211 skills of a plan never used: 1 a rule keeps effect 161 up, 104 dominated, 73 no rule of the role uses it, 6 not usable with the weapon of the role, 27 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -181,7 +181,6 @@
 | kunoichi (Tsurara) | 62 | C38 | Sharp Stab | not usable with the weapon of the role |
 | kunoichi (Tsurara) | 90 | P24 | Stun Sting | dominated: 64% of the best (Fire Scroll) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Phoenix | not usable with the weapon of the role |
-| kunoichi (Tsurara) | 90 | P24 | Ninja Piledriver | dominated: 92% of the best (Fire Scroll) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Earth Scroll | dominated: 100% of the best (Fire Scroll) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Lightning Scroll | dominated: 100% of the best (Fire Scroll) at the start of the fight |
 | kunoichi (Tsurara) | 90 | P24 | Water Scroll | dominated: 69% of the best (Fire Scroll) at the start of the fight |
@@ -210,7 +209,6 @@
 | etoile (Ist) | 90 | P24 | Alluring Samba | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Gravitating Polka | no rule of the role uses it |
 | etoile (Ist) | 90 | P24 | Clean | no rule of the role uses it |
-| joker (Lizerietta) | 62 | C38 | Checkmate | dominated: 92% of the best (Danger Shoot) at the start of the fight |
 | joker (Lizerietta) | 62 | C38 | Mad Zapper | dominated: 37% of the best (Danger Shoot) at the start of the fight |
 | joker (Lizerietta) | 62 | C38 | Life Bringer | dominated: 13% of the best (Danger Shoot) at the start of the fight |
 | joker (Lizerietta) | 62 | C38 | Heaven or Hell | dominated: 20% of the best (Danger Shoot) at the start of the fight |
