@@ -252,7 +252,7 @@ def main():
         f'| Open register verdicts (`VERDICTS.md`) | {ver_open} open | Tracks unresolved balance register items |',
     ])
 
-    with open(OUT, 'w', encoding='utf-8') as f:
+    with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(md) + '\n')
     print(f'scorecard: {counts["GREEN"]} GREEN, {counts["AMBER"]} AMBER, {counts["RED"]} RED -> {os.path.relpath(OUT, PROJECT)}')
     return 0

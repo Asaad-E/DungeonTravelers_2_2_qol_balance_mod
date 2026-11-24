@@ -29,7 +29,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C24 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
 | C24 | variant | Diva | 80% | Meta with etoile for diva | 100% |
 | C26 | vanilla | Diva | 80% | Meta with etoile for diva | 97% |
-| C26 | variant | Diva | 80% | Meta with etoile for diva | 95% |
+| C26 | variant | Diva | 80% | Meta with etoile for diva | 90% |
 | C28 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 58% |
 | C28 | variant | Diva | 50% | Meta with etoile for diva | 62% |
 | C28 | variant | Papillon | 50% | Meta with attacker for papillon | 67% |

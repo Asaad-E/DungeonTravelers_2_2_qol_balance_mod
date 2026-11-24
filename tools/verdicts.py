@@ -75,7 +75,7 @@ def main():
             'reading of the design, not a measure.', '', '| Row | Subject | State | Verdict | Why |', '|---|---|---|---|---|']
     out += [f'| {r["ID"]} | {r["Subject"]} | {r["Status"]} | {r.get("Verdict") or ""} | '
             f'{(r.get("Why") or "").replace("|", "/")} |' for r in bare]
-    with open(OUTPUT, 'w', encoding='utf-8') as fh:
+    with open(OUTPUT, 'w', encoding='utf-8', newline='\n') as fh:
         fh.write('\n'.join(out) + '\n')
     print(f'{len(rows)} rows: ' + ', '.join(f'{s} {total.get(s, 0)}' for s in STATES) +
           f'; verdicts written {sum(1 for r in rows if r.get("Verdict"))}; no figure {len(bare)}; written {OUTPUT}')

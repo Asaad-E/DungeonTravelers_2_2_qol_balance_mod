@@ -66,7 +66,7 @@ def main():
             '| Checkpoint | Boss | Step | Gap |', '|---|---|---|---|']
     out += [f"| {r['id']} | {r['boss']} | {'' if r['step'] is None else '+' + str(r['step'])} | {r['gap']:+d} |"
             for r in jumps]
-    with open(OUTPUT, 'w', encoding='utf-8') as fh:
+    with open(OUTPUT, 'w', encoding='utf-8', newline='\n') as fh:
         fh.write('\n'.join(out) + '\n')
     print(f'{len(rows)} checkpoints, {len(jumps)} jumps; written {OUTPUT}')
 

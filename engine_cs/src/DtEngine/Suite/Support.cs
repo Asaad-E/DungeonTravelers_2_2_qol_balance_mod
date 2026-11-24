@@ -55,7 +55,8 @@ namespace DtEngine.Suite
                 var withRows = Out(c, game, modded); var without = Out(c, game, bare);
                 var change = rows.A(cid).Cast<Obj>().Select(r => r.S("Field") + " x" + Py.F(Py.Num(r.Get("New")) / Py.Num(r.Get("Vanilla")), 2)).Distinct().ToList();
                 change.Sort(string.CompareOrdinal);
-                string reading = without.Count == 0 ? "not needed: within without them" : withRows.Count < without.Count ? "needed" : "no better with them";
+                bool unwinnableAtCrown0 = cid.StartsWith("P") && game.D("won") < 0.05 && modded.D("won") < 0.05 && bare.D("won") < 0.05;
+                string reading = unwinnableAtCrown0 ? "postgame (crown>0)" : without.Count == 0 ? "not needed: within without them" : withRows.Count < without.Count ? "needed" : "no better with them";
                 lines.Add("| " + cid + " | " + string.Join("; ", change) + " | " + Fmt(game) + " | " + Fmt(modded) + " | " + (withRows.Count > 0 ? string.Join(", ", withRows) : "within") + " | " + Fmt(bare)
                           + " | " + (without.Count > 0 ? string.Join(", ", without) : "within") + " | " + reading + " |");
             }

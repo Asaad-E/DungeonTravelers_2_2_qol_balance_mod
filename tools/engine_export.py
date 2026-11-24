@@ -262,7 +262,7 @@ def measure_inputs(setup, vanilla, variant):
     out['unique_skills'] = dict(config['unique_skills'],
                                 skills={str(k): {'name': renamed.get(k, v['name']), 'values': list(v['values'])}
                                         for k, v in variant.unique.items()})
-    out['boss_rows_check'] = boss_rows_inputs(vanilla, variant, config['boss_rows_check'])
+    out['boss_rows_check'] = boss_rows_inputs(setup, vanilla, variant, config['boss_rows_check'])
     out['design_rows'] = design_rows_inputs(vanilla, config['design_rows'])
     out['trials'] = dict(config['trials'], sealbook_names={str(k): v['name'] for k, v in vanilla.sealbooks.items()})
     return out
@@ -291,19 +291,36 @@ ENEMY_FIELDS = ('hp', 'atk', 'def', 'int', 'res', 'dex', 'agi', 'res_slash', 're
                 'res_earth', 'res_lightning')
 
 
-def boss_rows_inputs(vanilla, variant, config):
-    """measures/boss_rows_check.py: the live rows of enemy stats by the checkpoint written in their record, and for each such checkpoint
+def boss_rows_inputs(setup, vanilla, variant, config):
+    """measures/boss_rows_check.py: the live rows of enemy stats by the checkpoint written in their record (restricted to enemies
+    that actually appear in that checkpoint's fixed boss battle, excluding random floor mobs), and for each such checkpoint
     the stats of the enemy records on the variant with those rows taken out, as the changes from the variant. The export stops when
     the variant of these rows is not the variant of the snapshot, or when the changes do not give back the data without the rows."""
     import re
     from gamedata import variant as variant_mod
+    fixed_by_key = {(f['floor'], f['number']): {e for e, _ in f['enemies']} for f in vanilla.fixed}
+    boss_ids = {}
+    for cp in setup.checkpoints:
+        cid = cp.get('ID')
+        fl = cp.get('Floor')
+        if not cid or not fl:
+            continue
+        eids = set()
+        for part in str(cp.get('Battle (several joined by + are fought in a row)', '')).split('+'):
+            part = part.strip()
+            if part.isdigit():
+                eids |= fixed_by_key.get((fl, int(part)), set())
+        boss_ids[cid] = eids
     rows = variant_mod.rows()
     found = {}
     for row in rows:
         if row['Table'] == 'enemies' and row['Field'] in config['fields']:
             where = re.search(r'\(([CP]\d+a?)\)', str(row['Record']))
             if where:
-                found.setdefault(where.group(1), []).append(row)
+                cid = where.group(1)
+                tok = str(row['Record']).split()[0]
+                if tok.isdigit() and int(tok) in boss_ids.get(cid, ()):
+                    found.setdefault(cid, []).append(row)
 
     def with_flags(data):
         data.arcane_chance = variant_mod.arcane_chance()

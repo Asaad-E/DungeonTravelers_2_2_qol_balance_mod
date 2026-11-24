@@ -110,11 +110,11 @@ namespace DtEngine.Suite
         // --- files ---------------------------------------------------------------------------------------------
         public string Path(params string[] parts) => System.IO.Path.Combine(new[] { Root }.Concat(parts).ToArray());
 
-        /// <summary>open(path, 'w', encoding='utf-8') on Windows (text mode: line ends are CR LF) or with newline='\n' (lf).</summary>
+        /// <summary>Write UTF-8 text with LF line endings to match .gitattributes.</summary>
         public void WriteText(string path, string text, bool lf)
         {
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
-            if (!lf) text = text.Replace("\n", "\r\n");
+            text = text.Replace("\r\n", "\n");
             File.WriteAllBytes(path, new UTF8Encoding(false).GetBytes(text));
         }
 
