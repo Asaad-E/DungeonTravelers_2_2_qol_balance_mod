@@ -9,6 +9,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 class SuiteChartsCompile(unittest.TestCase):
     def test_compiles(self):
         py_compile.compile(os.path.join(ROOT, 'tools', 'suite_charts.py'), doraise=True)
+        py_compile.compile(os.path.join(ROOT, 'tools', 'balance_scorecard.py'), doraise=True)
 
 
 if __name__ == '__main__':

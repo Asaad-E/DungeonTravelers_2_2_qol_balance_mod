@@ -136,6 +136,32 @@ namespace DtEngine.Suite
                 }
                 lines.Add("| " + cid + " | " + (names.TryGetValue(cid, out var nm) ? nm : boss.GetValueOrDefault(cid, "")) + " | " + Py.Pct(floor[cid], 0) + " | " + string.Join(" | ", parts) + " |");
             }
+            lines.AddRange(new[] { "", "## Archetypes: summary vs vanilla", "",
+                "Separates variant-vs-vanilla change from the guide floor. Drops/gains count checkpoints moving by 15 points or more against vanilla.", "",
+                "| Archetype | Above floor (vanilla > variant) | Mean win delta (pp) | Drops >= 15 pp | Gains >= 15 pp |",
+                "|---|---|---|---|---|" });
+            foreach (var g in groups)
+            {
+                int vAbove = 0, mAbove = 0;
+                var deltas = new List<double>();
+                var drops = new List<string>();
+                var gains = new List<string>();
+                foreach (var cid in every)
+                {
+                    double vs = Share(Best(rows, cid, g.names, "vanilla"));
+                    double ms = Share(Best(rows, cid, g.names, "variant"));
+                    if (vs >= floor[cid]) vAbove++;
+                    if (ms >= floor[cid]) mAbove++;
+                    double d = ms - vs;
+                    deltas.Add(d);
+                    if (d <= -0.15) drops.Add(cid + " (" + Py.F(100 * d, 0, true) + ")");
+                    if (d >= 0.15) gains.Add(cid + " (" + Py.F(100 * d, 0, true) + ")");
+                }
+                double meanDelta = deltas.Count > 0 ? deltas.Average() * 100.0 : 0.0;
+                string dropStr = drops.Count > 0 ? drops.Count + " (" + string.Join(", ", drops) + ")" : "0";
+                string gainStr = gains.Count > 0 ? gains.Count + " (" + string.Join(", ", gains) + ")" : "0";
+                lines.Add("| " + g.archetype + " | " + vAbove + "/" + every.Count + " > " + mAbove + "/" + every.Count + " | " + Py.F(meanDelta, 1, true) + " | " + dropStr + " | " + gainStr + " |");
+            }
             lines.AddRange(new[] { "", "## Every party on the variant: win share and its 95% interval", "",
                 "| Checkpoint | " + string.Join(" | ", partyNames) + " |", "|---|" + string.Concat(partyNames.Select(x => "---|")) });
             foreach (var cid in every)

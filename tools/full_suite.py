@@ -26,6 +26,7 @@ STEPS = [
     ['tools/engine_export.py'],
     SUITE,
     ['tools/balance_baseline.py'], ['tools/checkpoint_levels.py'], ['tools/engine_conformity.py'], ['tools/verdicts.py'],
+    ['tools/balance_scorecard.py'],        # paired guardrail metrics + GREEN/AMBER/RED compass
     ['tools/suite_charts.py'],             # the charts of the reports (docs/generated/charts)
     ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py'],
 ]

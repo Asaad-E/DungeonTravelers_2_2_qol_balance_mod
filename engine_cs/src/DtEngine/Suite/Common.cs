@@ -22,6 +22,8 @@ namespace DtEngine.Suite
         public static Obj Summary(Obj raw) => new Obj
         {
             { "won", raw.D("won") }, { "time", raw.DN("time") }, { "lowest_hp", raw.D("lowest_hp") }, { "pressure", raw.D("pressure") },
+            { "tp_left", raw.Has("tp_left") ? raw.DN("tp_left") : null },
+            { "early_wipe", raw.Has("early_wipe") ? (object)raw.D("early_wipe") : 0.0 },
         };
 
         /// <summary>The names of a folder, sorted as Python sorts strings.</summary>

@@ -132,6 +132,8 @@ namespace DtEngine
             if (s.Time.HasValue) w.WriteNumber("time", s.Time.Value); else w.WriteNull("time");
             w.WriteNumber("lowest_hp", s.LowestHp);
             w.WriteNumber("pressure", s.Pressure);
+            if (s.TpLeft.HasValue) w.WriteNumber("tp_left", s.TpLeft.Value); else w.WriteNull("tp_left");
+            w.WriteNumber("early_wipe", s.EarlyWipe);
             w.WriteEndObject();
         }
 

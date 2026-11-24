@@ -28,6 +28,18 @@ An archetype with several parties shows the best of them on each side. **Bold**:
 | C38 | Samael | 80% | **13% > 10%** | **11% > 17%** | **10% > 7%** | **15% > 26%** | **0% > 35%** |
 | C40 | Demiurge | 50% | **42% > 39%** | 60% > 50% | **47% > 18%** | **6% > 8%** | **0% > 5%** |
 
+## Archetypes: summary vs vanilla
+
+Separates variant-vs-vanilla change from the guide floor. Drops/gains count checkpoints moving by 15 points or more against vanilla.
+
+| Archetype | Above floor (vanilla > variant) | Mean win delta (pp) | Drops >= 15 pp | Gains >= 15 pp |
+|---|---|---|---|---|
+| Meta | 12/17 > 12/17 | +0.6 | 0 | 1 (C28 (+18)) |
+| Dual-Support | 13/17 > 13/17 | +0.5 | 1 (C32 (-30)) | 1 (C34 (+34)) |
+| Mage-Heavy | 12/17 > 11/17 | -4.4 | 3 (C32 (-33), C36 (-15), C40 (-29)) | 0 |
+| Juggernaut-Plus | 12/17 > 12/17 | +2.9 | 0 | 1 (C34 (+24)) |
+| Anti-Meta-Plus | 8/17 > 9/17 | +12.6 | 1 (C17 (-25)) | 8 (C19 (+15), C21 (+27), C26 (+28), C29 (+30), C30 (+24), C34 (+40), C36 (+22), C38 (+35)) |
+
 ## Every party on the variant: win share and its 95% interval
 
 | Checkpoint | Meta | Dual-Support | Mage-Heavy | Juggernaut-Plus | Anti-Meta-Plus |

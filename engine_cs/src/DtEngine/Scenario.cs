@@ -1119,20 +1119,29 @@ namespace DtEngine
         public double Won;
         public double? Time;
         public double LowestHp, Pressure;
+        public double? TpLeft;
+        public double EarlyWipe;
 
         public static Summary Of(List<RunResult> results)
         {
             int runs = Math.Max(1, results.Count);
             var wins = results.Where(r => r.Won).ToList();
             long actions = 0, damage = 0, partyMax = 0;
-            foreach (var r in results) { actions += r.EnemyActions; damage += r.EnemyDamage; partyMax += r.PartyMaxHp; }
+            int earlyWipes = 0;
+            foreach (var r in results)
+            {
+                actions += r.EnemyActions; damage += r.EnemyDamage; partyMax += r.PartyMaxHp;
+                if (!r.Won && r.Time <= 3.0) earlyWipes++;
+            }
             double maxHp = (double)partyMax / runs;
-            var s = new Summary { Won = (double)wins.Count / runs };
+            var s = new Summary { Won = (double)wins.Count / runs, EarlyWipe = (double)earlyWipes / runs };
             if (wins.Count > 0)
             {
                 var t = new PySum();
-                foreach (var r in wins) t.AddFloat(r.Time);
+                var tp = new PySum();
+                foreach (var r in wins) { t.AddFloat(r.Time); tp.AddFloat(r.TpLeft); }
                 s.Time = t.Result / wins.Count;
+                s.TpLeft = tp.Result / wins.Count;
             }
             var l = new PySum();
             foreach (var r in results) l.AddFloat(r.LowestHp);

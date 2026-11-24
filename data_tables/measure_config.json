@@ -1073,7 +1073,7 @@
     "stage": "final",
     "context": "boss",
     "sample": "400",
-    "scan": "10",
+    "scan": "20",
     "confirm": "200",
     "out": "balance",
     "report": "docs/generated/CLASS_BALANCE.md"
