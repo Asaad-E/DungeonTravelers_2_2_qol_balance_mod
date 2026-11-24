@@ -45,3 +45,20 @@
 - **Adjudicated Non-Canary Findings:** **0 `S0`**, **0 `S1`**, **1 synthetic `S2`**:
   1. **`SP02` (`S2` — FIXED):** Trump Card (`48`) overwrites `delta[DEF] = -10000` (`0x4fbffb`) rather than subtracting `10000` (reachable only if synthetic `Base[DEF] + DEF_buff > 10000`). Updated `Units.cs:414` to `total = b - 10000`.
 - **Round 2 Verdict:** **CERTIFIED PASS (0 S0, 0 S1, 1 synthetic S2 fixed; canary caught; 6/6 real battle trace events exact PASS across Rounds 1–2; 24/24 catalog items audited without replacement)** -> **Engine Certified; proceed to Phase 5.**
+
+---
+
+## Round 3 — 2026-11-23 (Seed `20261124`) — Post-Wave 3 Strict Certification
+
+- **Isolated Clean-Room Copy:** `p4_r3_isolated` (rebuilt from `0ee8aaa` after closing all remaining Phase 3 Wave 3 gaps: `0x40` infinite item bit 6, per-slot Cover `171`, enemy Ally-Heal AI, Sleep-decay, `f32` forge/specialty stats, `SetFront`, and battle Pep; all `docs/binary_spec/`, `FORMULAS.md`, `engine_conformity.json`, and test suites physically removed).
+- **Auditor:** `p4-r3-auditor` (`gemini-4-neon-high`, fresh no-fork session, read-only).
+- **Secret Canary:** Planted on `CC13` (`Battle.cs:MagicValue` mutated to drop `action.Has(47)` RES substitution, pre-verified to fail `R3_Recheck_DamageRowFilters_Magic47_88_87_RaceGuard_ElbowGrease_AndArcaneCounter`).
+  - **Canary Caught?** **YES** — auditor flagged `CC13` (`S0` mutation in isolated copy) with verbatim disassembly `0044dc50..0044dc8e` and exact `Prism Dawn` repro. Round 3 is **VALID**.
+- **Sampled Items (15 brand-new items, 0 overlap with Rounds 1–2 = 12 catalog + 3 real `C18` `TextTrace` packets):**
+  - `core_combat`: `CC16` (**PASS**), `CC03` (**PASS**), `CC13` *(canary — caught)*
+  - `status_procs`: `SP01` (**PASS**), `SP15` (**PASS**), `SP04` (**PASS**)
+  - `effects_passives`: `EF340` (**PASS**), `EF357` (**PASS**), `EF133` (**PASS**)
+  - `units_ai_loaders`: `UL09` (**PASS**), `UL11` (**PASS**), `UL06` (**PASS**)
+  - `trace_event`: `TR-20261124-b0-t3-damage-D4>8=142` (**PASS**), `TR-20261124-b0-t3-hit-H4>8=1` (**PASS**), `TR-20261124-b0-t1-turn_end` (**PASS**)
+- **Adjudicated Non-Canary Findings:** **0 `S0`**, **0 `S1`**, **0 `S2`** (11/11 catalog items PASS + 3/3 real battle trace events exact PASS).
+- **Round 3 Verdict:** **STRICT CERTIFIED PASS (0 S0 / 0 S1 / 0 S2; 3/3 canaries caught; 36/36 catalog items audited without replacement + 9/9 real battle trace events exact PASS across Rounds 1–3).**

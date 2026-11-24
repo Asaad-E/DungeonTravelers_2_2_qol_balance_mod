@@ -57,8 +57,8 @@
 | **0** | Mechanical Binary Inventory | `[x] done` | `tools/exe_reader.py` (pinned), `tools/exe_inventory.py`, `docs/binary_spec/00_INVENTORY.json`, `00_INVENTORY.md`, `STATE.json`, `tools/conformity_status.py`, generalized `tools/audit_check.py` | SHA-256 pinned; all 6 combat C++ namespaces (`0x413000..0x570000`) + 633 RTTI vtables + all 5 dispatch routes + all battle jump tables + `.rdata` tables + `.pck` usage + `X01..X17` byte diff + stratified `audit_catalog` dumped cleanly | `2133dab` |
 | **1** | Clean-Room Binary Spec (`Exe` only) | `[x] done` | `docs/binary_spec/M00_PIPELINE.md`, `docs/binary_spec/M01..M11.md` | `M00` + `M01..M11` complete (140 rules, 3,224 verified exe lines, **0 failing**) via `audit_check.py --spec` | `ef410a6` |
 | **2** | Two-Way Global Diff & Triage | `[x] done` | `docs/binary_spec/DIFF_REPORT.md`, `docs/binary_spec/DIFF_TABLE.json` | 146 items (140 spec + 6 `ENGINE-ONLY`), `audit_check.py --diff` passes (**0 failing**), 282 sub-bugs triaged | `6950513` |
-| **3** | Fixes, Tests & Binary Invariants | `[x] done` | `engine_cs/`, `gamedata/`, `tools/*_data.py`, `tools/extract_vanilla.py`, `BinaryConformityTests.cs`, `tests/test_binary_invariants.py`, `tests/test_phase3_py_fixes.py` | All S0/S1/Py-loader waves fixed; `Battle.IsLegalAction()` enforced; `68/68` C# + `282/282` Py + paired `X01..X17` PASS | `f1700d5` |
-| **4** | 5-Stratum Independent Random Audit | `[x] done` | `tools/sample_audit_batch.py`, `docs/binary_spec/RANDOM_AUDIT_LOG.md` | 2 rounds (24 catalog items without replacement + 6 real `TextTrace` packets + 2/2 caught canaries); Round 2 **CERTIFIED PASS** (`0 S0 / 0 S1`, 1 synthetic `S2` fixed) | `7ce0de7` |
+| **3** | Fixes, Tests & Binary Invariants | `[x] done` | `engine_cs/`, `gamedata/`, `tools/*_data.py`, `tools/extract_vanilla.py`, `BinaryConformityTests.cs`, `tests/test_binary_invariants.py`, `tests/test_phase3_py_fixes.py` | All S0/S1/Py-loader/Wave-3 gaps fixed (`0x40` infinite items, per-slot Cover, Heal AI, Sleep-decay, f32 stats, battle Pep); `Battle.IsLegalAction()` enforced; `69/69` C# + `282/282` Py + paired `X01..X17` PASS | `0ee8aaa` |
+| **4** | 5-Stratum Independent Random Audit | `[x] done` | `tools/sample_audit_batch.py`, `docs/binary_spec/RANDOM_AUDIT_LOG.md` | 3 rounds (36 catalog items without replacement + 9 real `TextTrace` packets + 3/3 caught canaries); Round 3 **STRICT CERTIFIED PASS** (`0 S0 / 0 S1 / 0 S2`) | `0ee8aaa` |
 | **5** | Final Balance Recalibration & Release | `[~] sync done` | `docs/generated/*`, `measures/*`, `dist/*.zip`, `docs/FORMULAS.md`, `data_tables/engine_conformity.json` | `full_suite.py` + `sealbook-battery` + `support-battery` + `suite_charts.py` + `package_all.py` + doc sync complete (`311db06`); optional `balance_changes.xlsx` recalibration deferred per user | `311db06` |
 
 ### Phase 1–3 Module Progress Matrix (`M00`–`M11`)
@@ -82,13 +82,13 @@
 
 - **Consecutive Failed Rounds:** `0 / 3`
 - **Immediate Trip Triggers:** ANY verified `S0`, OR `>= 2` verified fails sharing a root-cause class, OR `3` consecutive failed rounds → **HARD STOP & Drawing Board `POST_MORTEM.md`**.
-- **Items Audited Without Replacement:** `24` catalog + `6` Trace JSON = `30` | **Canaries Caught:** `2 / 2`
+- **Items Audited Without Replacement:** `36` catalog + `9` Trace JSON = `45` | **Canaries Caught:** `3 / 3`
 
 | Round | Date | Seed | Canary Planted / Caught? (Max 2 void retries) | Items (12 catalog + 3 Trace JSON = 15) | Verified Fails (`S0/S1/undoc S2`) | Verdict |
 |---|---|---|---|---|---|---|
 | 1 | 2026-11-22 | `20261122` | `SP11` / **YES** | 12 catalog + 3 Trace (`3/3 PASS`) | `0 / 3 / 4` *(all 7 fixed in `483e6df`)* | `[x] FAIL (fixed)` |
-| 2 | 2026-11-22 | `20261123` | `EF275` / **YES** | 12 new catalog + 3 Trace (`3/3 PASS`) | `0 / 0 / 1` *(synthetic `SP02` fixed in `7ce0de7`)* | `[x] CERTIFIED PASS` |
-| 3 *(if needed)* | — | — | — | — | — | `[ ] not needed` |
+| 2 | 2026-11-22 | `20261123` | `EF275` / **YES** | 12 new catalog + 3 Trace (`3/3 PASS`) | `0 / 0 / 1` *(synthetic `SP02` fixed in `7ce0de7`)* | `[x] PASS (fixed)` |
+| 3 | 2026-11-23 | `20261124` | `CC13` / **YES** | 12 new catalog + 3 Trace (`3/3 PASS`) | `0 / 0 / 0` | `[x] STRICT CERTIFIED PASS` |
 
 ---
 

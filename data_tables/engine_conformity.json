@@ -2315,6 +2315,33 @@
       "fixed_in": "7ce0de7",
       "note": "Closes every verified finding from Phase 4 clean-room random audits Rounds 1 and 2.",
       "reach": "Soul Eater (Effect 87), Maid speed buffs (168 + 278/353), and Trump Card (48)."
+    },
+    {
+      "id": "P17.7",
+      "mechanic": "Infinite items bit 6 (0x40), per-slot Cover, enemy Ally-Heal AI, Sleep-decay, f32 forge/specialty & battle Pep",
+      "rule": "FORMULAS 16.10: Infinite battle items (859..867) check Flags_0x18 bit 6 (0x40, 0x42d011) after item effects (0x42cfe0); Cover runs per target slot (0x420b40); enemy Ally-Heal AI picks lowest HP% (0x43f541); Sleep expires vt+0x8c statuses in DecrementTimedStatuses (0x48d5b5); PieceStats & specialty gain use f32; battle kill/KO Pep deltas and Cmd 81 Pep Freeze apply.",
+      "program": [
+        "0x42d011",
+        "0x420b40",
+        "0x43f541",
+        "0x48d5b5",
+        "0x43a6b9",
+        "0x43abd1"
+      ],
+      "engine": [
+        "Battle.cs:UseItem",
+        "Battle.cs:OwnSidePick",
+        "Battle.cs:DecrementTimedStatuses",
+        "Units.cs:PieceStats",
+        "Units.cs:ClampPep",
+        "Units.cs:SetFront"
+      ],
+      "command": "python tools/conformity_status.py",
+      "audited": "Certified 2026-11-23 (Phase 3 Wave 3 + Phase 4 Round 3 0/0/0 PASS)",
+      "verdict": "FIXED",
+      "fixed_in": "0ee8aaa",
+      "note": "Closed all remaining Phase 3 S1 gaps verified before Round 3 strict 0/0/0 certification.",
+      "reach": "Infinite consumables, multi-hit Cover, enemy heals, Sleep-decay, forge/specialty f32, row enchants, and Alisia Positive Trance."
     }
   ]
 }

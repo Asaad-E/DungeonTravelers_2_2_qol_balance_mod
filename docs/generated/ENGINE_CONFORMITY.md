@@ -7,10 +7,10 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | Verdict | Items | Meaning |
 |---|---|---|
 | MATCH | 64 | the engine does what the program does |
-| FIXED | 46 | the audit found a difference; the engine was corrected (commit named) |
+| FIXED | 47 | the audit found a difference; the engine was corrected (commit named) |
 | MODEL-LIMIT | 3 | the engine leaves out a detail on purpose; the note says which, and where it can matter |
 | N/A | 0 | not a mechanic of a battle |
-| Total | 113 | |
+| Total | 114 | |
 
 ## Phase 0
 
@@ -214,3 +214,4 @@ Engine audit of 2026-10-18 (plan docs/ENGINE_AUDIT.md), verdicts after the fixes
 | P17.4 | Star Dust Arrow stacking, Perdurabo all-party cure & Summon/Guest Leader Sealbook inheritance | 0x484491, 0x48a430, 0x4ff530 | Battle.cs:MakeDoll, Battle.cs:DollAction, Units.cs:BuildSummon, Units.cs:BuildGuest | FIXED (483e6df) | Removes ENGINE-ONLY-03 (DollCureTargets cap); propagates Party Slot 0 Sealbook enchants to Summons and Guests across all build paths. |
 | P17.5 | Battle ItemResult handlers (0..8, 11..23, 52..72) & 44 skill-casting item wrappers | 0x50e538, 0x50e789, 0x511830, 0x512eb0 | Battle.cs:ExecuteItemEffects, Battle.cs:ApplyItemMastery | FIXED (f1700d5) | Adds battle-usable item types and party-buff skill wrappers 35/36/39; verified against vanilla exe tables 0x6d3820 and 0x6d38b0. |
 | P17.6 | Effect 87 missed-spell guard, dynamic Maid Bonus 278 on status 168 & Trump Card 48 DEF overwrite | 0x44f0c2, 0x483a20, 0x48bf90, 0x4fbffb | Battle.cs:Resolve, Battle.cs:Wait, Units.cs:Stat | FIXED (7ce0de7) | Closes every verified finding from Phase 4 clean-room random audits Rounds 1 and 2. |
+| P17.7 | Infinite items bit 6 (0x40), per-slot Cover, enemy Ally-Heal AI, Sleep-decay, f32 forge/specialty & battle Pep | 0x42d011, 0x420b40, 0x43f541, 0x48d5b5, 0x43a6b9 | Battle.cs:UseItem, Battle.cs:OwnSidePick, Battle.cs:DecrementTimedStatuses, Units.cs:PieceStats | FIXED (0ee8aaa) | Closed all remaining Phase 3 S1 gaps verified before Round 3 strict 0/0/0 certification. |

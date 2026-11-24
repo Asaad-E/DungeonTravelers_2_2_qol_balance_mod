@@ -1,5 +1,5 @@
 {
-  "campaign_status": "CERTIFIED (SYNC DONE; BALANCE RECALIBRATION DEFERRED)",
+  "campaign_status": "STRICT CERTIFIED PASS (0/0/0 R3; BALANCE RECALIBRATION DEFERRED)",
   "active_phase": 5,
   "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
   "phases": {
@@ -17,7 +17,7 @@
     },
     "3": {
       "status": "done",
-      "signoff_commit": "f1700d5"
+      "signoff_commit": "0ee8aaa"
     },
     "4": {
       "status": "done",
@@ -190,7 +190,19 @@
       "EF152",
       "UL02",
       "UL04",
-      "UL12"
+      "UL12",
+      "CC16",
+      "CC03",
+      "CC13",
+      "SP01",
+      "SP15",
+      "SP04",
+      "EF340",
+      "EF357",
+      "EF133",
+      "UL09",
+      "UL11",
+      "UL06"
     ],
     "rounds": [
       {
@@ -268,6 +280,39 @@
           "SP02"
         ],
         "verdict": "CERTIFIED PASS (0 S0, 0 S1, 1 synthetic S2 fixed; canary caught)"
+      },
+      {
+        "round": 3,
+        "date": "2026-11-23",
+        "seed": 20261124,
+        "canary_item": "CC13",
+        "canary_caught": true,
+        "catalog_items": [
+          "CC16",
+          "CC03",
+          "CC13",
+          "SP01",
+          "SP15",
+          "SP04",
+          "EF340",
+          "EF357",
+          "EF133",
+          "UL09",
+          "UL11",
+          "UL06"
+        ],
+        "trace_events": [
+          "TR-20261124-b0-t3-damage-D4>8=142",
+          "TR-20261124-b0-t3-hit-H4>8=1",
+          "TR-20261124-b0-t1-turn_end"
+        ],
+        "verified_fails": {
+          "S0": 0,
+          "S1": 0,
+          "S2": 0
+        },
+        "fixed_items": [],
+        "verdict": "STRICT CERTIFIED PASS (0 S0, 0 S1, 0 S2; canary caught)"
       }
     ]
   }
