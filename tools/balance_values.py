@@ -78,8 +78,9 @@ _E = _L['EnemyStatusData']
 ENEMY_FLAGS, ENEMY_EQUIPMENT_DROP, ENEMY_PASSIVE_COUNT, ENEMY_PASSIVES = (_E['flags'], _E['equipment_drop'],
                                                                          _E['passive_count'], _E['passives'])
 ENEMY_EQUIPMENT_SLOTS, ENEMY_EQUIPMENT_SLOT = _E['equipment_slots'], _E['equipment_slot_size']     # a count, then (zone table or fixed piece, id or kind, weight)
-ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = (_L['EnemyAttackData']['slot_count'], _L['EnemyAttackData']['slots'],
-                                           _L['EnemyAttackData']['slot_size'])
+ATTACK_ATTR, ATTACK_COUNT, ATTACK_SLOTS, ATTACK_SLOT = (
+    _L['EnemyAttackData']['attr'], _L['EnemyAttackData']['slot_count'],
+    _L['EnemyAttackData']['slots'], _L['EnemyAttackData']['slot_size'])
 _Q = _L['EquipmentData']
 EQUIPMENT = {'ATK (base)': (_Q['atk'], 'i'), 'upgrade rate': (_Q['upgrade_rate'], 'f'), 'class bitmask': (_Q['class_mask'], 'I')}
 EQUIPMENT_ENCHANT_COUNT, EQUIPMENT_ENCHANTS, EQUIPMENT_ENCHANT_SLOTS = _Q['enchant_count'], _Q['enchants'], _Q['enchant_slots']
@@ -347,7 +348,11 @@ def attack_row(packs, row):
     aid = int(str(row['Record']).split()[0])
     pack, name = 'EnemyAttackData.pck', f'EnemyAttackData_{aid:04d}.bin'
     buf = packs.entry(pack, name)
-    eid = effect_id(str(row['Field']))
+    field = str(row['Field'])
+    if field == 'attribute':
+        packs.write(row, (pack, name, None, ATTACK_ATTR), 'i', int(row['New']), vanilla=int(row['Vanilla']))
+        return
+    eid = effect_id(field)
     count = struct.unpack_from('<i', buf, ATTACK_COUNT)[0]
     slot = next((k for k in range(count) if struct.unpack_from('<i', buf, ATTACK_SLOTS + ATTACK_SLOT * k)[0] == eid), None)
     if slot is None:

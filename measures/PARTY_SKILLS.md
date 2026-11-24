@@ -22,5 +22,5 @@ The reference party at C36, C38, C40, P24, with the full bonus on as many member
 | Veteran Soldiers | 2 | slash +25 | +0 | +0% | +0 |
 | Graceful Agers | 4 | lightning +20, hp +50 | -1 | +1% | -0 |
 | Flawless Poise | 3 | water +20, earth +20 | +0 | -0% | -1 |
-| Natural Klutzes | 2 | bash +20 | +0 | -0% | +1 |
 | Dark and Light | 3 | res +20 | -1 | -0% | -1 |
+| Natural Klutzes | 2 | bash +20 | -1 | -0% | +0 |

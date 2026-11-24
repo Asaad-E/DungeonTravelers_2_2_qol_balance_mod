@@ -2,7 +2,7 @@
 
 The pairs of boss and class that every winning party of the battery holds, and the best party found without that class (the role changed for a neighbour of the same job).
 
-**A party without the class reaches the floor at 19 of 32 such pairs on the variant, 15 of 20 in vanilla.**
+**A party without the class reaches the floor at 18 of 31 such pairs on the variant, 15 of 20 in vanilla.**
 
 | Boss | Side | Class | Floor | Best party without it | Wins |
 |---|---|---|---|---|---|
@@ -29,7 +29,6 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C24 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
 | C24 | variant | Diva | 80% | Meta with etoile for diva | 100% |
 | C26 | vanilla | Diva | 80% | Meta with etoile for diva | 97% |
-| C26 | variant | Dark Lord | 80% | Meta with attacker for dark lord | 100% |
 | C26 | variant | Diva | 80% | Meta with etoile for diva | 95% |
 | C28 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 58% |
 | C28 | variant | Diva | 50% | Meta with etoile for diva | 62% |
@@ -37,7 +36,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C28 | variant | Treasure Hunter | 50% | Meta with kunoichi for treasure hunter | 47% **below** |
 | C28 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 27% **below** |
 | C29 | vanilla | Diva | 50% | Meta with etoile for diva | 100% |
-| C29 | variant | Diva | 50% | Meta with etoile for diva | 92% |
+| C29 | variant | Diva | 50% | Meta with etoile for diva | 95% |
 | C30 | vanilla | Diva | 50% | Meta with etoile for diva | 90% |
 | C30 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 87% |
 | C30 | variant | Diva | 50% | Meta with etoile for diva | 95% |
@@ -57,4 +56,4 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C40 | variant | Dark Lord | 50% | Dual-Support with attacker for dark lord | 80% |
 | C40 | variant | Diva | 50% | Dual-Support with etoile for diva | 77% |
 | C40 | variant | Sniper | 50% | none could be built | - **below** |
-| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 40% **below** |
+| C40 | variant | Valkyrie | 50% | Dual-Support with kunoichi for tank | 42% **below** |

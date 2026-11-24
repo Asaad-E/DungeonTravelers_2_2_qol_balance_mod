@@ -154,11 +154,15 @@ def apply(data, changes):
                 raise ValueError(f'{row["ID"]}: unknown enemy field {field}')
         elif table == 'attacks':
             attack = out.attacks[int(record.split()[0])]
-            eid = _effect_id(field)
-            k = next(i for i, (e, _, _) in enumerate(attack.effects) if e == eid)
-            e, kind, v = attack.effects[k]
-            _check(row, v)
-            attack.effects[k] = (e, kind, new)
+            if field == 'attribute':
+                _check(row, attack.attr)
+                attack.attr = int(new)
+            else:
+                eid = _effect_id(field)
+                k = next(i for i, (e, _, _) in enumerate(attack.effects) if e == eid)
+                e, kind, v = attack.effects[k]
+                _check(row, v)
+                attack.effects[k] = (e, kind, new)
         elif table == 'unique':
             skill = out.unique[int(record.split()[1])]
             if field == 'effect id':             # the effect the skill is a status of (UniqueSkillData 0x50)

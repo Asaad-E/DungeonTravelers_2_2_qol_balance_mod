@@ -431,8 +431,45 @@ namespace DtEngine.Suite
             lock (cache.Gate)
             {
                 if (cache.Map.TryGetValue(key, out name)) return name;
-                // a role whose own rows already use the action keeps them (an added row before her statuses would undo her order)
-                if (c.Setup.Policies.Any(r => r.Str("Role") == role && r.Str("Action") == act)) { cache.Map[key] = null; return null; }
+                // a role whose own rows already use the action keeps them ONLY when the condition already matches (and not on a random-chain ailment override);
+                // otherwise variant conditions (e.g. "always" or "enemies_at_least:3" on kunoichi's Shadow Sew, built-in as "boss") would never fire on random battles.
+                var existing = c.Setup.Policies.Where(r => r.Str("Role") == role && r.Str("Action") == act).ToList();
+                if (existing.Count > 0)
+                {
+                    bool sameCond = existing.Any(r => r.Str("Condition") == cond);
+                    if (sameCond && !(chain > 0 && act.StartsWith("ailment:"))) { cache.Map[key] = null; return null; }
+                    var overrideRows = new List<Row>(c.Setup.Policies.Count);
+                    if (chain > 0 && act.StartsWith("ailment:"))
+                    {
+                        var mine = c.Setup.Policies.Where(r => r.Str("Role") == role).OrderBy(r => Py.Num(r.Get("Order"))).ToList();
+                        var first = mine.FirstOrDefault(r => !(r.Str("Action").StartsWith("revive") || r.Str("Action").StartsWith("heal") || r.Str("Action").StartsWith("cure")));
+                        object cut = first != null ? first.Get("Order") : 0L;
+                        foreach (var r in c.Setup.Policies)
+                        {
+                            if (r.Str("Role") == role && r.Str("Action") == act) continue;
+                            var copy = new Row();
+                            foreach (var kv in r.Cells) copy.Cells[kv.Key] = kv.Value;
+                            if (r.Str("Role") == role && Py.Num(r.Get("Order")) >= Py.Num(cut)) copy.Cells["Order"] = Py.Num(r.Get("Order")) + 1;
+                            overrideRows.Add(copy);
+                        }
+                        var added = new Row();
+                        added.Cells["Role"] = role; added.Cells["Order"] = cut; added.Cells["Condition"] = cond; added.Cells["Action"] = act;
+                        overrideRows.Add(added);
+                    }
+                    else
+                    {
+                        foreach (var r in c.Setup.Policies)
+                        {
+                            var copy = new Row();
+                            foreach (var kv in r.Cells) copy.Cells[kv.Key] = kv.Value;
+                            if (r.Str("Role") == role && r.Str("Action") == act) copy.Cells["Condition"] = cond;
+                            overrideRows.Add(copy);
+                        }
+                    }
+                    name = c.AddSetup(c.Setup.WithPolicies(overrideRows));
+                    cache.Map[key] = name;
+                    return name;
+                }
                 var rawRows = SkillValue.RowsWithRule(c, role, cond, act, chain, true);
                 var rows = new List<Row>(rawRows.Count);
                 for (int i = 0; i < rawRows.Count; i++)

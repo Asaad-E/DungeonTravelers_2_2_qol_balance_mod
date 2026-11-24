@@ -446,6 +446,22 @@ namespace DtEngine
             return all > 0 && mine >= share * all;
         }
 
+        /// <summary>True when any living foe has a non-passive attack of the given attribute (or any attribute if 0)
+        /// that can reach the back row (range >= 1, AoE, row, pierce, or random target).</summary>
+        static bool EnemyCanHitBackRow(Battle b, Unit u, int attr)
+        {
+            foreach (var t in EnemiesOf(b, u))
+                foreach (int id in t.Attacks)
+                {
+                    var k = b.Data.GetAttack(id);
+                    if (k == null || k.Passive) continue;
+                    if (attr != 0 && k.Attr != attr) continue;
+                    if (k.Range >= 1 || k.Target == T.ALL || k.Target == T.ROW || k.Target == T.RANDOM || k.Target == T.PIERCE)
+                        return true;
+                }
+            return false;
+        }
+
         /// <summary>no_foe_dispels: no living foe has an attack that strips buffs (effect 74): a buff the foes would strip at every blow is
         /// not kept up against them, as a player stops casting it again.</summary>
         static bool NoFoeDispels(Battle b, Unit u)
@@ -1253,19 +1269,30 @@ namespace DtEngine
                 if (code == T.ALLY_ROW)
                 {
                     if (AllyChantingStatus(battle, unit, effect)) continue;
-                    Unit frontTarget = null;
-                    int frontMembers = 0, frontLacking = 0;
+                    Unit frontTarget = null, backTarget = null;
+                    int frontMembers = 0, frontLacking = 0, backMembers = 0, backLacking = 0;
                     foreach (var m in battle.AlliesArray(unit))
                     {
-                        if (m.Kind == Kind.Member && m.Front)
+                        if (m.Kind != Kind.Member) continue;
+                        if (m.Front)
                         {
                             frontMembers++;
                             if (frontTarget == null) frontTarget = m;
                             if (Lacks(m, effect, action)) frontLacking++;
                         }
+                        else
+                        {
+                            backMembers++;
+                            if (backTarget == null) backTarget = m;
+                            if (Lacks(m, effect, action)) backLacking++;
+                        }
                     }
-                    if (frontMembers == 0 || frontLacking == 0) continue;
-                    return new Action(unit, AKind.Skill, skill, level, frontTarget);
+                    if (frontMembers > 0 && frontLacking > 0)
+                        return new Action(unit, AKind.Skill, skill, level, frontTarget);
+                    int guardAttr = effect == 185 ? 1 : effect == 184 ? 2 : effect == 186 ? 3 : 0;
+                    if (backMembers > 0 && backLacking > 0 && EnemyCanHitBackRow(battle, unit, guardAttr))
+                        return new Action(unit, AKind.Skill, skill, level, backTarget);
+                    continue;
                 }
                 // EVERYONE (Limit Field): a status on every unit of the field, kept up as a party buff is
                 if (code == T.ALLIES || code == T.EVERYONE)

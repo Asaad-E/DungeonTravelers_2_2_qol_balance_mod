@@ -2,13 +2,14 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**39 nothing shown; 16 serves; 9 see SKILL_AILMENTS.md; 3 out of the fight (of 67).**
+**40 nothing shown; 16 serves; 9 see SKILL_AILMENTS.md; 3 out of the fight (of 68).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
 | Alluring Samba | etoile | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Attract | dark lord | P24: wins +2%, length +0%, HP left +2 points | nothing shown |
 | Barrage Rondo | maid | C38: wins +7%, length -9%, HP left -2 points | nothing shown |
+| Bash Guard | sage | P24: wins +0%, length +0%, HP left +0 points | nothing shown |
 | Blood Rage | attacker | C30: wins +5%, length -3%, HP left +8 points | serves |
 | Brave | dark lord | P24: wins -2%, length +0%, HP left +1 points | nothing shown |
 | Catalina | dolls | C40: wins +6%, length +0%, HP left +7 points | nothing shown |
