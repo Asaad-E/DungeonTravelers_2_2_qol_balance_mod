@@ -37,7 +37,7 @@ The reference party, 200 battles a cell: wins / length / lowest HP of the party.
 | C40 | atk x1.06; hp x1.24; int x1.06 | 40% / 31.9 / 13% | 32% / 34.5 / 8% | within | 66% / 24.8 / 21% | won | needed |
 | P03 | atk x1.04; hp x1.11; int x1.04 | 0% / 0.0 / 0% | 0% / 0.0 / 0% | within | 0% / 0.0 / 0% | within | not needed: within without them |
 | P06 | atk x1.16; hp x1.35; int x1.16 | 31% / 18.9 / 12% | 25% / 18.8 / 8% | within | 57% / 13.1 / 21% | won, time | needed |
-| P08 | atk x1.08; def x1.54; hp x1.73; int x1.08 | 100% / 6.3 / 80% | 100% / 7.2 / 82% | within | 100% / 4.3 / 88% | time, pressure | needed |
+| P08 | atk x1.08; def x1.54; hp x1.73; int x1.08 | 100% / 6.3 / 80% | 100% / 6.9 / 82% | within | 100% / 4.1 / 88% | time, pressure | needed |
 | P11 | atk x1.08; hp x1.20; int x1.08 | 54% / 6.6 / 18% | 62% / 6.3 / 20% | within | 76% / 5.6 / 27% | won | needed |
 | P13 | atk x1.04; hp x1.08; int x1.04 | 0% / 0.0 / 0% | 3% / 6.1 / 1% | within | 5% / 6.6 / 1% | within | not needed: within without them |
 | P14 | hp x0.86 | 97% / 10.5 / 32% | 92% / 8.1 / 31% | within | 87% / 9.4 / 28% | within | not needed: within without them |

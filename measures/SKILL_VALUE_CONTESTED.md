@@ -45,7 +45,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Lightning Enchant | sage | C30: wins +2%, length -15%, HP left +3 points | nothing shown |
 | Lightning March | maid | C38: wins +10%, length +0%, HP left +4 points | serves |
 | Limit Field | dolls | P24: wins +16%, length +0%, HP left +13 points | serves |
-| Loose Spirit | mage | C30: wins +2%, length +3%, HP left +0 points | nothing shown |
+| Loose Spirit | mage | C30: wins -5%, length +6%, HP left -3 points | nothing shown |
 | Magic Barrier | magical princess | C30: wins +7%, length -11%, HP left +4 points | nothing shown |
 | Materialize | dolls | P24: wins +8%, length +0%, HP left +6 points | serves |
 | Mini Circle Nurse | sage | C40: wins +8%, length -1%, HP left +7 points | nothing shown |

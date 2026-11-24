@@ -29,6 +29,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C24 | vanilla | Diva | 80% | Meta with etoile for diva | 100% |
 | C24 | variant | Diva | 80% | Meta with etoile for diva | 100% |
 | C26 | vanilla | Diva | 80% | Meta with etoile for diva | 92% |
+| C26 | variant | Dark Lord | 80% | Meta with attacker for dark lord | 98% |
 | C26 | variant | Diva | 80% | Meta with etoile for diva | 97% |
 | C29 | vanilla | Diva | 50% | Meta with etoile for diva | 97% |
 | C29 | variant | Diva | 50% | Meta with etoile for diva | 95% |
@@ -38,7 +39,6 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C30 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 73% |
 | C36 | vanilla | Diva | 50% | Dual-Support with etoile for diva | 58% |
 | C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 87% |
-| C36 | variant | Dark Lord | 50% | Meta with attacker for dark lord | 92% |
 | C36 | variant | Diva | 50% | Meta with mistress for diva | 58% |
 | C36 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 88% |
 | C40 | vanilla | Bishop | 50% | Dual-Support with etoile for healer | 48% **below** |
