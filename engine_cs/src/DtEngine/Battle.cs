@@ -806,16 +806,25 @@ namespace DtEngine
 
         void DecrementTimedStatuses(Unit unit)
         {
-            // Inner State 8 (0x436d4c): timed status durations decrement BEFORE 259/283/203 turn-loss checks.
+            // Inner State 8 (0x436d4c, 0x48d5b5..0x48d5d7): timed status durations decrement BEFORE 259/283/203 turn-loss checks.
+            // Field-only IDs (17, 18, 21, 107; 0x47fdc0) do not tick in battle; Sleep (116) immediately expires vt+0x8c statuses even if Turns == 0.
             int n = unit.StCount;
             if (n == 0) return;
+            bool asleep = unit.St[116] != null;
             var order = n <= tickScratch.Length ? tickScratch : new int[n];
             for (int i = 0; i < n; i++) order[i] = unit.StatusAt(i);
             for (int k = 0; k < n; k++)
             {
                 int effect = order[k];
                 var s = unit.St[effect];
-                if (s != null && s.Turns > 0)
+                if (s == null) continue;
+                if (asleep && Data.SleepClearedCommands.Contains(effect))
+                {
+                    unit.PopStatus(effect);
+                    continue;
+                }
+                if (effect == 17 || effect == 18 || effect == 21 || effect == 107) continue;
+                if (s.Turns > 0)
                 {
                     s.Turns -= 1;
                     if (s.Turns <= 0) unit.PopStatus(effect);
@@ -1482,9 +1491,10 @@ namespace DtEngine
             }
             int hits = NumberOfHits(action);
             if (hits <= 0) return;
-            if (action.TargetCode == T.RANDOM)
+            if (action.TargetCode == T.RANDOM || action.TargetCode == T.RANDOM_ALLY)
             {
-                var pool = targets;
+                var pool = action.TargetCode == T.RANDOM_ALLY ? TargetableArray(unit.Side) : targets;
+                if (pool.Length == 0) return;
                 if (action.Has(112))
                 {
                     int k = Math.Min(pool.Length, Math.Max(1, hits));
@@ -1496,7 +1506,9 @@ namespace DtEngine
                 {
                     int count = Math.Max(1, hits);
                     targets = new Unit[count];
-                    for (int i = 0; i < count; i++) targets[i] = pool[Rng.ChoiceIndex(pool.Length)];
+                    bool keepForced = action.Target != null && Array.IndexOf(pool, action.Target) >= 0;
+                    for (int i = 0; i < count; i++)
+                        targets[i] = (i == 0 && keepForced) ? action.Target : pool[Rng.ChoiceIndex(pool.Length)];
                 }
                 hits = 1;
             }
@@ -1532,6 +1544,9 @@ namespace DtEngine
             for (int ti = 0; ti < targets.Length && !abortHits; ti++)
             {
                 var target = targets[ti];
+                // 0x420b40..0x420eb3 (M04.10a): Cover (171) runs ONCE per target slot (preserving slot hit count and 1 wear-off roll per covered slot).
+                if (target.Side != unit.Side && CanFight(target))
+                    target = Redirect(action, target);
                 for (int h = 0; h < hits && !abortHits; h++)
                 {
                     if (!CanFight(unit)) { abortHits = true; break; }
@@ -1542,8 +1557,9 @@ namespace DtEngine
                         var pool = TargetableArray(target.Side);
                         if (pool.Length == 0) { abortHits = true; break; }
                         target = pool[Rng.ChoiceIndex(pool.Length)];
+                        if (target.Side != unit.Side) target = Redirect(action, target);
                     }
-                    Resolve(action, target, index);
+                    Resolve(action, target, index, redirected: true);
                     index++;
                 }
             }
@@ -1668,10 +1684,13 @@ namespace DtEngine
         /// (0x43b5f0, 0x43b610).</summary>
         static bool NotACandidate(Unit u) => u.Kind == Kind.Doll || u.Kind == Kind.Summon || u.Kind == Kind.Npc;
 
+        static bool IsHealAction(Action action)
+            => action != null && (action.Has(9) || action.Has(103) || action.Has(104) || action.Has(128) || action.Has(131) || action.Has(132));
+
         /// <summary>One unit of the actor's own side for scopes 5 and 7 (0x43f450): the unit given when it is still a candidate; a unit
-        /// given that is not (dead) yields the candidate with the lowest HP ratio, the last of them on a tie (0x43f668 - 0x43f6e9);
-        /// none given, an even roll among the candidates (0x43f7ba).</summary>
-        Unit OwnSidePick(Unit chosen, Unit[] candidates)
+        /// given that is not (dead) yields the candidate with the lowest HP ratio (0x43f668 - 0x43f6e9); none given on heal actions
+        /// picks lowest HP% (0x43f541..0x43f7a5), otherwise an even roll among the candidates (0x43f7ba).</summary>
+        Unit OwnSidePick(Unit chosen, Unit[] candidates, Action action = null)
         {
             if (candidates.Length == 0) return null;
             if (chosen != null)
@@ -1680,6 +1699,17 @@ namespace DtEngine
                 Unit lowest = null; double ratio = 1.0;
                 foreach (var u in candidates) if (u.HpRatio <= ratio) { ratio = u.HpRatio; lowest = u; }
                 return lowest ?? candidates[candidates.Length - 1];
+            }
+            if (IsHealAction(action))
+            {
+                // 0x43f541..0x43f7a5 (M04.07a): Ally-Heal AI picks lowest HP% (strict < keeps earlier on tie).
+                Unit lowest = null;
+                double bestRatio = double.PositiveInfinity;
+                foreach (var u in candidates)
+                {
+                    if (u.HpRatio < bestRatio) { bestRatio = u.HpRatio; lowest = u; }
+                }
+                if (lowest != null) return lowest;
             }
             return candidates[Rng.ChoiceIndex(candidates.Length)];
         }
@@ -1696,10 +1726,8 @@ namespace DtEngine
             var unit = action.Actor;
             int code = action.TargetCode;
             var foes = TargetableArray(1 - unit.Side);
-            // the candidates on the unit's own side: units numbered below 2000 (0x43e6d0), so never a doll, the summon or a guest ally;
-            // an action that revives (105) or cures (106) leaves out the test of life, so fallen members are candidates too (0x56d570,
-            // stored at +0x3a of the action and passed to 0x43af10 at 0x43ec49)
-            var friends = action.Has(105) || action.Has(106) ? OwnSideAll(unit.Side) : TargetableArray(unit.Side);
+            // 0x56d570 / M04.07b: Resurrect (105) and party Nurse (106) include dead party members; enemy Nurse (106) targets living enemies only.
+            var friends = (action.Has(105) || (action.Has(106) && unit.Side == Unit.PARTY)) ? OwnSideAll(unit.Side) : TargetableArray(unit.Side);
             var chosen = action.Target;
             if (code == T.SINGLE || code == T.PIERCE || code == T.ROW)
             {
@@ -1757,7 +1785,7 @@ namespace DtEngine
             if (code == T.SELF || code == T.NO_TARGET) return new[] { unit };
             if (code == T.ALLY)
             {
-                var one = OwnSidePick(chosen, friends);
+                var one = OwnSidePick(chosen, friends, action);
                 return one != null ? new[] { one } : NoUnits;
             }
             if (code == T.RANDOM_ALLY)
@@ -1768,7 +1796,7 @@ namespace DtEngine
             }
             if (code == T.ALLY_ROW)
             {
-                var picked = OwnSidePick(chosen, friends);
+                var picked = OwnSidePick(chosen, friends, action);
                 if (picked == null) return NoUnits;
                 bool row = picked.Front;
                 var r = new List<Unit>();
@@ -1780,7 +1808,7 @@ namespace DtEngine
             {
                 Unit best = null;
                 foreach (var u in friends) if (best == null || u.TpRatio < best.TpRatio) best = u;
-                return new[] { best };
+                return best != null ? new[] { best } : NoUnits;
             }
             return new[] { unit };
         }
@@ -1968,13 +1996,13 @@ namespace DtEngine
             return target.Side != action.Actor.Side || T.OwnSide(c) || c == T.EVERYONE || c == T.ANYONE;
         }
 
-        void Resolve(Action action, Unit target, int index)
+        void Resolve(Action action, Unit target, int index, bool redirected = false)
         {
             var unit = action.Actor;
             bool hostile = target.Side != unit.Side;
             if (hostile)
             {
-                target = Redirect(action, target);
+                if (!redirected) target = Redirect(action, target);
                 if (target == null) return;
                 // M00.05a: Auto-Guard (255) rolls post-Cover on the final physical target (once per target per action).
                 if (action.Physical && !guardingChecked.Contains(target))
@@ -2284,8 +2312,12 @@ namespace DtEngine
                 if (wall != null) amount = Math.Max(0, PyMath.Int(amount + amount * wall.Value(DEMON_WALL)));
                 var actor = action.Actor;
                 int ptThresh = Options.PositiveTranceThreshold ?? Data.PositiveTranceThreshold;
-                if (!action.Magic && actor.HasUnique && actor.UniqueEffect == 440 && actor.Pep > ptThresh)
-                    amount += PyMath.Int(amount * (actor.Pep - ptThresh) / Math.Max(1.0, actor.UniqueValue) / 100.0);
+                if (!action.Magic && actor.HasUnique && actor.UniqueEffect == 440)
+                {
+                    actor.ClampPep();
+                    if (actor.Pep > ptThresh)
+                        amount += PyMath.Int(amount * (actor.Pep - ptThresh) / Math.Max(1.0, actor.UniqueValue) / 100.0);
+                }
             }
             if (target.St[116] != null && !special) amount = amount * F.SLEEP_NUM / F.SLEEP_DEN;
             if (!special && action.Actor.Pieces(F.AILING_ENCHANT) != 0 && HasTrueAilment(target)) amount += PyMath.Int(amount * F.AILING_SHARE);
@@ -2930,6 +2962,11 @@ namespace DtEngine
             // 0x43c1fa: falling clears active song and dance slots on the singer/dancer.
             unit.ClearSongsAndDances();
             if (Rec != null) { Rec.Deaths.Add(new RecKey(unit), 1); if (unit.Side == Unit.ENEMIES) Rec.Kills++; }
+            // 0x43a6b9 & 0x43abd1 (M11.14a): PlayerStatusData.bin motivation deltas on player KO (idx 1) and enemy kill (idx 0).
+            if (unit.Kind == Kind.Member && unit.Character?.Pep != null && unit.Character.Pep.Length > 1)
+                unit.AddPep(unit.Character.Pep[1]);
+            if (unit.Side == Unit.ENEMIES && source != null && source.Kind == Kind.Member && source.Character?.Pep != null && source.Character.Pep.Length > 0)
+                source.AddPep(source.Character.Pep[0]);
             if (activeDolls > 0)
             {
                 for (int i = 0; i < Units.Count; i++)
@@ -3142,7 +3179,7 @@ namespace DtEngine
                     target.Defending = true;
                     continue;
                 }
-                if (effect == 121 && hostile && !target.Immune("petrification") && target.Resistance(6) < 100 && !Nullified(target, 120))
+                if (effect == 121 && hostile && CanFight(target) && !target.Immune("petrification") && target.Resistance(6) < 100 && !Nullified(target, 120))
                 {
                     // 0x4f99c1..0x4f9b6b: Instant Petrify checks barrier (101/102/181), attaches Status(120) at Stage = 3,
                     // ends performances, and clears all other statuses while keeping Alive = true and HP intact.
@@ -3843,7 +3880,8 @@ namespace DtEngine
                     if (skill == null) return null;
                 }
             }
-            return new Action(action.Actor, AKind.Skill, skill, action.Level);
+            // 0x42d370 (M08.10a): CActionPatternM0129 (Heaven or Hell) preserves the caster's chosen target.
+            return new Action(action.Actor, AKind.Skill, skill, action.Level, action.Target);
         }
 
         static int ApplyItemMastery(double value, double mastery)
@@ -3864,14 +3902,14 @@ namespace DtEngine
             Item item = null;
             if (action.Item != T.NONE) Data.Items.TryGetValue(action.Item, out item);
             if (item == null || !unit.Items.TryGetValue(action.Item, out int have) || have <= 0) return;
-            // ItemData Flags_0x18 bit 8 (0x100): infinite battle items (859..867) are not consumed on use.
-            if ((item.Flags & 0x100) == 0)
+            Rec?.ItemsUsed.Add(new RecKey(unit, item.Name), 1);
+            // 0x42cfe0 / 0x42d011 (M05.08a/b): execute item effects BEFORE _ConsumeItem (RNG order), and check Flags_0x18 bit 6 (0x40) for infinite items (859..867).
+            ExecuteItemEffects(unit, item, action.Target ?? unit);
+            if ((item.Flags & 0x40) == 0)
             {
                 unit.Items[action.Item] = have - 1;
                 if (unit.Has(274) && Roll(unit.Value(274))) unit.Items[action.Item] += 1;
             }
-            Rec?.ItemsUsed.Add(new RecKey(unit, item.Name), 1);
-            ExecuteItemEffects(unit, item, action.Target ?? unit);
         }
 
         // Exact 23-entry (0x6d3820) and 25-entry Sea Creature (0x6d38b0) enemy ID tables for item handlers 56..59.

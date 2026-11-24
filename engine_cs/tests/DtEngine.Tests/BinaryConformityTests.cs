@@ -995,8 +995,8 @@ namespace DtEngine.Tests
             Assert.DoesNotContain(210, s1.SongIds);
             Assert.Contains(210, s2.SongIds);
 
-            // M04.08a: Item TargetType 18 (SideAll) heals entire side and Flags & 0x100 (infinite) does not consume count.
-            var infAllItem = new Item { Id = 9998, Name = "InfAllHeal", Flags = 0x104, TargetType = 18, Kinds = new[] { 0, -1, -1, -1 }, Values = new[] { 100.0, 0, 0, 0 } };
+            // M04.08a / M05.08a: Item TargetType 18 (SideAll) heals entire side and Flags & 0x40 (bit 6 infinite) does not consume count.
+            var infAllItem = new Item { Id = 9998, Name = "InfAllHeal", Flags = 0x44, TargetType = 18, Kinds = new[] { 0, -1, -1, -1 }, Values = new[] { 100.0, 0, 0, 0 } };
             data.Items[9998] = infAllItem;
             s1.Hp = 500; s2.Hp = 500; s1.Items[9998] = 1;
             bSong.UseItem(new Action(s1, AKind.Item, null, 1, s1, 9998));
@@ -1325,6 +1325,87 @@ namespace DtEngine.Tests
             maid.Alive = false;
             double waitDead = bMaid.Wait(ally);
             Assert.True(waitDead > waitAlive, "EF278: Dead Maid must not contribute 278 bonus to active 168 speed buff!");
+        }
+
+        [Fact]
+        public void Phase3_Wave3_InfiniteItems0x40_CoverPerSlot_HealAI_SleepDecay_RandomMove_And_Pep()
+        {
+            var snap = LoadSnapshot();
+            var vanilla = snap.Sides["vanilla"];
+
+            // M05.08a: Infinite battle items (859..867) carry Flags_0x18 bit 6 (0x40) and are NOT consumed by UseItem.
+            Assert.True(vanilla.Items.TryGetValue(859, out var orb));
+            Assert.NotEqual(0, orb.Flags & 0x40);
+            var hero = new Unit("Hero", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            hero.Items[859] = 1;
+            var foe = new Unit("Foe", Unit.ENEMIES, 50, 2000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 2.0, 0.0, T.NONE, Kind.Enemy);
+            var bInf = new Battle(vanilla, new List<Unit> { hero }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            bInf.UseItem(new Action(hero, AKind.Item, item: 859, target: hero));
+            Assert.Equal(1, hero.Items[859]);
+
+            // M04.10a: Cover (171) runs once per target slot on multi-hit single-target attacks (all hits go to same coverer, 1 wear-off roll).
+            var pal = new Unit("Pal", Unit.PARTY, 50, 2000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = true };
+            pal.SetStatus(new Status(171, 0.0, 5, pal)); // 0% wear-off to verify all 3 hits land on Pal
+            var mage = new Unit("Mage", Unit.PARTY, 50, 2000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Front = false };
+            var multiHit = new EnemyAttack
+            {
+                Id = 99920, Name = "TriHit", Target = T.SINGLE, Attr = T.SLASH, Range = T.SHORT, Accuracy = 1.0,
+                EffId = new[] { 0, 93 }, EffKind = new[] { 4, 4 }, EffValue = new[] { 1.0, 3.0 }, EffIsInt = new[] { false, true }
+            };
+            var bCov = new Battle(vanilla, new List<Unit> { pal, mage }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            bCov.Perform(new Action(foe, AKind.Enemy, multiHit, 1) { Target = mage });
+            Assert.Equal(2000, mage.Hp);
+            Assert.True(pal.Hp < 2000);
+
+            // M04.07a: Enemy Ally-Heal AI (OwnSidePick with chosen == null) picks lowest HP% ally deterministically.
+            var eFull = new Unit("EFull", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 2.0, 0.0, T.NONE, Kind.Enemy) { Hp = 1000 };
+            var eLow = new Unit("ELow", Unit.ENEMIES, 50, 1000, 0, new[] { 50, 50, 50, 50, 50, 50 }, null, 2.0, 0.0, T.NONE, Kind.Enemy) { Hp = 100 };
+            var eHeal = new EnemyAttack
+            {
+                Id = 99921, Name = "EnemyHeal", Target = T.ALLY, Attr = T.NEUTRAL, Range = T.LONG, Accuracy = 1.0,
+                EffId = new[] { 9 }, EffKind = new[] { 4 }, EffValue = new[] { 200.0 }, EffIsInt = new[] { true }
+            };
+            var bHeal = new Battle(vanilla, new List<Unit> { hero }, new List<Unit> { eFull, eLow }, new PyRandom(1), null, new BattleOptions(), null);
+            bHeal.Perform(new Action(eFull, AKind.Enemy, eHeal, 1));
+            Assert.Equal(300, eLow.Hp);
+
+            // M07.05a: Special Petrification (121) skips Stage-3 Petrified targets without wasting barriers.
+            var petTgt = new Unit("PetTgt", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member);
+            petTgt.SetStatus(new Status(101, 1.0, 5, petTgt));
+            petTgt.SetStatus(new Status(120, 1.0, 0, foe) { Stage = 3 });
+            var petAtk = new EnemyAttack
+            {
+                Id = 99922, Name = "InstPet", Target = T.SINGLE, Attr = T.NEUTRAL, Range = T.LONG, Accuracy = 1.0,
+                EffId = new[] { 121 }, EffKind = new[] { 4 }, EffValue = new[] { 1.0 }, EffIsInt = new[] { false }
+            };
+            var bPet = new Battle(vanilla, new List<Unit> { petTgt }, new List<Unit> { foe }, new PyRandom(1), null, new BattleOptions(), null);
+            bPet.Perform(new Action(foe, AKind.Enemy, petAtk, 1) { Target = petTgt });
+            Assert.NotNull(petTgt.St[101]);
+
+            // M11.14a/b: Command 81 (Pep Freeze) overrides ClampPep; enemy kill updates killer's Pep via PlayerStatusData.bin idx 0.
+            var alisiaChar = vanilla.Characters.First(c => c.Name == "Alisia");
+            Assert.NotNull(alisiaChar.Pep);
+            var alisia = new Unit("Alisia", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member)
+            { Character = alisiaChar, Pep = 100.0 };
+            var weakFoe = new Unit("Weak", Unit.ENEMIES, 1, 10, 0, new[] { 10, 10, 10, 10, 10, 10 }, null, 2.0, 0.0, T.NONE, Kind.Enemy);
+            var bPep = new Battle(vanilla, new List<Unit> { alisia }, new List<Unit> { weakFoe }, new PyRandom(1), null, new BattleOptions(), null);
+            bPep.LoseHp(weakFoe, 10, alisia);
+            Assert.Equal(100.0 + alisiaChar.Pep[0], alisia.Pep, 6);
+            alisia.SetStatus(new Status(81, 85.0, 5, alisia));
+            alisia.ClampPep();
+            Assert.Equal(85.0, alisia.Pep, 6);
+
+            // M11.02b / M11.08b: SetFront adjusts row-conditional enchants (222..225, 281) cleanly when front/back flips.
+            var lineUnit = new Unit("Line", Unit.PARTY, 50, 1000, 100, new[] { 100, 100, 100, 100, 100, 100 }, null, 1.4, 0.0, T.NONE, Kind.Member)
+            { Front = true, GearedForLine = new[] { 100, 100, 100, 100, 100, 100 } };
+            var ench = new int[GameData.MaxEnchant];
+            ench[222] = 1; // front-row ATK+8% / DEF+8% (or whatever F.ENCHANT_LINE[222] grants)
+            lineUnit.SetEnchants(ench);
+            int beforeAtk = lineUnit.Base[Unit.ATK];
+            lineUnit.SetFront(false);
+            Assert.NotEqual(beforeAtk, lineUnit.Base[Unit.ATK]);
+            lineUnit.SetFront(true);
+            Assert.Equal(beforeAtk, lineUnit.Base[Unit.ATK]);
         }
     }
 }

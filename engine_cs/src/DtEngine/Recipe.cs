@@ -163,7 +163,7 @@ namespace DtEngine
             var tested = BuildRoleMember(t.Role, who, t.Level ?? level, gear, t.Crown ?? crown, t.Forge, pieces, Array.Empty<int>(), sealbook,
                                          t.Extra.Count > 0 ? t.Extra : null);
             foreach (var (effect, amount) in t.PassivesAdd) tested.SetPassive(effect, tested.Passive(effect, 0.0) + amount, false);
-            if (t.Pep.HasValue) tested.Pep = t.Pep.Value;
+            if (t.Pep.HasValue) { tested.Pep = t.Pep.Value; tested.ClampPep(); }
             return tested;
         }
 

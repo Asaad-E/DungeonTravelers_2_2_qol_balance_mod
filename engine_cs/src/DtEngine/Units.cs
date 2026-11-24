@@ -195,14 +195,49 @@ namespace DtEngine
             return c;
         }
 
-        /// <summary>Clamps Pep to [70, 130] and applies pep-locking enchantments 201 (70), 200 (>=100), 195 (130) (0x4f69e0..0x4f6a6a).</summary>
+        /// <summary>Clamps Pep to [70, 130], applies pep-locking enchantments 201 (70), 200 (>=100), 195 (130),
+        /// and Command 81 (Pep Freeze, highest priority) (0x4f69e0..0x4f6a89).</summary>
         public void ClampPep()
         {
             Pep = F.Clamp(Pep, 70.0, 130.0);
-            if (!HasEnchants) return;
-            if (Pieces(201) != 0) Pep = 70.0;
-            if (Pieces(200) != 0 && Pep < 100.0) Pep = 100.0;
-            if (Pieces(195) != 0) Pep = 130.0;
+            if (HasEnchants)
+            {
+                if (Pieces(201) != 0) Pep = 70.0;
+                if (Pieces(200) != 0 && Pep < 100.0) Pep = 100.0;
+                if (Pieces(195) != 0) Pep = 130.0;
+            }
+            var c81 = St[81];
+            if (c81 != null) Pep = c81.Value;
+        }
+
+        public void AddPep(double delta)
+        {
+            if (delta == 0.0) return;
+            Pep += delta;
+            ClampPep();
+        }
+
+        public int[] GearedForLine;
+
+        /// <summary>Updates Front/Back row and adjusts statically-baked row-conditional enchants 222..225, 281 (M11.02b/M11.08b).</summary>
+        public void SetFront(bool front)
+        {
+            if (Front == front) return;
+            if (HasEnchants && GearedForLine != null)
+            {
+                foreach (var kv in F.ENCHANT_LINE)
+                {
+                    int n = Pieces(kv.Key);
+                    if (n == 0) continue;
+                    int sign = kv.Value.front == front ? 1 : -1;
+                    foreach (var (stat, share) in kv.Value.shares)
+                    {
+                        int delta = share < 1 ? PyMath.Int(GearedForLine[stat] * share) : PyMath.Int(GearedForLine[stat] / share);
+                        Base[stat] += sign * n * delta;
+                    }
+                }
+            }
+            Front = front;
         }
 
         // --- statuses --------------------------------------------------------------------------------------
@@ -557,7 +592,10 @@ namespace DtEngine
         public static int[] PieceStats(Piece piece, int upgrade)
         {
             var r = new int[6];
-            for (int s = 0; s < 6; s++) r[s] = piece.Stats[s] != 0 ? piece.Stats[s] + PyMath.Int(upgrade * piece.Rate) : 0;
+            // 0x4e12a0..0x4e15ef (M11.05a): forge stat growth computes in IEEE-754 single precision (f32).
+            float upgF = (float)upgrade;
+            float rateF = (float)piece.Rate;
+            for (int s = 0; s < 6; s++) r[s] = piece.Stats[s] != 0 ? piece.Stats[s] + (int)(upgF * rateF) : 0;
             return r;
         }
 
@@ -699,14 +737,18 @@ namespace DtEngine
                                    && (use.Slot != 1 || piece.Category == 1);
                     if (matches)
                     {
-                        // 0x4f7fdf..0x4f8044: class modifiers use raw upgraded piece stats (before mastery) and floor each gain at int(yearning).
+                        // 0x4f7fa4..0x4f8044 (M11.04a): class specialty modifiers compute rate & product in IEEE-754 single precision (f32)
+                        // and floor each gain at int(yearning).
+                        float rateF = (float)entry.Modifier + (float)yearning * 0.01f + (float)modifierUp;
+                        float dollRateF = (float)entry.Modifier + (float)modifierUp;
                         for (int s = 0; s < 6; s++)
                         {
                             if (rawStats[s] > 0)
                             {
-                                gains[s] += Math.Max(yearningFloor, PyMath.Int((characterStats[s] + rawStats[s]) * (entry.Modifier + 0.01 * yearning + modifierUp)));
+                                float combinedF = (float)(characterStats[s] + rawStats[s]);
+                                gains[s] += Math.Max(yearningFloor, (int)(combinedF * rateF));
                                 if (!isOffhandWeapon)
-                                    dollGains[s] += Math.Max(0, PyMath.Int((characterStats[s] + rawStats[s]) * (entry.Modifier + modifierUp)));
+                                    dollGains[s] += Math.Max(0, (int)(combinedF * dollRateF));
                             }
                         }
                     }
@@ -739,6 +781,7 @@ namespace DtEngine
             var bonusTotal = new int[6];
             var resistBonus = new int[8];
             // 0x4f8270 (Stage 4): EnchantBonus runs BEFORE Stage-5 Dual-Wield offhandBonus (0x4fbdd0), using totals only.
+            int[] preLineTotals = (int[])totals.Clone();
             EnchantBonus(counted, characterStats, hp, tp, front, bonusTotal, out int bonusHp, out int bonusTp, resistBonus, totals);
             for (int s = 0; s < 6; s++) totals[s] += bonusTotal[s];
             var dollBonusTotal = new int[6];
@@ -770,6 +813,7 @@ namespace DtEngine
             unit.PvInt = passiveInt;
             unit.Raw = (int[])characterStats.Clone();
             unit.DollBase = dollTotals;
+            unit.GearedForLine = preLineTotals;
             if (counted.Count > 0)
             {
                 var pieces = new int[GameData.MaxEnchant];

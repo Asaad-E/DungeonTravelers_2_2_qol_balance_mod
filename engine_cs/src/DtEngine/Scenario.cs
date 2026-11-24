@@ -720,13 +720,13 @@ namespace DtEngine
             if (frontCount > front)
             {
                 var order = party.Where(u => u.Front).OrderBy(u => u.MaxHp).ToList();
-                for (int i = 0; i < frontCount - front; i++) order[i].Front = false;
+                for (int i = 0; i < frontCount - front; i++) order[i].SetFront(false);
             }
             if (!party.Any(u => u.Front) && party.Count > 0)
             {
                 Unit best = null;
                 foreach (var u in party) if (best == null || u.MaxHp > best.MaxHp) best = u;
-                best.Front = true;
+                best.SetFront(true);
             }
             int count = kit ?? (Setup.HasSetting("kit_count") ? Setup.SettingInt("kit_count") : 0);
             var bag = new Dictionary<int, int>();
