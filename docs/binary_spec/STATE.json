@@ -1,5 +1,5 @@
 {
-  "campaign_status": "STRICT CERTIFIED PASS (0/0/0 R3; BALANCE RECALIBRATION DEFERRED)",
+  "campaign_status": "COMPLETE — STRICT CERTIFIED PASS & PHASE 5 RECALIBRATED",
   "active_phase": 5,
   "exe_sha256": "785b0257329dd6533a5378bdbdc646b7166e425a091f27fa3b01d291359a8f60",
   "phases": {
@@ -21,11 +21,11 @@
     },
     "4": {
       "status": "done",
-      "signoff_commit": "7ce0de7"
+      "signoff_commit": "81ad62b"
     },
     "5": {
-      "status": "sync_done",
-      "signoff_commit": "311db06"
+      "status": "done",
+      "signoff_commit": "aea5dab"
     }
   },
   "modules": {
