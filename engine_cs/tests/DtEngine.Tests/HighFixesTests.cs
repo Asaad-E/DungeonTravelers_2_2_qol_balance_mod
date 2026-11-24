@@ -277,5 +277,89 @@ namespace DtEngine.Tests
             Assert.Equal(silence.Id, ailPolicy.Choose(bAil, sage).Skill.Id);
             Assert.Equal(AKind.Defend, ailPolicy.Choose(bAil, sage).Kind); // 3rd attempt skipped
         }
+
+        [Fact]
+        public void A7_PolicyAuditFixes_Stage3PetrifyChargeGuardsNoMagicDupChantSelfTpMageDefendCatalina()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+            var boss = new Unit("Boss", Unit.ENEMIES, 80, 20000, 100, new[] { 300, 300, 200, 200, 100, 100 }, null, 1.0, 0.0, T.NONE, Kind.Enemy);
+
+            // 1) Stage-3 petrified ally must still be cured by ally_ailing:120 -> cure:120
+            var petrified = new Unit("Tank", Unit.PARTY, 60, 1000, 100, new[] { 100, 100, 60, 60, 80, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Role = "tank", HasRole = true };
+            petrified.SetStatus(new Status(120, 1.0, 99, boss) { Stage = 3 });
+            var curer = new Unit("Diva", Unit.PARTY, 60, 800, 100, new[] { 60, 80, 80, 100, 80, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Role = "diva", HasRole = true };
+            int cureItemId = data.Items.First(kv => kv.Value.Kinds.Contains(Battle.ITEM_CURE_ONE) || kv.Value.Kinds.Contains(Battle.ITEM_CURE_ALL)).Key;
+            curer.Items[cureItemId] = 2;
+            var bPet = new Battle(data, new List<Unit> { petrified, curer }, new List<Unit> { boss.CloneFresh() }, new PyRandom(20), null, new BattleOptions(), null);
+            var petPolicy = new Policy(new List<Row> { MakePolicyRow("*", 1.0, "ally_ailing:120;114;115;116", "cure:120;114;115;116"), MakePolicyRow("diva", 2.0, "always", "defend") }, snap.Setup);
+            var petAct = petPolicy.Choose(bPet, curer);
+            Assert.Equal(AKind.Item, petAct.Kind);
+            Assert.Same(petrified, petAct.Target);
+
+            // 2) Power Charge (191) skipped when foe has Range Immunity (182) OR insufficient TP remains for follow-up skill
+            var pc = data.SkillList.First(s => s.Name == "Power Charge");
+            var geo = data.SkillList.First(s => s.Name == "Geo Break");
+            int pcCost = pc.Tp[0];
+            var dl = new Unit("Yae", Unit.PARTY, 90, 1500, 300, new[] { 400, 300, 100, 100, 150, 150 }, null, 1.8, 0.0, T.SLASH, Kind.Member) { Role = "dark lord", HasRole = true, AttackRange = T.SHORT, Weapon = data.Equipment.Values.First(e => e.Type == 2) };
+            dl.Skills.Add((pc.Id, 1));
+            dl.Skills.Add((geo.Id, 1));
+            var wallBoss = boss.CloneFresh();
+            wallBoss.SetStatus(new Status(182, 1.0, 5, wallBoss));
+            var bWall = new Battle(data, new List<Unit> { dl }, new List<Unit> { wallBoss }, new PyRandom(21), null, new BattleOptions(), null);
+            var pcPolicy = new Policy(new List<Row> { MakePolicyRow("dark lord", 1.0, "always", "status:191"), MakePolicyRow("dark lord", 2.0, "always", "defend") }, snap.Setup);
+            Assert.Equal(AKind.Defend, pcPolicy.Choose(bWall, dl).Kind); // voided by 182
+            dl.Tp = pcCost; // enough for PC, 0 left for Geo Break
+            var bLowTp = new Battle(data, new List<Unit> { dl }, new List<Unit> { boss.CloneFresh() }, new PyRandom(22), null, new BattleOptions(), null);
+            Assert.Equal(AKind.Defend, pcPolicy.Choose(bLowTp, dl).Kind); // TP-starved after PC
+
+            // 3) FoesCast returns false in NoMagic zone -> Spell Guard (183) skipped
+            var spellGuard = data.SkillList.First(s => s.Name == "Spell Guard");
+            var valk = new Unit("Alisia", Unit.PARTY, 70, 1200, 200, new[] { 200, 200, 80, 80, 100, 100 }, null, 1.6, 0.0, T.NONE, Kind.Member) { Role = "valkyrie", HasRole = true };
+            valk.Skills.Add((spellGuard.Id, 1));
+            var casterFoe = boss.CloneFresh();
+            int spellAtkId = data.Attacks.First(kv => kv.Value != null && !kv.Value.Passive && kv.Value.Spell).Key;
+            casterFoe.Attacks = new[] { spellAtkId };
+            var noMagicZone = new Zone { NoMagic = true };
+            var bNoMag = new Battle(data, new List<Unit> { valk }, new List<Unit> { casterFoe }, new PyRandom(23), null, new BattleOptions(), noMagicZone);
+            var sgPolicy = new Policy(new List<Row> { MakePolicyRow("valkyrie", 1.0, "foes_cast:0.15", "status:183"), MakePolicyRow("valkyrie", 2.0, "always", "defend") }, snap.Setup);
+            Assert.Equal(AKind.Defend, sgPolicy.Choose(bNoMag, valk).Kind);
+
+            // 4) Duplicate song chant suppression
+            var carol = data.SkillList.First(s => s.Name == "Replenishing Carol");
+            var diva = new Unit("Yuni", Unit.PARTY, 50, 700, 200, new[] { 60, 80, 80, 100, 80, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Role = "diva", HasRole = true };
+            var mistress = new Unit("Conette", Unit.PARTY, 50, 700, 200, new[] { 80, 80, 80, 100, 80, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Role = "mistress", HasRole = true };
+            mistress.Skills.Add((carol.Id, 1));
+            diva.Chant = new Action(diva, AKind.Skill, carol, 1);
+            var bSong = new Battle(data, new List<Unit> { diva, mistress }, new List<Unit> { boss.CloneFresh() }, new PyRandom(24), null, new BattleOptions(), null);
+            var songPolicy = new Policy(new List<Row> { MakePolicyRow("mistress", 1.0, "always", "status:215"), MakePolicyRow("mistress", 2.0, "always", "defend") }, snap.Setup);
+            Assert.Equal(AKind.Defend, songPolicy.Choose(bSong, mistress).Kind);
+
+            // 5) AllyTpBelow recovers own TP via Fairy Apple
+            var mage = new Unit("Melvy", Unit.PARTY, 60, 600, 200, new[] { 30, 80, 180, 100, 70, 70 }, null, 1.6, 0.0, T.NONE, Kind.Member) { Role = "mage", HasRole = true, Front = false, Tp = 10 };
+            int tpItemId = data.Items.First(kv => kv.Value.Kinds.Contains(1)).Key;
+            mage.Items[tpItemId] = 2;
+            var bTp = new Battle(data, new List<Unit> { mage }, new List<Unit> { boss.CloneFresh() }, new PyRandom(25), null, new BattleOptions(), null);
+            var tpPolicy = new Policy(new List<Row> { MakePolicyRow("mage", 1.0, "ally_tp_below:0.15", "tp:0.15"), MakePolicyRow("mage", 2.0, "always", "defend") }, snap.Setup);
+            var tpAct = tpPolicy.Choose(bTp, mage);
+            Assert.Equal(AKind.Item, tpAct.Kind);
+            Assert.Same(mage, tpAct.Target);
+
+            // 6) Backline mage defends instead of 2-dmg staff poke when out of TP
+            mage.Items.Clear();
+            var bPoke = new Battle(data, new List<Unit> { mage }, new List<Unit> { boss.CloneFresh() }, new PyRandom(26), null, new BattleOptions(), null);
+            var pokePolicy = new Policy(new List<Row> { MakePolicyRow("mage", 1.0, "always", "damage") }, snap.Setup);
+            Assert.Equal(AKind.Defend, pokePolicy.Choose(bPoke, mage).Kind);
+
+            // 7) ActSkill("Catalina") skips if Catalina is already active on party side
+            var catalina = data.SkillList.First(s => s.Name == "Catalina");
+            var dolls = new Unit("Lilian", Unit.PARTY, 50, 700, 200, new[] { 80, 80, 100, 80, 80, 80 }, null, 1.5, 0.0, T.NONE, Kind.Member) { Role = "dolls", HasRole = true, Hp = 300 };
+            dolls.Skills.Add((catalina.Id, 1));
+            int catEff = catalina.Effects.First(e => e.Id >= 228 && e.Id <= 233).Id;
+            var liveDoll = new Unit("Catalina", Unit.PARTY, 50, 9999, 0, new[] { 80, 80, 80, 80, 80, 80 }, null, 1.5, 0.0, T.NONE, Kind.Doll) { Owner = dolls, Doll = new DollRec { Skill = catalina.Id }, PuppetEffect = catEff };
+            var bCat = new Battle(data, new List<Unit> { dolls, liveDoll }, new List<Unit> { boss.CloneFresh() }, new PyRandom(27), null, new BattleOptions(), null);
+            var catPolicy = new Policy(new List<Row> { MakePolicyRow("dolls", 1.0, "party_hp_below:0.6", "skill:Catalina"), MakePolicyRow("dolls", 2.0, "always", "defend") }, snap.Setup);
+            Assert.Equal(AKind.Defend, catPolicy.Choose(bCat, dolls).Kind);
+        }
     }
 }

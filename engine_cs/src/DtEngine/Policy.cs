@@ -309,7 +309,7 @@ namespace DtEngine
             if (heals) return true;
             if (!unit.HasRole) return false;
             string r = unit.Role;
-            return r == "diva" || r == "maid" || r == "etoile" || r == "healer" || r == "sage";
+            return r == "diva" || r == "maid" || r == "etoile" || r == "healer" || r == "sage" || r == "mage";
         }
 
         static bool UselessSupportPoke(Unit unit, Action action, Unit target, double dmg, bool heals) =>
@@ -418,12 +418,16 @@ namespace DtEngine
         /// of them (default 0.3): a song of magic defence is sung where the foes cast.</summary>
         static bool FoesCast(Battle b, Unit u, double share)
         {
+            bool noMagic = b.ZoneInfo != null && b.ZoneInfo.NoMagic;
             int all = 0, mine = 0;
             foreach (var t in EnemiesOf(b, u))
                 foreach (int id in t.Attacks)
                 {
                     var k = b.Data.GetAttack(id);
-                    if (k != null && !k.Passive) { all++; if (k.Spell) mine++; }
+                    if (k == null || k.Passive) continue;
+                    all++;
+                    if (noMagic && k.Spell) continue; // spells are nullified in NoMagic zones, but non-spell magic attacks still deal magic damage
+                    if (k.Spell || (k.EffId != null && Array.IndexOf(k.EffId, 1) >= 0)) mine++;
                 }
             return all > 0 && mine >= share * all;
         }
@@ -480,7 +484,7 @@ namespace DtEngine
                 case Cond.AllyTpBelow:
                     {
                         double f = rule.CNum;
-                        foreach (var m in b.AlliesArray(u)) if (m.Kind == Kind.Member && m != u && m.MaxTp != 0 && m.TpRatio < f) return true;
+                        foreach (var m in b.AlliesArray(u)) if (m.Kind == Kind.Member && m.MaxTp != 0 && m.TpRatio < f) return true;
                         return false;
                     }
                 case Cond.SelfTpBelow: return u.MaxTp != 0 && u.TpRatio < rule.CNum;
@@ -1046,7 +1050,8 @@ namespace DtEngine
                 default: kinds = Array.Empty<int>(); break;
             }
             int needCount = 0;
-            foreach (var m in battle.AlliesArray(unit))
+            var pool = arg == "cure" ? battle.SideArray(unit.Side, false) : battle.AlliesArray(unit);
+            foreach (var m in pool)
             {
                 if (m.Kind != Kind.Member || !m.Alive) continue;
                 if (arg == "tp") { if (m.MaxTp != 0 && m.TpRatio < 0.35) needCount++; }
@@ -1097,31 +1102,82 @@ namespace DtEngine
             if (target == null)
             {
                 Unit best = null;
-                foreach (var m in battle.AlliesArray(unit))
+                if (arg == "cure")
                 {
-                    if (m.Kind != Kind.Member) continue;
-                    double key = arg != "tp" ? m.HpRatio : m.TpRatio;
-                    if (best == null || key < (arg != "tp" ? best.HpRatio : best.TpRatio)) best = m;
+                    foreach (var m in battle.SideArray(unit.Side, false))
+                    {
+                        if (m.Kind != Kind.Member || !m.Alive || !Battle.HasTrueAilment(m)) continue;
+                        if (best == null || (m.St[120] != null && best.St[120] == null)) best = m;
+                    }
+                }
+                if (best == null)
+                {
+                    foreach (var m in battle.AlliesArray(unit))
+                    {
+                        if (m.Kind != Kind.Member) continue;
+                        double key = arg != "tp" ? m.HpRatio : m.TpRatio;
+                        if (best == null || key < (arg != "tp" ? best.HpRatio : best.TpRatio)) best = m;
+                    }
                 }
                 target = best;
             }
             return new Action(unit, AKind.Item, null, 1, target, bestId);
         }
 
+        static bool AllyChantingStatus(Battle battle, Unit unit, int effect, Unit target = null)
+        {
+            foreach (var m in battle.AlliesArray(unit))
+            {
+                if (m == unit || m.Chant == null || m.Chant.Skill == null) continue;
+                if (!Puts(m.Chant.Skill, effect)) continue;
+                if (target == null) return true;
+                int tc = m.Chant.TargetCode;
+                if (m.Chant.Target == target || tc == T.ALLIES || tc == T.EVERYONE || tc == T.ALLY_ROW) return true;
+            }
+            return false;
+        }
+
+        bool HasChargedFollowUp(Battle battle, Unit unit, List<(Skill skill, int level)> options, int remainingTp)
+        {
+            var foes = EnemiesOf(battle, unit);
+            if (foes.Length == 0) return false;
+            var probe = battle.ScratchAction;
+            bool hasDamagingSkill = false;
+            for (int i = 0; i < options.Count; i++)
+            {
+                var (s, lv) = options[i];
+                probe.Reset(unit, AKind.Skill, s, lv);
+                int code = probe.TargetCode;
+                bool isDmg = (code == T.SINGLE || code == T.RANDOM || code == T.ROW || code == T.PIERCE || code == T.ALL || code == T.EVERYONE) &&
+                             (probe.Physical || probe.Magic || probe.IsSpecial);
+                if (!isDmg) continue;
+                hasDamagingSkill = true;
+                if (Battle.EffectiveTpCost(unit, s, lv) > remainingTp) continue;
+                for (int fi = 0; fi < foes.Length; fi++)
+                    if (EffExpectedDamage(battle, probe, foes[fi]) > 0) return true;
+            }
+            if (!hasDamagingSkill)
+            {
+                probe.Reset(unit, AKind.Attack, null, 1);
+                bool heals = Heals(battle, unit);
+                for (int fi = 0; fi < foes.Length; fi++)
+                {
+                    var t = foes[fi];
+                    if (EffExpectedDamage(battle, probe, t) > 0 && !(Punished(unit, probe, t) && (heals || WeakBlow(battle, probe, t))))
+                        return true;
+                }
+            }
+            return false;
+        }
+
         Action ActStatus(Battle battle, Unit unit, int effect)
         {
             if (LastEnemyNearlyDead(battle, unit)) return null;
-            // Don't waste Power Charge (191) when every living enemy has Parry (180) and the user's attacks are non-neutral physical.
-            if (effect == 191 && unit.AttackAttr != T.NEUTRAL)
-            {
-                bool anyUnparried = false;
-                foreach (var f in EnemiesOf(battle, unit)) if (f.St[180] == null) { anyUnparried = true; break; }
-                if (!anyUnparried) return null;
-            }
             double reserve = HealReserve(battle, unit);
             var scratch = battle.ScratchAction;
             bool isDance = Battle.IsDance(effect);
             bool isPerf = Battle.IsSong(effect) || isDance;
+            if (isPerf && AllyChantingStatus(battle, unit, effect)) return null;
             var options = Options(battle, unit);
             for (int oi = 0; oi < options.Count; oi++)
             {
@@ -1151,13 +1207,16 @@ namespace DtEngine
                         var foes = EnemiesOf(battle, unit);
                         if (foes.Length == 1 && foes[0].Hp < Math.Max(100.0, unit.Stat(Unit.ATK) * 1.5)) continue;
                     }
+                    // Don't waste Power Charge / Aim (191) or Trump Card (48) if foes void/parry follow-ups or no TP remains for a skill.
+                    if ((effect == 191 || effect == 48) && !HasChargedFollowUp(battle, unit, options, unit.Tp - tpCost)) continue;
                     return new Action(unit, AKind.Skill, skill, level);
                 }
                 if (code == T.ALLY)
                 {
                     var lacking = battle.PolicyScratch;
                     lacking.Clear();
-                    foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && Lacks(m, effect, action)) lacking.Add(m);
+                    foreach (var m in battle.AlliesArray(unit))
+                        if (m.Kind == Kind.Member && Lacks(m, effect, action) && !AllyChantingStatus(battle, unit, effect, m)) lacking.Add(m);
                     if (lacking.Count == 0) continue;
                     Unit chosenTarget;
                     if (effect == 171)
@@ -1193,6 +1252,7 @@ namespace DtEngine
                 }
                 if (code == T.ALLY_ROW)
                 {
+                    if (AllyChantingStatus(battle, unit, effect)) continue;
                     Unit frontTarget = null;
                     int frontMembers = 0, frontLacking = 0;
                     foreach (var m in battle.AlliesArray(unit))
@@ -1210,6 +1270,7 @@ namespace DtEngine
                 // EVERYONE (Limit Field): a status on every unit of the field, kept up as a party buff is
                 if (code == T.ALLIES || code == T.EVERYONE)
                 {
+                    if (AllyChantingStatus(battle, unit, effect)) continue;
                     int members = 0, lackingN = 0;
                     foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member) { members++; if (Lacks(m, effect, action)) lackingN++; }
                     double share = partyBuffRecastShare;
@@ -1255,12 +1316,13 @@ namespace DtEngine
             return ailmentLists.GetOrAdd(key, r.ToArray());
         }
 
-        /// <summary>Whether a member of the party carries one of the ailments named (the test of the condition ally_ailing).</summary>
+        /// <summary>Whether a member of the party carries one of the ailments named (the test of the condition ally_ailing).
+        /// Uses SideArray(..., false) + Alive so Stage-3 petrified allies (excluded from CanFight/AlliesArray) remain visible to cure rules.</summary>
         static bool AnyAiling(Battle battle, Unit unit, int[] wanted)
         {
-            foreach (var m in battle.AlliesArray(unit))
+            foreach (var m in battle.SideArray(unit.Side, false))
             {
-                if (m.Kind != Kind.Member || m.StCount == 0) continue;
+                if (m.Kind != Kind.Member || !m.Alive || m.StCount == 0) continue;
                 for (int i = 0; i < wanted.Length; i++) if (m.St[wanted[i]] != null) return true;
             }
             return false;
@@ -1270,9 +1332,9 @@ namespace DtEngine
         {
             var r = battle.PolicyScratch;
             r.Clear();
-            foreach (var m in battle.AlliesArray(unit))
+            foreach (var m in battle.SideArray(unit.Side, false))
             {
-                if (m.Kind != Kind.Member || m.StCount == 0) continue;
+                if (m.Kind != Kind.Member || !m.Alive || m.StCount == 0) continue;
                 for (int i = 0; i < wanted.Length; i++) if (m.St[wanted[i]] != null) { r.Add(m); break; }
             }
             return r;
@@ -1479,6 +1541,7 @@ namespace DtEngine
             {
                 if (skill.Name == arg)
                 {
+                    if (GivesAny(skill, DOLL_EFFECTS) && DollActiveOnSide(battle, unit, skill)) return null;
                     var action = new Action(unit, AKind.Skill, skill, level);
                     if (action.TargetCode == T.SINGLE || action.TargetCode == T.PIERCE)
                     {
