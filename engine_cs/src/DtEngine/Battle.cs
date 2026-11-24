@@ -250,6 +250,7 @@ namespace DtEngine
             public readonly List<Unit> GuardingChecked = new List<Unit>(8);
             public readonly Action ScratchAction = new Action(null, AKind.Attack);
             public readonly List<Unit> PolicyScratch = new List<Unit>(8);
+            public readonly Dictionary<int, int> AilmentTries = new Dictionary<int, int>();
             public readonly List<Unit> RedirectScratch = new List<Unit>(8);
             public readonly List<Unit> DelayOrderScratch = new List<Unit>(16);
             public readonly int[] StatusScratch = new int[GameData.MaxEffect];
@@ -319,6 +320,7 @@ namespace DtEngine
             guardingChecked = scratch.GuardingChecked; guardingChecked.Clear();
             ScratchAction = scratch.ScratchAction;
             PolicyScratch = scratch.PolicyScratch; PolicyScratch.Clear();
+            AilmentTries = scratch.AilmentTries; AilmentTries.Clear();
             redirectScratch = scratch.RedirectScratch; redirectScratch.Clear();
             delayOrderScratch = scratch.DelayOrderScratch; delayOrderScratch.Clear();
             statusScratch = scratch.StatusScratch;
@@ -379,6 +381,7 @@ namespace DtEngine
             guarding.Clear();
             guardingChecked.Clear();
             PolicyScratch.Clear();
+            AilmentTries.Clear();
             redirectScratch.Clear();
             delayOrderScratch.Clear();
             scratch.RecDamage = RecDamage;
@@ -410,6 +413,7 @@ namespace DtEngine
         /// <summary>Objects the policy uses to examine the options of a decision one after the other (it makes the action it chooses afresh).</summary>
         public readonly Action ScratchAction;
         public readonly List<Unit> PolicyScratch;
+        public readonly Dictionary<int, int> AilmentTries;
         readonly List<Unit> redirectScratch;
         readonly List<Unit> delayOrderScratch;
         readonly int[] statusScratch;

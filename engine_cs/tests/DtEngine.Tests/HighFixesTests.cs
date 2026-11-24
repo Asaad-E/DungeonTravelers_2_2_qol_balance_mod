@@ -222,5 +222,60 @@ namespace DtEngine.Tests
             double hohVal = Policy.DamageValue(battle, new Action(joker, AKind.Skill, hoh, 1), out _);
             Assert.True(hohVal < 0.5 * dmgOnly, $"Expected Heaven or Hell value ({hohVal}) < 0.5 * damage-only ({0.5 * dmgOnly}) when enemy is injured");
         }
+
+        [Fact]
+        public void A6_PolicyAntiStupidity_ParryRevivePriorityAilmentCapAndRedundantHeal()
+        {
+            var snap = LoadSnapshot();
+            var data = snap.Sides["variant"];
+
+            // 1) Parry awareness: physical skill must not burn TP into Parry (180); fall back to 0-TP plain attack.
+            var geo = data.SkillList.First(s => s.Name == "Geo Break");
+            var attacker = new Unit("Yae", Unit.PARTY, 90, 1500, 300, new[] { 400, 300, 100, 100, 150, 150 }, null, 1.8, 0.0, T.SLASH, Kind.Member) { Role = "dark lord", HasRole = true };
+            attacker.Skills.Add((geo.Id, 1));
+            var boss = new Unit("Riko", Unit.ENEMIES, 90, 30000, 100, new[] { 300, 300, 200, 200, 100, 100 }, null, 1.0, 0.0, T.NONE, Kind.Enemy);
+            boss.SetStatus(new Status(180, 0.5, 5, boss));
+            var bParry = new Battle(data, new List<Unit> { attacker }, new List<Unit> { boss }, new PyRandom(10), null, new BattleOptions(), null);
+            var dmgPolicy = new Policy(new List<Row> { MakePolicyRow("dark lord", 1.0, "always", "damage") }, snap.Setup);
+            var chosen = dmgPolicy.Choose(bParry, attacker);
+            Assert.Equal(AKind.Attack, chosen.Kind); // 0-TP poke to strip Parry, NOT 42-TP Geo Break
+
+            // 2) Revive priority: dead healer must be revived before dead DPS sitting in slot 0.
+            var deadDps = new Unit("DPS", Unit.PARTY, 50, 500, 100, new[] { 100, 80, 50, 50, 80, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Role = "attacker", HasRole = true, Hp = 0, Alive = false };
+            var deadHealer = new Unit("Bishop", Unit.PARTY, 50, 500, 100, new[] { 50, 80, 100, 120, 80, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Role = "healer", HasRole = true, Hp = 0, Alive = false };
+            var savior = new Unit("Savior", Unit.PARTY, 50, 500, 100, new[] { 80, 80, 80, 80, 80, 80 }, null, 1.4, 0.0, T.NONE, Kind.Member) { Role = "dark lord", HasRole = true };
+            int reviveItemId = data.Items.First(kv => kv.Value.Kinds.Contains(8)).Key;
+            savior.Items[reviveItemId] = 2;
+            var bRev = new Battle(data, new List<Unit> { deadDps, deadHealer, savior }, new List<Unit> { boss.CloneFresh() }, new PyRandom(11), null, new BattleOptions(), null);
+            var revPolicy = new Policy(new List<Row> { MakePolicyRow("dark lord", 1.0, "ally_down", "revive") }, snap.Setup);
+            var revAct = revPolicy.Choose(bRev, savior);
+            Assert.Equal(AKind.Item, revAct.Kind);
+            Assert.Same(deadHealer, revAct.Target);
+
+            // 3) Redundant heal suppression: when another ally is already chanting Circle Heal and nobody is critical (<35%), skip secondary heal.
+            var circleHeal = data.SkillList.First(s => s.Name == "Circle Heal");
+            var singleHeal = data.SkillList.First(s => s.Name == "Heal");
+            var bishop = new Unit("Irena", Unit.PARTY, 50, 500, 200, new[] { 40, 80, 80, 120, 60, 60 }, null, 1.6, 0.0, T.NONE, Kind.Member) { Role = "healer", HasRole = true, Hp = 250 };
+            var sage = new Unit("Fiora", Unit.PARTY, 50, 500, 200, new[] { 40, 80, 120, 80, 60, 60 }, null, 1.6, 0.0, T.NONE, Kind.Member) { Role = "sage", HasRole = true, Hp = 500 };
+            sage.Skills.Add((singleHeal.Id, 1));
+            bishop.Chant = new Action(bishop, AKind.Skill, circleHeal, 1);
+            var bHeal = new Battle(data, new List<Unit> { bishop, sage }, new List<Unit> { boss.CloneFresh() }, new PyRandom(12), null, new BattleOptions(), null);
+            var healPolicy = new Policy(new List<Row> { MakePolicyRow("sage", 1.0, "ally_hp_below:0.7", "heal:0.7"), MakePolicyRow("sage", 2.0, "always", "defend") }, snap.Setup);
+            var sageAct = healPolicy.Choose(bHeal, sage);
+            Assert.Equal(AKind.Defend, sageAct.Kind);
+
+            // 4) Ailment spam cap: Silence (117) is capped at 2 attempts per enemy per battle.
+            var silence = data.SkillList.First(s => s.Name == "Silence");
+            var casterBoss = new Unit("Caster", Unit.ENEMIES, 50, 10000, 100, new[] { 80, 80, 120, 80, 60, 60 }, null, 1.0, 0.0, T.NONE, Kind.Enemy);
+            int spellAtkId = data.Attacks.First(kv => kv.Value != null && !kv.Value.Passive && kv.Value.Spell).Key;
+            casterBoss.Attacks = new[] { spellAtkId };
+            sage.Skills.Clear();
+            sage.Skills.Add((silence.Id, 1));
+            var bAil = new Battle(data, new List<Unit> { sage }, new List<Unit> { casterBoss }, new PyRandom(13), null, new BattleOptions(), null);
+            var ailPolicy = new Policy(new List<Row> { MakePolicyRow("sage", 1.0, "always", "ailment:117@0.01"), MakePolicyRow("sage", 2.0, "always", "defend") }, snap.Setup);
+            Assert.Equal(silence.Id, ailPolicy.Choose(bAil, sage).Skill.Id);
+            Assert.Equal(silence.Id, ailPolicy.Choose(bAil, sage).Skill.Id);
+            Assert.Equal(AKind.Defend, ailPolicy.Choose(bAil, sage).Kind); // 3rd attempt skipped
+        }
     }
 }

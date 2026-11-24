@@ -13,6 +13,7 @@ namespace DtEngine
         static readonly int[] ITEM_TP_KINDS = { 1, 2, 4, 5 };
         static readonly int[] ITEM_REVIVE_KINDS = { 8 };
         static readonly int[] ITEM_CURE_KINDS = { Battle.ITEM_CURE_ALL, Battle.ITEM_CURE_ONE };
+        static readonly int[] PETRIFY_ONLY = { 120 };
         static readonly int[] RANDOM_HARM_EFFECTS = { 0, 1, 8, 113, 114, 115, 116, 117, 118, 119, 120, 122, 123, 140, 143, 435 };
         static readonly int[] RANDOM_HEAL_EFFECTS = { 9, 103, 104, 128, 132 };
         static readonly int[] RANDOM_BAD_EFFECTS = { 425, 143 };
@@ -299,20 +300,97 @@ namespace DtEngine
         }
 
         // --- choosing ------------------------------------------------------------------------------------------
+        static bool Parried(Action action, Unit target) =>
+            target != null && target.St[180] != null && action.Physical && action.Attr != T.NEUTRAL;
+
+        static bool IsBacklineSupport(Unit unit, bool heals)
+        {
+            if (unit.Front) return false;
+            if (heals) return true;
+            if (!unit.HasRole) return false;
+            string r = unit.Role;
+            return r == "diva" || r == "maid" || r == "etoile" || r == "healer" || r == "sage";
+        }
+
+        static bool UselessSupportPoke(Unit unit, Action action, Unit target, double dmg, bool heals) =>
+            action.Kind == AKind.Attack && IsBacklineSupport(unit, heals) && target != null &&
+            dmg < target.Hp && dmg < 15.0 && dmg < target.MaxHp * 0.005;
+
+        static bool EnemyCastsSpells(Battle b, Unit t)
+        {
+            foreach (int id in t.Attacks)
+            {
+                var k = b.Data.GetAttack(id);
+                if (k != null && !k.Passive && k.Spell) return true;
+            }
+            return false;
+        }
+
+        static bool LastEnemyNearlyDead(Battle b, Unit unit)
+        {
+            var foes = EnemiesOf(b, unit);
+            if (foes.Length != 1) return false;
+            var f = foes[0];
+            double blow = Math.Max(100.0, Math.Max(unit.Stat(Unit.ATK), unit.Stat(Unit.INT)) * 1.5);
+            return f.Hp < blow && f.Hp < f.MaxHp * 0.15;
+        }
+
+        static bool HasDeadMember(Battle b)
+        {
+            foreach (var m in b.SideArray(Unit.PARTY, false)) if (m.Kind == Kind.Member && !m.Alive) return true;
+            return false;
+        }
+
+        static bool HasCriticalAlly(Battle b, Unit u, double ratio)
+        {
+            foreach (var m in b.AlliesArray(u)) if (m.Kind == Kind.Member && m.HpRatio < ratio) return true;
+            return false;
+        }
+
+        static bool RoleHasAction(List<Rule> own, Act act)
+        {
+            if (own == null) return false;
+            for (int i = 0; i < own.Count; i++) if (own[i].Action == act) return true;
+            return false;
+        }
+
         public Action Choose(Battle battle, Unit unit)
         {
             string role = unit.HasRole ? unit.Role : "attacker";
             rules.TryGetValue(EVERY_ROLE, out var common);
             if (!rules.TryGetValue(role, out var own)) rules.TryGetValue("attacker", out own);
             if (common != null)
-                for (int i = 0; i < common.Count; i++) { var chosen = TryRule(battle, unit, common[i]); if (chosen != null) return chosen; }
+            {
+                bool deferSoftCure = (HasDeadMember(battle) && RoleHasAction(own, Act.Revive)) ||
+                                     (HasCriticalAlly(battle, unit, 0.30) && RoleHasAction(own, Act.Heal));
+                for (int i = 0; i < common.Count; i++)
+                {
+                    var r = common[i];
+                    if (deferSoftCure && r.Action == Act.Cure && r.CAilments != null && r.CAilments.Length > 1)
+                    {
+                        // Petrification (120) is wipe-critical; keep it above revive/heal, but defer Sleep/Paralysis/Freeze.
+                        if (Array.IndexOf(r.CAilments, 120) >= 0 && AnyAiling(battle, unit, PETRIFY_ONLY))
+                        {
+                            var petrifyCure = ActCure(battle, unit, PETRIFY_ONLY);
+                            if (petrifyCure != null) return petrifyCure;
+                        }
+                        continue;
+                    }
+                    var chosen = TryRule(battle, unit, r);
+                    if (chosen != null) return chosen;
+                }
+            }
             if (own != null)
                 for (int i = 0; i < own.Count; i++) { var chosen = TryRule(battle, unit, own[i]); if (chosen != null) return chosen; }
             var attack = battle.ScratchAction;
             attack.Reset(unit, AKind.Attack, null, 1);
             var target = BestSingleTarget(battle, unit, attack);
-            if (target == null || battle.ExpectedDamage(attack, target) <= 0) return new Action(unit, AKind.Defend);
-            if (Punished(unit, attack, target) && (Heals(battle, unit) || WeakBlow(battle, attack, target))) return new Action(unit, AKind.Defend);
+            if (target == null) return new Action(unit, AKind.Defend);
+            double dmg = battle.ExpectedDamage(attack, target);
+            if (dmg <= 0) return new Action(unit, AKind.Defend);
+            bool heals = Heals(battle, unit);
+            if (UselessSupportPoke(unit, attack, target, dmg, heals)) return new Action(unit, AKind.Defend);
+            if (Punished(unit, attack, target) && (heals || WeakBlow(battle, attack, target))) return new Action(unit, AKind.Defend);
             return new Action(unit, AKind.Attack, null, 1, target);
         }
 
@@ -510,15 +588,16 @@ namespace DtEngine
             int ba = 0; double bb = 0, bc = 0;
             foreach (var t in foes)
             {
-                double dmg = battle.ExpectedDamage(action, t);
+                double dmg = Parried(action, t) ? 0.0 : battle.ExpectedDamage(action, t);
                 int a; double b, c;
-                if (dmg <= 0) { a = 3; b = 999999.0; c = 0; }
+                if (dmg <= 0) { a = Parried(action, t) ? 3 : 4; b = 999999.0; c = 0; }
                 else
                 {
                     bool kills = dmg >= t.Hp;
                     bool chanting = t.Chant != null;
                     bool asleep = t.St[116] != null;
                     bool done = false;
+                    double off = Math.Max(1.0, Math.Max(t.Stat(Unit.ATK), t.Stat(Unit.INT)));
                     a = 0; b = 0; c = 0;
                     if (asleep && !kills && !action.Has(139))
                     {
@@ -531,13 +610,13 @@ namespace DtEngine
                         double ratio = t.Hp / Math.Max(1.0, dmg);
                         if (kills)
                         {
-                            double threat = (chanting ? 2.0 : 1.0) * (battle.Fixed && t.MaxHp > 3000 ? 1.5 : 1.0) * Math.Max(1.0, t.Stat(Unit.ATK));
+                            double threat = (chanting ? 2.0 : 1.0) * (battle.Fixed && t.MaxHp > 3000 ? 1.5 : 1.0) * off;
                             a = 0; b = ratio; c = -threat;
                         }
                         else
                         {
                             if (chanting) ratio /= 2.5;
-                            a = 1; b = ratio; c = -t.Stat(Unit.ATK);
+                            a = 1; b = ratio; c = -off;
                         }
                     }
                 }
@@ -621,6 +700,9 @@ namespace DtEngine
 
         static bool IsRandomMove(Action action) => action.Skill != null && action.HasRandomMove;
 
+        static double EffExpectedDamage(Battle battle, Action action, Unit target) =>
+            Parried(action, target) ? 0.0 : battle.ExpectedDamage(action, target);
+
         /// <summary>Expected damage the action deals over its targets (each capped at the target's HP) and the target it is aimed at.</summary>
         public static double DamageValue(Battle battle, Action action, out Unit targetOut)
         {
@@ -632,7 +714,7 @@ namespace DtEngine
             if (code == T.SINGLE || code == T.PIERCE)
             {
                 var target = BestSingleTarget(battle, action.Actor, action);
-                double dmg = battle.ExpectedDamage(action, target);
+                double dmg = EffExpectedDamage(battle, action, target);
                 double total = dmg < target.Hp ? dmg : target.Hp;
                 if (code == T.PIERCE)
                 {
@@ -642,7 +724,7 @@ namespace DtEngine
                     foreach (var behind in battle.Behind(target))
                     {
                         if (Array.IndexOf(foes, behind) < 0) continue;
-                        double d2 = battle.ExpectedDamage(action, behind);
+                        double d2 = EffExpectedDamage(battle, action, behind);
                         total += d2 < behind.Hp ? d2 : behind.Hp;
                     }
                 }
@@ -661,12 +743,12 @@ namespace DtEngine
                     if (t.Front == firstFront)
                     {
                         if (firstRep == null) firstRep = t;
-                        AddMin(ref firstSum, t.Hp, battle.ExpectedDamage(action, t));
+                        AddMin(ref firstSum, t.Hp, EffExpectedDamage(battle, action, t));
                     }
                     else
                     {
                         if (secondRep == null) secondRep = t;
-                        AddMin(ref secondSum, t.Hp, battle.ExpectedDamage(action, t));
+                        AddMin(ref secondSum, t.Hp, EffExpectedDamage(battle, action, t));
                     }
                 }
                 double s1 = firstSum.Result;
@@ -684,7 +766,7 @@ namespace DtEngine
                 double denom = Math.Max(1.0, hits);
                 var sum = new PySum();
                 for (int i = 0; i < foes.Length; i++)
-                    sum.AddFloat(battle.ExpectedDamage(action, foes[i]) / denom);
+                    sum.AddFloat(EffExpectedDamage(battle, action, foes[i]) / denom);
                 double mean = sum.Result / foes.Length;
                 return hits * mean;
             }
@@ -695,7 +777,7 @@ namespace DtEngine
         static double RowSum(Battle battle, Action action, Unit[] row)
         {
             var sum = new PySum();
-            foreach (var t in row) AddMin(ref sum, t.Hp, battle.ExpectedDamage(action, t));
+            foreach (var t in row) AddMin(ref sum, t.Hp, EffExpectedDamage(battle, action, t));
             return sum.Result;
         }
 
@@ -746,8 +828,23 @@ namespace DtEngine
                 if (tpCost > unit.Tp * (1.0 - tpReserve) && tpCost > 0) continue;
                 if (tpCost > 0 && unit.Tp - tpCost < reserve) continue;
                 double total = DamageValue(battle, action, out Unit target);
-                if (total <= 0) continue;
-                if (action.Kind == AKind.Attack && Punished(unit, action, target) && (Heals(battle, unit) || WeakBlow(battle, action, target))) continue;
+                bool stripParry = false;
+                if (total <= 0)
+                {
+                    // Allow a 0-TP plain attack as a low-score fallback to roll Parry wear-off instead of burning TP or stalling forever.
+                    if (action.Kind == AKind.Attack && target != null && Parried(action, target) && !IsBacklineSupport(unit, Heals(battle, unit)))
+                    {
+                        total = 0.5;
+                        stripParry = true;
+                    }
+                    else continue;
+                }
+                if (!stripParry && action.Kind == AKind.Attack)
+                {
+                    bool heals = Heals(battle, unit);
+                    if (UselessSupportPoke(unit, action, target, total, heals)) continue;
+                    if (Punished(unit, action, target) && (heals || WeakBlow(battle, action, target))) continue;
+                }
                 double waitTime = TimeOf(battle, action);
                 double penalty = TpPenalty(unit, action);
                 if (tpCost > 0 && plainKills && target == plainTarget) penalty *= 1.0 + 3.0 * ((double)tpCost / Math.Max(1, unit.MaxTp));
@@ -822,8 +919,18 @@ namespace DtEngine
         {
             var hurt = battle.PolicyScratch;
             hurt.Clear();
-            foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && m.HpRatio < threshold) hurt.Add(m);
+            double minHp = 1.0;
+            bool partyHealIncoming = false;
+            foreach (var m in battle.AlliesArray(unit))
+            {
+                if (m.Kind != Kind.Member) continue;
+                if (m.HpRatio < threshold) { hurt.Add(m); if (m.HpRatio < minHp) minHp = m.HpRatio; }
+                if (m != unit && m.Chant != null && m.Chant.TargetCode == T.ALLIES && m.Chant.Skill != null && GivesAny(m.Chant.Skill, HEAL_EFFECTS))
+                    partyHealIncoming = true;
+            }
             if (hurt.Count == 0) return null;
+            // Avoid stacking a second slow heal when another ally is already chanting a party-wide heal, unless someone is critical.
+            if (partyHealIncoming && minHp >= 0.35) return null;
             Skill bestSkill = null; int bestLevel = 0; Unit bestTarget = null; double bestScore = 0.0;
             var scratch = battle.ScratchAction;
             foreach (var (skill, level) in Options(battle, unit))
@@ -895,10 +1002,31 @@ namespace DtEngine
             return null;
         }
 
+        static int RevivePriority(Unit m)
+        {
+            if (!m.HasRole) return 3;
+            switch (m.Role)
+            {
+                case "healer":
+                case "sage": return 0;
+                case "diva":
+                case "maid":
+                case "etoile": return 1;
+                case "valkyrie":
+                case "tank": return 2;
+                default: return 3;
+            }
+        }
+
         Action ActRevive(Battle battle, Unit unit)
         {
-            Unit dead = null;
-            foreach (var m in battle.SideArray(Unit.PARTY, false)) if (!m.Alive && m.Kind == Kind.Member) { dead = m; break; }
+            Unit dead = null; int bestPrio = int.MaxValue;
+            foreach (var m in battle.SideArray(Unit.PARTY, false))
+            {
+                if (m.Alive || m.Kind != Kind.Member) continue;
+                int p = RevivePriority(m);
+                if (dead == null || p < bestPrio) { dead = m; bestPrio = p; }
+            }
             if (dead == null) return null;
             foreach (var (skill, level) in Options(battle, unit))
                 if (Gives(skill, 105)) return new Action(unit, AKind.Skill, skill, level, dead);
@@ -917,8 +1045,14 @@ namespace DtEngine
                 case "cure": kinds = ITEM_CURE_KINDS; break;
                 default: kinds = Array.Empty<int>(); break;
             }
-            int hurt = 0;
-            foreach (var m in battle.AlliesArray(unit)) if (m.Kind == Kind.Member && m.Alive && m.HpRatio < 0.6) hurt++;
+            int needCount = 0;
+            foreach (var m in battle.AlliesArray(unit))
+            {
+                if (m.Kind != Kind.Member || !m.Alive) continue;
+                if (arg == "tp") { if (m.MaxTp != 0 && m.TpRatio < 0.35) needCount++; }
+                else if (arg == "cure") { if (Battle.HasTrueAilment(m)) needCount++; }
+                else { if (m.HpRatio < 0.6) needCount++; }
+            }
             bool found = false;
             bool bestParty = false; double bestSize = 0; int bestId = 0;
             foreach (var kv in unit.Items)
@@ -948,7 +1082,7 @@ namespace DtEngine
                     size = 0;
                     for (int i = 0; i < allySlots; i++) if (item.Kinds[i] == Battle.ITEM_CURE_ALL) size = 1;
                 }
-                bool flag = party == (hurt >= 2);
+                bool flag = party == (needCount >= 2);
                 // max() of the tuples (flag, size, item id)
                 if (!found) { found = true; bestParty = flag; bestSize = size; bestId = itemId; }
                 else
@@ -976,6 +1110,14 @@ namespace DtEngine
 
         Action ActStatus(Battle battle, Unit unit, int effect)
         {
+            if (LastEnemyNearlyDead(battle, unit)) return null;
+            // Don't waste Power Charge (191) when every living enemy has Parry (180) and the user's attacks are non-neutral physical.
+            if (effect == 191 && unit.AttackAttr != T.NEUTRAL)
+            {
+                bool anyUnparried = false;
+                foreach (var f in EnemiesOf(battle, unit)) if (f.St[180] == null) { anyUnparried = true; break; }
+                if (!anyUnparried) return null;
+            }
             double reserve = HealReserve(battle, unit);
             var scratch = battle.ScratchAction;
             bool isDance = Battle.IsDance(effect);
@@ -1082,7 +1224,7 @@ namespace DtEngine
                     {
                         if (effect == 84 && (!t.Snack || t.Hp >= PyMath.Int(t.MaxHp * 0.5))) continue;
                         bool lacks = t.St[effect] == null || (effect == 170 && !ProvokedByUnit(t, unit));
-                        if (lacks && !battle.VisiblyVoided(action, t)) foes.Add(t);
+                        if (lacks && !battle.VisiblyVoided(action, t) && !Parried(action, t)) foes.Add(t);
                     }
                     if (foes.Count == 0) continue;
                     Unit best = null; int b0 = 0, b1 = 0, b2 = 0;
@@ -1168,6 +1310,9 @@ namespace DtEngine
                     {
                         var target = foes[fi];
                         if (target.Immune(name) || target.St[effect] != null || Battle.Nullified(target, effect)) continue;
+                        if (effect == 117 && !EnemyCastsSpells(battle, target)) continue;
+                        int tryKey = (target.Position << 10) | effect;
+                        if (battle.AilmentTries.TryGetValue(tryKey, out int tries) && tries >= 2) continue;
                         double chance;
                         if (effect == 123) chance = unit.Level > target.Level ? value * 100 : 0.0;
                         else chance = F.AilmentChance(value, index != T.NONE ? target.Resistance(index) : 0);
@@ -1180,7 +1325,12 @@ namespace DtEngine
                         }
                     }
                 }
-                if (bestSkill != null) return new Action(unit, AKind.Skill, bestSkill, bestLevel, bestTarget);
+                if (bestSkill != null)
+                {
+                    int key = (bestTarget.Position << 10) | effect;
+                    battle.AilmentTries[key] = battle.AilmentTries.TryGetValue(key, out int prev) ? prev + 1 : 1;
+                    return new Action(unit, AKind.Skill, bestSkill, bestLevel, bestTarget);
+                }
             }
             return null;
         }
@@ -1200,7 +1350,7 @@ namespace DtEngine
                 Unit best = null; int b0 = 0, b1 = 0, b2 = 0, b3 = 0;
                 foreach (var t in buffed)
                 {
-                    if (battle.VisiblyVoided(action, t)) continue;
+                    if (battle.VisiblyVoided(action, t) || Parried(action, t)) continue;
                     int k0 = (t.Has(192) || t.Has(182)) ? 1 : 0;
                     int k1 = (t.St[161] != null || t.St[26] != null) ? 1 : 0;
                     int k2 = (battle.Fixed && t.MaxHp > 3000) ? 1 : 0;
@@ -1330,7 +1480,21 @@ namespace DtEngine
                 if (skill.Name == arg)
                 {
                     var action = new Action(unit, AKind.Skill, skill, level);
-                    if (action.TargetCode == T.SINGLE || action.TargetCode == T.PIERCE) action.Target = BestSingleTarget(battle, unit, action);
+                    if (action.TargetCode == T.SINGLE || action.TargetCode == T.PIERCE)
+                    {
+                        action.Target = BestSingleTarget(battle, unit, action);
+                        if (action.Target == null || Parried(action, action.Target)) return null;
+                        // Avoid spamming debuff-applying opener skills (e.g. Armor Penetration DEF-down 162) when already applied.
+                        for (int i = 0; i < action.Count; i++)
+                        {
+                            int eid = action.EffId(i);
+                            if (eid >= 161 && eid <= 168 && action.EffVal(i) < 0)
+                            {
+                                var st = action.Target.St[eid];
+                                if (st != null && st.Value < 0) return null;
+                            }
+                        }
+                    }
                     else if (action.TargetCode == T.ALLY)
                     {
                         Unit best = null;
