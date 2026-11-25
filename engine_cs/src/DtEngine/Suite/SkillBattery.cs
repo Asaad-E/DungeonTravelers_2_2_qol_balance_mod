@@ -86,11 +86,12 @@ namespace DtEngine.Suite
                     return "G|" + side + "|" + (use ? e.Guest : Scenario.NO_GUEST) + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
                 if (e.Girl != null)
                     return "U|" + side + "|" + e.Girl + "|" + e.Role + "|" + (use ? 1 : 0) + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
+                var effRule = EffectiveRule(c, e, cell);
                 if (!use)
                 {
-                    bool passiveRule = e.Skill != null && e.Skill.IsPassive && e.Rule.HasValue;
-                    string s0Setup = passiveRule ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
-                    string s0Extra = passiveRule ? ("|" + (s0Setup ?? "") + "|" + e.Rule.Value.act) : "";
+                    bool passiveRule = e.Skill != null && e.Skill.IsPassive && effRule.HasValue;
+                    string s0Setup = passiveRule ? SetupWithRule(c, e.Role, effRule.Value.cond, effRule.Value.act, cell.Chain) : null;
+                    string s0Extra = passiveRule ? ("|" + (s0Setup ?? "") + "|" + effRule.Value.act) : "";
                     // Setting extra_skills = { id: 0 } is a no-op when the role's allocation plan never allocates that skill,
                     // so all such unallocated skills on the same (role, weapon, cid, party, context, chain) share one baseline.
                     if (!RoleMentionsSkill(c.Setup, e.Role, e.Skill.Name))
@@ -98,9 +99,22 @@ namespace DtEngine.Suite
                     return "S0|" + side + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + e.Skill.Id + s0Extra + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
                 }
                 int levels = e.Skill.Levels != 0 ? e.Skill.Levels : 1;
-                string setupName = e.Rule.HasValue ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
+                string setupName = effRule.HasValue ? SetupWithRule(c, e.Role, effRule.Value.cond, effRule.Value.act, cell.Chain) : null;
                 return "S1|" + side + "|" + e.Skill.Id + "|" + levels + "|" + e.Role + "|" + (e.Weapon ?? "") + "|" + (setupName ?? "") + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + cell.Chain;
             }
+        }
+
+        /// <summary>Simplifies rule conditions that are provably constant in this cell's context so identical runs share cache entries.</summary>
+        static (string cond, string act)? EffectiveRule(Ctx c, Entry e, Cell cell)
+        {
+            if (!e.Rule.HasValue) return null;
+            var (cond, act) = e.Rule.Value;
+            // Boss cells have battle.Fixed == true on every turn, so Cond.Boss is identical to Cond.Always.
+            if (cell.Context == "boss" && cond == "boss") return ("always", act);
+            // Pure random-chain cells have Fixed == false and Options.Boss == false on every turn, so an added Cond.Boss rule never fires.
+            if (cell.Context == "random" && cond == "boss" && !c.Setup.Policies.Any(r => r.Str("Role") == e.Role && r.Str("Action") == act))
+                return null;
+            return e.Rule;
         }
 
         sealed class Cell
@@ -301,8 +315,9 @@ namespace DtEngine.Suite
             // the pep a girl's unique skill reads (section unique_skills of measure_config.json), as measures/UNIQUE_SKILLS.md plays her
             var pep = c.In("unique_skills").O("pep");
             if (e.Girl != null && pep.Has(e.Girl)) ((Obj)recipe.A("tested")[0]).Set("pep", pep.Get(e.Girl));
-            bool applyRule = e.Rule.HasValue && (use || (e.Skill != null && e.Skill.IsPassive));
-            string setupName = applyRule ? SetupWithRule(c, e.Role, e.Rule.Value.cond, e.Rule.Value.act, cell.Chain) : null;
+            var effRule = EffectiveRule(c, e, cell);
+            bool applyRule = effRule.HasValue && (use || (e.Skill != null && e.Skill.IsPassive));
+            string setupName = applyRule ? SetupWithRule(c, e.Role, effRule.Value.cond, effRule.Value.act, cell.Chain) : null;
             return Jb.Make(c, side, cell.Cid, roles: roles, runs: runs, recipe: recipe, enemies: enemies, setupName: setupName, options: options,
                            name: (e.Label ?? e.Skill.Name) + "|" + e.Girl + "|" + e.Role + "|" + e.Stage + "|" + cell.Cid + "|" + cell.Party + "|" + cell.Context + "|" + (use ? 1 : 0));
         }

@@ -150,8 +150,8 @@ namespace DtEngine
         FxSet SkillEffects()
         {
             var skill = Skill;
-            // the effects of a skill depend on the user only through the bonus effects
-            bool shareable = !skill.TakesFromUser;
+            // the effects of a skill depend on the user only through passives 278 and 353 on bonus effects (128..130, 272..273)
+            bool shareable = !skill.TakesFromUser || (!Actor.HasPassive(278) && !Actor.HasPassive(353));
             if (shareable)
             {
                 var cache = skill.FxByLevel;
@@ -162,10 +162,12 @@ namespace DtEngine
             {
                 double v = e.Values[Math.Min(Level, e.Values.Length) - 1];
                 var bonus = ValueBonus(e.Id);
-                var sum = new PySum();
-                foreach (int b in bonus) sum.AddFloat(Actor.Passive(b, 0.0));
-                // sum() of nothing is the int 0
-                v = v + (bonus.Length == 0 ? 0.0 : sum.Result);
+                if (bonus.Length > 0)
+                {
+                    var sum = new PySum();
+                    foreach (int b in bonus) sum.AddFloat(Actor.Passive(b, 0.0));
+                    v = v + sum.Result;
+                }
                 AddTo(set, e.Id, e.Kind, v, bonus.Length == 0 && e.IsInt[Math.Min(Level, e.Values.Length) - 1]);
             }
             set.FinalizeMask();
@@ -201,6 +203,9 @@ namespace DtEngine
         static readonly FxSet Empty = MakeEmpty();
         static FxSet MakeEmpty() { var s = MakeSet(0); s.FinalizeMask(); return s; }
 
+        static readonly FxSet PlainBase = MakePlainBase();
+        static FxSet MakePlainBase() { var s = MakeSet(1); AddTo(s, PLAIN_HIT, 4, 1.0, false); s.FinalizeMask(); return s; }
+
         static FxSet MakeAttackSet(EnemyAttack atk)
         {
             var set = MakeSet(atk.EffId.Length);
@@ -209,22 +214,25 @@ namespace DtEngine
             return set;
         }
 
-        static FxSet MakePlainSet(Unit actor)
+        internal static FxSet MakePlainSet(Unit actor)
         {
-            var set = MakeSet(4);
-            AddTo(set, PLAIN_HIT, 4, 1.0, false);
-            if (actor.HasEnchants)
+            if (!actor.HasEnchants) return PlainBase;
+            FxSet set = null;
+            foreach (var (enchant, effect, value) in F.PLAIN_ATTACK_ENCHANTS)
             {
-                foreach (var (enchant, effect, value) in F.PLAIN_ATTACK_ENCHANTS)
+                if (actor.Pieces(enchant) != 0)
                 {
-                    if (actor.Pieces(enchant) != 0)
+                    if (set == null)
                     {
-                        bool present = false;
-                        for (int i = 0; i < set.Count; i++) if (set.Id[i] == effect) { present = true; break; }
-                        if (!present) AddTo(set, effect, 4, value, false);
+                        set = MakeSet(4);
+                        AddTo(set, PLAIN_HIT, 4, 1.0, false);
                     }
+                    bool present = false;
+                    for (int i = 0; i < set.Count; i++) if (set.Id[i] == effect) { present = true; break; }
+                    if (!present) AddTo(set, effect, 4, value, false);
                 }
             }
+            if (set == null) return PlainBase;
             set.FinalizeMask();
             return set;
         }
@@ -303,11 +311,7 @@ namespace DtEngine
                 if (count == 1) return element;
                 if (count >= 2) return Actor.AttackAttr;
             }
-            if (Actor.HasEnchants)
-            {
-                for (int e = 78; e <= 82; e++)
-                    if (Actor.Pieces(e) != 0) return EnchantElement(e);
-            }
+            if (Actor.WeaponEnchantAttr != T.NONE) return Actor.WeaponEnchantAttr;
             return Actor.AttackAttr;
         }
 

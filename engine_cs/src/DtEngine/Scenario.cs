@@ -897,6 +897,7 @@ namespace DtEngine
 
         void Prepare(List<Unit> party, Group enemies)
         {
+            if (enemies.Number == T.NONE) return;
             foreach (var row in Setup.Preparation)
             {
                 if (row.Str("Floor") == enemies.Floor && enemies.Number != T.NONE && row.Int("Battle") == enemies.Number)
@@ -1086,25 +1087,33 @@ namespace DtEngine
         public static void RecoverAfterBattle(List<Unit> party)
         {
             // 0x43d6bc (vtable+0xe8): Stage-3 Petrified members do not contribute to or receive after-battle recovery.
-            var living = party.Where(u => u.CanFight && u.Kind == Kind.Member).ToList();
             for (int pass = 0; pass < 2; pass++)
             {
                 int effect = pass == 0 ? 272 : 273;
-                var values = new List<double>(); var extras = new List<double>();
-                foreach (var u in living)
+                int fullEnchant = pass == 0 ? 193 : 194;
+                var sVal = new PySum();
+                var sExt = new PySum();
+                bool anyVal = false;
+                for (int i = 0; i < party.Count; i++)
                 {
+                    var u = party[i];
+                    if (u.Kind != Kind.Member || !u.CanFight) continue;
                     double v = u.Passive(effect, 0.0);
                     if (u.HasPassive(effect) && v != 0.0)
                     {
-                        values.Add(v + u.Passive(278, 0.0));
-                        extras.Add(u.Passive(353, 0.0));
+                        sVal.AddFloat(v + u.Passive(278, 0.0));
+                        sExt.AddFloat(u.Passive(353, 0.0));
+                        anyVal = true;
                     }
                 }
-                double share = F.AfterBattleFraction(values, extras);
-                foreach (var u in living)
+                double share = anyVal ? Math.Min(0.30, sVal.Result) + sExt.Result : 0.0;
+                for (int i = 0; i < party.Count; i++)
                 {
+                    var u = party[i];
+                    if (u.Kind != Kind.Member || !u.CanFight) continue;
                     // 193 gives back all the HP, 194 all the TP (0x43d904 - 0x43d920)
-                    bool full = (effect == 272 && u.Pieces(193) > 0) || (effect == 273 && u.Pieces(194) > 0);
+                    bool full = u.HasEnchants && u.Pieces(fullEnchant) > 0;
+                    if (share <= 0.0 && !full) continue;
                     int gain = F.AfterBattleRecovery(pass == 0 ? u.MaxHp : u.MaxTp, share, full);
                     if (pass == 0) u.Hp = Math.Min(u.MaxHp, u.Hp + gain);
                     else u.Tp = Math.Min(u.MaxTp, u.Tp + gain);

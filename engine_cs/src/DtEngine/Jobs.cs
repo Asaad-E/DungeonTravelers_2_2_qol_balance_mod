@@ -379,7 +379,6 @@ namespace DtEngine
                 scenarios = new ConcurrentDictionary<string, Scenario>();
                 foreach (var kv in snap.Sides) scenarios[kv.Key] = new Scenario(kv.Value, snap.Setup);
             }
-            var named = new Dictionary<(string, string), Scenario>();
             var prepared = new PreparedJob[jobs.Count];
             for (int i = 0; i < jobs.Count; i++)
             {
@@ -396,7 +395,13 @@ namespace DtEngine
                     }
                     else if (!string.IsNullOrEmpty(j.SetupName))
                     {
-                        if (!named.TryGetValue((j.Side, j.SetupName), out var sc0)) named[(j.Side, j.SetupName)] = sc0 = new Scenario(snap.Sides[j.Side], snap.SetupNamed(j.SetupName));
+                        string namedKey = j.Side + "\0" + j.SetupName;
+                        if (!scenarios.TryGetValue(namedKey, out var sc0))
+                        {
+                            sc0 = new Scenario(snap.Sides[j.Side], snap.SetupNamed(j.SetupName));
+                            if (scenarios is ConcurrentDictionary<string, Scenario> cd) sc0 = cd.GetOrAdd(namedKey, sc0);
+                            else scenarios[namedKey] = sc0;
+                        }
                         j.Own = sc0;
                     }
                     var own = j.Own ?? scenarios[j.Side];

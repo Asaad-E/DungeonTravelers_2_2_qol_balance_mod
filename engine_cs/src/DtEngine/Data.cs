@@ -55,10 +55,10 @@ namespace DtEngine
         public Action.FxSet[] FxByLevel;
 
         /// <summary>A copy that shares the effects, with the caches empty (a trial changes the copy).</summary>
-        public Skill Copy() { var c = (Skill)MemberwiseClone(); c.FxByLevel = null; c.takes = 0; return c; }
+        public Skill Copy() { var c = (Skill)MemberwiseClone(); c.FxByLevel = null; c.takes = 0; c.damageCand = 0; return c; }
 
         int takes;     // 0 not worked out, 1 yes, 2 no
-        /// <summary>Whether a figure of the skill takes something from its user (the bonus effects 128 - 130, 168, 272, 273).</summary>
+        /// <summary>Whether a figure of the skill takes something from its user (the bonus effects 128 - 130, 272, 273).</summary>
         public bool TakesFromUser
         {
             get
@@ -66,10 +66,36 @@ namespace DtEngine
                 if (takes == 0)
                 {
                     bool yes = false;
-                    foreach (var e in Effects) if (e.Id == 128 || e.Id == 129 || e.Id == 130 || e.Id == 168 || e.Id == 272 || e.Id == 273) yes = true;
+                    foreach (var e in Effects) if (e.Id == 128 || e.Id == 129 || e.Id == 130 || e.Id == 272 || e.Id == 273) yes = true;
                     takes = yes ? 1 : 2;
                 }
                 return takes == 1;
+            }
+        }
+
+        int damageCand; // 0 not worked out, 1 yes, 2 no
+        /// <summary>Whether this skill is a damage or random-move candidate in Policy.ActDamage.</summary>
+        public bool IsDamageCandidate
+        {
+            get
+            {
+                if (damageCand == 0)
+                {
+                    bool enemyTarget = Target == T.SINGLE || Target == T.RANDOM || Target == T.ROW || Target == T.PIERCE || Target == T.ALL || Target == T.EVERYONE;
+                    bool yes = false;
+                    foreach (var e in Effects)
+                    {
+                        int id = e.Id;
+                        if (id == 152 || id == 153 || id == 154 || id == 155) { yes = true; break; }
+                        if (enemyTarget && (id == 0 || id == 1 || id == 8 || id == 12 || id == 138 || id == 140 || id == 141 || id == 142 || id == 434 || id == 435))
+                        {
+                            yes = true;
+                            break;
+                        }
+                    }
+                    damageCand = yes ? 1 : 2;
+                }
+                return damageCand == 1;
             }
         }
     }

@@ -77,6 +77,11 @@ namespace DtEngine
         public bool HasNullifyEnchant;
         public bool HasRaceAttackEnchant;
         public bool HasRaceGuardEnchant;
+        public int WeaponEnchantAttr = T.NONE;
+        public double PhysCutEnchant = 1.0, MagCutEnchant;
+        public int PhysAtkEnchant, PhysDefEnchant, PhysHitEnchant, PhysEvaEnchant;
+        public int MagAtkEnchant, MagDefEnchant, MagHitEnchant, MagEvaEnchant;
+        public double CritEnchant, CritDefEnchant, SpeedEnchant, ChantSpeedEnchant;
 
         public long ImmuneMask;
         public List<(int id, int level)> Skills = new List<(int, int)>();
@@ -408,6 +413,24 @@ namespace DtEngine
             foreach (var g in F.RACE_GUARD.Values)
                 if (pieces[g.small] != 0 || pieces[g.large] != 0) { rg = true; break; }
             HasRaceGuardEnchant = rg;
+            int we = T.NONE;
+            for (int e = 78; e <= 82; e++)
+                if (pieces[e] != 0) { we = e == 78 ? 4 : e == 79 ? 5 : e == 80 ? 6 : e == 81 ? 7 : 8; break; }
+            WeaponEnchantAttr = we;
+            PhysAtkEnchant = Math.Min(50, 4 * pieces[29] + 2 * pieces[30]);
+            PhysDefEnchant = Math.Min(50, 4 * pieces[33] + 2 * pieces[34]);
+            PhysHitEnchant = Math.Min(50, 4 * pieces[31] + 2 * pieces[32]);
+            PhysEvaEnchant = Math.Min(50, 4 * pieces[35] + 2 * pieces[36]);
+            PhysCutEnchant = 1.0 - (0.10 * pieces[66] + 0.05 * pieces[67] + 0.08 * pieces[70] + 0.04 * pieces[71]);
+            MagAtkEnchant = Math.Min(50, 4 * pieces[37] + 2 * pieces[38]);
+            MagDefEnchant = Math.Min(50, 4 * pieces[41] + 2 * pieces[42]);
+            MagHitEnchant = Math.Min(50, 3 * pieces[39] + pieces[40]);
+            MagEvaEnchant = Math.Min(50, 3 * pieces[43] + pieces[44]);
+            MagCutEnchant = Math.Max(-0.25, -(0.10 * pieces[68] + 0.05 * pieces[69] + 0.08 * pieces[70] + 0.04 * pieces[71]));
+            CritEnchant = F.CriticalEnchant(pieces[45], pieces[46]);
+            CritDefEnchant = -F.CriticalEnchant(pieces[47], pieces[48]);
+            SpeedEnchant = F.SpeedEnchantBonus(pieces[51], pieces[52], pieces[53]);
+            ChantSpeedEnchant = F.SpeedEnchantBonus(pieces[54], pieces[55], pieces[56], 0.20, 0.10, 0.20);
         }
 
         public bool Has(int e) => St[e] != null || !double.IsNaN(Pv[e]);

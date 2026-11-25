@@ -29,6 +29,7 @@ namespace DtEngine
         long iResult;
         double fResult, c;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddInt(long v)
         {
             if (!isFloat)
@@ -42,6 +43,7 @@ namespace DtEngine
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddFloat(double x)
         {
             if (!isFloat)
@@ -53,6 +55,7 @@ namespace DtEngine
                 c = 0.0;
                 return;
             }
+            if (x == 0.0) return;
             double t = fResult + x;
             if (Math.Abs(fResult) >= Math.Abs(x)) c += (fResult - t) + x;
             else c += (x - t) + fResult;
@@ -61,6 +64,7 @@ namespace DtEngine
 
         public double Result
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (!isFloat) return (double)iResult;

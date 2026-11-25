@@ -826,11 +826,7 @@ namespace DtEngine
             for (int i = 0; i < options.Count; i++)
             {
                 var (skill, level) = options[i];
-                scratch.Reset(unit, AKind.Skill, skill, level);
-                int code = scratch.TargetCode;
-                bool hits = (code == T.SINGLE || code == T.RANDOM || code == T.ROW || code == T.PIERCE || code == T.ALL || code == T.EVERYONE) &&
-                            (scratch.Physical || scratch.Magic || scratch.IsSpecial);
-                if (hits || scratch.HasRandomMove) { candidateSkills[candidates] = skill; candidateLevels[candidates] = level; candidates++; }
+                if (skill.IsDamageCandidate) { candidateSkills[candidates] = skill; candidateLevels[candidates] = level; candidates++; }
             }
             double reserve = HealReserve(battle, unit);
             scratch.Reset(unit, AKind.Attack, null, 1);
@@ -841,13 +837,26 @@ namespace DtEngine
             double bestScore = 0.0;
             for (int c = -1; c < candidates; c++)
             {
-                if (c < 0) scratch.Reset(unit, AKind.Attack, null, 1);
-                else scratch.Reset(unit, AKind.Skill, candidateSkills[c], candidateLevels[c]);
+                int tpCost;
+                double total;
+                Unit target;
+                if (c < 0)
+                {
+                    tpCost = 0;
+                    total = plainTotal;
+                    target = plainTarget;
+                }
+                else
+                {
+                    var sk = candidateSkills[c];
+                    int lv = candidateLevels[c];
+                    tpCost = Battle.EffectiveTpCost(unit, sk, lv);
+                    if (tpCost > unit.Tp * (1.0 - tpReserve) && tpCost > 0) continue;
+                    if (tpCost > 0 && unit.Tp - tpCost < reserve) continue;
+                    scratch.Reset(unit, AKind.Skill, sk, lv);
+                    total = DamageValue(battle, scratch, out target);
+                }
                 var action = scratch;
-                int tpCost = Battle.EffectiveTpCost(action);
-                if (tpCost > unit.Tp * (1.0 - tpReserve) && tpCost > 0) continue;
-                if (tpCost > 0 && unit.Tp - tpCost < reserve) continue;
-                double total = DamageValue(battle, action, out Unit target);
                 bool stripParry = false;
                 if (total <= 0)
                 {

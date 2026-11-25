@@ -38,17 +38,17 @@
 
 *(Once `tools/conformity_status.py` exists, this section is regenerated mechanically from `docs/binary_spec/STATE.json` and `docs/binary_spec/DIFF_TABLE.json`.)*
 
-- **Campaign Status:** `IN PROGRESS — PHASE 0 STARTING`
-- **Active Phase:** `Phase 0 — Mechanical Binary Inventory`
-- **Last Updated:** `2026-11-21`
-- **Baseline Commit:** `d6ddd7b` (`219/219` Python tests PASS, `61/61` C# tests PASS)
+- **Campaign Status:** `COMPLETED — CERTIFIED & RELEASED (v1.5.1)`
+- **Active Phase:** `None (Phases 0–5 complete)`
+- **Last Updated:** `2026-11-24`
+- **Release Commit:** `1ca406e` (`v1.5.1`; `6 GREEN / 0 AMBER / 0 RED` scorecard, `114/114` conformity items passing, `0 open` verdicts, all Python & C# tests PASS)
 - **Active Blocker:** `None`
 
 ### In-Progress Claims
 
 | Module / Task | Owner | Started Commit | Output Path | Status |
 |---|---|---|---|---|
-| Phase 5 Balance Recalibration *(deferred until user request)* | coordinator | `311db06` | `data_tables/balance_changes.xlsx` | `deferred` |
+| *(none — campaign complete)* | — | — | — | `done` |
 
 ### Phase Gate Tracker
 
@@ -59,7 +59,7 @@
 | **2** | Two-Way Global Diff & Triage | `[x] done` | `docs/binary_spec/DIFF_REPORT.md`, `docs/binary_spec/DIFF_TABLE.json` | 146 items (140 spec + 6 `ENGINE-ONLY`), `audit_check.py --diff` passes (**0 failing**), 282 sub-bugs triaged | `6950513` |
 | **3** | Fixes, Tests & Binary Invariants | `[x] done` | `engine_cs/`, `gamedata/`, `tools/*_data.py`, `tools/extract_vanilla.py`, `BinaryConformityTests.cs`, `tests/test_binary_invariants.py`, `tests/test_phase3_py_fixes.py` | All S0/S1/Py-loader/Wave-3 gaps fixed (`0x40` infinite items, per-slot Cover, Heal AI, Sleep-decay, f32 stats, battle Pep); `Battle.IsLegalAction()` enforced; `69/69` C# + `282/282` Py + paired `X01..X17` PASS | `0ee8aaa` |
 | **4** | 5-Stratum Independent Random Audit | `[x] done` | `tools/sample_audit_batch.py`, `docs/binary_spec/RANDOM_AUDIT_LOG.md` | 3 rounds (36 catalog items without replacement + 9 real `TextTrace` packets + 3/3 caught canaries); Round 3 **STRICT CERTIFIED PASS** (`0 S0 / 0 S1 / 0 S2`) | `0ee8aaa` |
-| **5** | Final Balance Recalibration & Release | `[~] sync done` | `docs/generated/*`, `measures/*`, `dist/*.zip`, `docs/FORMULAS.md`, `data_tables/engine_conformity.json` | `full_suite.py` + `sealbook-battery` + `support-battery` + `suite_charts.py` + `package_all.py` + doc sync complete (`311db06`); optional `balance_changes.xlsx` recalibration deferred per user | `311db06` |
+| **5** | Final Balance Recalibration & Release | `[x] done` | `data_tables/balance_changes.xlsx`, `data_tables/balance_skill_text.xlsx`, `docs/generated/*`, `measures/*`, `dist/*.zip` | Full balance pass (`251` skills `0 dead/0 hurts/0 unclear`, `49/49` postgame within `±15 pp`, `44/44` random battles within, `76/76` ClassStages within, `6 GREEN / 0 AMBER / 0 RED` scorecard), packaged (`3,401/3,401` rows, `0 blocked`), and released as `v1.5.0` / `v1.5.1` | `1ca406e` |
 
 ### Phase 1–3 Module Progress Matrix (`M00`–`M11`)
 

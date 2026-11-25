@@ -15,7 +15,9 @@ To install the mod, refer to the main [README.md](../README.md).
 | [CLASS_IDENTITY.md](CLASS_IDENTITY.md) | Intended class roles, niches, and skill toolkits across all progression tiers. |
 | [ROSTER_IDENTITY.md](ROSTER_IDENTITY.md) | The role, niche, personality and kit of every summon of a grand sealbook and every mercenary. |
 | [ENGINE_AUDIT.md](ENGINE_AUDIT.md) | The plan of the audit of the combat engine against the executable. |
+| [ENGINE_CONFORMITY_ROADMAP.md](ENGINE_CONFORMITY_ROADMAP.md) | Clean-room binary conformity roadmap and certification status (Phases 0–5). |
 | [generated/ENGINE_CONFORMITY.md](generated/ENGINE_CONFORMITY.md) | Its result: every mechanic, its address, its place in the engine and its verdict (generated, checked). |
+| [generated/BALANCE_SCORECARD.md](generated/BALANCE_SCORECARD.md) | Paired guardrail scorecard compass (`GREEN`/`AMBER`/`RED`) across all balance pillars. |
 | [SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md](SKILL_DISPLAY_PHILOSOPHY_AND_SPECIFICATION.md) | Tooltip layout guidelines, screen width limits, and formatting standards. |
 | [SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md](SIMULATOR_AI_BENCHMARK_PHILOSOPHY.md) | Rationale behind the simulation engine's optimal AI policy for A/B testing. |
 | [dungeontravelers2-2.md](dungeontravelers2-2.md) | Technical reference for binary container formats, memory layouts, and struct offsets. |
@@ -49,6 +51,8 @@ All gameplay adjustments, text revisions, and rule definitions are maintained in
 * `vanilla_source_of_truth.xlsx`: Decoded baseline game parameters.
 * `balance_changes.xlsx`: Register of all balance modifications, specifying modified fields, baseline values, new values, and design rationale.
 * `balance_criteria.xlsx`: Community feedback logs, risk categories, executable patches, and effect mechanics.
+* `sim_setup.xlsx`: Simulator roles, AI policies, party batteries, audit readings, and benchmark assumptions.
+* `measure_config.json`: Measure runner settings, sample sizes, and documented scorecard exceptions.
 * `qol_rules.xlsx`: Text templates, magnitude descriptors, and layout boundaries.
 * `qol_*_text.xlsx`: Sourced text definitions for skills, items, enchants, attacks, and meals.
 * `balance_*_text.xlsx`: Specialized text overrides for rebalanced skills and items.
