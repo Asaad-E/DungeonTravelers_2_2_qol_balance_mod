@@ -2,7 +2,7 @@
 
 Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value plays it; the best of its bosses is shown. Serves: 8% of wins, 3% of length or 3 points of the HP the party ends with.
 
-**39 nothing shown; 17 serves; 9 see SKILL_AILMENTS.md; 3 out of the fight (of 68).**
+**39 nothing shown; 18 serves; 9 see SKILL_AILMENTS.md; 3 out of the fight (of 69).**
 
 | Skill | Played as | Best boss | Verdict |
 |---|---|---|---|
@@ -46,6 +46,7 @@ Bosses: C30, C38, C40, P24. Each skill with and without, as dtcli skill-value pl
 | Lightning Enchant | sage | C40: wins -6%, length +4%, HP left -5 points | nothing shown |
 | Lightning March | maid | C40: wins +8%, length +3%, HP left +6 points | nothing shown |
 | Magic Barrier | magical princess | P24: wins +6%, length +0%, HP left +3 points | nothing shown |
+| Magical Change | magical princess | C38: wins +5%, length +18%, HP left +4 points | serves |
 | Materialize | dolls | P24: wins +7%, length +0%, HP left +5 points | serves |
 | Mini Circle Nurse | sage | C38: wins +10%, length +4%, HP left +7 points | serves |
 | Nurse | healer | C38: wins +11%, length -2%, HP left +4 points | nothing shown |

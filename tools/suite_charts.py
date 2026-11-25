@@ -135,8 +135,11 @@ def class_balance(z):
                 out.append(False)
         pad(ax, shown, lo_band if mode == 'both' else 0.0, hi_band if mode != 'info' else None, 0.08)
         ymin, ymax = ax.get_ylim()
-        if ymin < 0:
+        if ymin < 0 and min(good) > 0.05 * ymax:
             ax.set_ylim(0, ymax)
+        elif ymin < 0:
+            ax.set_ylim(-0.08 * ymax, ymax)
+            ax.set_yticks([t for t in ax.get_yticks() if t >= 0 and t <= ymax])
         mark_labels(ax, classes, out)
         ax.set_title(title + ('  (hollow: vanilla, filled: Balance)' if vanilla else '  (Balance)'), fontsize=10.5)
         ax.set_ylabel(label)

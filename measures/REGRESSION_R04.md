@@ -44,7 +44,7 @@ The pairs of boss and class that every winning party of the battery holds, and t
 | C36 | vanilla | Valkyrie | 50% | Meta with attacker for valkyrie | 88% |
 | C36 | variant | Diva | 50% | Meta with mistress for diva | 68% |
 | C36 | variant | Valkyrie | 50% | Meta with attacker for valkyrie | 97% |
-| C38 | variant | Diva | 80% | Anti-Meta-Plus with etoile for diva | 95% |
+| C38 | variant | Diva | 80% | Anti-Meta-Plus with etoile for diva | 97% |
 | C38 | variant | Magical Princess | 80% | none could be built | - **below** |
 | C38 | variant | Mistress | 80% | none could be built | - **below** |
 | C38 | variant | Papillon | 80% | none could be built | - **below** |

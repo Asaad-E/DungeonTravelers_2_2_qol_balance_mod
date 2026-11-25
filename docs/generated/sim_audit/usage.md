@@ -1,6 +1,6 @@
 ## usage
 
-200 skills of a plan never used: 98 dominated, 71 no rule of the role uses it, 6 not usable with the weapon of the role, 25 situational.
+198 skills of a plan never used: 96 dominated, 71 no rule of the role uses it, 6 not usable with the weapon of the role, 25 situational.
 
 | Role | Level | Fight | Skill never used | Why |
 |---|---|---|---|---|
@@ -129,10 +129,8 @@
 | magical princess (Melvy) | 14 | C11 | Ice Edge | dominated: 16% of the best (Fireball) at the start of the fight |
 | magical princess (Melvy) | 29 | C18 | Ice Edge | dominated: 28% of the best (Fireball) at the start of the fight |
 | magical princess (Melvy) | 29 | C18 | Fire Blast | dominated: 17% of the best (Fireball) at the start of the fight |
-| magical princess (Melvy) | 62 | C38 | Magical Slash | dominated: 50% of the best (Magical Spark) at the start of the fight |
 | magical princess (Melvy) | 62 | C38 | Accelerator | no rule of the role uses it |
 | magical princess (Melvy) | 62 | C38 | Cover | no rule of the role uses it |
-| magical princess (Melvy) | 62 | C38 | Ice Edge | dominated: 1% of the best (Magical Spark) at the start of the fight |
 | magical princess (Melvy) | 62 | C38 | Fire Blast | dominated: 0% of the best (Magical Spark) at the start of the fight |
 | magical princess (Melvy) | 90 | P24 | Accelerator | no rule of the role uses it |
 | magical princess (Melvy) | 90 | P24 | Rainbow Flash | dominated: 61% of the best (Magical Spark) at the start of the fight |

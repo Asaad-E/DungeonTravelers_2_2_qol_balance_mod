@@ -52,7 +52,7 @@ Boss fights that stand on a cell that forbids magic: C29a, P07, P13, P25, P47. S
 | Juggernaut | 97% | 24% | 0% | 1% | 0% |
 | Juggernaut-Plus | 92% | 7% | 0% | 0% | 0% |
 | Anti-Meta | 0% | 0% | 0% | 0% | 0% |
-| Anti-Meta-Plus | 29% | 0% | 0% | 0% | 0% |
+| Anti-Meta-Plus | 37% | 0% | 0% | 0% | 0% |
 
 The same party with and without her:
 
